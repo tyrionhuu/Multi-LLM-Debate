@@ -1,6 +1,6 @@
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ..utils.config_manager import get_models
 from .agent import Agent
@@ -23,7 +23,7 @@ class AgentsEnsemble:
         self,
         auto_init: bool = True,
         concurrent: bool = False,
-        max_workers: int = None,
+        max_workers: Optional[int] = None,
         job_delay: float = 0.5,
     ) -> None:
         """Initialize an AgentsEnsemble instance.
