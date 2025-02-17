@@ -13,11 +13,15 @@ def load_config():
             "api_key": "",
             "base_url": "https://api2.aigcbest.top/v1",
             "models": [
-                {"provider": "api", "name": "claude-3-5-sonnet-20241022", "quantity": 1},
+                {
+                    "provider": "api",
+                    "name": "claude-3-5-sonnet-20241022",
+                    "quantity": 1,
+                },
                 {"provider": "api", "name": "gpt-4o-2024-11-20", "quantity": 1},
                 {"provider": "ollama", "name": "llama3.2-vision:11b", "quantity": 1},
                 {"provider": "ollama", "name": "llava:13b", "quantity": 1},
-                {"provider": "ollama", "name": "llama3.2-vision:90b", "quantity": 1}
+                {"provider": "ollama", "name": "llama3.2-vision:90b", "quantity": 1},
             ],
         }
     with open(CONFIG_FILE, "r") as f:
@@ -42,7 +46,10 @@ def get_base_url() -> str:
 
 def get_models() -> List[Tuple[str, str, int]]:
     config = load_config()
-    return [(model["provider"], model["name"], model["quantity"]) for model in config.get("models", [])]
+    return [
+        (model["provider"], model["name"], model["quantity"])
+        for model in config.get("models", [])
+    ]
 
 
 def save_api_key(key: str) -> None:
