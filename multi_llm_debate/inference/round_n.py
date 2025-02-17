@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def run_debate_round_n(
     prompt: str,
     agents_ensemble: AgentsEnsemble,
-    data_dir: str | Path,
+    output_dir: str | Path,
     round_num: int,
 ) -> None:
     """
@@ -32,14 +32,14 @@ def run_debate_round_n(
     Args:
         prompt (str): The debate prompt including previous context
         agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in the debate
-        data_dir (str | Path): Directory path where debate responses will be saved
+        output_dir (str | Path): Directory path where debate responses will be saved
         round_num (int): Current round number
 
     Returns:
         None: Results are saved to file and logged
     """
-    data_dir = Path(data_dir)
-    data_dir.mkdir(exist_ok=True)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(exist_ok=True)
 
     logger.info(f"Running debate round {round_num}")
     logger.info(f"Debate prompt: {prompt}")
@@ -48,7 +48,7 @@ def run_debate_round_n(
     for i, response in enumerate(responses):
         logger.info(f"Agent {i} response: {response}")
 
-    output_file = data_dir / f"debate_round_{round_num}.json"
+    output_file = output_dir / f"debate_round_{round_num}.json"
     with open(output_file, "w") as f:
         json.dump(responses, f, indent=2)
 
