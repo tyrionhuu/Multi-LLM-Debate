@@ -22,8 +22,8 @@ class AgentsEnsemble:
     def __init__(
         self,
         auto_init: bool = True,
-        concurrent: bool = False,
-        max_workers: Optional[int] = None,
+        concurrent: bool = True,
+        max_workers: Optional[int] = 4,
         job_delay: float = 0.5,
     ) -> None:
         """Initialize an AgentsEnsemble instance.
