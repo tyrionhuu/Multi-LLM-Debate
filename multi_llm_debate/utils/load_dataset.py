@@ -249,8 +249,8 @@ def load_save_dataset_df(
 
 def main() -> None:
     df = load_save_dataset_df(
-        dataset_name="tyrionhuu/PPTBench-Modification",
-        dataset_path=Path("data/PPTBench-Modification"),
+        dataset_name="google/boolq",
+        dataset_path=Path("data/boolq"),
         force_download=True,
         source="huggingface",
     )
