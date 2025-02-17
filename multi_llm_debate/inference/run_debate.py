@@ -14,7 +14,22 @@ def run_debate(
     agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
 ) -> None:
-    """Run a full debate with multiple rounds using the given prompts and agents."""
+    """Run a full debate with multiple rounds using the given prompts and agents.
+    
+    Coordinates multiple rounds of debate between agents, starting with round zero
+    and continuing through subsequent rounds. Logs progress and saves results.
+    
+    Args:
+        max_rounds: Maximum number of debate rounds to run.
+        round_zero_prompt: The initial prompt/question to start the debate.
+        round_n_prompt: Template prompt for subsequent debate rounds.
+        agents_ensemble: Collection of LLM agents participating in the debate.
+        output_dir: Directory path where debate responses will be saved.
+    
+    Raises:
+        Exception: If any error occurs during the debate process.
+            Original exception is logged and re-raised.
+    """
     logger.info(f"Starting debate with {len(agents_ensemble)} agents")
     logger.info(f"Maximum rounds: {max_rounds}")
     logger.info(f"Output directory: {output_dir}")

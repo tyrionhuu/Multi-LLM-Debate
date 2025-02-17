@@ -9,7 +9,20 @@ logger = setup_logging(__name__)
 def run_debate_round_zero(
     prompt: str, agents_ensemble: AgentsEnsemble, output_dir: str | Path
 ) -> None:
-    """Run the initial round (round zero) of a debate."""
+    """Run the initial round (round zero) of a debate.
+    
+    Gets responses from all agents for the initial prompt and saves them to a JSON file.
+    Logs the process and response metadata.
+    
+    Args:
+        prompt: The initial prompt/question to start the debate.
+        agents_ensemble: Collection of LLM agents participating in the debate.
+        output_dir: Directory path where debate responses will be saved.
+    
+    Raises:
+        OSError: If unable to create output directory or save results file.
+        json.JSONDecodeError: If unable to serialize responses to JSON.
+    """
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
 
