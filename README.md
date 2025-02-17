@@ -1,4 +1,9 @@
-# Multi-LLM-Debate
+<h1 align="center">Multi-LLM-Debate</h1>
+
+<p align="center">
+<a href="https://github.com/tyrionhuu/Multi-LLM-Debate/blob/main/LICENSE"><img alt="License: MIT" src="https://black.readthedocs.io/en/stable/_static/license.svg"></a>
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+</p>
 
 This is the implementation of the paper ["Multi-LLM Debate: Framework, Principals, and Interventions"](https://proceedings.neurips.cc/paper_files/paper/2024/hash/32e07a110c6c6acf1afbf2bf82b614ad-Abstract-Conference.html)
 
