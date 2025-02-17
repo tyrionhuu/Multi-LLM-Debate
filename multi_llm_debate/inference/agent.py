@@ -1,5 +1,6 @@
 import json
-from typing import Dict, Any
+from typing import Any, Dict
+
 from ..llm.llm import call_model
 
 
@@ -54,7 +55,7 @@ class Agent:
             provider=self.provider,
             prompt=prompt,
         )
-        
+
         try:
             # Try to parse the response as JSON if it's a string
             if isinstance(raw_response, str):
@@ -63,7 +64,7 @@ class Agent:
                 parsed_response = raw_response
             else:
                 parsed_response = {"raw_content": str(raw_response)}
-                
+
         except json.JSONDecodeError:
             # If parsing fails, wrap the raw response in a dict
             parsed_response = {"raw_content": raw_response}
@@ -72,5 +73,5 @@ class Agent:
             "agent_id": self.agent_id,
             "model": self.model,
             "provider": self.provider,
-            "response": parsed_response
+            "response": parsed_response,
         }
