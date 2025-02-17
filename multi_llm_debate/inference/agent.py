@@ -69,4 +69,9 @@ class Agent:
             # If parsing fails, wrap the raw response in a dict
             parsed_response = {"raw_content": raw_response}
 
-        return parsed_response
+        return {
+            "agent_id": self.agent_id,
+            "model": self.model,
+            # "provider": self.provider,
+            "response": parsed_response,
+        }
