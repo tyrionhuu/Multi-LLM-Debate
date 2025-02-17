@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from typing import List
+
 from .agents_ensemble import AgentsEnsemble
 
 # Create logs directory if it doesn't exist

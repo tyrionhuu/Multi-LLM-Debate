@@ -1,4 +1,4 @@
-from typing import List, Any, Dict, Callable
+from typing import Any, Callable, Dict, List
 
 NEW_LINE = "\n"
 
@@ -62,12 +62,12 @@ def build_bool_q_round_n_prompt(
 
 class PromptBuilder:
     """Base class for building prompts with different parameter requirements."""
-    
+
     def __init__(
         self,
         round_zero_fn: Callable[..., str],
         round_n_fn: Callable[..., str],
-        prompt_params: Dict[str, Any]
+        prompt_params: Dict[str, Any],
     ):
         """
         Args:
