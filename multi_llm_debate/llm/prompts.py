@@ -36,7 +36,7 @@ def build_bool_q_round_zero_prompt(
 
 
 def build_bool_q_round_n_prompt(
-    question: str, passage: str, responses: List[str], use_cot: bool = True
+    question: str, passage: str, responses: List[str | Dict], use_cot: bool = True
 ) -> str:
     prompt = (
         "Several other models have provided responses to a yes-no question, below are their responses: "
