@@ -2,7 +2,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-
+from typing import List
 from .agents_ensemble import AgentsEnsemble
 
 # Create logs directory if it doesn't exist
@@ -25,7 +25,7 @@ def run_debate_round_n(
     agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
     round_num: int,
-) -> None:
+) -> List[dict]:
     """
     Run a subsequent round of debate with the given prompt and agents.
 
@@ -36,7 +36,7 @@ def run_debate_round_n(
         round_num (int): Current round number
 
     Returns:
-        None: Results are saved to file and logged
+        List[dict]: List of agent responses, where each response is a dictionary
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
@@ -54,3 +54,4 @@ def run_debate_round_n(
 
     logger.info(f"Debate data saved to {output_file}")
     logger.info(f"Debate round {round_num} finished")
+    return responses
