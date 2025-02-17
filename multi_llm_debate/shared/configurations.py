@@ -16,4 +16,9 @@ API_LLM_MODELS = [
 ]
 
 # API key and model directory configuration
-KEY = "sk-f1fCP1wFI4K1pQYJORkJF3K9tg1MINok28GAsCsSFIjvajjS"
+from .config_manager import get_api_key, save_api_key
+
+KEY = get_api_key()
+if KEY.strip() == "":
+    KEY = input("Please enter your API key: ")
+    save_api_key(KEY)
