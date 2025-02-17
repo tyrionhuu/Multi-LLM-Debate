@@ -62,3 +62,15 @@ def run_debate(
     except Exception as e:
         logger.error(f"Error during debate: {str(e)}", exc_info=True)
         raise
+
+def main():
+    from ..llm.prompts import build_bool_q_round_zero_prompt, build_bool_q_round_n_prompt
+    question = "Is the sky blue?"
+    passage = "The sky is blue."
+    responses = ["Yes", "No", "Yes"]
+    prompt_builder = PromptBuilder(
+        round_zero_fn=build_bool_q_round_zero_prompt,
+        round_n_fn=build_bool_q_round_n_prompt,
+        prompt_params={"question": question, "passage": passage, "responses": responses},
+    )
+    
