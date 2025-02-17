@@ -1,4 +1,5 @@
 from typing import List
+
 NEW_LINE = "\n"
 
 
