@@ -67,4 +67,4 @@ exclude_lines = [
 ]
 
 # [tool.setuptools]
-# py-modules = ['Multi-LLM-Debate']
+py-modules = ['multi_llm_debate']
