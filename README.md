@@ -1,6 +1,6 @@
-# Project Template
+# Multi-LLM-Debate
 
-This is a repository for Python project templates, with Poetry as the package management tool.
+This is the implementation of the paper "Multi-LLM Debate: Framework, Principals, and Interventions"
 
 ## Prerequisites
 
@@ -17,26 +17,26 @@ It is not necessary but totally fine to use [Conda](https://docs.conda.io/en/lat
 1. Clone this repository
 
     ``` shell
-    git clone git@github.com:tyrionhuu/python-project-template.git
-    cd python-project-template
+    git clone git@github.com:tyrionhuu/Multi-LLM-Debate.git
+    cd Multi-LLM-Debate
     ```
 
 2. Create a virtual environment
 
    1. **conda**
-   
+
     ``` shell
-    conda create -n python-project-template python=3.11
-    conda activate python-project-template
+    conda create -n Multi-LLM-Debate python=3.11
+    conda activate Multi-LLM-Debate
     ```
-   
-   2. **poetry**
-   
+
+   1. **poetry**
+
     ``` shell
     poetry env use python3.11
     poetry shell
     ```
-   
+
 3. Install the dependencies with Poetry
 
     ``` shell
