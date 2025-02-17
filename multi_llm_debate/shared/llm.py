@@ -106,7 +106,7 @@ def call_vision_model(
                 )
 
     if provider == "ollama":
-        return generate_with_image_ollama(
+        return generate_with_ollama(
             model_name=model_name,
             prompt=prompt,
             temperature=temperature,
@@ -178,7 +178,7 @@ def call_model(
         )
     
     if provider == "ollama":
-        return generate_with_image_ollama(
+        return generate_with_ollama(
             model_name=model_name,
             prompt=prompt,
             temperature=temperature,
@@ -203,7 +203,7 @@ def call_model(
         raise ValueError(f"Unsupported provider: {provider}")
 
 
-def generate_with_image_ollama(
+def generate_with_ollama(
     model_name: str,
     prompt: str,
     temperature: float,
