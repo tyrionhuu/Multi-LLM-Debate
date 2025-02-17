@@ -38,6 +38,8 @@ def encode_image(image_path: str) -> str:
     with open(image_path, "rb") as image_file:
         encoded = base64.b64encode(image_file.read()).decode("utf-8")
     return encoded
+
+
 def call_model(
     model_name: str = "llama3.2:11b",
     provider: Literal["api", "ollama", "openai", "anthropic"] = "ollama",
@@ -188,8 +190,6 @@ def call_vision_model(
         raise NotImplementedError("Anthropic API integration is not implemented yet.")
     else:
         raise ValueError(f"Unsupported provider: {provider}")
-
-
 
 
 def generate_with_ollama(
