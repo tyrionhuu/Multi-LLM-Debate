@@ -31,12 +31,12 @@ def run_debate_round_zero(
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
 
-    logger.info(f"Starting round zero with prompt: {prompt}")
+    # logger.info(f"Starting round zero with prompt: {prompt}")
     responses = agents_ensemble.get_responses(prompt)
 
     for response in responses:
         logger.info(f"Agent {response['agent_id']} responded")
-        logger.debug(f"Response content: {response}")
+        # logger.debug(f"Response content: {response}")
 
     output_file = output_dir / "debate_round_0.json"
     with open(output_file, "w") as f:
