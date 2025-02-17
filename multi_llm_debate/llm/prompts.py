@@ -1,12 +1,14 @@
 from typing import List
 
 NEW_LINE = "\n"
+
 JSON_FORMAT = """
 {
     "reasoning": "your reasoning based on the passage",
     "answer": "Yes/No"
 }
 """
+
 JSON_FORMAT_COT = """
 {
     "reasoning": {
@@ -18,6 +20,7 @@ JSON_FORMAT_COT = """
     "answer": "Yes/No"
 }
 """
+
 
 def build_bool_q_round_zero_prompt(
     question: str, passage: str, use_cot: bool = True
