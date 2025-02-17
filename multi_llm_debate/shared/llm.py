@@ -13,6 +13,8 @@ from PIL import Image
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
+# Global constants
+BASE_URL = "https://api2.aigcbest.top/v1"
 API_LLM_MODELS = [
     ("api", "claude-3-5-sonnet-20241022"),
     # ("api", "o1-mini-2024-09-12"),
@@ -28,10 +30,10 @@ API_LLM_MODELS = [
 ]
 
 # API key and model directory configuration
-key = "sk-f1fCP1wFI4K1pQYJORkJF3K9tg1MINok28GAsCsSFIjvajjS"
+KEY = "sk-f1fCP1wFI4K1pQYJORkJF3K9tg1MINok28GAsCsSFIjvajjS"
 
-if key.strip() == "":
-    key = input("Please enter your API key: ")
+if KEY.strip() == "":
+    KEY = input("Please enter your API key: ")
 
 
 def encode_image(image_path: str) -> str:
@@ -217,8 +219,8 @@ def generate_with_api(
     try:
         # Initialize OpenAI client with timeout
         client = OpenAI(
-            base_url="https://api2.aigcbest.top/v1",
-            api_key=key,
+            base_url=BASE_URL,
+            api_key=KEY,
         )
         messages = generate_api_messages(images=images, prompt=prompt)
 
