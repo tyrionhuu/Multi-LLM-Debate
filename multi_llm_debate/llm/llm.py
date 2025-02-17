@@ -38,6 +38,74 @@ def encode_image(image_path: str) -> str:
     with open(image_path, "rb") as image_file:
         encoded = base64.b64encode(image_file.read()).decode("utf-8")
     return encoded
+def call_model(
+    model_name: str = "llama3.2:11b",
+    provider: Literal["api", "ollama", "openai", "anthropic"] = "ollama",
+    prompt: str = "",
+    temperature: float = 0.1,
+    max_tokens: int = 3200,
+    json_mode: bool = False,
+    timeout: Optional[int] = None,
+    vision: bool = False,
+    images: Union[
+        str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
+    ] = None,
+) -> Union[str, Dict[str, Any]]:
+    """
+    Routes the call to the appropriate model provider and returns the response.
+    Can handle both text-only and vision models based on the vision parameter.
+
+    Args:
+        model_name (str): The name of the model to use.
+        provider (Literal): The provider of the model.
+        prompt (str): The text prompt for the model.
+        temperature (float): Sampling temperature for the model.
+        max_tokens (int): Maximum number of tokens in the response.
+        json_mode (bool): Whether the response should be in JSON format.
+        timeout (Optional[int]): Timeout for the HTTP request.
+        vision (bool): Whether to use vision models.
+        images (Union[str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None]):
+            Image inputs when using vision models.
+
+    Returns:
+        Union[str, Dict[str, Any]]: The generated response from the model.
+    """
+    if vision:
+        return call_vision_model(
+            model_name=model_name,
+            provider=provider,
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            images=images,
+            json_mode=json_mode,
+            timeout=timeout,
+        )
+
+    if provider == "ollama":
+        return generate_with_ollama(
+            model_name=model_name,
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            json_mode=json_mode,
+            timeout=timeout,
+        )
+    elif provider == "api":
+        return generate_with_api(
+            model_name=model_name,
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            json_mode=json_mode,
+            timeout=timeout,
+        )
+    elif provider == "openai":
+        raise NotImplementedError("OpenAI API integration is not implemented yet.")
+    elif provider == "anthropic":
+        raise NotImplementedError("Anthropic API integration is not implemented yet.")
+    else:
+        raise ValueError(f"Unsupported provider: {provider}")
 
 
 def call_vision_model(
@@ -122,74 +190,6 @@ def call_vision_model(
         raise ValueError(f"Unsupported provider: {provider}")
 
 
-def call_model(
-    model_name: str = "llama3.2:11b",
-    provider: Literal["api", "ollama", "openai", "anthropic"] = "ollama",
-    prompt: str = "",
-    temperature: float = 0.1,
-    max_tokens: int = 3200,
-    json_mode: bool = False,
-    timeout: Optional[int] = None,
-    vision: bool = False,
-    images: Union[
-        str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
-    ] = None,
-) -> Union[str, Dict[str, Any]]:
-    """
-    Routes the call to the appropriate model provider and returns the response.
-    Can handle both text-only and vision models based on the vision parameter.
-
-    Args:
-        model_name (str): The name of the model to use.
-        provider (Literal): The provider of the model.
-        prompt (str): The text prompt for the model.
-        temperature (float): Sampling temperature for the model.
-        max_tokens (int): Maximum number of tokens in the response.
-        json_mode (bool): Whether the response should be in JSON format.
-        timeout (Optional[int]): Timeout for the HTTP request.
-        vision (bool): Whether to use vision models.
-        images (Union[str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None]):
-            Image inputs when using vision models.
-
-    Returns:
-        Union[str, Dict[str, Any]]: The generated response from the model.
-    """
-    if vision:
-        return call_vision_model(
-            model_name=model_name,
-            provider=provider,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            images=images,
-            json_mode=json_mode,
-            timeout=timeout,
-        )
-
-    if provider == "ollama":
-        return generate_with_ollama(
-            model_name=model_name,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            json_mode=json_mode,
-            timeout=timeout,
-        )
-    elif provider == "api":
-        return generate_with_api(
-            model_name=model_name,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            json_mode=json_mode,
-            timeout=timeout,
-        )
-    elif provider == "openai":
-        raise NotImplementedError("OpenAI API integration is not implemented yet.")
-    elif provider == "anthropic":
-        raise NotImplementedError("Anthropic API integration is not implemented yet.")
-    else:
-        raise ValueError(f"Unsupported provider: {provider}")
 
 
 def generate_with_ollama(
