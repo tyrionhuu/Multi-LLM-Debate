@@ -17,6 +17,7 @@ flake8 = "^7.1.1"
 
 # For use in Mainland China, you can use the following mirror source
 ollama = "^0.4.7"
+openai = "^1.63.0"
 [[tool.poetry.source]]
 name = "mirrors"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
