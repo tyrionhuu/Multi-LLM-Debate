@@ -19,6 +19,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+
 def run_debate_round_n(
     prompt: str,
     agents_ensemble: AgentsEnsemble,
@@ -39,10 +40,10 @@ def run_debate_round_n(
     """
     data_dir = Path(data_dir)
     data_dir.mkdir(exist_ok=True)
-    
+
     logger.info(f"Running debate round {round_num}")
     logger.info(f"Debate prompt: {prompt}")
-    
+
     responses = agents_ensemble.get_responses(prompt)
     for i, response in enumerate(responses):
         logger.info(f"Agent {i} response: {response}")
@@ -50,9 +51,6 @@ def run_debate_round_n(
     output_file = data_dir / f"debate_round_{round_num}.json"
     with open(output_file, "w") as f:
         json.dump(responses, f, indent=2)
-    
+
     logger.info(f"Debate data saved to {output_file}")
     logger.info(f"Debate round {round_num} finished")
-
-
-
