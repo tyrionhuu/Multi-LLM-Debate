@@ -63,8 +63,13 @@ def run_debate(
         logger.error(f"Error during debate: {str(e)}", exc_info=True)
         raise
 
+
 def main():
-    from ..llm.prompts import build_bool_q_round_zero_prompt, build_bool_q_round_n_prompt
+    from ..llm.prompts import (
+        build_bool_q_round_n_prompt,
+        build_bool_q_round_zero_prompt,
+    )
+
     question = "Is the sky blue?"
     passage = "The sky is blue."
     prompt_builder = PromptBuilder(
@@ -75,7 +80,7 @@ def main():
     agents_ensemble = AgentsEnsemble()
     output_dir = "data/test"
     run_debate(3, prompt_builder, agents_ensemble, output_dir)
-    
-    
+
+
 if __name__ == "__main__":
     main()
