@@ -21,23 +21,23 @@ It is not necessary but totally fine to use [Conda](https://docs.conda.io/en/lat
     cd Multi-LLM-Debate
     ```
 
-2. Create a virtual environment
+1. Create a virtual environment
 
-    1. **conda**
+    a. **conda**
 
     ``` shell
     conda create -n Multi-LLM-Debate python=3.11
     conda activate Multi-LLM-Debate
     ```
 
-    2. **poetry**
+    b. **poetry**
 
     ``` shell
     poetry env use python3.11
     poetry shell
     ```
 
-3. Install the dependencies with Poetry
+1. Install the dependencies with Poetry
 
     ``` shell
     poetry install
@@ -45,7 +45,7 @@ It is not necessary but totally fine to use [Conda](https://docs.conda.io/en/lat
 
     Then Poetry should already activate the virtual environment for you. If not, you can activate it manually.
 
-4. Install the pre-commit hooks, which is optional
+1. Install the pre-commit hooks, which is optional
 
     ``` shell
     pre-commit install
