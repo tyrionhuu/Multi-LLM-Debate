@@ -11,7 +11,7 @@ from ollama import Options
 from openai import OpenAI
 from PIL import Image
 
-from ..shared.config_manager import get_api_key, get_base_url
+from ..utils.config_manager import get_api_key, get_base_url
 
 KEY = get_api_key()
 BASE_URL = get_base_url()
