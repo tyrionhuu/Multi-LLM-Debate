@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -18,10 +19,29 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-def run_debate_round_zero(prompt: str, agents_ensemble: AgentsEnsemble) -> None:
+def run_debate_round_zero(prompt: str, agents_ensemble: AgentsEnsemble, data_dir: str | Path) -> None:
+    """
+    Run the initial round (round zero) of a debate with the given prompt and agents.
+    
+    Args:
+        prompt (str): The initial prompt/question to start the debate
+        agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in the debate
+        data_dir (str | Path): Directory path where debate responses will be saved
+    
+    Returns:
+        None: Results are saved to file and logged
+    """
+    data_dir = Path(data_dir)
+    data_dir.mkdir(exist_ok=True)
+    
     logger.info(f"Running debate round with prompt: {prompt}")
     responses = agents_ensemble.get_responses(prompt)
     for i, response in enumerate(responses):
         logger.info(f"Agent {i} response: {response}")
 
+    output_file = data_dir / f'debate_round_0.json'
+    with open(output_file, 'w') as f:
+        json.dump(responses, f, indent=2)
+    
+    logger.info(f"Debate data saved to {output_file}")
     logger.info("Debate round finished")
