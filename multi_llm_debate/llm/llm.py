@@ -44,7 +44,7 @@ def call_model(
     model_name: str = "llama3.2:11b",
     provider: Literal["api", "ollama", "openai", "anthropic"] = "ollama",
     prompt: str = "",
-    temperature: float = 0.1,
+    temperature: float = 0.7,
     max_tokens: int = 3200,
     json_mode: bool = False,
     timeout: Optional[int] = None,
@@ -114,7 +114,7 @@ def call_vision_model(
     model_name: str = "llama3.2-vision:11b",
     provider: Literal["api", "ollama", "openai", "anthropic"] = "ollama",
     prompt: str = "",
-    temperature: float = 0.1,
+    temperature: float = 0.7,
     max_tokens: int = 3200,
     images: Union[
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
