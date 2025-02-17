@@ -23,14 +23,14 @@ It is not necessary but totally fine to use [Conda](https://docs.conda.io/en/lat
 
 2. Create a virtual environment
 
-   1. **conda**
+    1. **conda**
 
     ``` shell
     conda create -n Multi-LLM-Debate python=3.11
     conda activate Multi-LLM-Debate
     ```
 
-   1. **poetry**
+    2. **poetry**
 
     ``` shell
     poetry env use python3.11
