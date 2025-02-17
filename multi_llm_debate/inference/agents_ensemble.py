@@ -1,4 +1,5 @@
 from typing import List
+
 from ..utils.config_manager import get_models
 from .agent import Agent
 
@@ -20,7 +21,7 @@ class AgentsEnsemble:
                 agent_id += 1
 
     @classmethod
-    def create_from_config(cls) -> 'AgentsEnsemble':
+    def create_from_config(cls) -> "AgentsEnsemble":
         """Factory method to create an ensemble from configuration."""
         return cls(auto_init=True)
 
