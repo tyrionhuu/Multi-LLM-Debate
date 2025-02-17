@@ -73,3 +73,9 @@ def main():
         prompt_params={"question": question, "passage": passage},
     )
     agents_ensemble = AgentsEnsemble()
+    output_dir = "data/test"
+    run_debate(3, prompt_builder, agents_ensemble, output_dir)
+    
+    
+if __name__ == "__main__":
+    main()
