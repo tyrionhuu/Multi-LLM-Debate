@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List
+import time
 
 from ..utils.config_manager import get_models
 from .agent import Agent
@@ -15,10 +16,15 @@ class AgentsEnsemble:
         agents (List[Agent]): List of Agent instances in the ensemble.
         concurrent (bool): Whether to use concurrent execution for responses.
         max_workers (int): Maximum number of concurrent workers when concurrent is True.
+        job_delay (float): Delay in seconds between consecutive agent calls.
     """
 
     def __init__(
-        self, auto_init: bool = True, concurrent: bool = False, max_workers: int = None
+        self, 
+        auto_init: bool = True, 
+        concurrent: bool = False, 
+        max_workers: int = None,
+        job_delay: float = 0.5
     ) -> None:
         """Initialize an AgentsEnsemble instance.
 
@@ -28,10 +34,12 @@ class AgentsEnsemble:
             concurrent (bool, optional): Whether to use concurrent execution. Defaults to False.
             max_workers (int, optional): Maximum number of concurrent workers. Defaults to None
                 (ThreadPoolExecutor default).
+            job_delay (float, optional): Delay in seconds between agent calls. Defaults to 0.0.
         """
         self.agents: List[Agent] = []
         self.concurrent = concurrent
         self.max_workers = max_workers
+        self.job_delay = job_delay
         if auto_init:
             self._initialize_from_config()
 
@@ -77,10 +85,14 @@ class AgentsEnsemble:
         """
         responses = []
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            future_to_agent = {
-                executor.submit(agent.respond, prompt): agent for agent in self.agents
-            }
-            for future in as_completed(future_to_agent):
+            futures = []
+            # Submit jobs with delay
+            for agent in self.agents:
+                if self.job_delay > 0:
+                    time.sleep(self.job_delay)
+                futures.append(executor.submit(agent.respond, prompt))
+            
+            for future in as_completed(futures):
                 response = future.result()
                 responses.append(response)
         return responses
@@ -102,6 +114,8 @@ class AgentsEnsemble:
         for agent in self.agents:
             response = agent.respond(prompt)
             responses.append(response)
+            if self.job_delay > 0:
+                time.sleep(self.job_delay)
         return responses
 
     def get_agent_by_id(self, agent_id: int) -> Agent:
