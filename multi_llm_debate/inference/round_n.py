@@ -43,7 +43,7 @@ def run_debate_round_n(
     output_dir.mkdir(exist_ok=True)
 
     logger.info(f"Running debate round {round_num}")
-    logger.info(f"Debate prompt: {prompt}")
+    # logger.info(f"Debate prompt: {prompt}")
 
     responses = agents_ensemble.get_responses(prompt)
     for i, response in enumerate(responses):
