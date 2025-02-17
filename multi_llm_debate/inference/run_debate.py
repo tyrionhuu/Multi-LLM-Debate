@@ -44,7 +44,7 @@ def run_debate(
     try:
         for i in range(max_rounds):
             if i == 0:
-                print("Running round zero")
+                print("Running round 0")
                 prompt = prompt_builder.build_round_zero()
                 round_responses = run_debate_round_zero(
                     prompt, agents_ensemble, output_dir
