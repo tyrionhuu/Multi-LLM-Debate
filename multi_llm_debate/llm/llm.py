@@ -46,7 +46,7 @@ def call_model(
     prompt: str = "",
     temperature: float = 0.7,
     max_tokens: int = 3200,
-    json_mode: bool = False,
+    json_mode: bool = True,
     timeout: Optional[int] = None,
     vision: bool = False,
     images: Union[
