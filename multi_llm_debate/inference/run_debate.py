@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 from ..llm.prompts import PromptBuilder
 from ..utils.logging_config import setup_logging
@@ -69,6 +69,7 @@ def run_debate(
         logger.error(f"Error during debate: {str(e)}", exc_info=True)
         raise
 
+
 def check_convergence(responses: List[Dict]) -> bool:
     """Check if the responses from all agents have converged to the same answer.
 
@@ -79,6 +80,7 @@ def check_convergence(responses: List[Dict]) -> bool:
         bool: True if all responses are the same, False otherwise.
     """
     return len(set(response["answer"] for response in responses)) == 1
+
 
 def main():
     from ..llm.prompts import (
