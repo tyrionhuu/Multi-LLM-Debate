@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from multi_llm_debate.inference.agent import Agent
+from multi_llm_debate.debate.agent import Agent
 
 
 @pytest.fixture
