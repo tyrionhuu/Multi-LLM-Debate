@@ -24,6 +24,7 @@ pandas = "^2.2.3"
 huggingface-hub = "^0.28.1"
 modelscope = "^1.23.0"
 datasets = "^3.3.0"
+addict = "^2.4.0"
 [[tool.poetry.source]]
 name = "mirrors"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
