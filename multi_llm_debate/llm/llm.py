@@ -11,12 +11,18 @@ from ollama import Options
 from openai import OpenAI
 from PIL import Image
 
-from ..shared.configurations import BASE_URL, KEY
+from ..shared.config_manager import get_api_key, get_base_url
 
-logging.getLogger("httpx").setLevel(logging.WARNING)
+KEY = get_api_key()
+BASE_URL = get_base_url()
 
 if KEY.strip() == "":
     KEY = input("Please enter your API key: ")
+    from ..shared.config_manager import save_api_key
+    save_api_key(KEY)
+
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 def encode_image(image_path: str) -> str:
