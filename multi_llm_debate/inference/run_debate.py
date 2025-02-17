@@ -43,8 +43,8 @@ def run_debate(
 
     try:
         for i in range(max_rounds):
-            print(f"Starting debate round {i}")
             if i == 0:
+                print("Running round zero")
                 prompt = prompt_builder.build_round_zero()
                 round_responses = run_debate_round_zero(
                     prompt, agents_ensemble, output_dir
@@ -56,6 +56,7 @@ def run_debate(
                 if check_convergence(extracted_responses):
                     print("Convergence reached, ending debate")
                     break
+                print(f"Running debate round {i}")
                 prompt = prompt_builder.build_round_n(extracted_responses)
                 round_responses = run_debate_round_n(
                     prompt, agents_ensemble, output_dir, i
