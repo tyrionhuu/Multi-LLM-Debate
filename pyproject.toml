@@ -16,6 +16,7 @@ pipenv = "^2024.2.0"
 flake8 = "^7.1.1"
 
 # For use in Mainland China, you can use the following mirror source
+ollama = "^0.4.7"
 [[tool.poetry.source]]
 name = "mirrors"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
