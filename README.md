@@ -12,7 +12,7 @@ As for the virtual environment, you can use any tool you like.
 
 It is not necessary but totally fine to use [Conda](https://docs.conda.io/en/latest/) to manage the Python environment. You can install it following the instructions [here](https://docs.conda.io/en/latest/miniconda.html).
 
-## Steps
+## Installation
 
 1. Clone this repository
 
@@ -49,4 +49,27 @@ It is not necessary but totally fine to use [Conda](https://docs.conda.io/en/lat
 
     ``` shell
     pre-commit install
+    ```
+
+## Usage
+
+1. Create a configuration file
+
+    ``` shell
+        cp config.json configs/config.json
+    ```
+
+1. Modify the configuration file
+
+    Example:
+
+    ``` json
+    {
+        "api_key": "blablabla",
+        "base_url": "your_api_url",
+        "models": [
+            {"provider": "ollama", "name": "llama3.1:latest", "quantity": 3},
+            {"provider": "api", "name": "gpt4o", "quantity": 1}
+        ]
+    }
     ```
