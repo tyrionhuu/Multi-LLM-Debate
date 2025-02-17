@@ -1,5 +1,7 @@
 from typing import List
+
 from .agent import Agent
+
 
 class AgentsEnsemble:
     def __init__(self):
