@@ -5,18 +5,18 @@ from pathlib import Path
 
 def setup_logging(module_name: str) -> logging.Logger:
     """Set up logging configuration for a module.
-    
+
     Configures both file and console handlers with formatted output.
     Creates a timestamped log file in the project's logs directory.
-    
+
     Args:
         module_name: Name of the module requesting logging setup.
             Used as the logger name for hierarchical logging.
-    
+
     Returns:
         logging.Logger: Configured logger instance with both file and console handlers.
             Will reuse existing logger if one exists for the module name.
-    
+
     Raises:
         OSError: If unable to create logs directory or log file.
     """
@@ -26,7 +26,7 @@ def setup_logging(module_name: str) -> logging.Logger:
 
     # Create a unique log file for each run
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = log_dir / f'debate_{timestamp}.log'
+    log_file = log_dir / f"debate_{timestamp}.log"
 
     # Configure logging format
     formatter = logging.Formatter(
@@ -44,7 +44,7 @@ def setup_logging(module_name: str) -> logging.Logger:
     # Get logger
     logger = logging.getLogger(module_name)
     logger.setLevel(logging.INFO)
-    
+
     # Add handlers if they haven't been added already
     if not logger.handlers:
         logger.addHandler(file_handler)
