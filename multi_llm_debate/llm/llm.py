@@ -10,7 +10,9 @@ import requests.exceptions
 from ollama import Options
 from openai import OpenAI
 from PIL import Image
+
 from ..shared.configurations import BASE_URL, KEY
+
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 if KEY.strip() == "":
