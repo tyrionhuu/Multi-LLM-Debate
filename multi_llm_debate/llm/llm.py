@@ -52,7 +52,7 @@ def call_model(
     images: Union[
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
     ] = None,
-) -> Union[str, Dict[str, Any]]:
+) -> str:
     """
     Routes the call to the appropriate model provider and returns the response.
     Can handle both text-only and vision models based on the vision parameter.
@@ -70,7 +70,7 @@ def call_model(
             Image inputs when using vision models.
 
     Returns:
-        Union[str, Dict[str, Any]]: The generated response from the model.
+        str: The generated response from the model.
     """
     if vision:
         return call_vision_model(
@@ -121,7 +121,7 @@ def call_vision_model(
     ] = None,
     json_mode: bool = False,
     timeout: Optional[int] = None,
-) -> Union[str, Dict[str, Any]]:
+) -> str:
     """
     Routes the call to the appropriate vision model provider and returns the response.
 
@@ -200,7 +200,7 @@ def generate_with_ollama(
     images: Optional[List[str | bytes]] = None,
     json_mode: bool = False,
     timeout: int = 30,  # Default 30 seconds
-) -> Union[str, Dict[str, Any]]:
+) -> str:
     """
     Generates a response using the Ollama model with optional images.
 
@@ -238,11 +238,11 @@ def generate_with_ollama(
 
         if json_mode:
             try:
-                return json.loads(response_str)
+                return json.dumps(json.loads(response_str))
             except json.JSONDecodeError:
-                return response_str
-        else:
-            return response_str
+                # return response_str
+                raise ValueError("Failed to parse JSON response")
+        return response_str
 
     except requests.exceptions.Timeout:
         raise TimeoutError(f"Request timed out after {timeout} seconds")
@@ -259,7 +259,7 @@ def generate_with_api(
     images: Optional[List[str | bytes]] = None,
     json_mode: bool = False,
     timeout: int = 30,  # Default 30 seconds
-) -> Union[str, Dict[str, Any]]:
+) -> str:
     """
     Generates a response using the API with optional images.
 
@@ -298,11 +298,10 @@ def generate_with_api(
 
             if json_mode:
                 try:
-                    return json.loads(response_str)
+                    return json.dumps(json.loads(response_str))
                 except json.JSONDecodeError:
                     return response_str
-            else:
-                return response_str
+            return response_str
 
         except requests.exceptions.Timeout:
             raise TimeoutError(f"API request timed out after {timeout} seconds")
