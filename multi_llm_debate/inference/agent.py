@@ -5,3 +5,6 @@ class Agent:
         
     def __str__(self):
         return f"Agent {self.agent_id} ({self.model})"
+    
+    def __repr__(self):
+        return str(self)
