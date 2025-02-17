@@ -1,5 +1,5 @@
-from typing import Any, Dict, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Dict, List
 
 from ..utils.config_manager import get_models
 from .agent import Agent
@@ -17,7 +17,9 @@ class AgentsEnsemble:
         max_workers (int): Maximum number of concurrent workers when concurrent is True.
     """
 
-    def __init__(self, auto_init: bool = True, concurrent: bool = False, max_workers: int = None) -> None:
+    def __init__(
+        self, auto_init: bool = True, concurrent: bool = False, max_workers: int = None
+    ) -> None:
         """Initialize an AgentsEnsemble instance.
 
         Args:
@@ -76,8 +78,7 @@ class AgentsEnsemble:
         responses = []
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             future_to_agent = {
-                executor.submit(agent.respond, prompt): agent
-                for agent in self.agents
+                executor.submit(agent.respond, prompt): agent for agent in self.agents
             }
             for future in as_completed(future_to_agent):
                 response = future.result()
@@ -96,7 +97,7 @@ class AgentsEnsemble:
         """
         if self.concurrent:
             return self._get_response_concurrent(prompt)
-        
+
         responses = []
         for agent in self.agents:
             response = agent.respond(prompt)
