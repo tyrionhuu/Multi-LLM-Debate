@@ -1,6 +1,6 @@
 # Multi-LLM-Debate
 
-This is the implementation of the paper "Multi-LLM Debate: Framework, Principals, and Interventions"
+This is the implementation of the paper ["Multi-LLM Debate: Framework, Principals, and Interventions"](https://proceedings.neurips.cc/paper_files/paper/2024/hash/32e07a110c6c6acf1afbf2bf82b614ad-Abstract-Conference.html)
 
 ## Prerequisites
 
