@@ -1,9 +1,11 @@
 from pathlib import Path
 
+from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
 from .round_n import run_debate_round_n
 from .round_zero import run_debate_round_zero
 
+logger = setup_logging(__name__)
 
 def run_debate(
     max_rounds: int,
@@ -12,21 +14,21 @@ def run_debate(
     agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
 ) -> None:
-    """
-    Run a full debate with multiple rounds using the given prompts and agents.
+    """Run a full debate with multiple rounds using the given prompts and agents."""
+    logger.info(f"Starting debate with {len(agents_ensemble)} agents")
+    logger.info(f"Maximum rounds: {max_rounds}")
+    logger.info(f"Output directory: {output_dir}")
     
-    Args:
-        max_rounds (int): Maximum number of rounds to run
-        round_zero_prompt (str): The initial prompt/question to start the debate
-        round_n_prompt (str): The debate prompt including previous context
-        agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in the debate
-        output_dir (str | Path): Directory path where debate responses will be saved
+    try:
+        for i in range(max_rounds):
+            logger.info(f"Starting debate round {i}")
+            if i == 0:
+                run_debate_round_zero(round_zero_prompt, agents_ensemble, output_dir)
+            else:
+                run_debate_round_n(round_n_prompt, agents_ensemble, output_dir, i)
+            logger.info(f"Completed debate round {i}")
         
-    Returns:
-        None: Results are saved to file and logged
-    """
-    for i in range(max_rounds):
-        if i == 0:
-            run_debate_round_zero(round_zero_prompt, agents_ensemble, output_dir)
-        else:
-            run_debate_round_n(round_n_prompt, agents_ensemble, output_dir, i)
+        logger.info("Debate completed successfully")
+    except Exception as e:
+        logger.error(f"Error during debate: {str(e)}", exc_info=True)
+        raise
