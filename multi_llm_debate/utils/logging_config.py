@@ -43,7 +43,7 @@ def setup_logging(module_name: str) -> logging.Logger:
 
     # Get logger
     logger = logging.getLogger(module_name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.WARNING)
 
     # Add handlers if they haven't been added already
     if not logger.handlers:
