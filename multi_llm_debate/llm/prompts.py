@@ -1,7 +1,7 @@
 NEW_LINE = "\n"
 
 
-def build_bool_round_zero_prompt(
+def build_bool_q_round_zero_prompt(
     question: str, passage: str, use_cot: bool = True
 ) -> str:
     prompt = "You will be given a yes-no question which is based on a passage. "
@@ -19,7 +19,7 @@ def build_bool_round_zero_prompt(
     return prompt
 
 
-def build_bool_round_n_prompt(
+def build_bool_q_round_n_prompt(
     question: str, passage: str, responses: list[str], use_cot: bool = True
 ) -> str:
     prompt = (
