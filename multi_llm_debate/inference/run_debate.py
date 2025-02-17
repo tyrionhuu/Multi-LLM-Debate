@@ -35,15 +35,15 @@ def run_debate(
         Exception: If any error occurs during the debate process.
             Original exception is logged and re-raised.
     """
-    logger.info(f"Starting debate with {len(agents_ensemble)} agents")
-    logger.info(f"Maximum rounds: {max_rounds}")
-    logger.info(f"Output directory: {output_dir}")
+    print(f"Starting debate with {len(agents_ensemble)} agents")
+    print(f"Maximum rounds: {max_rounds}")
+    print(f"Output directory: {output_dir}")
 
     all_responses = []
 
     try:
         for i in range(max_rounds):
-            logger.info(f"Starting debate round {i}")
+            print(f"Starting debate round {i}")
             if i == 0:
                 prompt = prompt_builder.build_round_zero()
                 round_responses = run_debate_round_zero(
@@ -58,9 +58,9 @@ def run_debate(
                     prompt, agents_ensemble, output_dir, i
                 )
             all_responses.append(round_responses)
-            logger.info(f"Completed debate round {i}")
+            print(f"Completed debate round {i}")
 
-        logger.info("Debate completed successfully")
+        print("Debate completed successfully")
         return all_responses
     except Exception as e:
         logger.error(f"Error during debate: {str(e)}", exc_info=True)
