@@ -4,7 +4,25 @@ from ..llm.llm import call_model
 
 
 class Agent:
-    def __init__(self, agent_id: int, model: str, provider: str):
+    """A class representing an individual LLM agent.
+
+    This class encapsulates a language model agent with specific provider and model configurations.
+    Each agent has a unique ID and can generate responses to prompts.
+
+    Attributes:
+        agent_id (int): Unique identifier for the agent.
+        model (str): Name of the language model being used.
+        provider (str): Name of the model provider (e.g., 'OpenAI', 'Anthropic').
+    """
+
+    def __init__(self, agent_id: int, model: str, provider: str) -> None:
+        """Initialize an Agent instance.
+
+        Args:
+            agent_id (int): Unique identifier for the agent.
+            model (str): Name of the language model.
+            provider (str): Name of the model provider.
+        """
         self.agent_id = agent_id
         self.model = model
         self.provider = provider
@@ -16,6 +34,21 @@ class Agent:
         return str(self)
 
     def respond(self, prompt: str) -> Dict[str, Any]:
+        """Generate a response to the given prompt.
+
+        Args:
+            prompt (str): The input prompt to send to the language model.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing:
+                - agent_id: The ID of the responding agent
+                - model: The model name
+                - provider: The provider name
+                - response: The parsed response from the model (either as dict or wrapped raw content)
+
+        Raises:
+            Any exceptions from the underlying LLM call are propagated.
+        """
         raw_response = call_model(
             model_name=self.model,
             provider=self.provider,
