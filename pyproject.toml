@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "name"
+name = "Multi-LLM-Debate"
 version = "0.1.1"
-description = "description"
+description = "This is the implementation of the paper 'Multi-LLM Debate: Framework, Principals, and Interventions'"
 authors = ["Tianyu Hu <tyrionhuu@gmail.com>"]
 license = "MIT"
 readme = "README.md"
@@ -63,4 +63,4 @@ exclude_lines = [
 ]
 
 [tool.setuptools]
-py-modules = ['pptlayout']
+py-modules = ['Multi-LLM-Debate']
