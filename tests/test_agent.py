@@ -61,8 +61,8 @@ def test_agent_respond_call_parameters(test_agent):
     with patch("multi_llm_debate.inference.agent.call_model") as mock_call:
         test_agent.respond("test prompt")
         mock_call.assert_called_once_with(
-            model_name="llama2:3.1",
-            provider="Ollama",
+            model_name="llama3.1:latest",
+            provider="ollama",
             prompt="test prompt",
         )
 
@@ -77,7 +77,7 @@ def test_real_llm_call():
     
     Run with: pytest -v -m integration
     """
-    agent = Agent(agent_id=1, model="llama3.1:latest", provider="Ollama")
+    agent = Agent(agent_id=1, model="llama3.1:latest", provider="ollama")
     
     # Test with a simple instruction that works well with Llama
     prompt = "Complete this sequence: 1, 2, 3, ..."
