@@ -15,6 +15,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # Global constants
 BASE_URL = "https://api2.aigcbest.top/v1"
+
 API_LLM_MODELS = [
     ("api", "claude-3-5-sonnet-20241022"),
     # ("api", "o1-mini-2024-09-12"),
