@@ -42,7 +42,7 @@ def run_debate_round_zero(
     for i, response in enumerate(responses):
         logger.info(f"Agent {i} response: {response}")
 
-    output_file = data_dir / f"debate_round_0.json"
+    output_file = data_dir / "debate_round_0.json"
     with open(output_file, "w") as f:
         json.dump(responses, f, indent=2)
 
