@@ -1,9 +1,9 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+import json
 
-from ..llm.llm import call_model
+from .agents_ensemble import AgentsEnsemble
 
 # Create logs directory if it doesn't exist
 log_dir = Path(__file__).parent.parent.parent / "logs"
@@ -19,14 +19,31 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# def round_zero_debate(prompt: str, data_dir: Path) -> List[Dict[str, str]]:
-#     """
-#     Run the zeroth round of the debate.
+def run_debate_round_zero(
+    prompt: str, agents_ensemble: AgentsEnsemble, data_dir: str | Path
+) -> None:
+    """
+    Run the initial round (round zero) of a debate with the given prompt and agents.
 
-#     Args:
-#         prompt (str): The debate prompt.
-#         data_dir (Path): Path to the data directory.
+    Args:
+        prompt (str): The initial prompt/question to start the debate
+        agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in the debate
+        data_dir (str | Path): Directory path where debate responses will be saved
 
-#     Returns:
-#         List[Dict[str, str]]: A list of responses from the LLMs.
-#     """
+    Returns:
+        None: Results are saved to file and logged
+    """
+    data_dir = Path(data_dir)
+    data_dir.mkdir(exist_ok=True)
+
+    logger.info(f"Running debate round with prompt: {prompt}")
+    responses = agents_ensemble.get_responses(prompt)
+    for i, response in enumerate(responses):
+        logger.info(f"Agent {i} response: {response}")
+
+    output_file = data_dir / f"debate_round_0.json"
+    with open(output_file, "w") as f:
+        json.dump(responses, f, indent=2)
+
+    logger.info(f"Debate data saved to {output_file}")
+    logger.info("Debate round finished")
