@@ -1,6 +1,6 @@
 # Project Template
 
-This is a repository for Python project templates, with Poetry as the package management toll.
+This is a repository for Python project templates, with Poetry as the package management tool.
 
 ## Prerequisites
 
