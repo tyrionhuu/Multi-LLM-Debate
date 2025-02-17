@@ -176,7 +176,7 @@ def call_model(
             json_mode=json_mode,
             timeout=timeout,
         )
-    
+
     if provider == "ollama":
         return generate_with_ollama(
             model_name=model_name,
