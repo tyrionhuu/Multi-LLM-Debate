@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 
 from ..utils.config_manager import get_models
 from .agent import Agent
@@ -29,8 +29,11 @@ class AgentsEnsemble:
         """Add an agent to the ensemble."""
         self.agents.append(agent)
 
-    def get_responses(self, prompt: str) -> List[str]:
-        """Get responses from all agents for a given prompt."""
+    def get_responses(self, prompt: str) -> List[Dict[str, Any]]:
+        """
+        Get responses from all agents for a given prompt.
+        Returns a list of dictionaries containing agent info and parsed responses.
+        """
         responses = []
         for agent in self.agents:
             response = agent.respond(prompt)

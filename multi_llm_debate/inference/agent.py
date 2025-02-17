@@ -1,3 +1,5 @@
+import json
+from typing import Dict, Any
 from ..llm.llm import call_model
 
 
@@ -13,10 +15,29 @@ class Agent:
     def __repr__(self):
         return str(self)
 
-    def respond(self, prompt: str) -> str:
-        response = call_model(
+    def respond(self, prompt: str) -> Dict[str, Any]:
+        raw_response = call_model(
             model_name=self.model,
             provider=self.provider,
             prompt=prompt,
         )
-        return response
+        
+        try:
+            # Try to parse the response as JSON if it's a string
+            if isinstance(raw_response, str):
+                parsed_response = json.loads(raw_response)
+            elif isinstance(raw_response, dict):
+                parsed_response = raw_response
+            else:
+                parsed_response = {"raw_content": str(raw_response)}
+                
+        except json.JSONDecodeError:
+            # If parsing fails, wrap the raw response in a dict
+            parsed_response = {"raw_content": raw_response}
+
+        return {
+            "agent_id": self.agent_id,
+            "model": self.model,
+            "provider": self.provider,
+            "response": parsed_response
+        }
