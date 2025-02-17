@@ -16,3 +16,4 @@ class Agent:
             provider=self.provider,
             prompt=prompt,
         )
+        return response
