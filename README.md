@@ -29,7 +29,7 @@ It is not necessary but totally fine to use [Conda](https://docs.conda.io/en/lat
 1. Create a virtual environment
 
     a. **conda**
-
+    This is handy when you don't have access to sudo and can't install Python 3.11 globally.
     ``` shell
     conda create -n Multi-LLM-Debate python=3.11
     conda activate Multi-LLM-Debate
