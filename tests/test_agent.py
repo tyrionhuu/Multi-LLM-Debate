@@ -1,6 +1,7 @@
 import json
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from multi_llm_debate.inference.agent import Agent
 
@@ -70,26 +71,26 @@ def test_agent_respond_call_parameters(test_agent):
 @pytest.mark.integration
 def test_real_llm_call():
     """Test actual LLM API call integration using Ollama.
-    
+
     This test requires:
     - Ollama to be running locally
     - llama3.1:latest model to be pulled
-    
+
     Run with: pytest -v -m integration
     """
     agent = Agent(agent_id=1, model="llama3.1:latest", provider="ollama")
-    
+
     # Test with a simple instruction that works well with Llama
     prompt = "Complete this sequence: 1, 2, 3, ..."
     response = agent.respond(prompt)
-    
+
     assert isinstance(response, dict)
     # Llama might return the response in different formats
     response_str = str(response)
-    assert any(str(i) for i in [4, 5, 6] if str(i) in response_str), (
-        "Expected a number in the sequence"
-    )
-    
+    assert any(
+        str(i) for i in [4, 5, 6] if str(i) in response_str
+    ), "Expected a number in the sequence"
+
     # Test JSON understanding
     prompt = (
         "You are a helpful AI assistant. "
