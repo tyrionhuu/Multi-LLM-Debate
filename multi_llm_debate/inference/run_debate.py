@@ -50,7 +50,8 @@ def run_debate(
                     prompt, agents_ensemble, output_dir
                 )
             else:
-                prompt = prompt_builder.build_round_n(all_responses[i - 1])
+                extracted_responses = [response["response"] for response in all_responses[-1]]
+                prompt = prompt_builder.build_round_n(extracted_responses)
                 round_responses = run_debate_round_n(
                     prompt, agents_ensemble, output_dir, i
                 )
