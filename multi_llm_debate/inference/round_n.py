@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from ..llm.llm import call_model
+from .agents_ensemble import AgentsEnsemble
 
 # Create logs directory if it doesn't exist
 log_dir = Path(__file__).parent.parent.parent / "logs"
@@ -17,3 +17,11 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+def run_debate_round_zero(prompt: str, agents_ensemble: AgentsEnsemble) -> None:
+    logger.info(f"Running debate round with prompt: {prompt}")
+    responses = agents_ensemble.get_responses(prompt)
+    for i, response in enumerate(responses):
+        logger.info(f"Agent {i} response: {response}")
+
+    logger.info("Debate round finished")
