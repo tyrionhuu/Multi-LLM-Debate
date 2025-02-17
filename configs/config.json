@@ -6,6 +6,7 @@
         ["api", "gpt-4o-2024-11-20"],
         ["ollama", "llama3.2-vision:11b"],
         ["ollama", "llava:13b"],
-        ["ollama", "llama3.2-vision:90b"]
+        ["ollama", "llama3.2-vision:90b"],
+        ["ollama", "deepseek-r1:32b"]
     ]
 }
