@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from datetime import datetime
-
+from typing import List, Dict
 from ..llm.llm import call_model
 
 # Create logs directory if it doesn't exist
@@ -21,4 +21,15 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# def round_zero_debate(prompt: str, data_dir: Path)
+# def round_zero_debate(prompt: str, data_dir: Path) -> List[Dict[str, str]]:
+#     """
+#     Run the zeroth round of the debate.
+
+#     Args:
+#         prompt (str): The debate prompt.
+#         data_dir (Path): Path to the data directory.
+
+#     Returns:
+#         List[Dict[str, str]]: A list of responses from the LLMs.
+#     """
+
