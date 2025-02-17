@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from multi_llm_debate.inference.agent import Agent
 from multi_llm_debate.inference.agents_ensemble import AgentsEnsemble
@@ -66,7 +67,7 @@ def test_ensemble_responses(ensemble, responses, expected):
 @pytest.mark.integration
 def test_ensemble_integration():
     """Test actual ensemble integration with real LLM calls.
-    
+
     Requires:
     - Multiple Ollama models to be available
     """
@@ -77,14 +78,14 @@ def test_ensemble_integration():
     ensemble = AgentsEnsemble(auto_init=False)
     for agent in agents:
         ensemble.add_agent(agent)
-    
+
     prompt = (
         "You are helping with a simple choice. "
         "Answer with a JSON object containing a 'choice' key "
         "with either 'yes' or 'no' as the value. "
         "Question: Is Python a programming language?"
     )
-    
+
     responses = ensemble.get_responses(prompt)
     assert len(responses) == 2
     for response in responses:
