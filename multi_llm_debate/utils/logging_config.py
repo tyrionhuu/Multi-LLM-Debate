@@ -5,12 +5,20 @@ from pathlib import Path
 
 def setup_logging(module_name: str) -> logging.Logger:
     """Set up logging configuration for a module.
-
+    
+    Configures both file and console handlers with formatted output.
+    Creates a timestamped log file in the project's logs directory.
+    
     Args:
-        module_name (str): Name of the module requesting logging setup
-
+        module_name: Name of the module requesting logging setup.
+            Used as the logger name for hierarchical logging.
+    
     Returns:
-        logging.Logger: Configured logger instance
+        logging.Logger: Configured logger instance with both file and console handlers.
+            Will reuse existing logger if one exists for the module name.
+    
+    Raises:
+        OSError: If unable to create logs directory or log file.
     """
     # Create logs directory if it doesn't exist
     log_dir = Path(__file__).parent.parent.parent / "logs"
