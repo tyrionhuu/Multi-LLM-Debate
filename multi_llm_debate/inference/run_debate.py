@@ -1,8 +1,16 @@
+from pathlib import Path
+
+from .agents_ensemble import AgentsEnsemble
 from .round_n import run_debate_round_n
 from .round_zero import run_debate_round_zero
-from .agents_ensemble import AgentsEnsemble
-from pathlib import Path
-def run_debate(round_zero_prompt: str, round_n_prompt: str, agents_ensemble: AgentsEnsemble, data_dir: str | Path) -> None:
+
+
+def run_debate(
+    round_zero_prompt: str,
+    round_n_prompt: str,
+    agents_ensemble: AgentsEnsemble,
+    data_dir: str | Path,
+) -> None:
     """
     Run a debate with the given prompts and agents.
 
