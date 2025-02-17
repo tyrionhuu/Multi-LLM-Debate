@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..utils.config_manager import get_models
 from .agent import Agent
@@ -12,16 +13,23 @@ class AgentsEnsemble:
 
     Attributes:
         agents (List[Agent]): List of Agent instances in the ensemble.
+        concurrent (bool): Whether to use concurrent execution for responses.
+        max_workers (int): Maximum number of concurrent workers when concurrent is True.
     """
 
-    def __init__(self, auto_init: bool = True) -> None:
+    def __init__(self, auto_init: bool = True, concurrent: bool = False, max_workers: int = None) -> None:
         """Initialize an AgentsEnsemble instance.
 
         Args:
             auto_init (bool, optional): Whether to automatically initialize agents from config.
                 Defaults to True.
+            concurrent (bool, optional): Whether to use concurrent execution. Defaults to False.
+            max_workers (int, optional): Maximum number of concurrent workers. Defaults to None
+                (ThreadPoolExecutor default).
         """
         self.agents: List[Agent] = []
+        self.concurrent = concurrent
+        self.max_workers = max_workers
         if auto_init:
             self._initialize_from_config()
 
@@ -56,6 +64,26 @@ class AgentsEnsemble:
         """
         self.agents.append(agent)
 
+    def _get_response_concurrent(self, prompt: str) -> List[Dict[str, Any]]:
+        """Get responses from all agents concurrently.
+
+        Args:
+            prompt (str): The input prompt to send to all agents.
+
+        Returns:
+            List[Dict[str, Any]]: List of response dictionaries from all agents.
+        """
+        responses = []
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            future_to_agent = {
+                executor.submit(agent.respond, prompt): agent
+                for agent in self.agents
+            }
+            for future in as_completed(future_to_agent):
+                response = future.result()
+                responses.append(response)
+        return responses
+
     def get_responses(self, prompt: str) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt.
 
@@ -66,6 +94,9 @@ class AgentsEnsemble:
             List[Dict[str, Any]]: List of response dictionaries from all agents.
             Each dictionary contains agent information and the parsed response.
         """
+        if self.concurrent:
+            return self._get_response_concurrent(prompt)
+        
         responses = []
         for agent in self.agents:
             response = agent.respond(prompt)
