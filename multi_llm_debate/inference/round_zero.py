@@ -1,7 +1,7 @@
+import json
 import logging
 from datetime import datetime
 from pathlib import Path
-import json
 
 from .agents_ensemble import AgentsEnsemble
 
@@ -18,6 +18,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
 
 def run_debate_round_zero(
     prompt: str, agents_ensemble: AgentsEnsemble, data_dir: str | Path
