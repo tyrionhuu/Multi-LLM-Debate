@@ -1,6 +1,6 @@
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List
-import time
 
 from ..utils.config_manager import get_models
 from .agent import Agent
@@ -20,11 +20,11 @@ class AgentsEnsemble:
     """
 
     def __init__(
-        self, 
-        auto_init: bool = True, 
-        concurrent: bool = False, 
+        self,
+        auto_init: bool = True,
+        concurrent: bool = False,
         max_workers: int = None,
-        job_delay: float = 0.5
+        job_delay: float = 0.5,
     ) -> None:
         """Initialize an AgentsEnsemble instance.
 
@@ -91,7 +91,7 @@ class AgentsEnsemble:
                 if self.job_delay > 0:
                     time.sleep(self.job_delay)
                 futures.append(executor.submit(agent.respond, prompt))
-            
+
             for future in as_completed(futures):
                 response = future.result()
                 responses.append(response)
