@@ -19,6 +19,7 @@ BASE_URL = get_base_url()
 if KEY.strip() == "":
     KEY = input("Please enter your API key: ")
     from ..shared.config_manager import save_api_key
+
     save_api_key(KEY)
 
 
