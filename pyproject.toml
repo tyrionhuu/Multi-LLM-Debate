@@ -62,5 +62,5 @@ exclude_lines = [
     "if __name__ == .__main__.:"
 ]
 
-[tool.setuptools]
-py-modules = ['Multi-LLM-Debate']
+# [tool.setuptools]
+# py-modules = ['Multi-LLM-Debate']
