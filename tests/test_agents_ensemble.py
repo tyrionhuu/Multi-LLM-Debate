@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 import pytest
 
-from multi_llm_debate.inference.agent import Agent
-from multi_llm_debate.inference.agents_ensemble import AgentsEnsemble
+from multi_llm_debate.debate.agent import Agent
+from multi_llm_debate.debate.agents_ensemble import AgentsEnsemble
 
 
 @pytest.fixture
