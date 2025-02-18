@@ -156,27 +156,39 @@ def evaluate_baseline_df(
         float: Accuracy score using first answer as baseline.
     """
     correct_count = 0
-    total_count = len(dataframe)
+    valid_count = 0
 
     for _, entry in dataframe.iterrows():
-        answer = entry["answer"]
-        id_ = str(entry["id"])
+        try:
+            answer = entry["answer"]
+            id_ = str(entry["id"])
 
-        # Load responses from the first debate round file
-        responses_dir = response_base_dir / id_
-        first_response_file = responses_dir / "debate_round_0.json"
+            # Load responses from the first debate round file
+            responses_dir = response_base_dir / id_
+            first_response_file = responses_dir / "debate_round_0.json"
 
-        with open(first_response_file, "r") as f:
-            responses = json.load(f)
+            with open(first_response_file, "r") as f:
+                responses = json.load(f)
 
-        # Only use the first response
-        first_response = responses[0]
-        is_correct = evaluate_responses([first_response], answer)
-        if is_correct:
-            correct_count += 1
+            # Skip if no valid responses
+            if not responses:
+                continue
 
-    accuracy = correct_count / total_count
+            # Only use the first response
+            first_response = responses[0]
+            is_correct = evaluate_responses([first_response], answer)
+            valid_count += 1
+            if is_correct:
+                correct_count += 1
+
+        except Exception as e:
+            # print(f"Error processing entry {id_}: {e}")
+            continue
+
+    # Calculate and output accuracy using valid responses
+    accuracy = correct_count / valid_count if valid_count > 0 else 0
     print(f"\nBaseline Accuracy (First Answer): {accuracy:.2%}")
+    print(f"Valid baseline responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
 
