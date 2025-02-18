@@ -24,7 +24,6 @@ def run(
             "quantity": 6,
         }
     ],
-    show_progress: bool = True,
     random_seed: int = 42,
 ) -> None:
     """Execute boolean question evaluation with the given configuration.
@@ -38,8 +37,6 @@ def run(
             Defaults to Path("data/bool_q").
         model_configs (List[ModelConfig], optional): List of model configurations.
             Defaults to single Ollama config.
-        show_progress (bool, optional): Whether to show progress bar.
-            Defaults to True.
 
     Returns:
         None: Results are saved to files and printed to console.
@@ -150,7 +147,6 @@ def main(sample_size: Optional[int] = None) -> None:
                     sample_size=sample_size,
                     report_path=Path("data/bool_q"),
                     model_configs=model_configs,
-                    show_progress=True,  # Enable progress tracking
                 )
                 pbar.update(1)
     except FileNotFoundError:
