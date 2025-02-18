@@ -144,9 +144,11 @@ def evaluate_baseline_df(
 
     return accuracy
 
+
 def main() -> None:
     from ...utils.download_dataset import load_save_dataset_df
     from .utils import process_bool_q_df
+
     dataset_path = Path("datasets/boolq")
 
     # Example usage
@@ -164,6 +166,7 @@ def main() -> None:
 
     # Evaluate the baseline responses
     evaluate_baseline_df(response_base_dir, processed_dataframe)
-    
+
+
 if __name__ == "__main__":
     main()
