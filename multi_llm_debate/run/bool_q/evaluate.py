@@ -20,9 +20,14 @@ def evaluate_responses(
     Returns:
         bool: True if all responses are the same and match the answer, False otherwise.
     """
+
     def normalize_answer(ans: str) -> str:
         ans = ans.lower().strip()
-        return "true" if ans in ("yes", "true") else "false" if ans in ("no", "false") else ans
+        return (
+            "true"
+            if ans in ("yes", "true")
+            else "false" if ans in ("no", "false") else ans
+        )
 
     raw_responses = [response["response"] for response in responses]
     normalized_responses = [normalize_answer(r["answer"]) for r in raw_responses]
