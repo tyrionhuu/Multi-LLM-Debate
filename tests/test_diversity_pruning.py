@@ -1,5 +1,6 @@
 import pytest
 from sentence_transformers import SentenceTransformer
+
 from multi_llm_debate.interventions.diversity_pruning import diversity_pruning
 
 
@@ -28,13 +29,12 @@ def test_diversity_pruning_basic(sentence_transformer, sample_responses):
         selected_amount=3,
         model=sentence_transformer,
     )
-    
+
     assert len(selected) == 3
     assert all(resp in sample_responses for resp in selected)
     # Similar responses should not both be selected
     assert not (
-        "The sky is blue." in selected 
-        and "The sky is blue and clear." in selected
+        "The sky is blue." in selected and "The sky is blue and clear." in selected
     )
 
 
