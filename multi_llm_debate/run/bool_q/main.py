@@ -28,7 +28,7 @@ def run(
     dataset_path = Path("datasets/boolq")
     model_config_str = model_configs_to_string(model_configs)
     output_path = report_path / model_config_str.replace(" ", "_")
-    
+
     dataframe = load_save_dataset_df(
         dataset_name="google/boolq",
         dataset_path=dataset_path,
