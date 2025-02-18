@@ -2,7 +2,6 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional
 
-
 from ..utils.config_manager import get_models
 from ..utils.model_config import ModelConfig
 from ..utils.progress import progress
@@ -101,7 +100,7 @@ class AgentsEnsemble:
         responses = []
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = []
-            
+
             # Submit all jobs first
             for agent in self.agents:
                 if self.job_delay > 0:
@@ -114,7 +113,7 @@ class AgentsEnsemble:
             for future in as_completed(futures):
                 response = future.result()
                 responses.append(response)
-                
+
         return responses
 
     def get_responses(
@@ -122,9 +121,7 @@ class AgentsEnsemble:
     ) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt."""
         with progress.sub_bar(
-            total=len(self.agents),
-            desc="Collecting agent responses",
-            unit="agent"
+            total=len(self.agents), desc="Collecting agent responses", unit="agent"
         ) as pbar:
             if self.concurrent:
                 responses = self._get_response_concurrent(prompt, json_mode=json_mode)
@@ -138,7 +135,7 @@ class AgentsEnsemble:
                     if self.job_delay > 0:
                         time.sleep(self.job_delay)
                     pbar.update(1)
-                    
+
         return responses
 
     def get_agent_by_id(self, agent_id: int) -> Agent:

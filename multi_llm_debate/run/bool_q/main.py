@@ -116,7 +116,7 @@ def main(test: bool = False) -> None:
         with progress.main_bar(
             total=len(model_configs_list),
             desc="Testing model configurations",
-            unit="config"
+            unit="config",
         ) as pbar:
             for model_configs in model_configs_list:
                 run(
