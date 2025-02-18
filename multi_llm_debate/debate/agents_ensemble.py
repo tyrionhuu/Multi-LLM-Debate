@@ -21,6 +21,7 @@ class AgentsEnsemble:
 
     def __init__(
         self,
+        agents: Optional[List[Agent]] = None,
         auto_init: bool = True,
         concurrent: bool = True,
         max_workers: Optional[int] = 4,
@@ -29,19 +30,29 @@ class AgentsEnsemble:
         """Initialize an AgentsEnsemble instance.
 
         Args:
+            agents (Optional[List[Agent]], optional): List of pre-configured agents.
+                If provided, auto_init will be ignored. Defaults to None.
             auto_init (bool, optional): Whether to automatically initialize agents from config.
                 Defaults to True.
-            concurrent (bool, optional): Whether to use concurrent execution. Defaults to False.
-            max_workers (int, optional): Maximum number of concurrent workers. Defaults to None
-                (ThreadPoolExecutor default).
-            job_delay (float, optional): Delay in seconds between agent calls. Defaults to 0.0.
+            concurrent (bool, optional): Whether to use concurrent execution. Defaults to True.
+            max_workers (int, optional): Maximum number of concurrent workers. Defaults to 4.
+            job_delay (float, optional): Delay in seconds between agent calls. Defaults to 0.5.
+
+        Raises:
+            ValueError: If agents list is empty.
         """
-        self.agents: List[Agent] = []
         self.concurrent = concurrent
         self.max_workers = max_workers
         self.job_delay = job_delay
-        if auto_init:
-            self._initialize_from_config()
+        
+        if agents is not None:
+            if not agents:
+                raise ValueError("Cannot initialize ensemble with empty agents list")
+            self.agents = agents
+        else:
+            self.agents = []
+            if auto_init:
+                self._initialize_from_config()
 
     def _initialize_from_config(self) -> None:
         """Initialize agents from configuration.
