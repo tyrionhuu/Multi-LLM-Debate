@@ -6,7 +6,7 @@ from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
 from .round_n import run_debate_round_n
 from .round_zero import run_debate_round_zero
-
+from ..llm.parsers import extract_bool_answer
 logger = setup_logging(__name__)
 
 
@@ -88,7 +88,8 @@ def check_convergence(responses: List[Dict]) -> bool:
     Returns:
         bool: True if all responses are the same, False otherwise.
     """
-    return len(set(response["answer"] for response in responses)) == 1
+    answers = [extract_bool_answer(response) for response in responses]
+    return len(set(answers)) == 1
 
 
 def main():
