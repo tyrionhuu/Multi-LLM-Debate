@@ -104,3 +104,42 @@ def evaluate_df(
     print(f"\nOverall Accuracy: {accuracy:.2%}")
 
     return accuracy
+
+
+def evaluate_baseline_df(
+    response_base_dir: Path,
+    dataframe: pd.DataFrame,
+) -> float:
+    """Evaluate the Boolean Question task using first answer baseline.
+
+    Args:
+        response_dir: Directory containing response files.
+        dataframe: Pandas DataFrame containing question, answer, passage and id.
+
+    Returns:
+        float: Accuracy score using first answer as baseline.
+    """
+    correct_count = 0
+    total_count = len(dataframe)
+
+    for _, entry in dataframe.iterrows():
+        answer = entry["answer"]
+        id_ = str(entry["id"])
+
+        # Load responses from the first debate round file
+        responses_dir = response_base_dir / id_
+        first_response_file = responses_dir / "debate_round_0.json"
+
+        with open(first_response_file, "r") as f:
+            responses = json.load(f)
+
+        # Only use the first response
+        first_response = responses[0]
+        is_correct = evaluate_responses([first_response], answer)
+        if is_correct:
+            correct_count += 1
+
+    accuracy = correct_count / total_count
+    print(f"\nBaseline Accuracy (First Answer): {accuracy:.2%}")
+
+    return accuracy
