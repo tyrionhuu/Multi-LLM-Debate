@@ -85,7 +85,7 @@ def run(
 
 def main(test: bool = False) -> None:
     import json
-    model_configs_list = json.load(open("run/bool_q/config.json"))
+    model_configs_list = json.load(open("config.json"))
     print(model_configs_list)
     # for model_configs in model_configs_list:
     #     run(
