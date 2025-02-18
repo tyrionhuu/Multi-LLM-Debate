@@ -1,4 +1,6 @@
 import hashlib
+
+
 def generate_hash(content: str) -> str:
     """Generate a unique hash using MD5.
 
