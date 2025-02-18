@@ -24,7 +24,7 @@ def evaluate_responses(
     # Check if all responses are the same
     if len(set(raw_response["answer"] for raw_response in raw_responses)) == 1:
         # Check if the common answer matches the expected answer
-        return responses[0]["answer"] == answer
+        return raw_responses[0]["answer"] == answer
     return False
 
 
