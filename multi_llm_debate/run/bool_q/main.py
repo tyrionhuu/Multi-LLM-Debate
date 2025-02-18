@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 from ...utils.download_dataset import load_save_dataset_df
 from .evaluate import evaluate_df
@@ -19,17 +20,25 @@ def main(test: bool = False, sample_size: int = 20) -> None:
     # Process the DataFrame
     processed_dataframe = process_bool_q_df(dataframe)
     if test:
-        processed_dataframe = processed_dataframe.iloc[[4]]
+        processed_dataframe = processed_dataframe.iloc[[3]]
 
     # Run the Boolean Question task
-    run_bool_q(
+    execution_report = run_bool_q(
         dataframe=processed_dataframe,
         base_dir=output_path,
     )
 
+    # Print execution summary
+    print("\nExecution Summary:")
+    print("-" * 50)
+    print(f"Total entries processed: {execution_report['total_entries']}")
+    print(f"Successfully processed: {execution_report['processed_count']}")
+    print(f"Failed entries: {len(execution_report['failed_entries'])}")
+    print(f"Success rate: {execution_report['success_rate']:.2f}%")
+
     # Evaluate the results
     accuracy = evaluate_df(output_path, processed_dataframe)
-    print(f"Accuracy: {accuracy:.2f}")
+    print(f"\nAccuracy: {accuracy:.2f}")
 
 
 if __name__ == "__main__":
