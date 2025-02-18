@@ -48,10 +48,10 @@ def run_debate(
                 print("Running round 0")
                 prompt = prompt_builder.build_round_zero()
                 round_responses = run_debate_round_zero(
-                    prompt=prompt, 
-                    agents_ensemble=agents_ensemble, 
-                    output_dir=output_dir, 
-                    json_mode=json_mode
+                    prompt=prompt,
+                    agents_ensemble=agents_ensemble,
+                    output_dir=output_dir,
+                    json_mode=json_mode,
                 )
             else:
                 extracted_responses = [
@@ -63,11 +63,11 @@ def run_debate(
                 print(f"Running debate round {i}")
                 prompt = prompt_builder.build_round_n(extracted_responses)
                 round_responses = run_debate_round_n(
-                    prompt=prompt, 
-                    agents_ensemble=agents_ensemble, 
-                    output_dir=output_dir, 
-                    round_num=i, 
-                    json_mode=json_mode
+                    prompt=prompt,
+                    agents_ensemble=agents_ensemble,
+                    output_dir=output_dir,
+                    round_num=i,
+                    json_mode=json_mode,
                 )
             all_responses.append(round_responses)
             print(f"Completed debate round {i}")
