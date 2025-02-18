@@ -9,25 +9,23 @@ import pandas as pd
 
 def evaluate_responses(
     responses: List[Dict],
-    answer: str,
+    answer: str | bool,
 ) -> bool:
     """Evaluate the responses from the debate.
 
     Args:
         responses: List of agent responses from the most recent round of debate.
-        answer: The correct answer to the question ("yes"/"no" or "true"/"false").
+        answer: The correct answer to the question ("yes"/"no", "true"/"false", or bool).
 
     Returns:
         bool: True if all responses are the same and match the answer, False otherwise.
     """
 
-    def normalize_answer(ans: str) -> str:
-        ans = ans.lower().strip()
-        return (
-            "true"
-            if ans in ("yes", "true")
-            else "false" if ans in ("no", "false") else ans
-        )
+    def normalize_answer(ans: str | bool) -> str:
+        if isinstance(ans, bool):
+            return "true" if ans else "false"
+        ans = str(ans).lower().strip()
+        return "true" if ans in ("yes", "true") else "false" if ans in ("no", "false") else ans
 
     raw_responses = [response["response"] for response in responses]
     normalized_responses = [normalize_answer(r["answer"]) for r in raw_responses]
