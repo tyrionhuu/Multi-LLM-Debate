@@ -80,7 +80,8 @@ def test_real_llm_call():
     - ollama to be running locally
     - llama3.1:latest model to be pulled
 
-    Run with: pytest -v -m integration
+    Run with: pytest -v --run-integration -m integration
+    Skip with: pytest -v (default behavior)
     """
     agent = Agent(agent_id=1, model="llama3.1:latest", provider="ollama")
 
