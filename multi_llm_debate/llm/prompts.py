@@ -5,7 +5,7 @@ NEW_LINE = "\n"
 BOOL_JSON_FORMAT = """
 {
     "reasoning": "your reasoning based on the passage",
-    "answer": "Yes/No"
+    "answer": "true/false"
 }
 """
 
@@ -17,7 +17,7 @@ BOOL_JSON_FORMAT_COT = """
         "step_3": "third step of your reasoning",
         "...": "continue with as many steps as needed"
     },
-    "answer": "Yes/No"
+    "answer": "true/false"
 }
 """
 
@@ -25,7 +25,7 @@ BOOL_JSON_FORMAT_COT = """
 def build_bool_q_round_zero_prompt(
     question: str, passage: str, use_cot: bool = True, json_mode: bool = False
 ) -> str:
-    prompt = "You will be given a yes-no question which is based on a passage. "
+    prompt = "You will be given a true or false question which is based on a passage. "
     if json_mode:
         prompt += "Answer in the following JSON format:" + NEW_LINE
         prompt += BOOL_JSON_FORMAT_COT if use_cot else BOOL_JSON_FORMAT
@@ -44,7 +44,7 @@ def build_bool_q_round_n_prompt(
     json_mode: bool = False,
 ) -> str:
     prompt = (
-        "Several other models have provided responses to a yes-no question, below are their responses: "
+        "Several other models have provided responses to a true or false question, below are their responses: "
         + NEW_LINE
     )
 
@@ -53,7 +53,7 @@ def build_bool_q_round_n_prompt(
 
     prompt += NEW_LINE
     prompt += (
-        "Consider these responses when answering the following yes-no question."
+        "Consider these responses when answering the following true or false question."
         + NEW_LINE
     )
     if json_mode:
