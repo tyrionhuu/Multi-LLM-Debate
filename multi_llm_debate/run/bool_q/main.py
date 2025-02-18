@@ -90,7 +90,6 @@ def main() -> None:
     for model_configs in model_configs_list:
         run(
             test=False,
-            sample_size=20,
             report_path=Path("data/bool_q"),
             model_configs=model_configs,
         )
