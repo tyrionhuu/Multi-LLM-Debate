@@ -13,7 +13,47 @@ from ...utils.logging_config import setup_logging
 
 logger = setup_logging(__name__)
 
+def run_bool_q(
+    dataframe: pd.DataFrame,
+    max_rounds: int = 10,
+    base_dir: Path = Path("data" / "bool_q"),
+    use_cot: bool = True,
+) -> None:
+    """Run the Boolean Question task on a DataFrame.
 
+    Args:
+        dataframe: Pandas DataFrame containing question, answer, passage and id
+        max_rounds: Maximum number of debate rounds
+        base_dir: Base directory for output files
+        use_cot: Whether to use chain-of-thought prompting (default: True)
+
+    Raises:
+        ValueError: If DataFrame format is invalid
+        RuntimeError: If debate execution fails
+    """
+    try:
+        logger.info("Starting debate for Boolean Question task")
+
+        # Check if the DataFrame is valid
+        if not isinstance(dataframe, pd.DataFrame):
+            logger.error("Invalid DataFrame type")
+            raise ValueError("Dataframe must be a pandas DataFrame.")
+
+        required_columns = ["question", "answer", "passage", "id"]
+        missing_columns = [col for col in required_columns if col not in dataframe.columns]
+        if missing_columns:
+            logger.error(f"Missing required columns: {missing_columns}")
+            raise ValueError(
+                "DataFrame must contain 'question', 'answer', 'passage', and 'id' columns."
+            )
+
+        # Iterate over each entry in the DataFrame
+        for _, entry in dataframe.iterrows():
+            run_bool_q_single_entry(entry, max_rounds, base_dir, use_cot)
+
+    except Exception as e:
+        logger.error(f"Debate execution failed: {str(e)}", exc_info=True)
+        raise RuntimeError(f"Debate execution failed: {str(e)}") from e
 def run_bool_q_single_entry(
     entry: pd.Series,
     max_rounds: int = 10,
