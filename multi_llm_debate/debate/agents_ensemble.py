@@ -26,44 +26,32 @@ class AgentsEnsemble:
 
     def __init__(
         self,
-        agents: Optional[List[Agent]] = None,
-        auto_init: bool = True,
+        config_list: Optional[List[ModelConfig]] = None,
         concurrent: bool = True,
         max_workers: Optional[int] = 4,
         job_delay: float = 0.5,
-        config_list: Optional[List[ModelConfig]] = None,
     ) -> None:
         """Initialize an AgentsEnsemble instance.
 
         Args:
-            agents (Optional[List[Agent]], optional): List of pre-configured agents.
-                If provided, other initialization methods will be ignored. Defaults to None.
-            auto_init (bool, optional): Whether to automatically initialize agents from config.
-                Defaults to True.
+            config_list (Optional[List[ModelConfig]]): List of model configurations.
+                If None, default configs will be loaded.
             concurrent (bool, optional): Whether to use concurrent execution. Defaults to True.
             max_workers (int, optional): Maximum number of concurrent workers. Defaults to 4.
             job_delay (float, optional): Delay in seconds between agent calls. Defaults to 0.5.
-            config_list (Optional[List[ModelConfig]], optional): List of model configurations.
-                If provided, auto_init will be ignored. Defaults to None.
 
         Raises:
-            ValueError: If agents list is empty or if initialization fails.
+            ValueError: If initialization fails.
         """
         self.concurrent = concurrent
         self.max_workers = max_workers
         self.job_delay = job_delay
-
-        if agents is not None:
-            if not agents:
-                raise ValueError("Cannot initialize ensemble with empty agents list")
-            self.agents = agents
-        elif config_list is not None:
-            self.agents = []
+        self.agents = []
+        
+        if config_list is not None:
             self._initialize_from_config_list(config_list)
         else:
-            self.agents = []
-            if auto_init:
-                self._initialize_from_config()
+            self._initialize_from_config()
 
     def _initialize_from_config(self) -> None:
         """Initialize agents from configuration.
@@ -99,30 +87,6 @@ class AgentsEnsemble:
                 )
                 self.add_agent(agent)
                 agent_id += 1
-
-    @classmethod
-    def create_from_config(cls) -> "AgentsEnsemble":
-        """Factory method to create an ensemble from configuration.
-
-        Returns:
-            AgentsEnsemble: A new instance initialized from configuration.
-        """
-        return cls(auto_init=True)
-
-    @classmethod
-    def create_from_config_list(
-        cls, config_list: List[ModelConfig], **kwargs
-    ) -> "AgentsEnsemble":
-        """Factory method to create an ensemble from a configuration list.
-
-        Args:
-            config_list (List[ModelConfig]): List of model configurations.
-            **kwargs: Additional arguments to pass to the constructor.
-
-        Returns:
-            AgentsEnsemble: A new instance initialized from the configuration list.
-        """
-        return cls(config_list=config_list, auto_init=False, **kwargs)
 
     def add_agent(self, agent: Agent) -> None:
         """Add an agent to the ensemble.
