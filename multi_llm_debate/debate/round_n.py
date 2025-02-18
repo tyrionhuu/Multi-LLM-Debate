@@ -13,6 +13,7 @@ def run_debate_round_n(
     agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
     round_num: int,
+    json_mode: bool = False,
 ) -> List[dict]:
     """
     Run a subsequent round of debate with the given prompt and agents.
@@ -32,7 +33,10 @@ def run_debate_round_n(
     logger.info(f"Running debate round {round_num}")
     # logger.info(f"Debate prompt: {prompt}")
 
-    responses = agents_ensemble.get_responses(prompt)
+    responses = agents_ensemble.get_responses(
+        prompt=prompt, 
+        json_mode=json_mode
+    )
     for i, response in enumerate(responses):
         logger.info(f"Agent {i} response: {response}")
 
