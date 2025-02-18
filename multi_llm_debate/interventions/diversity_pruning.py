@@ -2,7 +2,7 @@ from typing import List
 
 from sentence_transformers import SentenceTransformer
 
-from .utils import compute_sentence_embedding, kullback_leibler_divergence
+from .utils import compute_sentence_embedding, kullback_leibler_approximation_distance
 
 
 def diversity_pruning(
