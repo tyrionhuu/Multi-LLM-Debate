@@ -101,11 +101,10 @@ def evaluate_df(
         dataframe: Pandas DataFrame containing question, answer, passage and id.
 
     Returns:
-        float: Accuracy score (number of correct answers / total questions)
+        float: Accuracy score (number of correct answers / total valid responses)
     """
     correct_count = 0
-    total_count = len(dataframe)
-    error_count = 0
+    valid_count = 0
 
     for _, entry in dataframe.iterrows():
         try:
@@ -121,19 +120,24 @@ def evaluate_df(
             with open(final_response_file, "r") as f:
                 responses = json.load(f)
 
+            # Skip if no valid responses
+            if not responses:
+                continue
+
             # Evaluate the responses
             is_correct = evaluate_responses(responses, answer)
+            valid_count += 1
             if is_correct:
                 correct_count += 1
+
         except Exception as e:
-            print(f"Error processing entry {id_}: {e}")
-            error_count += 1
+            # print(f"Error processing entry {id_}: {e}")
             continue
 
-    # Calculate and output accuracy
-    accuracy = correct_count / (total_count - error_count) if total_count > error_count else 0
+    # Calculate and output accuracy using valid responses
+    accuracy = correct_count / valid_count if valid_count > 0 else 0
     print(f"\nOverall Accuracy: {accuracy:.2%}")
-    print(f"Errors encountered: {error_count}/{total_count}")
+    print(f"Valid responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
 
