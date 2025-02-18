@@ -1,19 +1,16 @@
 import csv
+import time
 from pathlib import Path
-from typing import List, Dict
+from typing import List
 
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
-from .utils import process_bool_q_df
+from .utils import process_bool_q_df, model_configs_to_string, format_time
 
 
-def model_configs_to_string(model_configs: List[Dict]) -> str:
-    """Convert model configs to a string representation."""
-    return " + ".join(
-        f"{config['name']}({config['quantity']})" for config in model_configs
-    )
+
 
 def run(
     test: bool = False,
@@ -27,6 +24,8 @@ def run(
         }
     ],
 ) -> None:
+    start_time = time.time()
+    
     # Load the dataset
     dataset_path = Path("datasets/boolq")
     output_path = Path("data/bool_q/llama3")
@@ -63,6 +62,11 @@ def run(
     print(f"\nAccuracy: {accuracy:.2f}")
     print(f"Baseline Accuracy: {baseline_accuracy:.2f}")
 
+    # Calculate running time
+    running_time = time.time() - start_time
+    display_time, csv_time = format_time(running_time)
+    print(f"\nTotal running time: {display_time}")
+
     # Save the execution report
     report_path.mkdir(parents=True, exist_ok=True)
 
@@ -73,11 +77,17 @@ def run(
     with open(csv_path, 'a', newline='') as f:
         writer = csv.writer(f)
         if not file_exists:
-            writer.writerow(['Model Configuration', 'Baseline Accuracy', 'Debate Accuracy'])
+            writer.writerow([
+                'Model Configuration', 
+                'Baseline Accuracy', 
+                'Debate Accuracy',
+                'Running Time'
+            ])
         writer.writerow([
             model_configs_to_string(model_configs),
             f"{baseline_accuracy:.4f}",
-            f"{accuracy:.4f}"
+            f"{accuracy:.4f}",
+            csv_time
         ])
 
     print(f"\nResults saved to {csv_path}")
