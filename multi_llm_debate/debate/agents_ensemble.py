@@ -2,6 +2,8 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional
 
+from tqdm import tqdm
+
 from ..utils.config_manager import get_models
 from .agent import Agent
 
@@ -109,7 +111,13 @@ class AgentsEnsemble:
                     executor.submit(agent.respond, prompt, json_mode=json_mode)
                 )
 
-            for future in as_completed(futures):
+            # Use tqdm to create progress bar
+            for future in tqdm(
+                as_completed(futures),
+                total=len(futures),
+                desc="Collecting agent responses",
+                unit="agent",
+            ):
                 response = future.result()
                 responses.append(response)
         return responses
@@ -132,7 +140,7 @@ class AgentsEnsemble:
             return self._get_response_concurrent(prompt, json_mode=json_mode)
 
         responses = []
-        for agent in self.agents:
+        for agent in tqdm(self.agents, desc="Collecting agent responses", unit="agent"):
             response = agent.respond(prompt, json_mode=json_mode)
             responses.append(response)
             if self.job_delay > 0:
