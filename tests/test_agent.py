@@ -26,7 +26,7 @@ def test_agent_string_representation(test_agent):
 
 
 @pytest.mark.parametrize(
-    "mock_response,expected",
+    "mock_response,expected_content",
     [
         (
             '{"key": "value"}',
@@ -46,13 +46,18 @@ def test_agent_string_representation(test_agent):
         ),
     ],
 )
-def test_agent_respond(test_agent, mock_response, expected):
+def test_agent_respond(test_agent, mock_response, expected_content):
     """Test agent response handling with different response types."""
     with patch(
         "multi_llm_debate.debate.agent.call_model",
         return_value=mock_response,
     ):
         response = test_agent.respond("test prompt")
+        expected = {
+            "agent_id": 1,
+            "model": "llama2:3.1",
+            "response": expected_content,
+        }
         assert response == expected
 
 
