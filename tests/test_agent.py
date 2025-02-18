@@ -8,15 +8,15 @@ from multi_llm_debate.debate.agent import Agent
 @pytest.fixture
 def test_agent():
     """Fixture providing a test Agent instance."""
-    return Agent(agent_id=1, model="llama2:3.1", provider="Ollama")
+    return Agent(agent_id=1, model="llama2:3.1", provider="ollama")
 
 
 def test_agent_initialization():
     """Test Agent instance initialization with basic attributes."""
-    agent = Agent(agent_id=1, model="llama2:3.1", provider="Ollama")
+    agent = Agent(agent_id=1, model="llama2:3.1", provider="ollama")
     assert agent.agent_id == 1
     assert agent.model == "llama2:3.1"
-    assert agent.provider == "Ollama"
+    assert agent.provider == "ollama"
 
 
 def test_agent_string_representation(test_agent):
@@ -74,10 +74,10 @@ def test_agent_respond_call_parameters(test_agent):
 
 @pytest.mark.integration
 def test_real_llm_call():
-    """Test actual LLM API call integration using Ollama.
+    """Test actual LLM API call integration using ollama.
 
     This test requires:
-    - Ollama to be running locally
+    - ollama to be running locally
     - llama3.1:latest model to be pulled
 
     Run with: pytest -v -m integration
