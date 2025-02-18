@@ -68,11 +68,12 @@ MODEL_CONFIGS_LIST = [
 def run(
     test: bool = False, 
     sample_size: int = 20,
+    report_path: Path = Path("data/bool_q"),
     model_configs: List[ModelConfig] = [
         {
         "provider": "ollama",
         "name": "llama3",
-        "quantity": 1,
+        "quantity": 6,
         }
     ],
 ) -> None:
@@ -112,4 +113,6 @@ def run(
     print(f"\nAccuracy: {accuracy:.2f}")
     print(f"Baseline Accuracy: {baseline_accuracy:.2f}")
 
+    # Save the execution report
+    report_path.mkdir(parents=True, exist_ok=True)
 
