@@ -42,4 +42,4 @@ def main(test: bool = False, sample_size: int = 20) -> None:
 
 
 if __name__ == "__main__":
-    main(test=True, sample_size=5)
+    main(test=False, sample_size=5)
