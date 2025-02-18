@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from ...utils.download_dataset import load_save_dataset_df
-from .evaluate import evaluate_df
+from .evaluate import evaluate_df, evaluate_baseline_df
 from .run import run_bool_q
 from .utils import process_bool_q_df
 
@@ -38,7 +38,9 @@ def main(test: bool = False, sample_size: int = 20) -> None:
 
     # Evaluate the results
     accuracy = evaluate_df(output_path, processed_dataframe)
+    baseline_accuracy = evaluate_baseline_df(output_path, processed_dataframe)
     print(f"\nAccuracy: {accuracy:.2f}")
+    print(f"Baseline Accuracy: {baseline_accuracy:.2f}")
 
 
 if __name__ == "__main__":
