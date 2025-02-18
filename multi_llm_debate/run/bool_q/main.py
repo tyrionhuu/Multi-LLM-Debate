@@ -49,7 +49,9 @@ def run(
     # Process the DataFrame
     processed_dataframe = process_bool_q_df(dataframe)
     if sample_size:
-        processed_dataframe = processed_dataframe.sample(sample_size, random_state=random_seed)
+        processed_dataframe = processed_dataframe.sample(
+            sample_size, random_state=random_seed
+        )
 
     # Run the Boolean Question task
     execution_report = run_bool_q(
