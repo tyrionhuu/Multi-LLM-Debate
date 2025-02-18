@@ -83,7 +83,7 @@ def evaluate_df(
             correct_count += 1
 
         # Output individual result
-        print(f"ID: {id_}, Correct: {is_correct}")
+        # print(f"ID: {id_}, Correct: {is_correct}")
 
     # Calculate and output accuracy
     accuracy = correct_count / total_count
