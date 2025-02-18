@@ -95,10 +95,11 @@ def main(test: bool = False) -> None:
         config_path = Path(__file__).parent / "config.json"
         with open(config_path) as f:
             model_configs_list = json.load(f)
-        
+        print(model_configs_list)
         for model_configs in model_configs_list:
             run(
                 test=test,
+                sample_size=1,
                 report_path=Path("data/bool_q"),
                 model_configs=model_configs,
             )
