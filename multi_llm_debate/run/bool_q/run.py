@@ -13,6 +13,7 @@ from ...utils.logging_config import setup_logging
 
 logger = setup_logging(__name__)
 
+
 def run_bool_q_single_entry(
     entry: pd.Series, max_rounds: int = 10, base_dir: Path = Path("data" / "bool_q")
 ) -> None:
@@ -29,13 +30,13 @@ def run_bool_q_single_entry(
     """
     try:
         logger.info(f"Starting debate for entry ID: {entry.get('id', 'unknown')}")
-        
+
         # Check if the entry is valid
         if not isinstance(entry, pd.Series):
             logger.error("Invalid entry type")
             raise ValueError("Entry must be a pandas Series.")
 
-        required_fields = ['question', 'answer', 'passage', 'id']
+        required_fields = ["question", "answer", "passage", "id"]
         missing_fields = [field for field in required_fields if field not in entry]
         if missing_fields:
             logger.error(f"Missing required fields: {missing_fields}")

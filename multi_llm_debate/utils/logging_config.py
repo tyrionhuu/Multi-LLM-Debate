@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+
 def handle_exception(exc_type, exc_value, exc_traceback):
     """Global exception handler to log unhandled exceptions.
 
@@ -17,6 +18,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         return
 
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
 
 def setup_logging(module_name: str, log_level: Optional[int] = None) -> logging.Logger:
     """Set up logging configuration for a module.
@@ -59,7 +61,7 @@ def setup_logging(module_name: str, log_level: Optional[int] = None) -> logging.
 
     # Get logger
     logger = logging.getLogger(module_name)
-    
+
     # Set default log level to INFO if not specified
     log_level = log_level or logging.INFO
     logger.setLevel(log_level)
