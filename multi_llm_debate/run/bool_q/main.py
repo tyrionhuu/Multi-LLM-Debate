@@ -5,6 +5,7 @@ from typing import List
 
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
+from ...utils.progress import progress
 from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
 from .utils import format_time, model_configs_to_string, process_bool_q_df
@@ -21,6 +22,7 @@ def run(
             "quantity": 6,
         }
     ],
+    show_progress: bool = True,  # Add this parameter
 ) -> None:
     start_time = time.time()
 
@@ -109,14 +111,22 @@ def main(test: bool = False) -> None:
         config_path = Path(__file__).parent / "config.json"
         with open(config_path) as f:
             model_configs_list = json.load(f)
-        # print(model_configs_list)
-        for model_configs in model_configs_list:
-            run(
-                test=test,
-                sample_size=1,
-                report_path=Path("data/bool_q"),
-                model_configs=model_configs,
-            )
+
+        # Add progress bar for model configurations
+        with progress.main_bar(
+            total=len(model_configs_list),
+            desc="Testing model configurations",
+            unit="config"
+        ) as pbar:
+            for model_configs in model_configs_list:
+                run(
+                    test=test,
+                    sample_size=1,
+                    report_path=Path("data/bool_q"),
+                    model_configs=model_configs,
+                    show_progress=True,  # Enable progress tracking
+                )
+                pbar.update(1)
     except FileNotFoundError:
         raise FileNotFoundError(f"Configuration file not found at {config_path}")
 
