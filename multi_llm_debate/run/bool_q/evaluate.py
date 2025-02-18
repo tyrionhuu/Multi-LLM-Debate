@@ -1,4 +1,6 @@
-from typing import List, Dict
+from typing import Dict, List
+
+
 def evaluate_responses(
     responses: List[Dict],
     answer: str,
