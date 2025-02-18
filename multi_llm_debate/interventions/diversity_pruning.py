@@ -1,6 +1,9 @@
-from .utils import kullback_leibler_approximation_distance
 from typing import List
+
 from sentence_transformers import SentenceTransformer
+
+from .utils import kullback_leibler_approximation_distance
+
 
 def diversity_pruning(
     responses: List[str],
@@ -18,7 +21,9 @@ def diversity_pruning(
         A list of selected response strings.
     """
     if model is None:
-        raise ValueError("A SentenceTransformer model must be provided for diversity pruning.")
+        raise ValueError(
+            "A SentenceTransformer model must be provided for diversity pruning."
+        )
 
     if len(responses) <= selected_amount:
         return responses
