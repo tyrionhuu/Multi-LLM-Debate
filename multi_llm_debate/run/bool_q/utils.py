@@ -12,9 +12,9 @@ def process_bool_q_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     # Create a copy to avoid modifying the original
     processed_df = dataframe.copy()
-    
+
     # Generate ID from index if 'id' column doesn't exist
-    if 'id' not in processed_df.columns:
-        processed_df['id'] = processed_df.index + 1
+    if "id" not in processed_df.columns:
+        processed_df["id"] = processed_df.index + 1
 
     return processed_df
