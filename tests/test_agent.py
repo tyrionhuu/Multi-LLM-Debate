@@ -49,7 +49,7 @@ def test_agent_string_representation(test_agent):
 def test_agent_respond(test_agent, mock_response, expected):
     """Test agent response handling with different response types."""
     with patch(
-        "multi_llm_debate.inference.agent.call_model",
+        "multi_llm_debate.debate.agent.call_model",
         return_value=mock_response,
     ):
         response = test_agent.respond("test prompt")
@@ -58,7 +58,7 @@ def test_agent_respond(test_agent, mock_response, expected):
 
 def test_agent_respond_call_parameters(test_agent):
     """Test that respond method calls LLM with correct parameters."""
-    with patch("multi_llm_debate.inference.agent.call_model") as mock_call:
+    with patch("multi_llm_debate.debate.agent.call_model") as mock_call:
         test_agent.respond("test prompt")
         mock_call.assert_called_once_with(
             model_name="llama3.1:latest",
