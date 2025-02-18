@@ -57,8 +57,12 @@ def run_bool_q(
             )
 
         # Iterate over each entry in the DataFrame with progress bar
-        for _, entry in tqdm(dataframe.iterrows(), total=len(dataframe), 
-                           desc="Running debates", unit="debate"):
+        for _, entry in tqdm(
+            dataframe.iterrows(),
+            total=len(dataframe),
+            desc="Running debates",
+            unit="debate",
+        ):
             run_bool_q_single_entry(entry, max_rounds, base_dir, use_cot, agents)
 
     except Exception as e:
