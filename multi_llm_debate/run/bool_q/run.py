@@ -3,8 +3,8 @@ from typing import List, Optional
 
 import pandas as pd
 
-from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.agent import Agent
+from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.run_debate import run_debate
 from ...llm.prompts import (
     PromptBuilder,
@@ -14,6 +14,7 @@ from ...llm.prompts import (
 from ...utils.logging_config import setup_logging
 
 logger = setup_logging(__name__)
+
 
 def run_bool_q(
     dataframe: pd.DataFrame,
@@ -45,7 +46,9 @@ def run_bool_q(
             raise ValueError("Dataframe must be a pandas DataFrame.")
 
         required_columns = ["question", "answer", "passage", "id"]
-        missing_columns = [col for col in required_columns if col not in dataframe.columns]
+        missing_columns = [
+            col for col in required_columns if col not in dataframe.columns
+        ]
         if missing_columns:
             logger.error(f"Missing required columns: {missing_columns}")
             raise ValueError(
@@ -59,6 +62,8 @@ def run_bool_q(
     except Exception as e:
         logger.error(f"Debate execution failed: {str(e)}", exc_info=True)
         raise RuntimeError(f"Debate execution failed: {str(e)}") from e
+
+
 def run_bool_q_single_entry(
     entry: pd.Series,
     max_rounds: int = 10,
