@@ -23,7 +23,9 @@ BOOL_JSON_FORMAT_COT = """
 
 
 def build_bool_q_round_zero_prompt(
-    question: str, passage: str, use_cot: bool = True
+    question: str, 
+    passage: str, 
+    use_cot: bool = True
 ) -> str:
     prompt = "You will be given a yes-no question which is based on a passage. "
     prompt += "Answer in the following JSON format:" + NEW_LINE
@@ -36,7 +38,10 @@ def build_bool_q_round_zero_prompt(
 
 
 def build_bool_q_round_n_prompt(
-    question: str, passage: str, responses: List[str | Dict], use_cot: bool = True
+    question: str, 
+    passage: str, 
+    responses: List[str | Dict], 
+    use_cot: bool = True
 ) -> str:
     prompt = (
         "Several other models have provided responses to a yes-no question, below are their responses: "
