@@ -15,7 +15,10 @@ logger = setup_logging(__name__)
 
 
 def run_bool_q_single_entry(
-    entry: pd.Series, max_rounds: int = 10, base_dir: Path = Path("data" / "bool_q")
+    entry: pd.Series,
+    max_rounds: int = 10,
+    base_dir: Path = Path("data" / "bool_q"),
+    use_cot: bool = True,
 ) -> None:
     """Run a single entry for the Boolean Question task.
 
@@ -23,6 +26,7 @@ def run_bool_q_single_entry(
         entry: Pandas Series containing question, answer, passage and id
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
+        use_cot: Whether to use chain-of-thought prompting (default: True)
 
     Raises:
         ValueError: If entry format is invalid
@@ -64,6 +68,11 @@ def run_bool_q_single_entry(
         prompt_builder = PromptBuilder(
             round_zero_fn=build_bool_q_round_zero_prompt,
             round_n_fn=build_bool_q_round_n_prompt,
+            prompt_params={
+                "question": question,
+                "passage": passage,
+                "use_cot": use_cot,
+            }
         )
         agents_ensemble = AgentsEnsemble()
 
