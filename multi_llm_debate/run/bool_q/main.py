@@ -27,3 +27,7 @@ def main(test: bool = False) -> None:
     # Evaluate the results
     accuracy = evaluate_df(output_path, processed_dataframe)
     print(f"Accuracy: {accuracy:.2f}")
+
+
+if __name__ == "__main__":
+    main()
