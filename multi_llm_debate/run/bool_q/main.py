@@ -1,5 +1,6 @@
+import csv
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
@@ -67,6 +68,11 @@ MODEL_CONFIGS_LIST = [
     ],
 ]
 
+def model_configs_to_string(model_configs: List[Dict]) -> str:
+    """Convert model configs to a string representation."""
+    return " + ".join(
+        f"{config['name']}({config['quantity']})" for config in model_configs
+    )
 
 def run(
     test: bool = False,
@@ -118,3 +124,19 @@ def run(
 
     # Save the execution report
     report_path.mkdir(parents=True, exist_ok=True)
+
+    # Save results to CSV
+    csv_path = report_path / "results.csv"
+    file_exists = csv_path.exists()
+    
+    with open(csv_path, 'a', newline='') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(['Model Configuration', 'Baseline Accuracy', 'Debate Accuracy'])
+        writer.writerow([
+            model_configs_to_string(model_configs),
+            f"{baseline_accuracy:.4f}",
+            f"{accuracy:.4f}"
+        ])
+
+    print(f"\nResults saved to {csv_path}")
