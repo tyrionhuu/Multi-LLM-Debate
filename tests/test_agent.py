@@ -1,4 +1,5 @@
 from unittest.mock import patch
+import json
 
 import pytest
 
@@ -30,19 +31,19 @@ def test_agent_string_representation(test_agent):
     [
         (
             '{"key": "value"}',
-            '{"key": "value"}',  # Changed: Keep as string for JSON responses
+            '{"key": "value"}',
         ),
         (
             {"key": "value"},
-            {"key": "value"},
+            '{"key": "value"}',  # Changed: Dict should be converted to JSON string
         ),
         (
             "invalid json",
-            "invalid json",  # Changed: Keep as string for non-JSON responses
+            "invalid json",
         ),
         (
             123,
-            "123",  # Changed: Numbers should be converted to strings
+            "123",
         ),
     ],
 )
@@ -63,13 +64,14 @@ def test_agent_respond(test_agent, mock_response, expected_content):
 
 def test_agent_respond_call_parameters(test_agent):
     """Test that respond method calls LLM with correct parameters."""
-    with patch("multi_llm_debate.debate.agent.call_model") as mock_call:
-        test_agent.respond("test prompt")
-        mock_call.assert_called_once_with(
-            model_name="llama3.1:latest",
-            provider="ollama",
-            prompt="test prompt",
-        )
+    mock_call = patch("multi_llm_debate.debate.agent.call_model").start()
+    test_agent.respond("test prompt")
+    mock_call.assert_called_once_with(
+        model=test_agent.model,  # Changed: use model attribute directly
+        provider=test_agent.provider,
+        prompt="test prompt",
+    )
+    patch.stopall()
 
 
 @pytest.mark.integration
