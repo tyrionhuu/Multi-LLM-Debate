@@ -3,6 +3,8 @@ import time
 from pathlib import Path
 from typing import List
 
+import pandas as pd
+
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
@@ -10,7 +12,7 @@ from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
 from .utils import format_time, model_configs_to_string, process_bool_q_df
 
-import pandas as pd
+
 def run(
     dataframe: pd.DataFrame,
     test: bool = False,
@@ -30,13 +32,13 @@ def run(
     Args:
         dataframe: The input dataframe containing boolean questions dataset.
         test (bool, optional): Whether to run in test mode. Defaults to False.
-        sample_size (int, optional): Number of samples to use in test mode. 
+        sample_size (int, optional): Number of samples to use in test mode.
             Defaults to 20.
-        report_path (Path, optional): Path to save results. 
+        report_path (Path, optional): Path to save results.
             Defaults to Path("data/bool_q").
-        model_configs (List[ModelConfig], optional): List of model configurations. 
+        model_configs (List[ModelConfig], optional): List of model configurations.
             Defaults to single Ollama config.
-        show_progress (bool, optional): Whether to show progress bar. 
+        show_progress (bool, optional): Whether to show progress bar.
             Defaults to True.
 
     Returns:
