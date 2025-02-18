@@ -72,7 +72,7 @@ def run_bool_q_single_entry(
                 "question": question,
                 "passage": passage,
                 "use_cot": use_cot,
-            }
+            },
         )
         agents_ensemble = AgentsEnsemble()
 
