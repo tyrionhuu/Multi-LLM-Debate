@@ -15,6 +15,7 @@ def run_debate(
     prompt_builder: PromptBuilder,
     agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
+    json_mode: bool = False,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -47,7 +48,10 @@ def run_debate(
                 print("Running round 0")
                 prompt = prompt_builder.build_round_zero()
                 round_responses = run_debate_round_zero(
-                    prompt, agents_ensemble, output_dir
+                    prompt=prompt, 
+                    agents_ensemble=agents_ensemble, 
+                    output_dir=output_dir, 
+                    json_mode=json_mode
                 )
             else:
                 extracted_responses = [
@@ -59,7 +63,11 @@ def run_debate(
                 print(f"Running debate round {i}")
                 prompt = prompt_builder.build_round_n(extracted_responses)
                 round_responses = run_debate_round_n(
-                    prompt, agents_ensemble, output_dir, i
+                    prompt=prompt, 
+                    agents_ensemble=agents_ensemble, 
+                    output_dir=output_dir, 
+                    round_num=i, 
+                    json_mode=json_mode
                 )
             all_responses.append(round_responses)
             print(f"Completed debate round {i}")
