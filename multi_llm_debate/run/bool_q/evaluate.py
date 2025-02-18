@@ -51,11 +51,11 @@ def evaluate_responses(
             normalize_answer(extract_answer(r)) for r in raw_responses
         ]
         normalized_answer = normalize_answer(answer)
-
+        print(f"Normalized answer: {normalized_answer}")
         # Filter out empty responses
         valid_responses = [r for r in normalized_responses if r]
         if not valid_responses:
-            print("Warning: No valid responses found")
+            # print("Warning: No valid responses found")
             return False
 
         # Check if all valid responses are the same
@@ -128,7 +128,7 @@ def evaluate_df(
                 correct_count += 1
 
         except Exception as e:
-            # print(f"Error processing entry {id_}: {e}")
+            print(f"Error processing entry {id_}: {e}")
             continue
 
     # Calculate and output accuracy using valid responses
@@ -179,7 +179,7 @@ def evaluate_baseline_df(
                 correct_count += 1
 
         except Exception as e:
-            # print(f"Error processing entry {id_}: {e}")
+            print(f"Error processing entry {id_}: {e}")
             continue
 
     # Calculate and output accuracy using valid responses

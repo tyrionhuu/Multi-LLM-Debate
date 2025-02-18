@@ -35,7 +35,7 @@ def run_debate(
         Exception: If any error occurs during the debate process.
             Original exception is logged and re-raised.
     """
-    print(f"Starting debate")
+    print("Starting debate")
     print(f"Maximum rounds: {max_rounds}")
     print(f"Output directory: {output_dir}")
 
