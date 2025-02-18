@@ -104,9 +104,9 @@ def run_bool_q_single_entry(
         # Extract values from the entry
         question = entry["question"]
         passage = entry["passage"]
-        _id = entry["id"]
+        id_ = entry["id"]
 
-        output_dir = base_dir / _id
+        output_dir = base_dir / id_
         logger.debug(f"Output directory set to: {output_dir}")
 
         try:
