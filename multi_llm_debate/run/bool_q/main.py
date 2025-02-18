@@ -1,7 +1,7 @@
 import csv
 import time
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 
@@ -15,8 +15,7 @@ from .utils import format_time, model_configs_to_string, process_bool_q_df
 
 def run(
     dataframe: pd.DataFrame,
-    test: bool = False,
-    sample_size: int = 20,
+    sample_size: Optional[int] = None,
     report_path: Path = Path("data/bool_q"),
     model_configs: List[ModelConfig] = [
         {
@@ -26,6 +25,7 @@ def run(
         }
     ],
     show_progress: bool = True,
+    random_seed: int = 42,
 ) -> None:
     """Execute boolean question evaluation with the given configuration.
 
@@ -51,8 +51,8 @@ def run(
 
     # Process the DataFrame
     processed_dataframe = process_bool_q_df(dataframe)
-    if test:
-        processed_dataframe = processed_dataframe.sample(sample_size)
+    if sample_size:
+        processed_dataframe = processed_dataframe.sample(sample_size, random_state=random_seed)
 
     # Run the Boolean Question task
     execution_report = run_bool_q(
@@ -110,7 +110,7 @@ def run(
     print(f"\nResults saved to {csv_path}")
 
 
-def main(test: bool = False) -> None:
+def main(sample_size: Optional[int] = None) -> None:
     """Run boolean question evaluation with configured models.
 
     This function loads the dataset and model configurations from a JSON file,
@@ -147,8 +147,7 @@ def main(test: bool = False) -> None:
             for model_configs in model_configs_list:
                 run(
                     dataframe=dataframe,  # Pass the loaded dataframe
-                    test=test,
-                    sample_size=1,
+                    sample_size=sample_size,
                     report_path=Path("data/bool_q"),
                     model_configs=model_configs,
                     show_progress=True,  # Enable progress tracking
@@ -159,4 +158,4 @@ def main(test: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    main(test=True)
+    main(sample_size=20)
