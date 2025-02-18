@@ -6,7 +6,11 @@ from .run import run_bool_q
 from .utils import process_bool_q_df
 
 
-def main(test: bool = False, sample_size: int = 20) -> None:
+def run(
+    test: bool = False, 
+    sample_size: int = 20,
+    
+) -> None:
     # Load the dataset
     dataset_path = Path("datasets/boolq")
     output_path = Path("data/bool_q/llama3")
@@ -43,5 +47,3 @@ def main(test: bool = False, sample_size: int = 20) -> None:
     print(f"Baseline Accuracy: {baseline_accuracy:.2f}")
 
 
-if __name__ == "__main__":
-    main(test=True, sample_size=10)

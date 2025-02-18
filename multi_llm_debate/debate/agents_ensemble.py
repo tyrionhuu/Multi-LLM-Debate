@@ -6,14 +6,9 @@ from tqdm import tqdm
 
 from ..utils.config_manager import get_models
 from .agent import Agent
+from ..utils.model_config import ModelConfig
 
 
-class ModelConfig(TypedDict):
-    """Type definition for model configuration."""
-
-    provider: str
-    name: str
-    quantity: int
 
 
 class AgentsEnsemble:
