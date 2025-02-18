@@ -63,7 +63,7 @@ def setup_logging(module_name: str, log_level: Optional[int] = None) -> logging.
     logger = logging.getLogger(module_name)
 
     # Set default log level to INFO if not specified
-    log_level = log_level or logging.INFO
+    log_level = log_level or logging.WARNING
     logger.setLevel(log_level)
 
     # Add handlers if they haven't been added already
