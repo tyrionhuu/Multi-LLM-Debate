@@ -2,6 +2,6 @@
     "api_key": "sk-f1fCP1wFI4K1pQYJORkJF3K9tg1MINok28GAsCsSFIjvajjS",
     "base_url": "https://api2.aigcbest.top/v1",
     "models": [
-        {"provider": "ollama", "name": "llama3.1:latest", "quantity": 3}
+        {"provider": "ollama", "name": "phi3", "quantity": 3}
     ]
 }
