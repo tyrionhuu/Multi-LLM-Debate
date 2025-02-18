@@ -109,7 +109,9 @@ def run_bool_q_single_entry(
 
         # Extract values from the entry
         question = entry["question"]
+        print(f"Question: {question}")
         passage = entry["passage"]
+        print(f"Passage: {passage}")
         id_ = str(entry["id"])  # Convert ID to string
 
         output_dir = base_dir / id_  # Now using string ID with Path
