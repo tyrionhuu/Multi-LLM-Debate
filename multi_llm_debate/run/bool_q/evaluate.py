@@ -1,9 +1,11 @@
-from typing import Dict, List
-from pathlib import Path
-import pandas as pd
-import json
 import glob
+import json
 import re
+from pathlib import Path
+from typing import Dict, List
+
+import pandas as pd
+
 
 def evaluate_responses(
     responses: List[Dict],
@@ -25,12 +27,13 @@ def evaluate_responses(
         return responses[0]["answer"] == answer
     return False
 
+
 def _get_latest_round_file(responses_dir: Path) -> Path:
     """Get the file path for the latest debate round.
-    
+
     Args:
         responses_dir: Directory containing debate round files
-        
+
     Returns:
         Path to the latest debate round file
     """
@@ -38,11 +41,12 @@ def _get_latest_round_file(responses_dir: Path) -> Path:
     files = glob.glob(pattern)
     if not files:
         raise ValueError(f"No debate round files found in {responses_dir}")
-        
+
     # Extract round numbers and find max
     rounds = [int(re.search(r"debate_round_(\d+)", f).group(1)) for f in files]
     latest_round = max(rounds)
     return Path(responses_dir / f"debate_round_{latest_round}.json")
+
 
 def evaluate_df(
     response_base_dir: Path,
@@ -60,15 +64,15 @@ def evaluate_df(
 
         # Load responses from the corresponding file
         responses_dir = response_base_dir / id_
-        
+
         # Get the final response file
         final_response_file = _get_latest_round_file(responses_dir)
 
         with open(final_response_file, "r") as f:
             responses = json.load(f)
-            
+
         # Evaluate the responses
         is_correct = evaluate_responses(responses, answer)
-        
+
         # Output the result
         print(f"ID: {id_}, Correct: {is_correct}")
