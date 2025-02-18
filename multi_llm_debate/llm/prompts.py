@@ -21,6 +21,19 @@ BOOL_JSON_FORMAT_COT = """
 }
 """
 
+BOOL_NON_JSON_FORMAT = """
+Reasoning: your reasoning based on the passage
+Final Answer: true/false
+"""
+
+BOOL_NON_JSON_FORMAT_COT = """
+Reasoning:
+Step 1: first step of your reasoning
+Step 2: second step of your reasoning
+Step 3: third step of your reasoning
+...
+Final Answer: true/false
+"""
 
 def build_bool_q_round_zero_prompt(
     question: str, passage: str, use_cot: bool = True, json_mode: bool = False
