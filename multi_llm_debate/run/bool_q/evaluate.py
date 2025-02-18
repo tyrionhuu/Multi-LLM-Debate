@@ -6,30 +6,7 @@ from typing import Dict, List
 
 import pandas as pd
 
-
-def normalize_answer(ans: str | bool) -> str:
-    if isinstance(ans, bool):
-        return "true" if ans else "false"
-    ans = str(ans).lower().strip()
-    return (
-        "true" if ans in ("yes", "true") else "false" if ans in ("no", "false") else ans
-    )
-
-
-def extract_answer(response: Dict) -> str:
-    """Extract answer from response dict handling different formats."""
-    try:
-        if "answer" in response:
-            text = response["answer"].lower()
-            if any(word in text for word in ["yes", "true"]):
-                return "true"
-            if any(word in text for word in ["no", "false"]):
-                return "false"
-        return response.get("answer", "")
-    except (KeyError, AttributeError) as e:
-        print(f"Warning: Could not extract answer from response: {e}")
-        return ""
-
+from ...llm.parsers import extract_bool_answer
 
 def evaluate_responses(
     responses: List[Dict],
@@ -48,10 +25,11 @@ def evaluate_responses(
     try:
         raw_responses = [response["response"] for response in responses]
         normalized_responses = [
-            normalize_answer(extract_answer(r)) for r in raw_responses
+            extract_bool_answer(response) for response in raw_responses
         ]
-        normalized_answer = normalize_answer(answer)
-        print(f"Normalized answer: {normalized_responses}")
+        answer_string = str(answer).lower()
+        
+        # print(f"Normalized answer: {normalized_responses}")
         # Filter out empty responses
         valid_responses = [r for r in normalized_responses if r]
         if not valid_responses:
@@ -60,7 +38,7 @@ def evaluate_responses(
 
         # Check if all valid responses are the same
         if len(set(valid_responses)) == 1:
-            return valid_responses[0] == normalized_answer
+            return valid_responses[0] == answer_string
         return False
     except Exception as e:
         print(f"Error evaluating responses: {e}")
