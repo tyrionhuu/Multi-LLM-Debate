@@ -15,16 +15,23 @@ def evaluate_responses(
 
     Args:
         responses: List of agent responses from the most recent round of debate.
-        answer: The correct answer to the question.
+        answer: The correct answer to the question ("yes"/"no" or "true"/"false").
 
     Returns:
         bool: True if all responses are the same and match the answer, False otherwise.
     """
+    def normalize_answer(ans: str) -> str:
+        ans = ans.lower().strip()
+        return "true" if ans in ("yes", "true") else "false" if ans in ("no", "false") else ans
+
     raw_responses = [response["response"] for response in responses]
+    normalized_responses = [normalize_answer(r["answer"]) for r in raw_responses]
+    normalized_answer = normalize_answer(answer)
+
     # Check if all responses are the same
-    if len(set(raw_response["answer"] for raw_response in raw_responses)) == 1:
+    if len(set(normalized_responses)) == 1:
         # Check if the common answer matches the expected answer
-        return raw_responses[0]["answer"] == answer
+        return normalized_responses[0] == normalized_answer
     return False
 
 
