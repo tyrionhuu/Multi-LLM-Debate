@@ -2,7 +2,7 @@ from typing import List
 
 from sentence_transformers import SentenceTransformer
 
-from .utils import kullback_leibler_divergence, compute_sentence_embedding
+from .utils import compute_sentence_embedding, kullback_leibler_divergence
 
 
 def diversity_pruning(
@@ -11,7 +11,7 @@ def diversity_pruning(
     model: SentenceTransformer = None,
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy.
-    
+
     The algorithm selects k responses from n candidates that maximize the total
     Kullback-Leibler (KL) divergence between selected responses. This ensures
     maximum diversity in the information content of selected responses.
@@ -34,31 +34,30 @@ def diversity_pruning(
 
     # Compute embeddings for all responses
     embeddings = [compute_sentence_embedding(model, response) for response in responses]
-    
+
     # Start with the first response
     selected_indices = [0]
-    
+
     # Iteratively select responses that maximize total KL divergence
     while len(selected_indices) < selected_amount:
-        max_total_kl = float('-inf')
+        max_total_kl = float("-inf")
         next_index = -1
-        
+
         # For each candidate response
         for i in range(len(embeddings)):
             if i in selected_indices:
                 continue
-                
+
             # Calculate total KL divergence if we add this response
             total_kl = sum(
-                kullback_leibler_divergence(
-                    embeddings[i], embeddings[j]
-                ) for j in selected_indices
+                kullback_leibler_divergence(embeddings[i], embeddings[j])
+                for j in selected_indices
             )
-            
+
             if total_kl > max_total_kl:
                 max_total_kl = total_kl
                 next_index = i
-                
+
         selected_indices.append(next_index)
 
     return [responses[i] for i in selected_indices]
