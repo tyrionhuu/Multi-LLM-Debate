@@ -240,8 +240,7 @@ def generate_with_ollama(
             try:
                 return json.dumps(json.loads(response_str))
             except json.JSONDecodeError:
-                # return response_str
-                raise ValueError("Failed to parse JSON response")
+                return response_str
         return response_str
 
     except requests.exceptions.Timeout:
