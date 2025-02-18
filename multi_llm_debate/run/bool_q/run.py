@@ -139,9 +139,9 @@ def run_bool_q_single_entry(
         # Run the debate
         logger.info("Starting debate execution")
         run_debate(
-            agents_ensemble,
-            prompt_builder,
-            max_rounds,
+            max_rounds=max_rounds,
+            prompt_builder=prompt_builder,
+            agents_ensemble=agents_ensemble,
             output_dir=output_dir,
         )
         logger.info("Debate completed successfully")
