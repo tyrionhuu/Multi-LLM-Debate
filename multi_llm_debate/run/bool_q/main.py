@@ -8,65 +8,6 @@ from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
 from .utils import process_bool_q_df
 
-MODEL_CONFIGS_LIST = [
-    [
-        {
-            "provider": "ollama",
-            "name": "llama3",
-            "quantity": 6,
-        }
-    ],
-    [
-        {
-            "provider": "ollama",
-            "name": "llama2",
-            "quantity": 6,
-        }
-    ],
-    [
-        {
-            "provider": "ollama",
-            "name": "mistral",
-            "quantity": 6,
-        }
-    ],
-    [
-        {
-            "provider": "ollama",
-            "name": "llama3",
-            "quantity": 3,
-        },
-        {
-            "provider": "ollama",
-            "name": "llama2",
-            "quantity": 3,
-        },
-    ],
-    [
-        {
-            "provider": "ollama",
-            "name": "llama3",
-            "quantity": 3,
-        },
-        {
-            "provider": "ollama",
-            "name": "mistral",
-            "quantity": 3,
-        },
-    ],
-    [
-        {
-            "provider": "ollama",
-            "name": "llama2",
-            "quantity": 3,
-        },
-        {
-            "provider": "ollama",
-            "name": "mistral",
-            "quantity": 3,
-        },
-    ],
-]
 
 def model_configs_to_string(model_configs: List[Dict]) -> str:
     """Convert model configs to a string representation."""
@@ -140,3 +81,16 @@ def run(
         ])
 
     print(f"\nResults saved to {csv_path}")
+
+
+def main() -> None:
+    import json
+    model_configs_list = json.load(open("run/bool_q/config.json"))
+    
+    for model_configs in model_configs_list:
+        run(
+            test=False,
+            sample_size=20,
+            report_path=Path("data/bool_q"),
+            model_configs=model_configs,
+        )
