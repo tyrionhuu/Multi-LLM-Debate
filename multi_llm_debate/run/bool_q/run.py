@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 from tqdm import tqdm
 
-from ...debate.agent import Agent
 from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.run_debate import run_debate
 from ...llm.prompt_builder import PromptBuilder
