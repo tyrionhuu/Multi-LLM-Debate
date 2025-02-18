@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 from tqdm import tqdm
@@ -42,7 +42,7 @@ def run_bool_q(
     """
     failed_entries = []
     processed_count = 0
-    
+
     try:
         logger.info("Starting debate for Boolean Question task")
 
@@ -72,40 +72,39 @@ def run_bool_q(
                 run_bool_q_single_entry(entry, max_rounds, base_dir, use_cot, agents)
                 processed_count += 1
             except Exception as e:
-                entry_id = entry.get('id', 'unknown')
+                entry_id = entry.get("id", "unknown")
                 logger.error(f"Failed to process entry {entry_id}: {str(e)}")
-                failed_entries.append({
-                    'id': entry_id,
-                    'error': str(e)
-                })
+                failed_entries.append({"id": entry_id, "error": str(e)})
                 continue
 
     except Exception as e:
         logger.error(f"Global execution error: {str(e)}", exc_info=True)
         raise RuntimeError(f"Global execution error: {str(e)}") from e
-    
+
     finally:
         # Log summary
         total_entries = len(dataframe)
         failed_count = len(failed_entries)
-        success_rate = (processed_count / total_entries) * 100 if total_entries > 0 else 0
-        
+        success_rate = (
+            (processed_count / total_entries) * 100 if total_entries > 0 else 0
+        )
+
         logger.info(f"Debate execution completed")
         logger.info(f"Total entries processed: {total_entries}")
         logger.info(f"Successful: {processed_count}")
         logger.info(f"Failed: {failed_count}")
         logger.info(f"Success rate: {success_rate:.2f}%")
-        
+
         if failed_entries:
             logger.warning("Failed entries:")
             for entry in failed_entries:
                 logger.warning(f"ID: {entry['id']}, Error: {entry['error']}")
-    
+
     return {
-        'total_entries': total_entries,
-        'processed_count': processed_count,
-        'failed_entries': failed_entries,
-        'success_rate': success_rate
+        "total_entries": total_entries,
+        "processed_count": processed_count,
+        "failed_entries": failed_entries,
+        "success_rate": success_rate,
     }
 
 
