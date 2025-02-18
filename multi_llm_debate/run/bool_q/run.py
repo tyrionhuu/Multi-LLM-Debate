@@ -1,8 +1,10 @@
 from pathlib import Path
+from typing import List, Optional
 
 import pandas as pd
 
 from ...debate.agents_ensemble import AgentsEnsemble
+from ...debate.agent import Agent
 from ...debate.run_debate import run_debate
 from ...llm.prompts import (
     PromptBuilder,
@@ -18,6 +20,7 @@ def run_bool_q(
     max_rounds: int = 10,
     base_dir: Path = Path("data" / "bool_q"),
     use_cot: bool = True,
+    agents: Optional[List[Agent]] = None,
 ) -> None:
     """Run the Boolean Question task on a DataFrame.
 
@@ -26,6 +29,8 @@ def run_bool_q(
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
         use_cot: Whether to use chain-of-thought prompting (default: True)
+        agents: Optional list of Agent instances to use in debate. If None,
+               default agents will be used.
 
     Raises:
         ValueError: If DataFrame format is invalid
@@ -49,7 +54,7 @@ def run_bool_q(
 
         # Iterate over each entry in the DataFrame
         for _, entry in dataframe.iterrows():
-            run_bool_q_single_entry(entry, max_rounds, base_dir, use_cot)
+            run_bool_q_single_entry(entry, max_rounds, base_dir, use_cot, agents)
 
     except Exception as e:
         logger.error(f"Debate execution failed: {str(e)}", exc_info=True)
@@ -59,6 +64,7 @@ def run_bool_q_single_entry(
     max_rounds: int = 10,
     base_dir: Path = Path("data" / "bool_q"),
     use_cot: bool = True,
+    agents: Optional[List[Agent]] = None,
 ) -> None:
     """Run a single entry for the Boolean Question task.
 
@@ -67,6 +73,8 @@ def run_bool_q_single_entry(
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
         use_cot: Whether to use chain-of-thought prompting (default: True)
+        agents: Optional list of Agent instances to use in debate. If None,
+               default agents will be used.
 
     Raises:
         ValueError: If entry format is invalid
@@ -114,7 +122,7 @@ def run_bool_q_single_entry(
                 "use_cot": use_cot,
             },
         )
-        agents_ensemble = AgentsEnsemble()
+        agents_ensemble = AgentsEnsemble(agents=agents)
 
         # Run the debate
         logger.info("Starting debate execution")
