@@ -35,15 +35,12 @@ def evaluate_responses(
         """Extract answer from response dict handling different formats."""
         try:
             if "answer" in response:
-                return response["answer"]
-            # If answer is embedded in response text, try to extract yes/no
-            if "response" in response:
-                text = response["response"].lower()
+                text = response["answer"].lower()
                 if any(word in text for word in ["yes", "true"]):
                     return "true"
                 if any(word in text for word in ["no", "false"]):
                     return "false"
-            return text  # Return full text if no clear yes/no found
+            return response.get("answer", "")
         except (KeyError, AttributeError) as e:
             print(f"Warning: Could not extract answer from response: {e}")
             return ""
