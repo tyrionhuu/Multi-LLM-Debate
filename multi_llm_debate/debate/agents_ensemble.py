@@ -5,10 +5,8 @@ from typing import Any, Dict, List, Optional, TypedDict
 from tqdm import tqdm
 
 from ..utils.config_manager import get_models
-from .agent import Agent
 from ..utils.model_config import ModelConfig
-
-
+from .agent import Agent
 
 
 class AgentsEnsemble:
@@ -47,7 +45,7 @@ class AgentsEnsemble:
         self.max_workers = max_workers
         self.job_delay = job_delay
         self.agents = []
-        
+
         if config_list is not None:
             self._initialize_from_config_list(config_list)
         else:

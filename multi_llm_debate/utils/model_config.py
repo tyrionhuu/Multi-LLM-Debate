@@ -1,4 +1,6 @@
 from typing import TypedDict
+
+
 class ModelConfig(TypedDict):
     """Type definition for model configuration."""
 

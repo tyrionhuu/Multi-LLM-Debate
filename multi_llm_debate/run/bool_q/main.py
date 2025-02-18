@@ -1,10 +1,12 @@
 from pathlib import Path
 from typing import List
+
 from ...utils.download_dataset import load_save_dataset_df
+from ...utils.model_config import ModelConfig
 from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
 from .utils import process_bool_q_df
-from ...utils.model_config import ModelConfig
+
 MODEL_CONFIGS_LIST = [
     [
         {
@@ -37,7 +39,7 @@ MODEL_CONFIGS_LIST = [
             "provider": "ollama",
             "name": "llama2",
             "quantity": 3,
-        }
+        },
     ],
     [
         {
@@ -49,7 +51,7 @@ MODEL_CONFIGS_LIST = [
             "provider": "ollama",
             "name": "mistral",
             "quantity": 3,
-        }
+        },
     ],
     [
         {
@@ -61,19 +63,20 @@ MODEL_CONFIGS_LIST = [
             "provider": "ollama",
             "name": "mistral",
             "quantity": 3,
-        }
-    ]
+        },
+    ],
 ]
 
+
 def run(
-    test: bool = False, 
+    test: bool = False,
     sample_size: int = 20,
     report_path: Path = Path("data/bool_q"),
     model_configs: List[ModelConfig] = [
         {
-        "provider": "ollama",
-        "name": "llama3",
-        "quantity": 6,
+            "provider": "ollama",
+            "name": "llama3",
+            "quantity": 6,
         }
     ],
 ) -> None:
@@ -115,4 +118,3 @@ def run(
 
     # Save the execution report
     report_path.mkdir(parents=True, exist_ok=True)
-
