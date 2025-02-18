@@ -158,4 +158,4 @@ def main(sample_size: Optional[int] = None) -> None:
 
 
 if __name__ == "__main__":
-    main(sample_size=20)
+    main(sample_size=2000)
