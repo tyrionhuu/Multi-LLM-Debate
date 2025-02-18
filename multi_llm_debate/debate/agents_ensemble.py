@@ -1,12 +1,18 @@
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
 from tqdm import tqdm
 
 from ..utils.config_manager import get_models
 from .agent import Agent
 
+
+class ModelConfig(TypedDict):
+    """Type definition for model configuration."""
+    provider: str
+    name: str
+    quantity: int
 
 class AgentsEnsemble:
     """A collection of LLM agents that can be used together.
@@ -28,20 +34,23 @@ class AgentsEnsemble:
         concurrent: bool = True,
         max_workers: Optional[int] = 4,
         job_delay: float = 0.5,
+        config_list: Optional[List[ModelConfig]] = None,
     ) -> None:
         """Initialize an AgentsEnsemble instance.
 
         Args:
             agents (Optional[List[Agent]], optional): List of pre-configured agents.
-                If provided, auto_init will be ignored. Defaults to None.
+                If provided, other initialization methods will be ignored. Defaults to None.
             auto_init (bool, optional): Whether to automatically initialize agents from config.
                 Defaults to True.
             concurrent (bool, optional): Whether to use concurrent execution. Defaults to True.
             max_workers (int, optional): Maximum number of concurrent workers. Defaults to 4.
             job_delay (float, optional): Delay in seconds between agent calls. Defaults to 0.5.
+            config_list (Optional[List[ModelConfig]], optional): List of model configurations.
+                If provided, auto_init will be ignored. Defaults to None.
 
         Raises:
-            ValueError: If agents list is empty.
+            ValueError: If agents list is empty or if initialization fails.
         """
         self.concurrent = concurrent
         self.max_workers = max_workers
@@ -51,6 +60,9 @@ class AgentsEnsemble:
             if not agents:
                 raise ValueError("Cannot initialize ensemble with empty agents list")
             self.agents = agents
+        elif config_list is not None:
+            self.agents = []
+            self._initialize_from_config_list(config_list)
         else:
             self.agents = []
             if auto_init:
@@ -70,6 +82,29 @@ class AgentsEnsemble:
                 self.add_agent(agent)
                 agent_id += 1
 
+    def _initialize_from_config_list(self, config_list: List[ModelConfig]) -> None:
+        """Initialize agents from a list of model configurations.
+
+        Args:
+            config_list (List[ModelConfig]): List of model configurations.
+
+        Raises:
+            ValueError: If the configuration list is empty.
+        """
+        if not config_list:
+            raise ValueError("Config list cannot be empty")
+        
+        agent_id = 0
+        for config in config_list:
+            for _ in range(config["quantity"]):
+                agent = Agent(
+                    agent_id=agent_id,
+                    model=config["name"],
+                    provider=config["provider"]
+                )
+                self.add_agent(agent)
+                agent_id += 1
+
     @classmethod
     def create_from_config(cls) -> "AgentsEnsemble":
         """Factory method to create an ensemble from configuration.
@@ -78,6 +113,21 @@ class AgentsEnsemble:
             AgentsEnsemble: A new instance initialized from configuration.
         """
         return cls(auto_init=True)
+
+    @classmethod
+    def create_from_config_list(
+        cls, config_list: List[ModelConfig], **kwargs
+    ) -> "AgentsEnsemble":
+        """Factory method to create an ensemble from a configuration list.
+
+        Args:
+            config_list (List[ModelConfig]): List of model configurations.
+            **kwargs: Additional arguments to pass to the constructor.
+
+        Returns:
+            AgentsEnsemble: A new instance initialized from the configuration list.
+        """
+        return cls(config_list=config_list, auto_init=False, **kwargs)
 
     def add_agent(self, agent: Agent) -> None:
         """Add an agent to the ensemble.
