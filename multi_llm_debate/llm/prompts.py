@@ -2,14 +2,14 @@ from typing import Any, Callable, Dict, List
 
 NEW_LINE = "\n"
 
-JSON_FORMAT = """
+BOOL_JSON_FORMAT = """
 {
     "reasoning": "your reasoning based on the passage",
     "answer": "Yes/No"
 }
 """
 
-JSON_FORMAT_COT = """
+BOOL_JSON_FORMAT_COT = """
 {
     "reasoning": {
         "step_1": "first step of your reasoning",
@@ -27,7 +27,7 @@ def build_bool_q_round_zero_prompt(
 ) -> str:
     prompt = "You will be given a yes-no question which is based on a passage. "
     prompt += "Answer in the following JSON format:" + NEW_LINE
-    prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
+    prompt += BOOL_JSON_FORMAT_COT if use_cot else BOOL_JSON_FORMAT
     prompt += NEW_LINE
     prompt += "Question: " + question + NEW_LINE
     prompt += "Passage: " + passage
@@ -52,7 +52,7 @@ def build_bool_q_round_n_prompt(
         + NEW_LINE
     )
     prompt += "Answer in the following JSON format:" + NEW_LINE
-    prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
+    prompt += BOOL_JSON_FORMAT_COT if use_cot else BOOL_JSON_FORMAT
     prompt += NEW_LINE
     prompt += "Question: " + question + NEW_LINE
     prompt += "Passage: " + passage
