@@ -1,4 +1,5 @@
 from typing import List
+
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
@@ -13,8 +14,8 @@ def quality_pruning(
 ) -> List[str]:
     """Select a subset of responses that are most similar to the task (maximizing quality).
 
-    The algorithm selects k responses from n candidates that minimize the KL divergence 
-    between the task (x) and the response (zi). This ensures that the selected responses 
+    The algorithm selects k responses from n candidates that minimize the KL divergence
+    between the task (x) and the response (zi). This ensures that the selected responses
     are most relevant to the task.
 
     Args:
@@ -42,7 +43,8 @@ def quality_pruning(
 
     # Compute the cosine distance (KL approximation) between the task and each response
     distances = [
-        kullback_leibler_approximation_distance(task_embedding, embedding) for embedding in embeddings
+        kullback_leibler_approximation_distance(task_embedding, embedding)
+        for embedding in embeddings
     ]
 
     # Select the indices of the k responses that are closest to the task (minimize distance)
