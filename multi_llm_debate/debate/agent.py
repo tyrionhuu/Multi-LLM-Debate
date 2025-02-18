@@ -34,7 +34,7 @@ class Agent:
     def __repr__(self):
         return str(self)
 
-    def respond(self, prompt: str) -> Dict[str, Any]:
+    def respond(self, prompt: str, json_mode: bool = False) -> Dict[str, Any]:
         """Generate a response to the given prompt.
 
         Args:
@@ -53,6 +53,7 @@ class Agent:
             model_name=self.model,
             provider=self.provider,
             prompt=prompt,
+            json_mode=json_mode,
         )
 
         # If it's already a dictionary, use it directly
