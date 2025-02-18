@@ -13,3 +13,17 @@ def compute_sentence_embedding(model: SentenceTransformer, sentence: str) -> np.
         A numpy array containing the sentence embedding vector.
     """
     return model.encode([sentence])[0]
+
+def kullback_leibler_approximation_distance(
+    embedding1: np.ndarray, embedding2: np.ndarray
+) -> float:
+    """Compute the Kullback-Leibler divergence between two embeddings.
+
+    Args:
+        embedding1: The first embedding vector.
+        embedding2: The second embedding vector.
+
+    Returns:
+        The Kullback-Leibler divergence between the two embeddings.
+    """
+    return cosine(embedding1, embedding2)
