@@ -251,7 +251,7 @@ def main() -> None:
     df = load_save_dataset_df(
         dataset_name="google/boolq",
         dataset_path=Path("datasets/boolq"),
-        force_download=True,
+        force_download=False,
         source="huggingface",
     )
     print(df.columns)
