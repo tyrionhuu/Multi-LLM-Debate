@@ -2,10 +2,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional
 
-from tqdm import tqdm
 
 from ..utils.config_manager import get_models
 from ..utils.model_config import ModelConfig
+from ..utils.progress import progress
 from .agent import Agent
 
 
@@ -97,20 +97,12 @@ class AgentsEnsemble:
     def _get_response_concurrent(
         self, prompt: str, json_mode: bool = False
     ) -> List[Dict[str, Any]]:
-        """Get responses from all agents concurrently.
-
-        Args:
-            prompt (str): The input prompt to send to all agents.
-            json_mode (bool, optional): Whether to request JSON formatted responses.
-                Defaults to False.
-
-        Returns:
-            List[Dict[str, Any]]: List of response dictionaries from all agents.
-        """
+        """Get responses from all agents concurrently."""
         responses = []
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = []
-            # Submit jobs with delay
+            
+            # Submit all jobs first
             for agent in self.agents:
                 if self.job_delay > 0:
                     time.sleep(self.job_delay)
@@ -118,40 +110,35 @@ class AgentsEnsemble:
                     executor.submit(agent.respond, prompt, json_mode=json_mode)
                 )
 
-            # Use tqdm to create progress bar
-            for future in tqdm(
-                as_completed(futures),
-                total=len(futures),
-                desc="Collecting agent responses",
-                unit="agent",
-            ):
+            # Collect responses with progress tracking
+            for future in as_completed(futures):
                 response = future.result()
                 responses.append(response)
+                
         return responses
 
     def get_responses(
         self, prompt: str, json_mode: bool = False
     ) -> List[Dict[str, Any]]:
-        """Get responses from all agents for a given prompt.
-
-        Args:
-            prompt (str): The input prompt to send to all agents.
-            json_mode (bool, optional): Whether to request JSON formatted responses.
-                Defaults to False.
-
-        Returns:
-            List[Dict[str, Any]]: List of response dictionaries from all agents.
-            Each dictionary contains agent information and the parsed response.
-        """
-        if self.concurrent:
-            return self._get_response_concurrent(prompt, json_mode=json_mode)
-
-        responses = []
-        for agent in tqdm(self.agents, desc="Collecting agent responses", unit="agent"):
-            response = agent.respond(prompt, json_mode=json_mode)
-            responses.append(response)
-            if self.job_delay > 0:
-                time.sleep(self.job_delay)
+        """Get responses from all agents for a given prompt."""
+        with progress.sub_bar(
+            total=len(self.agents),
+            desc="Collecting agent responses",
+            unit="agent"
+        ) as pbar:
+            if self.concurrent:
+                responses = self._get_response_concurrent(prompt, json_mode=json_mode)
+                # Update progress bar all at once since responses are collected
+                pbar.update(len(responses))
+            else:
+                responses = []
+                for agent in self.agents:
+                    response = agent.respond(prompt, json_mode=json_mode)
+                    responses.append(response)
+                    if self.job_delay > 0:
+                        time.sleep(self.job_delay)
+                    pbar.update(1)
+                    
         return responses
 
     def get_agent_by_id(self, agent_id: int) -> Agent:
