@@ -10,8 +10,9 @@ from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
 from .utils import format_time, model_configs_to_string, process_bool_q_df
 
-
+import pandas as pd
 def run(
+    dataframe: pd.DataFrame,
     test: bool = False,
     sample_size: int = 20,
     report_path: Path = Path("data/bool_q"),
@@ -22,25 +23,33 @@ def run(
             "quantity": 6,
         }
     ],
-    show_progress: bool = True,  # Add this parameter
+    show_progress: bool = True,
 ) -> None:
+    """Execute boolean question evaluation with the given configuration.
+
+    Args:
+        dataframe: The input dataframe containing boolean questions dataset.
+        test (bool, optional): Whether to run in test mode. Defaults to False.
+        sample_size (int, optional): Number of samples to use in test mode. 
+            Defaults to 20.
+        report_path (Path, optional): Path to save results. 
+            Defaults to Path("data/bool_q").
+        model_configs (List[ModelConfig], optional): List of model configurations. 
+            Defaults to single Ollama config.
+        show_progress (bool, optional): Whether to show progress bar. 
+            Defaults to True.
+
+    Returns:
+        None: Results are saved to files and printed to console.
+    """
     start_time = time.time()
 
-    # Load the dataset
-    dataset_path = Path("datasets/boolq")
     model_config_str = model_configs_to_string(model_configs)
     output_path = report_path / model_config_str.replace(" ", "_")
-
-    dataframe = load_save_dataset_df(
-        dataset_name="google/boolq",
-        dataset_path=dataset_path,
-        force_download=False,
-    )
 
     # Process the DataFrame
     processed_dataframe = process_bool_q_df(dataframe)
     if test:
-        # processed_dataframe = processed_dataframe.iloc[[3]]
         processed_dataframe = processed_dataframe.sample(sample_size)
 
     # Run the Boolean Question task
@@ -100,14 +109,29 @@ def run(
 
 
 def main(test: bool = False) -> None:
-    """Run the boolean question evaluation with configured models.
+    """Run boolean question evaluation with configured models.
+
+    This function loads the dataset and model configurations from a JSON file,
+    then runs the evaluation for each model configuration. Progress is tracked
+    with a progress bar.
 
     Args:
-        test (bool): Whether to run in test mode. Defaults to False.
+        test (bool, optional): Whether to run in test mode. Defaults to False.
+
+    Raises:
+        FileNotFoundError: If the configuration file is not found.
     """
     import json
 
     try:
+        # Load the dataset first
+        dataset_path = Path("datasets/boolq")
+        dataframe = load_save_dataset_df(
+            dataset_name="google/boolq",
+            dataset_path=dataset_path,
+            force_download=False,
+        )
+
         config_path = Path(__file__).parent / "config.json"
         with open(config_path) as f:
             model_configs_list = json.load(f)
@@ -120,6 +144,7 @@ def main(test: bool = False) -> None:
         ) as pbar:
             for model_configs in model_configs_list:
                 run(
+                    dataframe=dataframe,  # Pass the loaded dataframe
                     test=test,
                     sample_size=1,
                     report_path=Path("data/bool_q"),
