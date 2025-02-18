@@ -51,13 +51,19 @@ def _get_latest_round_file(responses_dir: Path) -> Path:
 def evaluate_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-) -> None:
+) -> float:
     """Evaluate the Boolean Question task on a DataFrame.
 
     Args:
         response_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing question, answer, passage and id.
+
+    Returns:
+        float: Accuracy score (number of correct answers / total questions)
     """
+    correct_count = 0
+    total_count = len(dataframe)
+
     for _, entry in dataframe.iterrows():
         answer = entry["answer"]
         id_ = entry["id"]
@@ -73,6 +79,14 @@ def evaluate_df(
 
         # Evaluate the responses
         is_correct = evaluate_responses(responses, answer)
+        if is_correct:
+            correct_count += 1
 
-        # Output the result
+        # Output individual result
         print(f"ID: {id_}, Correct: {is_correct}")
+
+    # Calculate and output accuracy
+    accuracy = correct_count / total_count
+    print(f"\nOverall Accuracy: {accuracy:.2%}")
+    
+    return accuracy
