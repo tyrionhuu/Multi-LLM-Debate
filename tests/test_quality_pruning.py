@@ -1,5 +1,6 @@
 import pytest
 from sentence_transformers import SentenceTransformer
+
 from multi_llm_debate.interventions.quality_pruning import quality_pruning
 
 
@@ -19,19 +20,17 @@ def test_quality_pruning_valid_input(sentence_model):
         "I like to play basketball.",
     ]
     selected = quality_pruning(responses, task, 2, sentence_model)
-    
+
     assert len(selected) == 2
     # Verify quantum-related responses are selected
-    assert all(
-        "quantum" in response.lower() for response in selected
-    )
+    assert all("quantum" in response.lower() for response in selected)
 
 
 def test_quality_pruning_small_input(sentence_model):
     """Test when input list is smaller than requested amount."""
     responses = ["Response 1", "Response 2"]
     selected = quality_pruning(responses, "Task", 3, sentence_model)
-    
+
     assert len(selected) == 2
     assert selected == responses
 
@@ -52,6 +51,6 @@ def test_quality_pruning_ordering(sentence_model):
         "The sky is blue today.",
     ]
     selected = quality_pruning(responses, task, 3, sentence_model)
-    
+
     # First two selections should be about dogs
     assert sum("dog" in response.lower() for response in selected[:2]) == 2
