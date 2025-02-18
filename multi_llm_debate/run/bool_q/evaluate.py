@@ -88,5 +88,5 @@ def evaluate_df(
     # Calculate and output accuracy
     accuracy = correct_count / total_count
     print(f"\nOverall Accuracy: {accuracy:.2%}")
-    
+
     return accuracy
