@@ -9,7 +9,10 @@ logger = setup_logging(__name__)
 
 
 def run_debate_round_zero(
-    prompt: str, agents_ensemble: AgentsEnsemble, output_dir: str | Path
+    prompt: str, 
+    agents_ensemble: AgentsEnsemble, 
+    output_dir: str | Path,
+    json_mode: bool = False,
 ) -> List[dict]:
     """Run the initial round (round zero) of a debate.
 
@@ -32,7 +35,10 @@ def run_debate_round_zero(
     output_dir.mkdir(exist_ok=True)
 
     # logger.info(f"Starting round zero with prompt: {prompt}")
-    responses = agents_ensemble.get_responses(prompt)
+    responses = agents_ensemble.get_responses(
+        prompt=prompt, 
+        json_mode=json_mode,
+    )
 
     for response in responses:
         logger.info(f"Agent {response['agent_id']} responded")
