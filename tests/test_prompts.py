@@ -1,11 +1,10 @@
 from multi_llm_debate.llm.prompts import (
     JSON_FORMAT,
     JSON_FORMAT_COT,
-    PromptBuilder,
     build_bool_q_round_n_prompt,
     build_bool_q_round_zero_prompt,
 )
-
+from multi_llm_debate.llm.prompt_builder import PromptBuilder
 
 def test_build_bool_q_round_zero_prompt_with_cot() -> None:
     question = "Is the sky blue?"
