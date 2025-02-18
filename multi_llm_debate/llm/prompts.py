@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List
+from typing import Dict, List
 
 NEW_LINE = "\n"
 
