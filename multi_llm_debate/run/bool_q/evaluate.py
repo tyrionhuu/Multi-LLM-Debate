@@ -66,7 +66,7 @@ def evaluate_df(
 
     for _, entry in dataframe.iterrows():
         answer = entry["answer"]
-        id_ = entry["id"]
+        id_ = str(entry["id"])
 
         # Load responses from the corresponding file
         responses_dir = response_base_dir / id_
