@@ -44,8 +44,7 @@ class Agent:
             Dict[str, Any]: A dictionary containing:
                 - agent_id: The ID of the responding agent
                 - model: The model name
-                - provider: The provider name
-                - response: The parsed response from the model (either as dict or wrapped raw content)
+                - response: The model's response (can be dict or str)
 
         Raises:
             Any exceptions from the underlying LLM call are propagated.
@@ -56,22 +55,18 @@ class Agent:
             prompt=prompt,
         )
 
-        try:
-            # Try to parse the response as JSON if it's a string
-            if isinstance(raw_response, str):
+        # If it's already a dictionary, use it directly
+        if isinstance(raw_response, dict):
+            parsed_response = raw_response
+        else:
+            # Try to parse as JSON, but keep as string if parsing fails
+            try:
                 parsed_response = json.loads(raw_response)
-            elif isinstance(raw_response, dict):
-                parsed_response = raw_response
-            else:
-                parsed_response = {"raw_content": str(raw_response)}
-
-        except json.JSONDecodeError:
-            # If parsing fails, wrap the raw response in a dict
-            parsed_response = {"raw_content": raw_response}
+            except (json.JSONDecodeError, TypeError):
+                parsed_response = str(raw_response)
 
         return {
             "agent_id": self.agent_id,
             "model": self.model,
-            # "provider": self.provider,
             "response": parsed_response,
         }
