@@ -1,5 +1,5 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 from ...utils.download_dataset import load_save_dataset_df
 from .evaluate import evaluate_df
@@ -20,7 +20,8 @@ def main(test: bool = False, sample_size: int = 20) -> None:
     # Process the DataFrame
     processed_dataframe = process_bool_q_df(dataframe)
     if test:
-        processed_dataframe = processed_dataframe.iloc[[3]]
+        # processed_dataframe = processed_dataframe.iloc[[3]]
+        processed_dataframe = processed_dataframe.sample(sample_size)
 
     # Run the Boolean Question task
     execution_report = run_bool_q(
