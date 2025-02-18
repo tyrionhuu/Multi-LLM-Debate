@@ -8,10 +8,7 @@ from ...debate.agent import Agent
 from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.run_debate import run_debate
 from ...llm.prompt_builder import PromptBuilder
-from ...llm.prompts import (
-    build_bool_q_round_n_prompt,
-    build_bool_q_round_zero_prompt,
-)
+from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from ...utils.logging_config import setup_logging
 
 logger = setup_logging(__name__)
