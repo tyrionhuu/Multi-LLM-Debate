@@ -30,7 +30,7 @@ def test_agent_string_representation(test_agent):
     [
         (
             '{"key": "value"}',
-            {"key": "value"},
+            '{"key": "value"}',  # Changed: Keep as string for JSON responses
         ),
         (
             {"key": "value"},
@@ -38,11 +38,11 @@ def test_agent_string_representation(test_agent):
         ),
         (
             "invalid json",
-            {"raw_content": "invalid json"},
+            "invalid json",  # Changed: Keep as string for non-JSON responses
         ),
         (
             123,
-            {"raw_content": "123"},
+            "123",  # Changed: Numbers should be converted to strings
         ),
     ],
 )
