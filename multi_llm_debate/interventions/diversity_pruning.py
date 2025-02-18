@@ -50,7 +50,7 @@ def diversity_pruning(
 
             # Calculate total KL divergence if we add this response
             total_kl = sum(
-                kullback_leibler_divergence(embeddings[i], embeddings[j])
+                kullback_leibler_approximation_distance(embeddings[i], embeddings[j])
                 for j in selected_indices
             )
 
