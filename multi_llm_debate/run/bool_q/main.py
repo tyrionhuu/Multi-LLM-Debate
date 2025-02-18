@@ -1,8 +1,12 @@
-from .utils import process_bool_q_df
-from .run import run_bool_q
-from .evaluate import evaluate_df
 from pathlib import Path
+
 import pandas as pd
+
+from .evaluate import evaluate_df
+from .run import run_bool_q
+from .utils import process_bool_q_df
+
+
 def main():
     # Load the dataset
     dataset_path = Path("data" / "bool_q" / "dataset.csv")
