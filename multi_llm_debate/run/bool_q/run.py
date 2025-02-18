@@ -110,9 +110,9 @@ def run_bool_q_single_entry(
         # Extract values from the entry
         question = entry["question"]
         passage = entry["passage"]
-        id_ = entry["id"]
+        id_ = str(entry["id"])  # Convert ID to string
 
-        output_dir = base_dir / id_
+        output_dir = base_dir / id_  # Now using string ID with Path
         logger.debug(f"Output directory set to: {output_dir}")
 
         try:
