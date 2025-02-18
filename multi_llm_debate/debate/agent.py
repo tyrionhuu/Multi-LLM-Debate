@@ -26,7 +26,7 @@ class Agent:
         """
         self.agent_id = agent_id
         self.model = model
-        self.provider = provider
+        self.provider = provider.lower()
 
     def __str__(self):
         return f"Agent {self.agent_id} ({self.model})"
