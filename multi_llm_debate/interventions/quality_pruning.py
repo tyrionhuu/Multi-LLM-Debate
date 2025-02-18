@@ -1,5 +1,5 @@
 from typing import List
-
+import numpy as np
 from sentence_transformers import SentenceTransformer
 
 from .utils import compute_sentence_embedding, kullback_leibler_approximation_distance
@@ -11,21 +11,20 @@ def quality_pruning(
     selected_amount: int,
     model: SentenceTransformer = None,
 ) -> List[str]:
-    """Select a subset of responses that maximize quality and diversity.
+    """Select a subset of responses that are most similar to the task (maximizing quality).
 
-    The algorithm selects k responses from n candidates that maximize the total
-    Kullback-Leibler (KL) divergence between selected responses, while also
-    maximizing the quality of the responses. Quality is determined by the cosine
-    similarity between the response and the task prompt.
+    The algorithm selects k responses from n candidates that minimize the KL divergence 
+    between the task (x) and the response (zi). This ensures that the selected responses 
+    are most relevant to the task.
 
     Args:
         responses: A list of response strings.
-        task: The task prompt string.
+        task: The task string to compare the responses to.
         selected_amount: The number of responses to select (k).
         model: A SentenceTransformer model instance used for encoding.
 
     Returns:
-        A list of selected response strings that maximize quality and diversity.
+        A list of selected response strings that are most similar to the task.
     """
     if model is None:
         raise ValueError(
@@ -35,42 +34,19 @@ def quality_pruning(
     if len(responses) <= selected_amount:
         return responses
 
-    # Compute embeddings for task prompt and all responses
+    # Compute the embedding for the task
     task_embedding = compute_sentence_embedding(model, task)
-    response_embeddings = [compute_sentence_embedding(model, response) for response in responses]
 
-    # Start with the highest quality response
-    selected_indices = [max(
-        range(len(responses)),
-        key=lambda i: 1 - kullback_leibler_approximation_distance(task_embedding, response_embeddings[i])
-    )]
+    # Compute the embeddings for all responses
+    embeddings = [compute_sentence_embedding(model, response) for response in responses]
 
-    # Iteratively select responses that maximize total KL divergence and quality
-    while len(selected_indices) < selected_amount:
-        max_total_kl = float("-inf")
-        next_index = -1
+    # Compute the cosine distance (KL approximation) between the task and each response
+    distances = [
+        kullback_leibler_approximation_distance(task_embedding, embedding) for embedding in embeddings
+    ]
 
-        # For each candidate response
-        for i in range(len(responses)):
-            if i in selected_indices:
-                continue
+    # Select the indices of the k responses that are closest to the task (minimize distance)
+    selected_indices = np.argsort(distances)[:selected_amount]
 
-            # Calculate total KL divergence if we add this response
-            total_kl = sum(
-                kullback_leibler_approximation_distance(response_embeddings[i], response_embeddings[j])
-                for j in selected_indices
-            )
-
-            # Calculate quality of this response
-            quality = 1 - kullback_leibler_approximation_distance(task_embedding, response_embeddings[i])
-
-            # Combine quality and diversity scores
-            score = total_kl + quality
-
-            if score > max_total_kl:
-                max_total_kl = score
-                next_index = i
-
-        selected_indices.append(next_index)
-
+    # Return the selected responses based on the indices
     return [responses[i] for i in selected_indices]
