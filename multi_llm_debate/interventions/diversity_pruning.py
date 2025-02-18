@@ -2,7 +2,7 @@ from typing import List
 
 from sentence_transformers import SentenceTransformer
 
-from .utils import kullback_leibler_approximation_distance
+from .utils import kullback_leibler_divergence, compute_sentence_embedding
 
 
 def diversity_pruning(
@@ -10,15 +10,19 @@ def diversity_pruning(
     selected_amount: int,
     model: SentenceTransformer = None,
 ) -> List[str]:
-    """Select a subset of responses that are diverse in content.
+    """Select a subset of responses that maximizes information entropy.
+    
+    The algorithm selects k responses from n candidates that maximize the total
+    Kullback-Leibler (KL) divergence between selected responses. This ensures
+    maximum diversity in the information content of selected responses.
 
     Args:
         responses: A list of response strings.
-        selected_amount: The number of responses to select.
+        selected_amount: The number of responses to select (k).
         model: A SentenceTransformer model instance used for encoding.
 
     Returns:
-        A list of selected response strings.
+        A list of selected response strings that maximize information entropy.
     """
     if model is None:
         raise ValueError(
@@ -28,21 +32,33 @@ def diversity_pruning(
     if len(responses) <= selected_amount:
         return responses
 
-    embeddings = [model.encode([response])[0] for response in responses]
+    # Compute embeddings for all responses
+    embeddings = [compute_sentence_embedding(model, response) for response in responses]
+    
+    # Start with the first response
     selected_indices = [0]
+    
+    # Iteratively select responses that maximize total KL divergence
     while len(selected_indices) < selected_amount:
-        max_distance = 0
-        max_index = -1
-        for i, embedding in enumerate(embeddings):
+        max_total_kl = float('-inf')
+        next_index = -1
+        
+        # For each candidate response
+        for i in range(len(embeddings)):
             if i in selected_indices:
                 continue
-            distance = min(
-                kullback_leibler_approximation_distance(embedding, embeddings[j])
-                for j in selected_indices
+                
+            # Calculate total KL divergence if we add this response
+            total_kl = sum(
+                kullback_leibler_divergence(
+                    embeddings[i], embeddings[j]
+                ) for j in selected_indices
             )
-            if distance > max_distance:
-                max_distance = distance
-                max_index = i
-        selected_indices.append(max_index)
+            
+            if total_kl > max_total_kl:
+                max_total_kl = total_kl
+                next_index = i
+                
+        selected_indices.append(next_index)
 
     return [responses[i] for i in selected_indices]
