@@ -9,8 +9,8 @@ logger = setup_logging(__name__)
 
 
 def run_debate_round_zero(
-    prompt: str, 
-    agents_ensemble: AgentsEnsemble, 
+    prompt: str,
+    agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
     json_mode: bool = False,
 ) -> List[dict]:
@@ -36,7 +36,7 @@ def run_debate_round_zero(
 
     # logger.info(f"Starting round zero with prompt: {prompt}")
     responses = agents_ensemble.get_responses(
-        prompt=prompt, 
+        prompt=prompt,
         json_mode=json_mode,
     )
 

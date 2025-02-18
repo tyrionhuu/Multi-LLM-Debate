@@ -33,10 +33,7 @@ def run_debate_round_n(
     logger.info(f"Running debate round {round_num}")
     # logger.info(f"Debate prompt: {prompt}")
 
-    responses = agents_ensemble.get_responses(
-        prompt=prompt, 
-        json_mode=json_mode
-    )
+    responses = agents_ensemble.get_responses(prompt=prompt, json_mode=json_mode)
     for i, response in enumerate(responses):
         logger.info(f"Agent {i} response: {response}")
 
