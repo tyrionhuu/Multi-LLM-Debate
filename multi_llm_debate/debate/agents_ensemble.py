@@ -10,9 +10,11 @@ from .agent import Agent
 
 class ModelConfig(TypedDict):
     """Type definition for model configuration."""
+
     provider: str
     name: str
     quantity: int
+
 
 class AgentsEnsemble:
     """A collection of LLM agents that can be used together.
@@ -93,14 +95,12 @@ class AgentsEnsemble:
         """
         if not config_list:
             raise ValueError("Config list cannot be empty")
-        
+
         agent_id = 0
         for config in config_list:
             for _ in range(config["quantity"]):
                 agent = Agent(
-                    agent_id=agent_id,
-                    model=config["name"],
-                    provider=config["provider"]
+                    agent_id=agent_id, model=config["name"], provider=config["provider"]
                 )
                 self.add_agent(agent)
                 agent_id += 1

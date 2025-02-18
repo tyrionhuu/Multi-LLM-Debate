@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from ...utils.download_dataset import load_save_dataset_df
-from .evaluate import evaluate_df, evaluate_baseline_df
+from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
 from .utils import process_bool_q_df
 
