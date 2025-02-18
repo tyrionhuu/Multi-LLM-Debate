@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
-from ..llm.prompts import PromptBuilder
+from ..llm.prompt_builder import PromptBuilder
 from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
 from .round_n import run_debate_round_n
