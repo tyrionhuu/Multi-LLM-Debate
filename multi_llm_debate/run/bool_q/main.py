@@ -122,4 +122,4 @@ def main(test: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    main(test=False)
+    main(test=True)
