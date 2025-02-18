@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
+from tqdm import tqdm
 
 from ...debate.agent import Agent
 from ...debate.agents_ensemble import AgentsEnsemble
@@ -55,8 +56,9 @@ def run_bool_q(
                 "DataFrame must contain 'question', 'answer', 'passage', and 'id' columns."
             )
 
-        # Iterate over each entry in the DataFrame
-        for _, entry in dataframe.iterrows():
+        # Iterate over each entry in the DataFrame with progress bar
+        for _, entry in tqdm(dataframe.iterrows(), total=len(dataframe), 
+                           desc="Running debates", unit="debate"):
             run_bool_q_single_entry(entry, max_rounds, base_dir, use_cot, agents)
 
     except Exception as e:
