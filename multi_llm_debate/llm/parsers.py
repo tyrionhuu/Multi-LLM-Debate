@@ -1,31 +1,27 @@
-import json
 from typing import Dict, Literal, Union
 
-Answer = Literal["Yes", "No"]
+Answer = Literal["true", "false"]
 Reasoning = Union[str, Dict[str, str]]
 
 
 def extract_bool_answer(response: str) -> Answer:
     """
-    Extract Yes/No answer from a JSON response string.
-
+    Extract true or false answer from the response string, using the last occurrence.
+    
     Args:
-        response: JSON string containing reasoning and answer
-
+        response: The response string from the LLM.
+        
     Returns:
-        "Yes" or "No"
-
+        Answer: "true" or "false". Uses the last occurrence of true/false/yes/no.
+        
     Raises:
-        ValueError: If response is not valid JSON or missing required fields
+        ValueError: If no recognizable answer is found.
     """
-    try:
-        parsed = json.loads(response)
-        answer = parsed.get("answer")
-
-        if not answer or answer not in ["Yes", "No"]:
-            raise ValueError("Answer must be 'Yes' or 'No'")
-
-        return answer
-
-    except json.JSONDecodeError:
-        raise ValueError("Response is not valid JSON")
+    response = response.lower()
+    last_true = max(response.rfind("true"), response.rfind("yes"))
+    last_false = max(response.rfind("false"), response.rfind("no"))
+    
+    if last_true == -1 and last_false == -1:
+        raise ValueError("Answer not recognized")
+    
+    return "true" if last_true > last_false else "false"
