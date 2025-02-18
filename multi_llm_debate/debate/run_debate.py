@@ -1,12 +1,13 @@
 from pathlib import Path
 from typing import Dict, List
 
+from ..llm.parsers import extract_bool_answer
 from ..llm.prompt_builder import PromptBuilder
 from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
 from .round_n import run_debate_round_n
 from .round_zero import run_debate_round_zero
-from ..llm.parsers import extract_bool_answer
+
 logger = setup_logging(__name__)
 
 
