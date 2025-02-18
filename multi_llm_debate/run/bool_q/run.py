@@ -89,7 +89,7 @@ def run_bool_q(
             (processed_count / total_entries) * 100 if total_entries > 0 else 0
         )
 
-        logger.info(f"Debate execution completed")
+        logger.info("Debate execution completed")
         logger.info(f"Total entries processed: {total_entries}")
         logger.info(f"Successful: {processed_count}")
         logger.info(f"Failed: {failed_count}")
