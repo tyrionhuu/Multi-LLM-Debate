@@ -43,7 +43,10 @@ def build_bool_q_round_zero_prompt(
     if json_mode:
         prompt += "Answer in the following JSON format:" + NEW_LINE
         prompt += BOOL_JSON_FORMAT_COT if use_cot else BOOL_JSON_FORMAT
-        prompt += NEW_LINE
+    else:
+        prompt += "Answer in the following format:" + NEW_LINE
+        prompt += BOOL_NON_JSON_FORMAT_COT if use_cot else BOOL_NON_JSON_FORMAT
+    prompt += NEW_LINE
     prompt += "Question: " + question + NEW_LINE
     prompt += "Passage: " + passage
 
@@ -73,7 +76,10 @@ def build_bool_q_round_n_prompt(
     if json_mode:
         prompt += "Answer in the following JSON format:" + NEW_LINE
         prompt += BOOL_JSON_FORMAT_COT if use_cot else BOOL_JSON_FORMAT
-        prompt += NEW_LINE
+    else:
+        prompt += "Answer in the following format:" + NEW_LINE
+        prompt += BOOL_NON_JSON_FORMAT_COT if use_cot else BOOL_NON_JSON_FORMAT
+    prompt += NEW_LINE
     prompt += "Question: " + question + NEW_LINE
     prompt += "Passage: " + passage
 
