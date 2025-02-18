@@ -44,7 +44,7 @@ class AgentsEnsemble:
         self.concurrent = concurrent
         self.max_workers = max_workers
         self.job_delay = job_delay
-        
+
         if agents is not None:
             if not agents:
                 raise ValueError("Cannot initialize ensemble with empty agents list")
