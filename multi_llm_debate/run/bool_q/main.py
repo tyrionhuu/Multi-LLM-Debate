@@ -7,9 +7,7 @@ from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
-from .utils import process_bool_q_df, model_configs_to_string, format_time
-
-
+from .utils import format_time, model_configs_to_string, process_bool_q_df
 
 
 def run(
@@ -25,7 +23,7 @@ def run(
     ],
 ) -> None:
     start_time = time.time()
-    
+
     # Load the dataset
     dataset_path = Path("datasets/boolq")
     output_path = Path("data/bool_q/llama3")
@@ -73,34 +71,38 @@ def run(
     # Save results to CSV
     csv_path = report_path / "results.csv"
     file_exists = csv_path.exists()
-    
-    with open(csv_path, 'a', newline='') as f:
+
+    with open(csv_path, "a", newline="") as f:
         writer = csv.writer(f)
         if not file_exists:
-            writer.writerow([
-                'Model Configuration', 
-                'Baseline Accuracy', 
-                'Debate Accuracy',
-                'Running Time'
-            ])
-        writer.writerow([
-            model_configs_to_string(model_configs),
-            f"{baseline_accuracy:.4f}",
-            f"{accuracy:.4f}",
-            csv_time
-        ])
+            writer.writerow(
+                [
+                    "Model Configuration",
+                    "Baseline Accuracy",
+                    "Debate Accuracy",
+                    "Running Time",
+                ]
+            )
+        writer.writerow(
+            [
+                model_configs_to_string(model_configs),
+                f"{baseline_accuracy:.4f}",
+                f"{accuracy:.4f}",
+                csv_time,
+            ]
+        )
 
     print(f"\nResults saved to {csv_path}")
 
 
 def main(test: bool = False) -> None:
     """Run the boolean question evaluation with configured models.
-    
+
     Args:
         test (bool): Whether to run in test mode. Defaults to False.
     """
     import json
-    
+
     try:
         config_path = Path(__file__).parent / "config.json"
         with open(config_path) as f:
@@ -115,6 +117,7 @@ def main(test: bool = False) -> None:
             )
     except FileNotFoundError:
         raise FileNotFoundError(f"Configuration file not found at {config_path}")
+
 
 if __name__ == "__main__":
     main(test=False)

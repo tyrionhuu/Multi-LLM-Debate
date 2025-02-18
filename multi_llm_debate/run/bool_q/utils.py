@@ -1,5 +1,7 @@
+from typing import Dict, List, Tuple
+
 import pandas as pd
-from typing import List, Dict, Tuple
+
 
 def process_bool_q_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Process the BoolQ DataFrame to ensure it has all required columns.
@@ -18,25 +20,28 @@ def process_bool_q_df(dataframe: pd.DataFrame) -> pd.DataFrame:
         processed_df["id"] = processed_df.index + 1
 
     return processed_df
+
+
 def model_configs_to_string(model_configs: List[Dict]) -> str:
     """Convert model configs to a string representation."""
     return " + ".join(
         f"{config['name']}({config['quantity']})" for config in model_configs
     )
 
+
 def format_time(seconds: float) -> Tuple[str, str]:
     """Format seconds into human readable time and CSV format.
-    
+
     Args:
         seconds: Time in seconds
-        
+
     Returns:
         Tuple of (display_string, csv_string)
     """
     hours = int(seconds // 3600)
     minutes = int((seconds % 3600) // 60)
     remaining_seconds = seconds % 60
-    
+
     if hours > 0:
         display = f"{hours}h {minutes}min {remaining_seconds:.1f}s"
         csv_format = f"{hours}:{minutes:02d}:{remaining_seconds:.1f}"
@@ -46,5 +51,5 @@ def format_time(seconds: float) -> Tuple[str, str]:
     else:
         display = f"{remaining_seconds:.1f}s"
         csv_format = f"{remaining_seconds:.1f}"
-    
+
     return display, csv_format
