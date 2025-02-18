@@ -67,7 +67,9 @@ def run_bool_q(
             unit="debate",
         ):
             try:
-                run_bool_q_single_entry(entry, max_rounds, base_dir, use_cot, model_configs)
+                run_bool_q_single_entry(
+                    entry, max_rounds, base_dir, use_cot, model_configs
+                )
                 processed_count += 1
             except Exception as e:
                 entry_id = entry.get("id", "unknown")
