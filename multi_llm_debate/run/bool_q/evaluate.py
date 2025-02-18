@@ -143,3 +143,27 @@ def evaluate_baseline_df(
     print(f"\nBaseline Accuracy (First Answer): {accuracy:.2%}")
 
     return accuracy
+
+def main() -> None:
+    from ...utils.download_dataset import load_save_dataset_df
+    from .utils import process_bool_q_df
+    dataset_path = Path("datasets/boolq")
+
+    # Example usage
+    response_base_dir = Path("data/bool_q/phi3")
+    dataframe = load_save_dataset_df(
+        dataset_name="google/boolq",
+        dataset_path=dataset_path,
+        force_download=False,
+    )
+
+    # Process the DataFrame
+    processed_dataframe = process_bool_q_df(dataframe)
+    # Evaluate the debate responses
+    evaluate_df(response_base_dir, processed_dataframe)
+
+    # Evaluate the baseline responses
+    evaluate_baseline_df(response_base_dir, processed_dataframe)
+    
+if __name__ == "__main__":
+    main()
