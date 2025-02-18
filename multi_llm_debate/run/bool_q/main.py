@@ -1,15 +1,21 @@
 from pathlib import Path
-
+from typing import List
 from ...utils.download_dataset import load_save_dataset_df
 from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
 from .utils import process_bool_q_df
-
+from ...utils.model_config import ModelConfig
 
 def run(
     test: bool = False, 
     sample_size: int = 20,
-    
+    model_configs: List[ModelConfig] = [
+        {
+        "provider": "ollama",
+        "name": "llama3",
+        "quantity": 1,
+        }
+    ],
 ) -> None:
     # Load the dataset
     dataset_path = Path("datasets/boolq")
