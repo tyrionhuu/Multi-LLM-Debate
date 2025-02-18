@@ -10,6 +10,7 @@ from ...debate.run_debate import run_debate
 from ...llm.prompt_builder import PromptBuilder
 from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from ...utils.logging_config import setup_logging
+from ...utils.model_config import ModelConfig
 
 logger = setup_logging(__name__)
 
@@ -19,7 +20,7 @@ def run_bool_q(
     max_rounds: int = 10,
     base_dir: Path = Path("data") / "bool_q",
     use_cot: bool = True,
-    agents: Optional[List[Agent]] = None,
+    model_configs: Optional[List[ModelConfig]] = None,
 ) -> Dict[str, Any]:
     """Run the Boolean Question task on a DataFrame.
 
@@ -28,8 +29,8 @@ def run_bool_q(
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
         use_cot: Whether to use chain-of-thought prompting (default: True)
-        agents: Optional list of Agent instances to use in debate. If None,
-               default agents will be used.
+        model_configs: Optional list of model configurations. If None,
+                    default configs will be used.
 
     Returns:
         Dict containing summary of execution including failed entries
@@ -66,7 +67,7 @@ def run_bool_q(
             unit="debate",
         ):
             try:
-                run_bool_q_single_entry(entry, max_rounds, base_dir, use_cot, agents)
+                run_bool_q_single_entry(entry, max_rounds, base_dir, use_cot, model_configs)
                 processed_count += 1
             except Exception as e:
                 entry_id = entry.get("id", "unknown")
@@ -110,7 +111,7 @@ def run_bool_q_single_entry(
     max_rounds: int = 10,
     base_dir: Path = Path("data") / "bool_q",
     use_cot: bool = True,
-    agents: Optional[List[Agent]] = None,
+    model_configs: Optional[List[ModelConfig]] = None,
 ) -> None:
     """Run a single entry for the Boolean Question task.
 
@@ -119,8 +120,8 @@ def run_bool_q_single_entry(
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
         use_cot: Whether to use chain-of-thought prompting (default: True)
-        agents: Optional list of Agent instances to use in debate. If None,
-               default agents will be used.
+        model_configs: Optional list of model configurations. If None,
+                    default configs will be used.
 
     Raises:
         ValueError: If entry format is invalid
@@ -169,7 +170,7 @@ def run_bool_q_single_entry(
                 "use_cot": use_cot,
             },
         )
-        agents_ensemble = AgentsEnsemble(agents=agents)
+        agents_ensemble = AgentsEnsemble(config_list=model_configs)
 
         # Run the debate
         logger.info("Starting debate execution")
