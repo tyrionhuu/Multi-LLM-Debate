@@ -139,7 +139,7 @@ def run_bool_q_single_entry(
         run_debate(
             agents_ensemble,
             prompt_builder,
-            max_rounds=max_rounds,
+            max_rounds,
             output_dir=output_dir,
         )
         logger.info("Debate completed successfully")
