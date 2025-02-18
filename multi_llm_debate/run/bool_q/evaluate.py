@@ -31,15 +31,43 @@ def evaluate_responses(
             else "false" if ans in ("no", "false") else ans
         )
 
-    raw_responses = [response["response"] for response in responses]
-    normalized_responses = [normalize_answer(r["answer"]) for r in raw_responses]
-    normalized_answer = normalize_answer(answer)
+    def extract_answer(response: Dict) -> str:
+        """Extract answer from response dict handling different formats."""
+        try:
+            if "answer" in response:
+                return response["answer"]
+            # If answer is embedded in response text, try to extract yes/no
+            if "response" in response:
+                text = response["response"].lower()
+                if any(word in text for word in ["yes", "true"]):
+                    return "true"
+                if any(word in text for word in ["no", "false"]):
+                    return "false"
+            return text  # Return full text if no clear yes/no found
+        except (KeyError, AttributeError) as e:
+            print(f"Warning: Could not extract answer from response: {e}")
+            return ""
 
-    # Check if all responses are the same
-    if len(set(normalized_responses)) == 1:
-        # Check if the common answer matches the expected answer
-        return normalized_responses[0] == normalized_answer
-    return False
+    try:
+        raw_responses = [response["response"] for response in responses]
+        normalized_responses = [
+            normalize_answer(extract_answer(r)) for r in raw_responses
+        ]
+        normalized_answer = normalize_answer(answer)
+
+        # Filter out empty responses
+        valid_responses = [r for r in normalized_responses if r]
+        if not valid_responses:
+            print("Warning: No valid responses found")
+            return False
+
+        # Check if all valid responses are the same
+        if len(set(valid_responses)) == 1:
+            return valid_responses[0] == normalized_answer
+        return False
+    except Exception as e:
+        print(f"Error evaluating responses: {e}")
+        return False
 
 
 def _get_latest_round_file(responses_dir: Path) -> Path:
@@ -77,31 +105,35 @@ def evaluate_df(
     """
     correct_count = 0
     total_count = len(dataframe)
+    error_count = 0
 
     for _, entry in dataframe.iterrows():
-        answer = entry["answer"]
-        id_ = str(entry["id"])
+        try:
+            answer = entry["answer"]
+            id_ = str(entry["id"])
 
-        # Load responses from the corresponding file
-        responses_dir = response_base_dir / id_
+            # Load responses from the corresponding file
+            responses_dir = response_base_dir / id_
 
-        # Get the final response file
-        final_response_file = _get_latest_round_file(responses_dir)
+            # Get the final response file
+            final_response_file = _get_latest_round_file(responses_dir)
 
-        with open(final_response_file, "r") as f:
-            responses = json.load(f)
+            with open(final_response_file, "r") as f:
+                responses = json.load(f)
 
-        # Evaluate the responses
-        is_correct = evaluate_responses(responses, answer)
-        if is_correct:
-            correct_count += 1
-
-        # Output individual result
-        # print(f"ID: {id_}, Correct: {is_correct}")
+            # Evaluate the responses
+            is_correct = evaluate_responses(responses, answer)
+            if is_correct:
+                correct_count += 1
+        except Exception as e:
+            print(f"Error processing entry {id_}: {e}")
+            error_count += 1
+            continue
 
     # Calculate and output accuracy
-    accuracy = correct_count / total_count
+    accuracy = correct_count / (total_count - error_count) if total_count > error_count else 0
     print(f"\nOverall Accuracy: {accuracy:.2%}")
+    print(f"Errors encountered: {error_count}/{total_count}")
 
     return accuracy
 
