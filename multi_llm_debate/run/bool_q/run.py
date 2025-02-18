@@ -1,16 +1,18 @@
-from ...debate.run_debate import run_debate
+from pathlib import Path
+
+import pandas as pd
+
 from ...debate.agents_ensemble import AgentsEnsemble
-from ...llm.prompts import PromptBuilder
+from ...debate.run_debate import run_debate
 from ...llm.prompts import (
+    PromptBuilder,
     build_bool_q_round_n_prompt,
     build_bool_q_round_zero_prompt,
 )
-from pathlib import Path
-import pandas as pd
+
+
 def run_bool_q_single_entry(
-    entry: pd.Series,
-    max_rounds: int = 10,
-    base_dir: Path = Path("data" / "bool_q")
+    entry: pd.Series, max_rounds: int = 10, base_dir: Path = Path("data" / "bool_q")
 ) -> None:
     """Run a single entry for the Boolean Question task.
 
@@ -23,18 +25,25 @@ def run_bool_q_single_entry(
     # Check if the entry is valid
     if not isinstance(entry, pd.Series):
         raise ValueError("Entry must be a pandas Series.")
-    
-    if "question" not in entry or "answer" not in entry or "passage" not in entry or "id" not in entry:
-        raise ValueError("Entry must contain 'question', 'answer', 'passage', and 'id'.")
-    
+
+    if (
+        "question" not in entry
+        or "answer" not in entry
+        or "passage" not in entry
+        or "id" not in entry
+    ):
+        raise ValueError(
+            "Entry must contain 'question', 'answer', 'passage', and 'id'."
+        )
+
     # Extract values from the entry
     question = entry["question"]
     answer = entry["answer"]
     passage = entry["passage"]
     id = entry["id"]
-    
+
     output_dir = base_dir / id
-    
+
     # Initialize prompt builder
     prompt_builder = PromptBuilder(
         round_zero_fn=build_bool_q_round_zero_prompt,
@@ -43,7 +52,7 @@ def run_bool_q_single_entry(
 
     # Initialize agents
     agents_ensemble = AgentsEnsemble()
-        
+
     # Run the debate
     run_debate(
         agents_ensemble,
