@@ -83,13 +83,16 @@ def run(
     print(f"\nResults saved to {csv_path}")
 
 
-def main() -> None:
+def main(test: bool = False) -> None:
     import json
     model_configs_list = json.load(open("run/bool_q/config.json"))
+    print(model_configs_list)
+    # for model_configs in model_configs_list:
+    #     run(
+    #         test=False,
+    #         report_path=Path("data/bool_q"),
+    #         model_configs=model_configs,
+    #     )
     
-    for model_configs in model_configs_list:
-        run(
-            test=False,
-            report_path=Path("data/bool_q"),
-            model_configs=model_configs,
-        )
+if __name__ == "__main__":
+    main(test=False)
