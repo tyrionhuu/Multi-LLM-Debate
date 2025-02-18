@@ -1,4 +1,6 @@
-from typing import Callable, Dict, Any, List
+from typing import Any, Callable, Dict, List
+
+
 class PromptBuilder:
     """Base class for building prompts with different parameter requirements."""
 
