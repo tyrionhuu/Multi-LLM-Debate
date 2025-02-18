@@ -9,7 +9,9 @@ from ...llm.prompts import (
     build_bool_q_round_n_prompt,
     build_bool_q_round_zero_prompt,
 )
+from ...utils.logging_config import setup_logging
 
+logger = setup_logging(__name__)
 
 def run_bool_q_single_entry(
     entry: pd.Series, max_rounds: int = 10, base_dir: Path = Path("data" / "bool_q")
@@ -17,46 +19,63 @@ def run_bool_q_single_entry(
     """Run a single entry for the Boolean Question task.
 
     Args:
-        question: The question to be answered.
-        answer: The expected answer to the question.
-        passage: The passage containing information related to the question.
-        max_rounds: Maximum number of debate rounds.
+        entry: Pandas Series containing question, answer, passage and id
+        max_rounds: Maximum number of debate rounds
+        base_dir: Base directory for output files
+
+    Raises:
+        ValueError: If entry format is invalid
+        RuntimeError: If debate execution fails
     """
-    # Check if the entry is valid
-    if not isinstance(entry, pd.Series):
-        raise ValueError("Entry must be a pandas Series.")
+    try:
+        logger.info(f"Starting debate for entry ID: {entry.get('id', 'unknown')}")
+        
+        # Check if the entry is valid
+        if not isinstance(entry, pd.Series):
+            logger.error("Invalid entry type")
+            raise ValueError("Entry must be a pandas Series.")
 
-    if (
-        "question" not in entry
-        or "answer" not in entry
-        or "passage" not in entry
-        or "id" not in entry
-    ):
-        raise ValueError(
-            "Entry must contain 'question', 'answer', 'passage', and 'id'."
+        required_fields = ['question', 'answer', 'passage', 'id']
+        missing_fields = [field for field in required_fields if field not in entry]
+        if missing_fields:
+            logger.error(f"Missing required fields: {missing_fields}")
+            raise ValueError(
+                "Entry must contain 'question', 'answer', 'passage', and 'id'."
+            )
+
+        # Extract values from the entry
+        question = entry["question"]
+        answer = entry["answer"]
+        passage = entry["passage"]
+        id = entry["id"]
+
+        output_dir = base_dir / id
+        logger.debug(f"Output directory set to: {output_dir}")
+
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            logger.error(f"Failed to create output directory: {e}")
+            raise RuntimeError(f"Failed to create output directory: {e}")
+
+        # Initialize components
+        logger.debug("Initializing prompt builder and agents ensemble")
+        prompt_builder = PromptBuilder(
+            round_zero_fn=build_bool_q_round_zero_prompt,
+            round_n_fn=build_bool_q_round_n_prompt,
         )
+        agents_ensemble = AgentsEnsemble()
 
-    # Extract values from the entry
-    question = entry["question"]
-    answer = entry["answer"]
-    passage = entry["passage"]
-    id = entry["id"]
+        # Run the debate
+        logger.info("Starting debate execution")
+        run_debate(
+            agents_ensemble,
+            prompt_builder,
+            max_rounds=max_rounds,
+            output_dir=output_dir,
+        )
+        logger.info("Debate completed successfully")
 
-    output_dir = base_dir / id
-
-    # Initialize prompt builder
-    prompt_builder = PromptBuilder(
-        round_zero_fn=build_bool_q_round_zero_prompt,
-        round_n_fn=build_bool_q_round_n_prompt,
-    )
-
-    # Initialize agents
-    agents_ensemble = AgentsEnsemble()
-
-    # Run the debate
-    run_debate(
-        agents_ensemble,
-        prompt_builder,
-        max_rounds=max_rounds,
-        output_dir=output_dir,
-    )
+    except Exception as e:
+        logger.error(f"Debate execution failed: {str(e)}", exc_info=True)
+        raise RuntimeError(f"Debate execution failed: {str(e)}") from e
