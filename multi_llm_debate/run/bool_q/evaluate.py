@@ -8,6 +8,7 @@ import pandas as pd
 
 from ...llm.parsers import extract_bool_answer
 
+
 def evaluate_responses(
     responses: List[Dict],
     answer: str | bool,
@@ -21,14 +22,13 @@ def evaluate_responses(
     Returns:
         bool: True if all responses are the same and match the answer, False otherwise.
     """
-
     try:
         raw_responses = [response["response"] for response in responses]
         normalized_responses = [
             extract_bool_answer(response) for response in raw_responses
         ]
         answer_string = str(answer).lower()
-        
+
         # print(f"Normalized answer: {normalized_responses}")
         # Filter out empty responses
         valid_responses = [r for r in normalized_responses if r]
