@@ -5,6 +5,7 @@ from .evaluate import evaluate_df
 from .run import run_bool_q
 from .utils import process_bool_q_df
 
+
 def main(test: bool = False, sample_size: int = 20) -> None:
     # Load the dataset
     dataset_path = Path("datasets/boolq")
