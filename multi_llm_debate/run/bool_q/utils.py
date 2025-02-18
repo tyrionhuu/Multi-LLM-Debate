@@ -1,5 +1,8 @@
 import pandas as pd
+
 from ...utils.generate_hash import generate_hash
+
+
 def process_bool_q_df(
     dataframe: pd.DataFrame,
 ) -> pd.DataFrame:
