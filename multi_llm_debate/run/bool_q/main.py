@@ -17,7 +17,7 @@ def main(test: bool = False) -> None:
     processed_dataframe = process_bool_q_df(dataframe)
     if test:
         processed_dataframe = processed_dataframe.head(10)
-        
+
     # Run the Boolean Question task
     run_bool_q(
         dataframe=processed_dataframe,
