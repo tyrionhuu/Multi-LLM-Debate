@@ -37,16 +37,16 @@ def run_debate(
         Exception: If any error occurs during the debate process.
             Original exception is logged and re-raised.
     """
-    print("Starting debate")
-    print(f"Maximum rounds: {max_rounds}")
-    print(f"Output directory: {output_dir}")
+    # print("Starting debate")
+    # print(f"Maximum rounds: {max_rounds}")
+    # print(f"Output directory: {output_dir}")
 
     all_responses = []
 
     try:
         for i in range(max_rounds):
             if i == 0:
-                print("Running round 0")
+                # print("Running round 0")
                 prompt = prompt_builder.build_round_zero()
                 round_responses = run_debate_round_zero(
                     prompt=prompt,
@@ -59,9 +59,9 @@ def run_debate(
                     response["response"] for response in all_responses[-1]
                 ]
                 if check_convergence(extracted_responses):
-                    print("Convergence reached, ending debate")
+                    # print("Convergence reached, ending debate")
                     break
-                print(f"Running debate round {i}")
+                # print(f"Running debate round {i}")
                 prompt = prompt_builder.build_round_n(extracted_responses)
                 round_responses = run_debate_round_n(
                     prompt=prompt,
@@ -71,9 +71,9 @@ def run_debate(
                     json_mode=json_mode,
                 )
             all_responses.append(round_responses)
-            print(f"Completed debate round {i}")
+            # print(f"Completed debate round {i}")
 
-        print("Debate completed successfully")
+        # print("Debate completed successfully")
         return all_responses
     except Exception as e:
         logger.error(f"Error during debate: {str(e)}", exc_info=True)
