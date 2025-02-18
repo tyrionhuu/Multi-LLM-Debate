@@ -60,9 +60,7 @@ def run_bool_q(
 
         # Use the progress manager for the main progress bar
         with progress.main_bar(
-            total=len(dataframe),
-            desc="Running debates",
-            unit="debate"
+            total=len(dataframe), desc="Running debates", unit="debate"
         ) as pbar:
             for _, entry in dataframe.iterrows():
                 try:
