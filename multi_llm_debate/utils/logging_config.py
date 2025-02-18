@@ -1,9 +1,24 @@
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
+def handle_exception(exc_type, exc_value, exc_traceback):
+    """Global exception handler to log unhandled exceptions.
 
-def setup_logging(module_name: str) -> logging.Logger:
+    Args:
+        exc_type: Type of the exception
+        exc_value: Exception instance
+        exc_traceback: Traceback object
+    """
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+def setup_logging(module_name: str, log_level: Optional[int] = None) -> logging.Logger:
     """Set up logging configuration for a module.
 
     Configures both file and console handlers with formatted output.
@@ -12,6 +27,7 @@ def setup_logging(module_name: str) -> logging.Logger:
     Args:
         module_name: Name of the module requesting logging setup.
             Used as the logger name for hierarchical logging.
+        log_level: Optional log level to set for the logger.
 
     Returns:
         logging.Logger: Configured logger instance with both file and console handlers.
@@ -43,11 +59,17 @@ def setup_logging(module_name: str) -> logging.Logger:
 
     # Get logger
     logger = logging.getLogger(module_name)
-    logger.setLevel(logging.WARNING)
+    
+    # Set default log level to INFO if not specified
+    log_level = log_level or logging.INFO
+    logger.setLevel(log_level)
 
     # Add handlers if they haven't been added already
     if not logger.handlers:
         logger.addHandler(file_handler)
         logger.addHandler(console_handler)
+
+    # Set up global exception handler
+    sys.excepthook = handle_exception
 
     return logger
