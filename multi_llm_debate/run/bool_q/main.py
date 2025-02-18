@@ -26,7 +26,9 @@ def run(
 
     # Load the dataset
     dataset_path = Path("datasets/boolq")
-    output_path = Path("data/bool_q/llama3")
+    model_config_str = model_configs_to_string(model_configs)
+    output_path = report_path / model_config_str.replace(" ", "_")
+    
     dataframe = load_save_dataset_df(
         dataset_name="google/boolq",
         dataset_path=dataset_path,
