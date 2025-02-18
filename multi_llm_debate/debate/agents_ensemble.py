@@ -2,10 +2,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional
 
-from tqdm import tqdm
 
 from ..utils.config_manager import get_models
 from ..utils.model_config import ModelConfig
+from ..utils.progress import progress
 from .agent import Agent
 
 
@@ -118,15 +118,16 @@ class AgentsEnsemble:
                     executor.submit(agent.respond, prompt, json_mode=json_mode)
                 )
 
-            # Use tqdm to create progress bar
-            for future in tqdm(
-                as_completed(futures),
+            # Use sub-progress bar for agent responses
+            with progress.sub_bar(
                 total=len(futures),
                 desc="Collecting agent responses",
-                unit="agent",
-            ):
-                response = future.result()
-                responses.append(response)
+                unit="agent"
+            ) as pbar:
+                for future in as_completed(futures):
+                    response = future.result()
+                    responses.append(response)
+                    pbar.update(1)
         return responses
 
     def get_responses(
@@ -147,11 +148,17 @@ class AgentsEnsemble:
             return self._get_response_concurrent(prompt, json_mode=json_mode)
 
         responses = []
-        for agent in tqdm(self.agents, desc="Collecting agent responses", unit="agent"):
-            response = agent.respond(prompt, json_mode=json_mode)
-            responses.append(response)
-            if self.job_delay > 0:
-                time.sleep(self.job_delay)
+        with progress.sub_bar(
+            total=len(self.agents),
+            desc="Collecting agent responses",
+            unit="agent"
+        ) as pbar:
+            for agent in self.agents:
+                response = agent.respond(prompt, json_mode=json_mode)
+                responses.append(response)
+                if self.job_delay > 0:
+                    time.sleep(self.job_delay)
+                pbar.update(1)
         return responses
 
     def get_agent_by_id(self, agent_id: int) -> Agent:

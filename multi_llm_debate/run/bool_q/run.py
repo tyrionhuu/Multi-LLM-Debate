@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
-from tqdm import tqdm
 
 from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.run_debate import run_debate
@@ -10,6 +9,7 @@ from ...llm.prompt_builder import PromptBuilder
 from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
+from ...utils.progress import progress
 
 logger = setup_logging(__name__)
 
@@ -58,23 +58,24 @@ def run_bool_q(
                 "DataFrame must contain 'question', 'answer', 'passage', and 'id' columns."
             )
 
-        # Iterate over each entry in the DataFrame with progress bar
-        for _, entry in tqdm(
-            dataframe.iterrows(),
+        # Use the progress manager for the main progress bar
+        with progress.main_bar(
             total=len(dataframe),
             desc="Running debates",
-            unit="debate",
-        ):
-            try:
-                run_bool_q_single_entry(
-                    entry, max_rounds, base_dir, use_cot, model_configs
-                )
-                processed_count += 1
-            except Exception as e:
-                entry_id = entry.get("id", "unknown")
-                logger.error(f"Failed to process entry {entry_id}: {str(e)}")
-                failed_entries.append({"id": entry_id, "error": str(e)})
-                continue
+            unit="debate"
+        ) as pbar:
+            for _, entry in dataframe.iterrows():
+                try:
+                    run_bool_q_single_entry(
+                        entry, max_rounds, base_dir, use_cot, model_configs
+                    )
+                    processed_count += 1
+                    pbar.update(1)
+                except Exception as e:
+                    entry_id = entry.get("id", "unknown")
+                    logger.error(f"Failed to process entry {entry_id}: {str(e)}")
+                    failed_entries.append({"id": entry_id, "error": str(e)})
+                    continue
 
     except Exception as e:
         logger.error(f"Global execution error: {str(e)}", exc_info=True)
