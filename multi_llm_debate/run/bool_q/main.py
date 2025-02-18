@@ -19,7 +19,7 @@ def main(test: bool = False, sample_size: int = 20) -> None:
     # Process the DataFrame
     processed_dataframe = process_bool_q_df(dataframe)
     if test:
-        processed_dataframe = processed_dataframe.head(sample_size)
+        processed_dataframe = processed_dataframe.iloc[[4]]
 
     # Run the Boolean Question task
     run_bool_q(
