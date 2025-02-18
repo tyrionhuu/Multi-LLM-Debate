@@ -84,5 +84,3 @@ def build_bool_q_round_n_prompt(
     prompt += "Passage: " + passage
 
     return prompt
-
-
