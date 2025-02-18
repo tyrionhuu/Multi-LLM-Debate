@@ -5,6 +5,65 @@ from .evaluate import evaluate_baseline_df, evaluate_df
 from .run import run_bool_q
 from .utils import process_bool_q_df
 from ...utils.model_config import ModelConfig
+MODEL_CONFIGS_LIST = [
+    [
+        {
+            "provider": "ollama",
+            "name": "llama3",
+            "quantity": 6,
+        }
+    ],
+    [
+        {
+            "provider": "ollama",
+            "name": "llama2",
+            "quantity": 6,
+        }
+    ],
+    [
+        {
+            "provider": "ollama",
+            "name": "mistral",
+            "quantity": 6,
+        }
+    ],
+    [
+        {
+            "provider": "ollama",
+            "name": "llama3",
+            "quantity": 3,
+        },
+        {
+            "provider": "ollama",
+            "name": "llama2",
+            "quantity": 3,
+        }
+    ],
+    [
+        {
+            "provider": "ollama",
+            "name": "llama3",
+            "quantity": 3,
+        },
+        {
+            "provider": "ollama",
+            "name": "mistral",
+            "quantity": 3,
+        }
+    ],
+    [
+        {
+            "provider": "ollama",
+            "name": "llama2",
+            "quantity": 3,
+        },
+        {
+            "provider": "ollama",
+            "name": "mistral",
+            "quantity": 3,
+        }
+    ]
+]
 
 def run(
     test: bool = False, 
@@ -36,6 +95,7 @@ def run(
     execution_report = run_bool_q(
         dataframe=processed_dataframe,
         base_dir=output_path,
+        model_configs=model_configs,
     )
 
     # Print execution summary
