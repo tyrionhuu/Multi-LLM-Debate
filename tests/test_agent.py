@@ -8,21 +8,21 @@ from multi_llm_debate.debate.agent import Agent
 @pytest.fixture
 def test_agent():
     """Fixture providing a test Agent instance."""
-    return Agent(agent_id=1, model="llama2:3.1", provider="ollama")
+    return Agent(agent_id=1, model="llama3.1:latest", provider="ollama")
 
 
 def test_agent_initialization():
     """Test Agent instance initialization with basic attributes."""
-    agent = Agent(agent_id=1, model="llama2:3.1", provider="ollama")
+    agent = Agent(agent_id=1, model="llama3.1:latest", provider="ollama")
     assert agent.agent_id == 1
-    assert agent.model == "llama2:3.1"
+    assert agent.model == "llama3.1:latest"
     assert agent.provider == "ollama"
 
 
 def test_agent_string_representation(test_agent):
     """Test string and repr methods of Agent."""
-    assert str(test_agent) == "Agent 1 (llama2:3.1)"
-    assert repr(test_agent) == "Agent 1 (llama2:3.1)"
+    assert str(test_agent) == "Agent 1 (llama3.1:latest)"
+    assert repr(test_agent) == "Agent 1 (llama3.1:latest)"
 
 
 @pytest.mark.parametrize(
@@ -55,7 +55,7 @@ def test_agent_respond(test_agent, mock_response, expected_content):
         response = test_agent.respond("test prompt")
         expected = {
             "agent_id": 1,
-            "model": "llama2:3.1",
+            "model": "llama3.1:latest",
             "response": expected_content,
         }
         assert response == expected
