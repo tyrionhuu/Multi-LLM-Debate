@@ -105,8 +105,7 @@ def evaluate_df(
             if is_correct:
                 correct_count += 1
 
-        except Exception as e:
-            # print(f"Error processing entry {id_}: {e}")
+        except Exception:
             continue
 
     # Calculate and output accuracy using valid responses
@@ -156,8 +155,7 @@ def evaluate_baseline_df(
             if is_correct:
                 correct_count += 1
 
-        except Exception as e:
-            # print(f"Error processing entry {id_}: {e}")
+        except Exception:
             continue
 
     # Calculate and output accuracy using valid responses

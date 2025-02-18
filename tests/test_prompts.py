@@ -1,3 +1,4 @@
+from multi_llm_debate.llm.prompt_builder import PromptBuilder
 from multi_llm_debate.llm.prompts import (
     BOOL_JSON_FORMAT,
     BOOL_JSON_FORMAT_COT,
@@ -6,7 +7,7 @@ from multi_llm_debate.llm.prompts import (
     build_bool_q_round_n_prompt,
     build_bool_q_round_zero_prompt,
 )
-from multi_llm_debate.llm.prompt_builder import PromptBuilder
+
 
 def test_build_bool_q_round_zero_prompt_with_cot() -> None:
     question = "Is the sky blue?"
@@ -171,6 +172,7 @@ def test_build_bool_q_round_n_prompt_non_json_mode() -> None:
 
     assert "following format" in prompt
     assert BOOL_NON_JSON_FORMAT in prompt
+
 
 def test_prompt_builder_with_json_mode() -> None:
     """Test PromptBuilder with json_mode parameter."""
