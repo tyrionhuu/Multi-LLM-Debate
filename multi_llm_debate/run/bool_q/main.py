@@ -84,15 +84,26 @@ def run(
 
 
 def main(test: bool = False) -> None:
-    import json
-    model_configs_list = json.load(open("config.json"))
-    print(model_configs_list)
-    # for model_configs in model_configs_list:
-    #     run(
-    #         test=False,
-    #         report_path=Path("data/bool_q"),
-    #         model_configs=model_configs,
-    #     )
+    """Run the boolean question evaluation with configured models.
     
+    Args:
+        test (bool): Whether to run in test mode. Defaults to False.
+    """
+    import json
+    
+    try:
+        config_path = Path(__file__).parent / "config.json"
+        with open(config_path) as f:
+            model_configs_list = json.load(f)
+        
+        for model_configs in model_configs_list:
+            run(
+                test=test,
+                report_path=Path("data/bool_q"),
+                model_configs=model_configs,
+            )
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Configuration file not found at {config_path}")
+
 if __name__ == "__main__":
     main(test=False)
