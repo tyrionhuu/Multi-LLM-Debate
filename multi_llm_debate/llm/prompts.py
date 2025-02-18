@@ -35,6 +35,7 @@ Step 3: third step of your reasoning
 Final Answer: true/false
 """
 
+
 def build_bool_q_round_zero_prompt(
     question: str, passage: str, use_cot: bool = True, json_mode: bool = False
 ) -> str:
