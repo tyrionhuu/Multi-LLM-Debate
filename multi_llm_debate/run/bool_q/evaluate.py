@@ -25,7 +25,11 @@ def evaluate_responses(
         if isinstance(ans, bool):
             return "true" if ans else "false"
         ans = str(ans).lower().strip()
-        return "true" if ans in ("yes", "true") else "false" if ans in ("no", "false") else ans
+        return (
+            "true"
+            if ans in ("yes", "true")
+            else "false" if ans in ("no", "false") else ans
+        )
 
     raw_responses = [response["response"] for response in responses]
     normalized_responses = [normalize_answer(r["answer"]) for r in raw_responses]
