@@ -192,6 +192,48 @@ def call_vision_model(
         raise ValueError(f"Unsupported provider: {provider}")
 
 
+def retry_json_generation(
+    model_name: str,
+    prompt: str,
+    options: Options,
+    max_retries: int = 3,
+    images: Optional[List[str | bytes]] = None,
+) -> str:
+    """
+    Retries JSON generation when parsing fails.
+
+    Args:
+        model_name (str): The name of the model to use.
+        prompt (str): The text prompt for the model.
+        options (Options): Ollama options object.
+        max_retries (int): Maximum number of retry attempts.
+        images (Optional[List[str | bytes]]): Optional images for vision models.
+
+    Returns:
+        str: Valid JSON string response.
+
+    Raises:
+        ValueError: If unable to get valid JSON after max retries.
+    """
+    kwargs = {
+        "model": model_name,
+        "prompt": "You must respond with valid JSON. " + prompt,
+        "options": options,
+        "format": "json",
+    }
+    if images:
+        kwargs["images"] = images
+
+    for attempt in range(max_retries):
+        try:
+            response_str = ollama.generate(**kwargs)["response"]
+            return json.dumps(json.loads(response_str))
+        except json.JSONDecodeError:
+            if attempt == max_retries - 1:
+                raise ValueError(f"Invalid JSON response after {max_retries} attempts")
+            continue
+
+
 def generate_with_ollama(
     model_name: str,
     prompt: str,
@@ -224,24 +266,25 @@ def generate_with_ollama(
             request_timeout=timeout,
         )
 
+        if json_mode:
+            return retry_json_generation(
+                model_name=model_name,
+                prompt=prompt,
+                options=options,
+                images=images,
+            )
+
         kwargs = {
             "model": model_name,
             "prompt": prompt,
             "options": options,
-            "format": "json" if json_mode else "",
+            "format": "",
         }
 
         if images:  # Only include images if list is not None and not empty
             kwargs["images"] = images
 
-        response_str = ollama.generate(**kwargs)["response"]
-
-        if json_mode:
-            try:
-                return json.dumps(json.loads(response_str))
-            except json.JSONDecodeError:
-                return response_str
-        return response_str
+        return ollama.generate(**kwargs)["response"]
 
     except requests.exceptions.Timeout:
         raise TimeoutError(f"Request timed out after {timeout} seconds")
