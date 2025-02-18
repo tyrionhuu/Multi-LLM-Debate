@@ -20,7 +20,7 @@ logger = setup_logging(__name__)
 def run_bool_q(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,
-    base_dir: Path = Path("data" / "bool_q"),
+    base_dir: Path = Path("data") / "bool_q",
     use_cot: bool = True,
     agents: Optional[List[Agent]] = None,
 ) -> None:
@@ -73,7 +73,7 @@ def run_bool_q(
 def run_bool_q_single_entry(
     entry: pd.Series,
     max_rounds: int = 10,
-    base_dir: Path = Path("data" / "bool_q"),
+    base_dir: Path = Path("data") / "bool_q",
     use_cot: bool = True,
     agents: Optional[List[Agent]] = None,
 ) -> None:
