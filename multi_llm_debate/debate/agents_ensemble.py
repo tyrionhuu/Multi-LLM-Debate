@@ -85,11 +85,15 @@ class AgentsEnsemble:
         """
         self.agents.append(agent)
 
-    def _get_response_concurrent(self, prompt: str) -> List[Dict[str, Any]]:
+    def _get_response_concurrent(
+        self, prompt: str, json_mode: bool = False
+    ) -> List[Dict[str, Any]]:
         """Get responses from all agents concurrently.
 
         Args:
             prompt (str): The input prompt to send to all agents.
+            json_mode (bool, optional): Whether to request JSON formatted responses.
+                Defaults to False.
 
         Returns:
             List[Dict[str, Any]]: List of response dictionaries from all agents.
@@ -101,29 +105,35 @@ class AgentsEnsemble:
             for agent in self.agents:
                 if self.job_delay > 0:
                     time.sleep(self.job_delay)
-                futures.append(executor.submit(agent.respond, prompt))
+                futures.append(
+                    executor.submit(agent.respond, prompt, json_mode=json_mode)
+                )
 
             for future in as_completed(futures):
                 response = future.result()
                 responses.append(response)
         return responses
 
-    def get_responses(self, prompt: str) -> List[Dict[str, Any]]:
+    def get_responses(
+        self, prompt: str, json_mode: bool = False
+    ) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt.
 
         Args:
             prompt (str): The input prompt to send to all agents.
+            json_mode (bool, optional): Whether to request JSON formatted responses.
+                Defaults to False.
 
         Returns:
             List[Dict[str, Any]]: List of response dictionaries from all agents.
             Each dictionary contains agent information and the parsed response.
         """
         if self.concurrent:
-            return self._get_response_concurrent(prompt)
+            return self._get_response_concurrent(prompt, json_mode=json_mode)
 
         responses = []
         for agent in self.agents:
-            response = agent.respond(prompt)
+            response = agent.respond(prompt, json_mode=json_mode)
             responses.append(response)
             if self.job_delay > 0:
                 time.sleep(self.job_delay)
