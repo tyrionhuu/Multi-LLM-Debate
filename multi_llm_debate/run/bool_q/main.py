@@ -114,6 +114,23 @@ def run(
     print(f"\nResults saved to {csv_path}")
 
 
+def _format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
+    """Format model configurations for display in progress bar.
+
+    Args:
+        model_configs_list: List of model configuration lists
+
+    Returns:
+        str: Formatted string showing number of configs and total models
+    """
+    total_configs = len(model_configs_list)
+    total_models = sum(
+        sum(config["quantity"] for config in configs)
+        for configs in model_configs_list
+    )
+    return f"Running {total_configs} configs ({total_models} total models)"
+
+
 def main(sample_size: Optional[int] = None, max_workers: Optional[int] = 4) -> None:
     """Run boolean question evaluation with configured models.
 
@@ -146,10 +163,11 @@ def main(sample_size: Optional[int] = None, max_workers: Optional[int] = 4) -> N
         with open(config_path) as f:
             model_configs_list = json.load(f)
 
+        config_overview = _format_config_overview(model_configs_list)
         # Add progress bar for model configurations
         with progress.main_bar(
             total=len(model_configs_list),
-            desc="Testing model configurations",
+            desc=config_overview,
             unit="config",
         ) as pbar:
             for model_configs in model_configs_list:
