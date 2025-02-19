@@ -125,8 +125,7 @@ def _format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
     """
     total_configs = len(model_configs_list)
     total_models = sum(
-        sum(config["quantity"] for config in configs)
-        for configs in model_configs_list
+        sum(config["quantity"] for config in configs) for configs in model_configs_list
     )
     return f"Running {total_configs} configs ({total_models} total models)"
 
