@@ -58,9 +58,13 @@ def run_debate(
                 extracted_responses = [
                     response["response"] for response in all_responses[-1]
                 ]
-                if check_convergence(extracted_responses):
-                    # print("Convergence reached, ending debate")
-                    break
+                try:
+                    if check_convergence(extracted_responses):
+                        # print("Convergence detected, ending debate")
+                        break
+                except Exception as e:
+                    logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
+                    raise
                 # print(f"Running debate round {i}")
                 prompt = prompt_builder.build_round_n(extracted_responses)
                 round_responses = run_debate_round_n(
@@ -89,8 +93,12 @@ def check_convergence(responses: List[Dict]) -> bool:
     Returns:
         bool: True if all responses are the same, False otherwise.
     """
-    answers = [extract_bool_answer(response) for response in responses]
-    return len(set(answers)) == 1
+    try:
+        answers = [extract_bool_answer(response) for response in responses]
+        return len(set(answers)) == 1
+    except Exception as e:
+        logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
+        raise
 
 
 def main():
