@@ -21,6 +21,7 @@ def run_bool_q(
     use_cot: bool = True,
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
+    max_workers: Optional[int] = 4,
 ) -> Dict[str, Any]:
     """Run the Boolean Question task on a DataFrame.
 
@@ -32,6 +33,7 @@ def run_bool_q(
         model_configs: Optional list of model configurations. If None,
                     default configs will be used.
         overwrite: Whether to overwrite existing debate results (default: False)
+        max_workers: Maximum number of concurrent workers (default: 4)
 
     Returns:
         Dict containing summary of execution including failed entries
@@ -73,6 +75,7 @@ def run_bool_q(
                         use_cot,
                         model_configs,
                         overwrite=overwrite,
+                        max_workers=max_workers,
                     )
                     processed_count += 1
                     pbar.update(1)
@@ -120,6 +123,7 @@ def run_bool_q_single_entry(
     use_cot: bool = True,
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
+    max_workers: Optional[int] = 4,
 ) -> None:
     """Run a single entry for the Boolean Question task.
 
@@ -131,6 +135,7 @@ def run_bool_q_single_entry(
         model_configs: Optional list of model configurations. If None,
                     default configs will be used.
         overwrite: Whether to overwrite existing debate results (default: False)
+        max_workers: Maximum number of concurrent workers (default: 4)
 
     Raises:
         ValueError: If entry format is invalid
@@ -186,7 +191,10 @@ def run_bool_q_single_entry(
                 "use_cot": use_cot,
             },
         )
-        agents_ensemble = AgentsEnsemble(config_list=model_configs)
+        agents_ensemble = AgentsEnsemble(
+            config_list=model_configs, 
+            max_workers=max_workers
+        )
 
         # Run the debate
         logger.info("Starting debate execution")
