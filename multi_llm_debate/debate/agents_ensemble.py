@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional
 
 from ..utils.config_manager import get_models
 from ..utils.model_config import ModelConfig
-from ..utils.progress import progress
 from .agent import Agent
 
 
@@ -120,21 +119,15 @@ class AgentsEnsemble:
         self, prompt: str, json_mode: bool = False
     ) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt."""
-        with progress.sub_bar(
-            total=len(self.agents), desc="Collecting agent responses", unit="agent"
-        ) as pbar:
-            if self.concurrent:
-                responses = self._get_response_concurrent(prompt, json_mode=json_mode)
-                # Update progress bar all at once since responses are collected
-                pbar.update(len(responses))
-            else:
-                responses = []
-                for agent in self.agents:
-                    response = agent.respond(prompt, json_mode=json_mode)
-                    responses.append(response)
-                    if self.job_delay > 0:
-                        time.sleep(self.job_delay)
-                    pbar.update(1)
+        if self.concurrent:
+            responses = self._get_response_concurrent(prompt, json_mode=json_mode)
+        else:
+            responses = []
+            for agent in self.agents:
+                response = agent.respond(prompt, json_mode=json_mode)
+                responses.append(response)
+                if self.job_delay > 0:
+                    time.sleep(self.job_delay)
 
         return responses
 
@@ -151,7 +144,7 @@ class AgentsEnsemble:
             ValueError: If no agent with the specified ID is found.
         """
         for agent in self.agents:
-            if agent.agent_id == agent_id:
+            if (agent.agent_id == agent_id):
                 return agent
         raise ValueError(f"Agent with ID {agent_id} not found")
 
