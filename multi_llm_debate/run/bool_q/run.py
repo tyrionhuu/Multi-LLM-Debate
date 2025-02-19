@@ -195,7 +195,7 @@ def run_bool_q_single_entry(
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
             output_dir=output_dir,
-                    )
+        )
         logger.info("Debate completed successfully")
 
     except Exception as e:
