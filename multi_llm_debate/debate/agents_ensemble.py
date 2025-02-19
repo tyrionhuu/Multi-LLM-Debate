@@ -144,7 +144,7 @@ class AgentsEnsemble:
             ValueError: If no agent with the specified ID is found.
         """
         for agent in self.agents:
-            if (agent.agent_id == agent_id):
+            if agent.agent_id == agent_id:
                 return agent
         raise ValueError(f"Agent with ID {agent_id} not found")
 
