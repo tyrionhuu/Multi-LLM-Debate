@@ -192,8 +192,7 @@ def run_bool_q_single_entry(
             },
         )
         agents_ensemble = AgentsEnsemble(
-            config_list=model_configs, 
-            max_workers=max_workers
+            config_list=model_configs, max_workers=max_workers
         )
 
         # Run the debate
