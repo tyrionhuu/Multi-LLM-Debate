@@ -39,7 +39,7 @@ def run(
         model_configs (List[ModelConfig], optional): List of model configurations.
             Defaults to single Ollama config.
         random_seed (int, optional): Random seed for sampling. Defaults to 42.
-        max_workers (int, optional): Maximum number of concurrent workers. 
+        max_workers (int, optional): Maximum number of concurrent workers.
             Defaults to 4.
 
     Returns:
@@ -123,9 +123,9 @@ def main(sample_size: Optional[int] = None, max_workers: Optional[int] = 4) -> N
 
     Args:
         test (bool, optional): Whether to run in test mode. Defaults to False.
-        sample_size (Optional[int], optional): Number of samples to use. 
+        sample_size (Optional[int], optional): Number of samples to use.
             Defaults to None.
-        max_workers (Optional[int], optional): Maximum number of concurrent 
+        max_workers (Optional[int], optional): Maximum number of concurrent
             workers. Defaults to 4.
 
     Raises:
