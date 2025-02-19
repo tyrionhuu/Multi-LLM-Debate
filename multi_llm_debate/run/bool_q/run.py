@@ -20,6 +20,7 @@ def run_bool_q(
     base_dir: Path = Path("data") / "bool_q",
     use_cot: bool = True,
     model_configs: Optional[List[ModelConfig]] = None,
+    overwrite: bool = False,
 ) -> Dict[str, Any]:
     """Run the Boolean Question task on a DataFrame.
 
@@ -30,6 +31,7 @@ def run_bool_q(
         use_cot: Whether to use chain-of-thought prompting (default: True)
         model_configs: Optional list of model configurations. If None,
                     default configs will be used.
+        overwrite: Whether to overwrite existing debate results (default: False)
 
     Returns:
         Dict containing summary of execution including failed entries
@@ -65,7 +67,12 @@ def run_bool_q(
             for _, entry in dataframe.iterrows():
                 try:
                     run_bool_q_single_entry(
-                        entry, max_rounds, base_dir, use_cot, model_configs
+                        entry,
+                        max_rounds,
+                        base_dir,
+                        use_cot,
+                        model_configs,
+                        overwrite=overwrite,
                     )
                     processed_count += 1
                     pbar.update(1)
@@ -112,6 +119,7 @@ def run_bool_q_single_entry(
     base_dir: Path = Path("data") / "bool_q",
     use_cot: bool = True,
     model_configs: Optional[List[ModelConfig]] = None,
+    overwrite: bool = False,
 ) -> None:
     """Run a single entry for the Boolean Question task.
 
@@ -122,6 +130,7 @@ def run_bool_q_single_entry(
         use_cot: Whether to use chain-of-thought prompting (default: True)
         model_configs: Optional list of model configurations. If None,
                     default configs will be used.
+        overwrite: Whether to overwrite existing debate results (default: False)
 
     Raises:
         ValueError: If entry format is invalid
@@ -152,10 +161,12 @@ def run_bool_q_single_entry(
         logger.debug(f"Output directory set to: {output_dir}")
 
         # Check if response already exists
-        if output_dir.exists():
-            response_file = output_dir / "debate_results.json"
-            if response_file.exists():
-                logger.info(f"Skipping entry {id_} - already processed")
+        if output_dir.exists() and not overwrite:
+            debate_files = [
+                output_dir / f"debate_round_{i}.json" for i in range(max_rounds)
+            ]
+            if all(f.exists() for f in debate_files):
+                logger.info(f"Skipping entry {id_} - all debate rounds exist")
                 return
 
         try:
@@ -184,7 +195,7 @@ def run_bool_q_single_entry(
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
             output_dir=output_dir,
-        )
+                    )
         logger.info("Debate completed successfully")
 
     except Exception as e:
