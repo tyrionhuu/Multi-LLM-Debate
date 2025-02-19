@@ -166,4 +166,4 @@ def main(sample_size: Optional[int] = None, max_workers: Optional[int] = 4) -> N
 
 
 if __name__ == "__main__":
-    main(sample_size=2000, max_workers=4)
+    main(sample_size=2000, max_workers=6)
