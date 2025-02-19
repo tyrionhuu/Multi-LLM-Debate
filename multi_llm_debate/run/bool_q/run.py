@@ -145,13 +145,18 @@ def run_bool_q_single_entry(
 
         # Extract values from the entry
         question = entry["question"]
-        # print(f"Question: {question}")
         passage = entry["passage"]
-        # print(f"Passage: {passage}")
-        id_ = str(entry["id"])  # Convert ID to string
+        id_ = str(entry["id"])
 
-        output_dir = base_dir / id_  # Now using string ID with Path
+        output_dir = base_dir / id_
         logger.debug(f"Output directory set to: {output_dir}")
+
+        # Check if response already exists
+        if output_dir.exists():
+            response_file = output_dir / "debate_results.json"
+            if response_file.exists():
+                logger.info(f"Skipping entry {id_} - already processed")
+                return
 
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
