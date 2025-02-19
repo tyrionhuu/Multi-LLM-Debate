@@ -25,6 +25,7 @@ def run(
         }
     ],
     random_seed: int = 42,
+    max_workers: Optional[int] = 4,
 ) -> None:
     """Execute boolean question evaluation with the given configuration.
 
@@ -37,6 +38,9 @@ def run(
             Defaults to Path("data/bool_q").
         model_configs (List[ModelConfig], optional): List of model configurations.
             Defaults to single Ollama config.
+        random_seed (int, optional): Random seed for sampling. Defaults to 42.
+        max_workers (int, optional): Maximum number of concurrent workers. 
+            Defaults to 4.
 
     Returns:
         None: Results are saved to files and printed to console.
@@ -58,6 +62,7 @@ def run(
         dataframe=processed_dataframe,
         base_dir=output_path,
         model_configs=model_configs,
+        max_workers=max_workers,
     )
 
     # Print execution summary
@@ -109,7 +114,7 @@ def run(
     print(f"\nResults saved to {csv_path}")
 
 
-def main(sample_size: Optional[int] = None) -> None:
+def main(sample_size: Optional[int] = None, max_workers: Optional[int] = 4) -> None:
     """Run boolean question evaluation with configured models.
 
     This function loads the dataset and model configurations from a JSON file,
@@ -118,6 +123,10 @@ def main(sample_size: Optional[int] = None) -> None:
 
     Args:
         test (bool, optional): Whether to run in test mode. Defaults to False.
+        sample_size (Optional[int], optional): Number of samples to use. 
+            Defaults to None.
+        max_workers (Optional[int], optional): Maximum number of concurrent 
+            workers. Defaults to 4.
 
     Raises:
         FileNotFoundError: If the configuration file is not found.
@@ -149,6 +158,7 @@ def main(sample_size: Optional[int] = None) -> None:
                     sample_size=sample_size,
                     report_path=Path("data/bool_q"),
                     model_configs=model_configs,
+                    max_workers=max_workers,
                 )
                 pbar.update(1)
     except FileNotFoundError:
@@ -156,4 +166,4 @@ def main(sample_size: Optional[int] = None) -> None:
 
 
 if __name__ == "__main__":
-    main(sample_size=2000)
+    main(sample_size=2000, max_workers=4)
