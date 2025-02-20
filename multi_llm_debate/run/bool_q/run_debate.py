@@ -6,12 +6,17 @@ import pandas as pd
 from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
-from ...utils.progress import progress
-from ..shared.run_debate import run_debate_single_entry
-from ..shared.utils import build_config_desc
+from ..shared.run_debate import run_debate, run_debate_single_entry
 
 logger = setup_logging(__name__)
 
+
+def get_bool_q_prompt_params(entry: pd.Series) -> Dict[str, Any]:
+    """Extract prompt parameters from a boolean question entry."""
+    return {
+        "question": entry["question"],
+        "passage": entry["passage"],
+    }
 
 def run_debate_bool_q(
     dataframe: pd.DataFrame,
@@ -40,80 +45,19 @@ def run_debate_bool_q(
     Raises:
         ValueError: If DataFrame format is invalid
     """
-    failed_entries = []
-    processed_count = 0
-
-    try:
-        logger.info("Starting debate for Boolean Question task")
-
-        # Check if the DataFrame is valid
-        if not isinstance(dataframe, pd.DataFrame):
-            logger.error("Invalid DataFrame type")
-            raise ValueError("Dataframe must be a pandas DataFrame.")
-
-        required_columns = ["question", "answer", "passage", "id"]
-        missing_columns = [
-            col for col in required_columns if col not in dataframe.columns
-        ]
-        if missing_columns:
-            logger.error(f"Missing required columns: {missing_columns}")
-            raise ValueError(
-                "DataFrame must contain 'question', 'answer', 'passage', and 'id' columns."
-            )
-
-        # Use the progress manager for the main progress bar
-        config_desc = build_config_desc(model_configs, use_cot, max_rounds)
-        with progress.main_bar(
-            total=len(dataframe), desc=f"Running debates [{config_desc}]", unit="debate"
-        ) as pbar:
-            for _, entry in dataframe.iterrows():
-                try:
-                    run_debate_bool_q_single_entry(
-                        entry,
-                        max_rounds,
-                        base_dir,
-                        use_cot,
-                        model_configs,
-                        overwrite=overwrite,
-                        max_workers=max_workers,
-                    )
-                    processed_count += 1
-                    pbar.update(1)
-                except Exception as e:
-                    entry_id = entry.get("id", "unknown")
-                    logger.error(f"Failed to process entry {entry_id}: {str(e)}")
-                    failed_entries.append({"id": entry_id, "error": str(e)})
-                    continue
-
-    except Exception as e:
-        logger.error(f"Global execution error: {str(e)}", exc_info=True)
-        raise RuntimeError(f"Global execution error: {str(e)}") from e
-
-    finally:
-        # Log summary
-        total_entries = len(dataframe)
-        failed_count = len(failed_entries)
-        success_rate = (
-            (processed_count / total_entries) * 100 if total_entries > 0 else 0
-        )
-
-        logger.info("Debate execution completed")
-        logger.info(f"Total entries processed: {total_entries}")
-        logger.info(f"Successful: {processed_count}")
-        logger.info(f"Failed: {failed_count}")
-        logger.info(f"Success rate: {success_rate:.2f}%")
-
-        if failed_entries:
-            logger.warning("Failed entries:")
-            for entry in failed_entries:
-                logger.warning(f"ID: {entry['id']}, Error: {entry['error']}")
-
-    return {
-        "total_entries": total_entries,
-        "processed_count": processed_count,
-        "failed_entries": failed_entries,
-        "success_rate": success_rate,
-    }
+    return run_debate(
+        dataframe=dataframe,
+        round_zero_fn=build_bool_q_round_zero_prompt,
+        round_n_fn=build_bool_q_round_n_prompt,
+        required_columns=["question", "answer", "passage", "id"],
+        get_prompt_params=get_bool_q_prompt_params,
+        max_rounds=max_rounds,
+        base_dir=base_dir,
+        use_cot=use_cot,
+        model_configs=model_configs,
+        overwrite=overwrite,
+        max_workers=max_workers,
+    )
 
 
 def run_debate_bool_q_single_entry(
