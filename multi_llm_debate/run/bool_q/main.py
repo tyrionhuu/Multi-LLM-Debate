@@ -10,7 +10,7 @@ from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
 from ..utils import format_time, model_configs_to_string
 from .evaluate import evaluate_all_bool_q
-from .run import run_bool_q
+from .run import run_debate_bool_q
 from .utils import process_bool_q_df
 
 
@@ -59,7 +59,7 @@ def run(
         )
 
     # Run the Boolean Question task
-    execution_report = run_bool_q(
+    execution_report = run_debate_bool_q(
         dataframe=processed_dataframe,
         base_dir=output_path,
         model_configs=model_configs,
