@@ -8,7 +8,7 @@ import pandas as pd
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
-from ..shared.evaluate import evaluate_df
+from ..shared.evaluate import evaluate_debate_df
 from ..utils import format_time, model_configs_to_string
 from .evaluate import (
     evaluate_bool_responses,
@@ -80,7 +80,7 @@ def run(
     print(f"Success rate: {execution_report['success_rate']:.2f}%")
 
     # Evaluate the results
-    accuracy = evaluate_df(
+    accuracy = evaluate_debate_df(
         response_base_dir=output_path,
         dataframe=processed_dataframe,
         evaluation_func=evaluate_bool_responses,

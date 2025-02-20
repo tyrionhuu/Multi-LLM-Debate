@@ -164,7 +164,7 @@ def evaluate_ensemble_df(
 
 def main() -> None:
     from ...utils.download_dataset import load_save_dataset_df
-    from ..shared.evaluate import evaluate_df
+    from ..shared.evaluate import evaluate_debate_df
     from .utils import process_bool_q_df
 
     dataset_path = Path("datasets/boolq")
@@ -180,7 +180,7 @@ def main() -> None:
     # Process the DataFrame
     processed_dataframe = process_bool_q_df(dataframe)
     # Evaluate the debate responses
-    evaluate_df(response_base_dir, processed_dataframe)
+    evaluate_debate_df(response_base_dir, processed_dataframe)
 
     # Evaluate the single LLM responses
     evaluate_single_llm_df(response_base_dir, processed_dataframe)
