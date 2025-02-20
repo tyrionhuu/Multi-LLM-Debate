@@ -103,6 +103,7 @@ def run_debate_bool_q_single_entry(
         round_zero_fn=build_bool_q_round_zero_prompt,
         round_n_fn=build_bool_q_round_n_prompt,
         prompt_params=prompt_params,
+        required_columns=required_fields,
         max_rounds=max_rounds,
         base_dir=base_dir,
         use_cot=use_cot,
