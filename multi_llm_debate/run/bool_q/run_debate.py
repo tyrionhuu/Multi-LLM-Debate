@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from ...debate.agents_ensemble import AgentsEnsemble
-from ...debate.debate import run_debate
+from ...debate.debate import debate
 from ...llm.prompt_builder import PromptBuilder
 from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from ...utils.logging_config import setup_logging
@@ -199,7 +199,7 @@ def run_debate_bool_q_single_entry(
 
         # Run the debate
         logger.info("Starting debate execution")
-        run_debate(
+        debate(
             max_rounds=max_rounds,
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
