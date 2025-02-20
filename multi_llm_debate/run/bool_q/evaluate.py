@@ -1,6 +1,7 @@
 from typing import Dict, List, Union
 
 from ...llm.parsers import extract_bool_answer
+from ..shared.evaluate import EvaluationResults
 
 
 def evaluate_bool_responses(
@@ -39,37 +40,30 @@ def evaluate_bool_responses(
         return False
 
 
-def main() -> None:
-    from pathlib import Path
+def main() -> EvaluationResults:
+    """Run all evaluations and return the results.
 
+    Returns:
+        EvaluationResults: Named tuple containing accuracies for all three methods.
+    """
+    from pathlib import Path
+    from ..shared.evaluate import evaluate_all
     from ...utils.download_dataset import load_save_dataset_df
-    from ..shared.evaluate import (
-        evaluate_debate_df,
-        evaluate_ensemble_df,
-        evaluate_single_llm_df,
-    )
     from .utils import process_bool_q_df
 
     dataset_path = Path("datasets/boolq")
-
-    # Example usage
     response_base_dir = Path("data/bool_q/phi3")
+    
+    # Load and process the dataset
     dataframe = load_save_dataset_df(
         dataset_name="google/boolq",
         dataset_path=dataset_path,
         force_download=False,
     )
-
-    # Process the DataFrame
     processed_dataframe = process_bool_q_df(dataframe)
-    # Evaluate the debate responses
-    evaluate_debate_df(response_base_dir, processed_dataframe)
 
-    # Evaluate the single LLM responses
-    evaluate_single_llm_df(response_base_dir, processed_dataframe)
-
-    # Evaluate the ensemble responses using the shared function
-    evaluate_ensemble_df(
+    # Run all evaluations and return results
+    return evaluate_all(
         response_base_dir,
         processed_dataframe,
         extract_func=extract_bool_answer,
@@ -78,4 +72,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    results = main()
+    # Can access results as:
+    # results.debate_accuracy
+    # results.single_llm_accuracy
+    # results.ensemble_accuracy

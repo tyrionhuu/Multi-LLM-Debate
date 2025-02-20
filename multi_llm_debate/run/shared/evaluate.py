@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union, NamedTuple
 
 import pandas as pd
 
@@ -219,3 +219,53 @@ def evaluate_ensemble_df(
     print(f"Valid ensemble responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
+
+
+class EvaluationResults(NamedTuple):
+    """Container for evaluation results from all methods."""
+    debate_accuracy: float
+    single_llm_accuracy: float
+    ensemble_accuracy: float
+
+
+def evaluate_all(
+    response_base_dir: Path,
+    dataframe: pd.DataFrame,
+    extract_func: ExtractFunc,
+    evaluation_func: EvaluationFunc,
+) -> EvaluationResults:
+    """Run all evaluation methods and return their results.
+
+    Args:
+        response_base_dir: Directory containing response files.
+        dataframe: Pandas DataFrame containing question, answer, passage and id.
+        extract_func: Function to extract and normalize response strings.
+        evaluation_func: Function to evaluate if response matches answer.
+
+    Returns:
+        EvaluationResults: Named tuple containing accuracies for all three methods.
+    """
+    print("\nRunning debate evaluation...")
+    debate_acc = evaluate_debate_df(
+        response_base_dir, dataframe, evaluation_func=evaluation_func
+    )
+
+    print("\nRunning single LLM evaluation...")
+    single_acc = evaluate_single_llm_df(
+        response_base_dir, dataframe, evaluation_func=evaluation_func
+    )
+
+    print("\nRunning ensemble evaluation...")
+    ensemble_acc = evaluate_ensemble_df(
+        response_base_dir,
+        dataframe,
+        extract_func=extract_func,
+        evaluation_func=evaluation_func,
+    )
+
+    print("\nSummary of all evaluation methods:")
+    print(f"Debate accuracy:     {debate_acc:.2%}")
+    print(f"Single LLM accuracy: {single_acc:.2%}")
+    print(f"Ensemble accuracy:   {ensemble_acc:.2%}")
+
+    return EvaluationResults(debate_acc, single_acc, ensemble_acc)
