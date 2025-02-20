@@ -290,7 +290,9 @@ def generate_with_ollama(
     except requests.exceptions.Timeout:
         raise TimeoutError(f"Request timed out after {timeout} seconds")
     except ConnectionError:
-        raise ConnectionError("Failed to connect to Ollama server. Please check if Ollama is running.")
+        raise ConnectionError(
+            "Failed to connect to Ollama server. Please check if Ollama is running."
+        )
     except Exception as e:
         logging.error(f"Error in generate_with_image_ollama: {str(e)}")
         raise
@@ -352,7 +354,9 @@ def generate_with_api(
             raise TimeoutError(f"API request timed out after {timeout} seconds")
 
     except ConnectionError:
-        raise ConnectionError("Failed to connect to API server. Please check your internet connection and API endpoint.")
+        raise ConnectionError(
+            "Failed to connect to API server. Please check your internet connection and API endpoint."
+        )
     except Exception as e:
         logging.error(f"Error in generate_with_api: {str(e)}")
         raise

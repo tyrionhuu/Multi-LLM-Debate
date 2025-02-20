@@ -6,7 +6,9 @@ from ..llm.llm import call_model
 
 class LLMConnectionError(Exception):
     """Raised when there is a connection error with the LLM service."""
+
     pass
+
 
 class Agent:
     """A class representing an individual LLM agent.
@@ -62,7 +64,9 @@ class Agent:
                 json_mode=json_mode,
             )
         except ConnectionError as e:
-            raise LLMConnectionError(f"Failed to connect to {self.provider} service: {str(e)}")
+            raise LLMConnectionError(
+                f"Failed to connect to {self.provider} service: {str(e)}"
+            )
 
         # If it's already a dictionary, use it directly
         if isinstance(raw_response, dict):
