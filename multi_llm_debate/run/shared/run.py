@@ -7,7 +7,7 @@ import pandas as pd
 
 from ...utils.model_config import ModelConfig
 from .utils import format_time, model_configs_to_string
-
+from .evaluate import EvaluationResults
 
 def run(
     dataframe: pd.DataFrame,
@@ -84,7 +84,7 @@ def run(
     multiple_models = len(model_types) > 1
 
     # Evaluate using provided evaluation function
-    results = evaluate_fn(
+    results: EvaluationResults = evaluate_fn(
         output_path, processed_dataframe, multiple_models=multiple_models
     )
 
