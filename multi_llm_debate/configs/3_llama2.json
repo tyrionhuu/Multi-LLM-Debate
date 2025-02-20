@@ -1,0 +1,9 @@
+[
+    [
+        {
+            "provider": "ollama",
+            "name": "llama2",
+            "quantity": 3
+        }
+    ]
+]
