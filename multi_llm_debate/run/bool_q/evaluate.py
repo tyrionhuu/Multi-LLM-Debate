@@ -7,6 +7,7 @@ import pandas as pd
 from ...llm.parsers import extract_bool_answer
 from ..utils import get_latest_round_file
 
+
 def evaluate_responses(
     responses: List[Dict],
     answer: str | bool,
@@ -41,9 +42,6 @@ def evaluate_responses(
     except Exception as e:
         print(f"Error evaluating responses: {e}")
         return False
-
-
-
 
 
 def evaluate_df(

@@ -1,8 +1,8 @@
+import glob
+import re
+from pathlib import Path
 from typing import Dict, List, Tuple
 
-from pathlib import Path
-import re
-import glob
 
 def format_time(seconds: float) -> Tuple[str, str]:
     """Format time in seconds to human readable format and CSV format.
@@ -54,6 +54,8 @@ def model_configs_to_string(model_configs: List[Dict]) -> str:
     return "+".join(
         f"{config['name']}({config['quantity']})" for config in sorted_configs
     )
+
+
 def get_latest_round_file(responses_dir: Path) -> Path:
     """Get the file path for the latest debate round.
 
