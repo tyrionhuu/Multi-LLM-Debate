@@ -1,3 +1,4 @@
+import argparse
 import glob
 import re
 from dataclasses import dataclass
@@ -6,7 +7,6 @@ from typing import Dict, List, Optional, Tuple
 
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
-import argparse
 
 logger = setup_logging(__name__)
 
@@ -54,6 +54,8 @@ class Parser:
             Args: Parsed command line arguments.
         """
         return Args(**vars(self.parser.parse_args()))
+
+
 def format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
     """Format model configurations for display in progress bar.
 

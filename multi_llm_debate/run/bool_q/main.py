@@ -2,12 +2,10 @@ from pathlib import Path
 
 from ...utils.download_dataset import load_save_dataset_df
 from ..shared.main import main as shared_main
+from ..shared.utils import Parser
 from .evaluate import evaluate_all_bool_q
 from .run_debate import run_debate_bool_q
 from .utils import process_bool_q_df
-from ..shared.utils import Parser
-
-
 
 if __name__ == "__main__":
     args = Parser().parse_args()
