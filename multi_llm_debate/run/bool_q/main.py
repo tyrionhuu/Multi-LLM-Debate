@@ -1,35 +1,16 @@
+from pathlib import Path
+
+from ...utils.download_dataset import load_save_dataset_df
+from ..shared.main import main as shared_main
+from .evaluate import evaluate_all_bool_q
+from .run_debate import run_debate_bool_q
+from .utils import process_bool_q_df
+from ..shared.utils import Parser
+
+
+
 if __name__ == "__main__":
-    import argparse
-    from pathlib import Path
-
-    from ...utils.download_dataset import load_save_dataset_df
-    from ..shared.main import main as shared_main
-    from ..shared.utils import Args
-    from .evaluate import evaluate_all_bool_q
-    from .run_debate import run_debate_bool_q
-    from .utils import process_bool_q_df
-
-    parser = argparse.ArgumentParser(description="Run boolean question evaluation")
-    parser.add_argument(
-        "--config",
-        type=Path,
-        help="Path to config JSON file",
-        default=None,
-    )
-    parser.add_argument(
-        "--sample-size",
-        type=int,
-        help="Number of samples to process",
-        default=2000,
-    )
-    parser.add_argument(
-        "--max-workers",
-        type=int,
-        help="Maximum number of concurrent workers",
-        default=16,
-    )
-
-    args = Args(**vars(parser.parse_args()))
+    args = Parser().parse_args()
 
     # Load the dataset
     dataset_path = Path("datasets/boolq")

@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
+import argparse
 
 logger = setup_logging(__name__)
 
@@ -19,6 +20,40 @@ class Args:
     max_workers: int
 
 
+class Parser:
+    """Command line argument parser for boolean question evaluation."""
+
+    def __init__(self) -> None:
+        """Initialize the parser with boolean question specific arguments."""
+        self.parser = argparse.ArgumentParser(
+            description="Run boolean question evaluation"
+        )
+        self.parser.add_argument(
+            "--config",
+            type=Path,
+            help="Path to config JSON file",
+            default=None,
+        )
+        self.parser.add_argument(
+            "--sample-size",
+            type=int,
+            help="Number of samples to process",
+            default=2000,
+        )
+        self.parser.add_argument(
+            "--max-workers",
+            type=int,
+            help="Maximum number of concurrent workers",
+            default=16,
+        )
+
+    def parse_args(self) -> Args:
+        """Parse and return the command line arguments.
+
+        Returns:
+            Args: Parsed command line arguments.
+        """
+        return Args(**vars(self.parser.parse_args()))
 def format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
     """Format model configurations for display in progress bar.
 
