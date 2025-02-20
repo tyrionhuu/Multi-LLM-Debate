@@ -11,6 +11,7 @@ from ...utils.model_config import ModelConfig
 
 logger = setup_logging(__name__)
 
+
 def run_debate_single_entry(
     entry: pd.Series,
     round_zero_fn: Callable,
