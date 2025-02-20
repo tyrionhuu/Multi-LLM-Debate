@@ -63,9 +63,19 @@ def run_bool_q(
             )
 
         # Use the progress manager for the main progress bar
+        model_names = (
+            [config.model_name for config in model_configs]
+            if model_configs
+            else ["default"]
+        )
+        config_desc = (
+            f"{len(model_configs or [])} models ({', '.join(model_names)}) | "
+            f"{'CoT' if use_cot else 'No CoT'} | "
+            f"Max rounds: {max_rounds}"
+        )
         with progress.main_bar(
             total=len(dataframe),
-            desc=f"Running debates with {len(model_configs or [])} models",
+            desc=f"Running debates [{config_desc}]",
             unit="debate"
         ) as pbar:
             for _, entry in dataframe.iterrows():
