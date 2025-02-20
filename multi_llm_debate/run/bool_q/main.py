@@ -8,7 +8,7 @@ import pandas as pd
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
-from ..utils import format_time, model_configs_to_string
+from ..shared.utils import format_time, model_configs_to_string
 from .evaluate import evaluate_all_bool_q
 from .run import run_debate_bool_q
 from .utils import process_bool_q_df

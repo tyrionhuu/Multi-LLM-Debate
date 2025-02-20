@@ -10,46 +10,11 @@ from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
-
+from ..shared.utils import build_config_desc
 logger = setup_logging(__name__)
 
 
-def build_config_desc(
-    model_configs: Optional[List[ModelConfig]], use_cot: bool, max_rounds: int
-) -> str:
-    """Build a description string for the current model configuration.
 
-    Args:
-        model_configs: List of ModelConfig objects
-        use_cot: Whether chain-of-thought is enabled
-        max_rounds: Maximum number of debate rounds
-
-    Returns:
-        A formatted string describing the current configuration
-    """
-    model_info = []
-    total_models = 0
-
-    if model_configs:
-        for config in model_configs:
-            try:
-                name = config["name"]
-                quantity = config["quantity"]
-                model_info.append(f"{name}×{quantity}")
-                total_models += quantity
-            except (KeyError, TypeError) as e:
-                logger.warning(f"Invalid model config format: {e}")
-                continue
-
-    if not model_info:
-        model_info = ["default"]
-        total_models = 1
-
-    return (
-        f"{total_models} models ({', '.join(model_info)}) | "
-        f"{'CoT' if use_cot else 'No CoT'} | "
-        f"Max rounds: {max_rounds}"
-    )
 
 
 def run_debate_bool_q(

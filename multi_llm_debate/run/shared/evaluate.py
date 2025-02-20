@@ -4,7 +4,7 @@ from typing import Callable, Dict, List, NamedTuple, Optional, Union
 
 import pandas as pd
 
-from ..utils import get_latest_round_file
+from .utils import get_latest_round_file
 
 # Add type alias for the evaluation function
 EvaluationFunc = Callable[[List[Dict], Union[str, bool]], bool]
