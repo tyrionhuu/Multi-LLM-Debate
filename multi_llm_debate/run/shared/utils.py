@@ -7,6 +7,20 @@ from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 
 logger = setup_logging(__name__)
+def format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
+    """Format model configurations for display in progress bar.
+
+    Args:
+        model_configs_list: List of model configuration lists
+
+    Returns:
+        str: Formatted string showing number of configs and total models
+    """
+    total_configs = len(model_configs_list)
+    total_models = sum(
+        sum(config["quantity"] for config in configs) for configs in model_configs_list
+    )
+    return f"Running {total_configs} configs ({total_models} total models)"
 
 
 def build_config_desc(
