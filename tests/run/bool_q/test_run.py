@@ -17,7 +17,10 @@ def test_build_config_desc_with_llama3():
 
     # Test with CoT disabled
     desc_no_cot = _build_config_desc(test_config, use_cot=False, max_rounds=10)
-    assert desc_no_cot == "9 models (llama3×3, llama2×3, Mistral×3) | No CoT | Max rounds: 10"
+    assert (
+        desc_no_cot
+        == "9 models (llama3×3, llama2×3, Mistral×3) | No CoT | Max rounds: 10"
+    )
 
 
 def test_build_config_desc_edge_cases():
