@@ -10,7 +10,11 @@ from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
 from ..shared.evaluate import evaluate_debate_df, evaluate_single_llm_df
 from ..utils import format_time, model_configs_to_string
-from .evaluate import evaluate_bool_q_responses, evaluate_ensemble_df, evaluate_all_bool_q
+from .evaluate import (
+    evaluate_all_bool_q,
+    evaluate_bool_q_responses,
+    evaluate_ensemble_df,
+)
 from .run import run_bool_q
 from .utils import process_bool_q_df
 
@@ -81,9 +85,7 @@ def run(
 
     # Evaluate using all methods
     results = evaluate_all_bool_q(
-        output_path, 
-        processed_dataframe, 
-        multiple_models=multiple_models
+        output_path, processed_dataframe, multiple_models=multiple_models
     )
 
     # Calculate running time
