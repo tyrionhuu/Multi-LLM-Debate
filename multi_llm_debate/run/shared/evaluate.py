@@ -1,26 +1,33 @@
 import json
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List, Dict, Union, Optional
 
 import pandas as pd
 
 from ..utils import get_latest_round_file
 
+# Add type alias for the evaluation function
+EvaluationFunc = Callable[[List[Dict], Union[str, bool]], bool]
 
 def evaluate_debate_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    evaluation_func: Callable = None,
+    evaluation_func: Optional[EvaluationFunc] = None,
 ) -> float:
     """Evaluate the Boolean Question task on a DataFrame.
 
     Args:
         response_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing question, answer, passage and id.
+        evaluation_func: Function that takes (responses, answer) and returns bool.
+            Must accept List[Dict] as responses and str/bool as answer.
 
     Returns:
         float: Accuracy score (number of correct answers / total valid responses)
     """
+    if evaluation_func is None:
+        raise ValueError("evaluation_func must be provided")
+
     correct_count = 0
     valid_count = 0
 
@@ -62,17 +69,22 @@ def evaluate_debate_df(
 def evaluate_single_llm_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    evaluation_func: Callable = None,
+    evaluation_func: Optional[EvaluationFunc] = None,
 ) -> float:
     """Evaluate the Boolean Question task using first answer as single LLM response.
 
     Args:
         response_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing question, answer, passage and id.
+        evaluation_func: Function that takes (responses, answer) and returns bool.
+            Must accept List[Dict] as responses and str/bool as answer.
 
     Returns:
         float: Accuracy score using first answer as single LLM response.
     """
+    if evaluation_func is None:
+        raise ValueError("evaluation_func must be provided")
+
     correct_count = 0
     valid_count = 0
 
@@ -94,9 +106,8 @@ def evaluate_single_llm_df(
 
             # Only use the first response
             first_response = responses[0]
-            is_correct = evaluation_func(
-                responses=first_response["response"], answer=answer
-            )
+            # Create a list with single response for consistent interface
+            is_correct = evaluation_func([first_response], answer)
             valid_count += 1
             if is_correct:
                 correct_count += 1
