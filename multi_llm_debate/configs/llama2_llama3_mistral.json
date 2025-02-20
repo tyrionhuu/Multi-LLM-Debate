@@ -1,0 +1,19 @@
+[
+    [
+        {
+            "provider": "ollama",
+            "name": "llama3",
+            "quantity": 1
+        },
+        {
+            "provider": "ollama",
+            "name": "llama2",
+            "quantity": 1
+        },
+        {
+            "provider": "ollama",
+            "name": "mistral",
+            "quantity": 1
+        }
+    ]
+]
