@@ -23,11 +23,13 @@ class Args:
 class Parser:
     """Command line argument parser for boolean question evaluation."""
 
-    def __init__(self) -> None:
-        """Initialize the parser with boolean question specific arguments."""
-        self.parser = argparse.ArgumentParser(
-            description="Run boolean question evaluation"
-        )
+    def __init__(self, description: str = "Run evaluation") -> None:
+        """Initialize the parser with boolean question specific arguments.
+        
+        Args:
+            description: Description for the argument parser
+        """
+        self.parser = argparse.ArgumentParser(description=description)
         self.parser.add_argument(
             "--config",
             type=Path,
