@@ -8,7 +8,7 @@ from ...llm.parsers import extract_bool_answer
 from ..utils import get_latest_round_file
 
 
-def evaluate_responses(
+def evaluate_bool_responses(
     responses: List[Dict],
     answer: str | bool,
 ) -> bool:
@@ -79,7 +79,7 @@ def evaluate_df(
                 continue
 
             # Evaluate the responses
-            is_correct = evaluate_responses(responses, answer)
+            is_correct = evaluate_bool_responses(responses, answer)
             valid_count += 1
             if is_correct:
                 correct_count += 1
@@ -129,7 +129,7 @@ def evaluate_single_llm_df(
 
             # Only use the first response
             first_response = responses[0]
-            is_correct = evaluate_responses([first_response], answer)
+            is_correct = evaluate_bool_responses([first_response], answer)
             valid_count += 1
             if is_correct:
                 correct_count += 1
@@ -196,7 +196,7 @@ def evaluate_ensemble_df(
             majority_response = max(response_counts.items(), key=lambda x: x[1])[0]
 
             # Compare with correct answer
-            is_correct = evaluate_responses([{"response": majority_response}], answer)
+            is_correct = evaluate_bool_responses([{"response": majority_response}], answer)
             valid_count += 1
             if is_correct:
                 correct_count += 1
