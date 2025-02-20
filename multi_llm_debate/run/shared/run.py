@@ -6,7 +6,6 @@ from typing import Any, Callable, Dict, List, Optional
 import pandas as pd
 
 from ...utils.model_config import ModelConfig
-from ...utils.progress import progress
 from .utils import format_time, model_configs_to_string
 
 
