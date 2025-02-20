@@ -10,7 +10,7 @@ from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
 from ..shared.evaluate import evaluate_debate_df, evaluate_single_llm_df
 from ..utils import format_time, model_configs_to_string
-from .evaluate import evaluate_bool_q_responses, evaluate_ensemble_df
+from .evaluate import evaluate_bool_q_responses, evaluate_ensemble_df, evaluate_all_bool_q
 from .run import run_bool_q
 from .utils import process_bool_q_df
 
@@ -75,27 +75,16 @@ def run(
     print(f"Failed entries: {len(execution_report['failed_entries'])}")
     print(f"Success rate: {execution_report['success_rate']:.2f}%")
 
-    # Evaluate the results
-    accuracy = evaluate_debate_df(
-        response_base_dir=output_path,
-        dataframe=processed_dataframe,
-        evaluation_func=evaluate_bool_q_responses,
+    # Check if we have multiple model types
+    model_types = {(config["provider"], config["name"]) for config in model_configs}
+    multiple_models = len(model_types) > 1
+
+    # Evaluate using all methods
+    results = evaluate_all_bool_q(
+        output_path, 
+        processed_dataframe, 
+        multiple_models=multiple_models
     )
-
-    # Only calculate single LLM accuracy when there's one type of model
-    single_llm_accuracy = None
-    if len(model_configs) == 1:
-        single_llm_accuracy = evaluate_single_llm_df(
-            response_base_dir=output_path,
-            dataframe=processed_dataframe,
-            evaluation_func=evaluate_bool_q_responses,
-        )
-
-    ensemble_accuracy = evaluate_ensemble_df(output_path, processed_dataframe)
-    print(f"\nAccuracy: {accuracy:.2f}")
-    if single_llm_accuracy is not None:
-        print(f"Single LLM Accuracy: {single_llm_accuracy:.2f}")
-    print(f"Ensemble Accuracy: {ensemble_accuracy:.2f}")
 
     # Calculate running time
     running_time = time.time() - start_time
@@ -124,13 +113,9 @@ def run(
         writer.writerow(
             [
                 model_configs_to_string(model_configs),
-                (
-                    f"{single_llm_accuracy:.4f}"
-                    if single_llm_accuracy is not None
-                    else "N/A"
-                ),
-                f"{ensemble_accuracy:.4f}",
-                f"{accuracy:.4f}",
+                f"{results.single_llm_accuracy:.4f}",
+                f"{results.ensemble_accuracy:.4f}",
+                f"{results.debate_accuracy:.4f}",
                 csv_time,
             ]
         )
