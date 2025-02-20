@@ -1,10 +1,11 @@
 import json
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 
 import pandas as pd
 
 from ...llm.parsers import extract_bool_answer
+from ..shared.evaluate import get_majority_vote
 
 
 def evaluate_bool_responses(
@@ -75,23 +76,10 @@ def evaluate_ensemble_df(
             if not responses:
                 continue
 
-            # Get all responses and their normalized boolean answers
-            raw_responses = [response["response"] for response in responses]
-            normalized_responses = [
-                extract_bool_answer(response) for response in raw_responses
-            ]
-            valid_responses = [r for r in normalized_responses if r]
-
-            if not valid_responses:
+            # Get majority vote using extract_bool_answer
+            majority_response = get_majority_vote(responses, extract_bool_answer)
+            if majority_response is None:
                 continue
-
-            # Count occurrences of each response
-            response_counts = {}
-            for response in valid_responses:
-                response_counts[response] = response_counts.get(response, 0) + 1
-
-            # Get majority vote (most common response)
-            majority_response = max(response_counts.items(), key=lambda x: x[1])[0]
 
             # Compare with correct answer
             is_correct = evaluate_bool_responses(
