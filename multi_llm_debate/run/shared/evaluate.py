@@ -57,6 +57,8 @@ def evaluate_debate_df(
     print(f"Valid responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
+
+
 def evaluate_single_llm_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
@@ -93,8 +95,7 @@ def evaluate_single_llm_df(
             # Only use the first response
             first_response = responses[0]
             is_correct = evaluation_func(
-                responses = first_response["response"],
-                answer = answer
+                responses=first_response["response"], answer=answer
             )
             valid_count += 1
             if is_correct:
