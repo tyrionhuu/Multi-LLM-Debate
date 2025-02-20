@@ -40,10 +40,15 @@ def evaluate_bool_responses(
 
 
 def main() -> None:
-    from ...utils.download_dataset import load_save_dataset_df
-    from ..shared.evaluate import evaluate_debate_df, evaluate_single_llm_df, evaluate_ensemble_df
-    from .utils import process_bool_q_df
     from pathlib import Path
+
+    from ...utils.download_dataset import load_save_dataset_df
+    from ..shared.evaluate import (
+        evaluate_debate_df,
+        evaluate_ensemble_df,
+        evaluate_single_llm_df,
+    )
+    from .utils import process_bool_q_df
 
     dataset_path = Path("datasets/boolq")
 
