@@ -14,6 +14,47 @@ from ...utils.progress import progress
 logger = setup_logging(__name__)
 
 
+def _build_config_desc(
+    model_configs: Optional[List[List[Dict[str, Any]]]], 
+    use_cot: bool,
+    max_rounds: int
+) -> str:
+    """Build a description string for the current model configuration.
+
+    Args:
+        model_configs: List of model configuration groups
+        use_cot: Whether chain-of-thought is enabled
+        max_rounds: Maximum number of debate rounds
+
+    Returns:
+        A formatted string describing the current configuration
+    """
+    model_info = []
+    total_models = 0
+
+    if model_configs:
+        for config_group in model_configs:
+            for config in config_group:
+                if isinstance(config, dict):
+                    quantity = config.get("quantity", 1)
+                    name = config.get("name", "unknown")
+                else:
+                    quantity = 1
+                    name = str(config)
+
+                model_info.append(f"{name}×{quantity}")
+                total_models += quantity
+
+    if not model_info:
+        model_info = ["default"]
+        total_models = 1
+
+    return (
+        f"{total_models} models ({', '.join(model_info)}) | "
+        f"{'CoT' if use_cot else 'No CoT'} | "
+        f"Max rounds: {max_rounds}"
+    )
+
 def run_bool_q(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,
@@ -63,32 +104,7 @@ def run_bool_q(
             )
 
         # Use the progress manager for the main progress bar
-        model_info = []
-        total_models = 0
-
-        if model_configs:
-            for config_group in model_configs:
-                for config in config_group:
-                    if isinstance(config, dict):
-                        quantity = config.get("quantity", 1)
-                        name = config.get("name", "unknown")
-                    else:
-                        # Handle string or other type configs
-                        quantity = 1
-                        name = str(config)
-
-                    model_info.append(f"{name}×{quantity}")
-                    total_models += quantity
-
-        if not model_info:
-            model_info = ["default"]
-            total_models = 1
-
-        config_desc = (
-            f"{total_models} models ({', '.join(model_info)}) | "
-            f"{'CoT' if use_cot else 'No CoT'} | "
-            f"Max rounds: {max_rounds}"
-        )
+        config_desc = _build_config_desc(model_configs, use_cot, max_rounds)
         with progress.main_bar(
             total=len(dataframe), desc=f"Running debates [{config_desc}]", unit="debate"
         ) as pbar:
