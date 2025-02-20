@@ -9,10 +9,10 @@ from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
 from ..utils import format_time, model_configs_to_string
-from .evaluate import evaluate_df, evaluate_ensemble_df, evaluate_single_llm_df
+from .evaluate import evaluate_ensemble_df, evaluate_single_llm_df, evaluate_bool_responses
 from .run import run_bool_q
 from .utils import process_bool_q_df
-
+from ..shared.evaluate import evaluate_df
 
 def run(
     dataframe: pd.DataFrame,
@@ -75,7 +75,11 @@ def run(
     print(f"Success rate: {execution_report['success_rate']:.2f}%")
 
     # Evaluate the results
-    accuracy = evaluate_df(output_path, processed_dataframe)
+    accuracy = evaluate_df(
+        response_base_dir=output_path,
+        dataframe=processed_dataframe,
+        evaluation_func=evaluate_bool_responses,
+    )
 
     # Only calculate single LLM accuracy when there's one type of model
     single_llm_accuracy = None
