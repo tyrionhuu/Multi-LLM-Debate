@@ -3,13 +3,11 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from ...debate.agents_ensemble import AgentsEnsemble
-from ...debate.debate import debate
-from ...llm.prompt_builder import PromptBuilder
 from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
+from ..shared.run_debate import run_debate_single_entry
 from ..shared.utils import build_config_desc
 
 logger = setup_logging(__name__)
@@ -133,80 +131,37 @@ def run_debate_bool_q_single_entry(
         entry: Pandas Series containing question, answer, passage and id
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
-        use_cot: Whether to use chain-of-thought prompting (default: True)
-        model_configs: Optional list of model configurations. If None,
-                    default configs will be used.
-        overwrite: Whether to overwrite existing debate results (default: False)
-        max_workers: Maximum number of concurrent workers (default: 4)
+        use_cot: Whether to use chain-of-thought prompting
+        model_configs: Optional list of model configurations
+        overwrite: Whether to overwrite existing debate results
+        max_workers: Maximum number of concurrent workers
 
     Raises:
         ValueError: If entry format is invalid
         RuntimeError: If debate execution fails
     """
-    try:
-        logger.info(f"Starting debate for entry ID: {entry.get('id', 'unknown')}")
-
-        # Check if the entry is valid
-        if not isinstance(entry, pd.Series):
-            logger.error("Invalid entry type")
-            raise ValueError("Entry must be a pandas Series.")
-
-        required_fields = ["question", "answer", "passage", "id"]
-        missing_fields = [field for field in required_fields if field not in entry]
-        if missing_fields:
-            logger.error(f"Missing required fields: {missing_fields}")
-            raise ValueError(
-                "Entry must contain 'question', 'answer', 'passage', and 'id'."
-            )
-
-        # Extract values from the entry
-        question = entry["question"]
-        passage = entry["passage"]
-        id_ = str(entry["id"])
-
-        output_dir = base_dir / id_
-        logger.debug(f"Output directory set to: {output_dir}")
-
-        # Check if response already exists
-        if output_dir.exists() and not overwrite:
-            debate_files = [
-                output_dir / f"debate_round_{i}.json" for i in range(max_rounds)
-            ]
-            if any(f.exists() for f in debate_files):
-                logger.info(f"Skipping entry {id_} - debate results exist")
-                return
-
-        try:
-            output_dir.mkdir(parents=True, exist_ok=True)
-        except OSError as e:
-            logger.error(f"Failed to create output directory: {e}")
-            raise RuntimeError(f"Failed to create output directory: {e}")
-
-        # Initialize components
-        logger.debug("Initializing prompt builder and agents ensemble")
-        prompt_builder = PromptBuilder(
-            round_zero_fn=build_bool_q_round_zero_prompt,
-            round_n_fn=build_bool_q_round_n_prompt,
-            prompt_params={
-                "question": question,
-                "passage": passage,
-                "use_cot": use_cot,
-            },
-        )
-        agents_ensemble = AgentsEnsemble(
-            config_list=model_configs, max_workers=max_workers
+    required_fields = ["question", "answer", "passage", "id"]
+    missing_fields = [field for field in required_fields if field not in entry]
+    if missing_fields:
+        logger.error(f"Missing required fields: {missing_fields}")
+        raise ValueError(
+            "Entry must contain 'question', 'answer', 'passage', and 'id'."
         )
 
-        # Run the debate
-        logger.info("Starting debate execution")
-        debate(
-            max_rounds=max_rounds,
-            prompt_builder=prompt_builder,
-            agents_ensemble=agents_ensemble,
-            output_dir=output_dir,
-        )
-        logger.info("Debate completed successfully")
+    prompt_params = {
+        "question": entry["question"],
+        "passage": entry["passage"],
+    }
 
-    except Exception as e:
-        logger.error(f"Debate execution failed: {str(e)}", exc_info=True)
-        raise RuntimeError(f"Debate execution failed: {str(e)}") from e
+    run_debate_single_entry(
+        entry=entry,
+        round_zero_fn=build_bool_q_round_zero_prompt,
+        round_n_fn=build_bool_q_round_n_prompt,
+        prompt_params=prompt_params,
+        max_rounds=max_rounds,
+        base_dir=base_dir,
+        use_cot=use_cot,
+        model_configs=model_configs,
+        overwrite=overwrite,
+        max_workers=max_workers,
+    )
