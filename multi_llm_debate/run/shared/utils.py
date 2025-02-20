@@ -1,10 +1,10 @@
 import glob
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
-from typing import Optional
-from ...utils.model_config import ModelConfig
+from typing import Dict, List, Optional, Tuple
+
 from ...utils.logging_config import setup_logging
+from ...utils.model_config import ModelConfig
 
 logger = setup_logging(__name__)
 
@@ -45,6 +45,8 @@ def build_config_desc(
         f"{'CoT' if use_cot else 'No CoT'} | "
         f"Max rounds: {max_rounds}"
     )
+
+
 def format_time(seconds: float) -> Tuple[str, str]:
     """Format time in seconds to human readable format and CSV format.
 

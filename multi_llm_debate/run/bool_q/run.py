@@ -11,10 +11,8 @@ from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
 from ..shared.utils import build_config_desc
+
 logger = setup_logging(__name__)
-
-
-
 
 
 def run_debate_bool_q(
