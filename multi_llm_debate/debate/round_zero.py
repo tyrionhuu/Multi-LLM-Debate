@@ -4,6 +4,7 @@ from typing import List
 
 from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
+from .agent import LLMConnectionError
 
 logger = setup_logging(__name__)
 
@@ -23,26 +24,30 @@ def run_debate_round_zero(
         prompt: The initial prompt/question to start the debate.
         agents_ensemble: Collection of LLM agents participating in the debate.
         output_dir: Directory path where debate responses will be saved.
+        json_mode: Whether to expect JSON responses from agents.
 
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
 
     Raises:
+        LLMConnectionError: If there are connection issues with the LLM services.
         OSError: If unable to create output directory or save results file.
         json.JSONDecodeError: If unable to serialize responses to JSON.
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
 
-    # logger.info(f"Starting round zero with prompt: {prompt}")
-    responses = agents_ensemble.get_responses(
-        prompt=prompt,
-        json_mode=json_mode,
-    )
+    try:
+        responses = agents_ensemble.get_responses(
+            prompt=prompt,
+            json_mode=json_mode,
+        )
+    except LLMConnectionError as e:
+        logger.error(f"Connection error in round zero: {str(e)}")
+        raise
 
     for response in responses:
         logger.info(f"Agent {response['agent_id']} responded")
-        # logger.debug(f"Response content: {response}")
 
     output_file = output_dir / "debate_round_0.json"
     with open(output_file, "w") as f:

@@ -4,6 +4,7 @@ from typing import List
 
 from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
+from .agent import LLMConnectionError
 
 logger = setup_logging(__name__)
 
@@ -23,17 +24,26 @@ def run_debate_round_n(
         agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in the debate
         output_dir (str | Path): Directory path where debate responses will be saved
         round_num (int): Current round number
+        json_mode (bool): Whether to expect JSON responses from agents
 
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary
+
+    Raises:
+        LLMConnectionError: If there are connection issues with the LLM services
+        OSError: If unable to create output directory or save results
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
 
     logger.info(f"Running debate round {round_num}")
-    # logger.info(f"Debate prompt: {prompt}")
 
-    responses = agents_ensemble.get_responses(prompt=prompt, json_mode=json_mode)
+    try:
+        responses = agents_ensemble.get_responses(prompt=prompt, json_mode=json_mode)
+    except LLMConnectionError as e:
+        logger.error(f"Connection error in round {round_num}: {str(e)}")
+        raise
+
     for i, response in enumerate(responses):
         logger.info(f"Agent {i} response: {response}")
 

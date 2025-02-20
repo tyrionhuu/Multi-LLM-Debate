@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from ..utils.config_manager import get_models
 from ..utils.model_config import ModelConfig
-from .agent import Agent
+from .agent import Agent, LLMConnectionError
 
 
 class AgentsEnsemble:
@@ -95,12 +95,24 @@ class AgentsEnsemble:
     def _get_response_concurrent(
         self, prompt: str, json_mode: bool = False
     ) -> List[Dict[str, Any]]:
-        """Get responses from all agents concurrently."""
+        """Get responses from all agents concurrently.
+
+        Args:
+            prompt (str): The input prompt to send to all agents.
+            json_mode (bool, optional): Whether to expect JSON response. Defaults to False.
+
+        Returns:
+            List[Dict[str, Any]]: List of responses from all agents.
+
+        Raises:
+            LLMConnectionError: If any agent encounters a connection error.
+        """
         responses = []
+        errors = []
+        
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = []
 
-            # Submit all jobs first
             for agent in self.agents:
                 if self.job_delay > 0:
                     time.sleep(self.job_delay)
@@ -108,26 +120,55 @@ class AgentsEnsemble:
                     executor.submit(agent.respond, prompt, json_mode=json_mode)
                 )
 
-            # Collect responses with progress tracking
             for future in as_completed(futures):
-                response = future.result()
-                responses.append(response)
+                try:
+                    response = future.result()
+                    responses.append(response)
+                except LLMConnectionError as e:
+                    errors.append(str(e))
+
+        if errors:
+            raise LLMConnectionError(
+                f"Connection errors occurred with some agents: {'; '.join(errors)}"
+            )
 
         return responses
 
     def get_responses(
         self, prompt: str, json_mode: bool = False
     ) -> List[Dict[str, Any]]:
-        """Get responses from all agents for a given prompt."""
+        """Get responses from all agents for a given prompt.
+
+        Args:
+            prompt (str): The input prompt to send to all agents.
+            json_mode (bool, optional): Whether to expect JSON response. Defaults to False.
+
+        Returns:
+            List[Dict[str, Any]]: List of responses from all agents.
+
+        Raises:
+            LLMConnectionError: If any agent encounters a connection error.
+        """
         if self.concurrent:
-            responses = self._get_response_concurrent(prompt, json_mode=json_mode)
-        else:
-            responses = []
-            for agent in self.agents:
+            return self._get_response_concurrent(prompt, json_mode=json_mode)
+        
+        responses = []
+        errors = []
+        
+        for agent in self.agents:
+            try:
                 response = agent.respond(prompt, json_mode=json_mode)
                 responses.append(response)
-                if self.job_delay > 0:
-                    time.sleep(self.job_delay)
+            except LLMConnectionError as e:
+                errors.append(str(e))
+            
+            if self.job_delay > 0:
+                time.sleep(self.job_delay)
+
+        if errors:
+            raise LLMConnectionError(
+                f"Connection errors occurred with some agents: {'; '.join(errors)}"
+            )
 
         return responses
 
