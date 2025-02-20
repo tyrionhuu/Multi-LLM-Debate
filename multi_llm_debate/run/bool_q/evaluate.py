@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 
 from ...llm.parsers import extract_bool_answer
-from ..shared.evaluate import get_majority_vote
+from ..shared.evaluate import get_majority_vote, evaluate_ensemble_df
 
 
 def evaluate_bool_responses(
@@ -44,62 +44,6 @@ def evaluate_bool_responses(
         return False
 
 
-def evaluate_ensemble_df(
-    response_base_dir: Path,
-    dataframe: pd.DataFrame,
-) -> float:
-    """Evaluate the Boolean Question task using majority vote from first round.
-
-    Args:
-        response_dir: Directory containing response files.
-        dataframe: Pandas DataFrame containing question, answer, passage and id.
-
-    Returns:
-        float: Accuracy score using majority vote from first round responses.
-    """
-    correct_count = 0
-    valid_count = 0
-
-    for _, entry in dataframe.iterrows():
-        try:
-            answer = entry["answer"]
-            id_ = str(entry["id"])
-
-            # Load responses from the first debate round file
-            responses_dir = response_base_dir / id_
-            first_response_file = responses_dir / "debate_round_0.json"
-
-            with open(first_response_file, "r") as f:
-                responses = json.load(f)
-
-            # Skip if no valid responses
-            if not responses:
-                continue
-
-            # Get majority vote using extract_bool_answer
-            majority_response = get_majority_vote(responses, extract_bool_answer)
-            if majority_response is None:
-                continue
-
-            # Compare with correct answer
-            is_correct = evaluate_bool_responses(
-                [{"response": majority_response}], answer
-            )
-            valid_count += 1
-            if is_correct:
-                correct_count += 1
-
-        except Exception:
-            continue
-
-    # Calculate and output accuracy using valid responses
-    accuracy = correct_count / valid_count if valid_count > 0 else 0
-    print(f"\nEnsemble Accuracy (First Round Majority): {accuracy:.2%}")
-    print(f"Valid ensemble responses: {valid_count}/{len(dataframe)}")
-
-    return accuracy
-
-
 def main() -> None:
     from ...utils.download_dataset import load_save_dataset_df
     from ..shared.evaluate import evaluate_debate_df, evaluate_single_llm_df
@@ -123,8 +67,13 @@ def main() -> None:
     # Evaluate the single LLM responses
     evaluate_single_llm_df(response_base_dir, processed_dataframe)
 
-    # Evaluate the ensemble responses
-    evaluate_ensemble_df(response_base_dir, processed_dataframe)
+    # Evaluate the ensemble responses using the shared function
+    evaluate_ensemble_df(
+        response_base_dir,
+        processed_dataframe,
+        extract_func=extract_bool_answer,
+        evaluation_func=evaluate_bool_responses,
+    )
 
 
 if __name__ == "__main__":

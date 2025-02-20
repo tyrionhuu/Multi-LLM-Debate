@@ -161,3 +161,61 @@ def get_majority_vote(
     if response_counts[majority_response] > total_votes / 2:
         return majority_response
     return None
+
+
+def evaluate_ensemble_df(
+    response_base_dir: Path,
+    dataframe: pd.DataFrame,
+    extract_func: ExtractFunc,
+    evaluation_func: EvaluationFunc,
+) -> float:
+    """Evaluate using majority vote from first round responses.
+
+    Args:
+        response_base_dir: Directory containing response files.
+        dataframe: Pandas DataFrame containing question, answer, passage and id.
+        extract_func: Function to extract and normalize response strings.
+        evaluation_func: Function to evaluate if response matches answer.
+
+    Returns:
+        float: Accuracy score using majority vote from first round responses.
+    """
+    correct_count = 0
+    valid_count = 0
+
+    for _, entry in dataframe.iterrows():
+        try:
+            answer = entry["answer"]
+            id_ = str(entry["id"])
+
+            # Load responses from the first debate round file
+            responses_dir = response_base_dir / id_
+            first_response_file = responses_dir / "debate_round_0.json"
+
+            with open(first_response_file, "r") as f:
+                responses = json.load(f)
+
+            # Skip if no valid responses
+            if not responses:
+                continue
+
+            # Get majority vote
+            majority_response = get_majority_vote(responses, extract_func)
+            if majority_response is None:
+                continue
+
+            # Compare with correct answer
+            is_correct = evaluation_func([{"response": majority_response}], answer)
+            valid_count += 1
+            if is_correct:
+                correct_count += 1
+
+        except Exception:
+            continue
+
+    # Calculate and output accuracy using valid responses
+    accuracy = correct_count / valid_count if valid_count > 0 else 0
+    print(f"\nEnsemble Accuracy (First Round Majority): {accuracy:.2%}")
+    print(f"Valid ensemble responses: {valid_count}/{len(dataframe)}")
+
+    return accuracy
