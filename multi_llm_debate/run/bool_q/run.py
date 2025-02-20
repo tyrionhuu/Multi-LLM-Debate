@@ -70,22 +70,20 @@ def run_bool_q(
                     quantity = config.get("quantity", 1)
                     name = config.get("name", "unknown")
                     model_info.append(f"{name}×{quantity}")
-        
+
         total_models = sum(
             config.get("quantity", 1)
             for group in (model_configs or [])
             for config in group
         )
-        
+
         config_desc = (
             f"{total_models} models ({', '.join(model_info or ['default'])}) | "
             f"{'CoT' if use_cot else 'No CoT'} | "
             f"Max rounds: {max_rounds}"
         )
         with progress.main_bar(
-            total=len(dataframe),
-            desc=f"Running debates [{config_desc}]",
-            unit="debate"
+            total=len(dataframe), desc=f"Running debates [{config_desc}]", unit="debate"
         ) as pbar:
             for _, entry in dataframe.iterrows():
                 try:
