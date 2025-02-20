@@ -8,7 +8,7 @@ import pandas as pd
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
-from .evaluate import evaluate_df, evaluate_single_llm_df
+from .evaluate import evaluate_df, evaluate_single_llm_df, evaluate_ensemble_df
 from .run import run_bool_q
 from .utils import format_time, model_configs_to_string, process_bool_q_df
 
@@ -76,8 +76,10 @@ def run(
     # Evaluate the results
     accuracy = evaluate_df(output_path, processed_dataframe)
     single_llm_accuracy = evaluate_single_llm_df(output_path, processed_dataframe)
+    ensemble_accuracy = evaluate_ensemble_df(output_path, processed_dataframe)
     print(f"\nAccuracy: {accuracy:.2f}")
     print(f"Single LLM Accuracy: {single_llm_accuracy:.2f}")
+    print(f"Ensemble Accuracy: {ensemble_accuracy:.2f}")
 
     # Calculate running time
     running_time = time.time() - start_time
@@ -98,6 +100,7 @@ def run(
                 [
                     "Model Configuration",
                     "Single LLM Accuracy",
+                    "Ensemble Accuracy",
                     "Debate Accuracy",
                     "Running Time",
                 ]
@@ -106,6 +109,7 @@ def run(
             [
                 model_configs_to_string(model_configs),
                 f"{single_llm_accuracy:.4f}",
+                f"{ensemble_accuracy:.4f}",
                 f"{accuracy:.4f}",
                 csv_time,
             ]
