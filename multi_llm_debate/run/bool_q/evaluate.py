@@ -1,11 +1,6 @@
-import json
-from pathlib import Path
-from typing import Dict, List, Optional, Union
-
-import pandas as pd
+from typing import Dict, List, Union
 
 from ...llm.parsers import extract_bool_answer
-from ..shared.evaluate import get_majority_vote, evaluate_ensemble_df
 
 
 def evaluate_bool_responses(
@@ -46,8 +41,9 @@ def evaluate_bool_responses(
 
 def main() -> None:
     from ...utils.download_dataset import load_save_dataset_df
-    from ..shared.evaluate import evaluate_debate_df, evaluate_single_llm_df
+    from ..shared.evaluate import evaluate_debate_df, evaluate_single_llm_df, evaluate_ensemble_df
     from .utils import process_bool_q_df
+    from pathlib import Path
 
     dataset_path = Path("datasets/boolq")
 
