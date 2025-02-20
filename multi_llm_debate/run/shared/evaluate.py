@@ -9,6 +9,9 @@ from ..utils import get_latest_round_file
 # Add type alias for the evaluation function
 EvaluationFunc = Callable[[List[Dict], Union[str, bool]], bool]
 
+# Add type alias for extract functions
+ExtractFunc = Callable[[str], Optional[str]]
+
 
 def evaluate_debate_df(
     response_base_dir: Path,
@@ -122,3 +125,39 @@ def evaluate_single_llm_df(
     print(f"Valid single LLM responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
+
+
+def get_majority_vote(
+    responses: List[Dict],
+    extract_func: ExtractFunc,
+) -> Optional[str]:
+    """Get the majority vote from a list of responses.
+
+    Args:
+        responses: List of response dictionaries containing 'response' key.
+        extract_func: Function to extract and normalize the response string.
+
+    Returns:
+        str or None: The majority response or None if no valid majority.
+    """
+    # Get all responses and their normalized answers
+    raw_responses = [response["response"] for response in responses]
+    normalized_responses = [extract_func(response) for response in raw_responses]
+    valid_responses = [r for r in normalized_responses if r]
+
+    if not valid_responses:
+        return None
+
+    # Count occurrences of each response
+    response_counts: Dict[str, int] = {}
+    for response in valid_responses:
+        response_counts[response] = response_counts.get(response, 0) + 1
+
+    # Get majority vote (most common response)
+    majority_response = max(response_counts.items(), key=lambda x: x[1])[0]
+    
+    # Check if it's a true majority (more than half)
+    total_votes = sum(response_counts.values())
+    if response_counts[majority_response] > total_votes / 2:
+        return majority_response
+    return None
