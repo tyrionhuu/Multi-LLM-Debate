@@ -195,4 +195,31 @@ def main(
 
 
 if __name__ == "__main__":
-    main(sample_size=2000, max_workers=16)
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run boolean question evaluation")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        help="Path to config JSON file",
+        default=None,
+    )
+    parser.add_argument(
+        "--sample-size",
+        type=int,
+        help="Number of samples to process",
+        default=2000,
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        help="Maximum number of concurrent workers",
+        default=16,
+    )
+
+    args = parser.parse_args()
+    main(
+        sample_size=args.sample_size,
+        max_workers=args.max_workers,
+        config_path=args.config,
+    )
