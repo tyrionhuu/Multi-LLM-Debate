@@ -134,7 +134,11 @@ def _format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
     return f"Running {total_configs} configs ({total_models} total models)"
 
 
-def main(sample_size: Optional[int] = None, max_workers: Optional[int] = 4) -> None:
+def main(
+    sample_size: Optional[int] = None,
+    max_workers: Optional[int] = 4,
+    config_path: Optional[Path] = None,
+) -> None:
     """Run boolean question evaluation with configured models.
 
     This function loads the dataset and model configurations from a JSON file,
@@ -142,11 +146,12 @@ def main(sample_size: Optional[int] = None, max_workers: Optional[int] = 4) -> N
     with a progress bar.
 
     Args:
-        test (bool, optional): Whether to run in test mode. Defaults to False.
         sample_size (Optional[int], optional): Number of samples to use.
             Defaults to None.
         max_workers (Optional[int], optional): Maximum number of concurrent
             workers. Defaults to 4.
+        config_path (Optional[Path], optional): Path to JSON config file.
+            Defaults to config.json in same directory as script.
 
     Raises:
         FileNotFoundError: If the configuration file is not found.
@@ -162,7 +167,10 @@ def main(sample_size: Optional[int] = None, max_workers: Optional[int] = 4) -> N
             force_download=False,
         )
 
-        config_path = Path(__file__).parent / "config.json"
+        # Use provided config path or default to config.json in script directory
+        if config_path is None:
+            config_path = Path(__file__).parent / "config.json"
+
         with open(config_path) as f:
             model_configs_list = json.load(f)
 
