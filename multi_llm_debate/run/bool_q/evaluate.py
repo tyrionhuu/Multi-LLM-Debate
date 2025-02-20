@@ -46,6 +46,7 @@ def evaluate_bool_q_responses(
 def evaluate_all_bool_q(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
+    multiple_models: bool = False,
 ) -> EvaluationResults:
     """Run all boolean evaluations with bool-specific settings.
 
@@ -54,6 +55,7 @@ def evaluate_all_bool_q(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing boolean questions data.
+        multiple_models: Whether multiple model types are being evaluated.
 
     Returns:
         EvaluationResults: Named tuple containing accuracies for all three methods.
@@ -63,6 +65,7 @@ def evaluate_all_bool_q(
         dataframe=dataframe,
         extract_func=extract_bool_answer,
         evaluation_func=evaluate_bool_q_responses,
+        multiple_models=multiple_models,
     )
 
 
