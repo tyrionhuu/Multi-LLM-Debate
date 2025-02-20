@@ -1,9 +1,11 @@
-from typing import Dict, List, Union
 from pathlib import Path
+from typing import Dict, List, Union
+
+import pandas as pd
 
 from ...llm.parsers import extract_bool_answer
 from ..shared.evaluate import EvaluationResults, evaluate_all
-import pandas as pd
+
 
 def evaluate_bool_q_responses(
     responses: List[Dict],
