@@ -43,54 +43,7 @@ def evaluate_bool_responses(
         return False
 
 
-def evaluate_single_llm_df(
-    response_base_dir: Path,
-    dataframe: pd.DataFrame,
-) -> float:
-    """Evaluate the Boolean Question task using first answer as single LLM response.
 
-    Args:
-        response_dir: Directory containing response files.
-        dataframe: Pandas DataFrame containing question, answer, passage and id.
-
-    Returns:
-        float: Accuracy score using first answer as single LLM response.
-    """
-    correct_count = 0
-    valid_count = 0
-
-    for _, entry in dataframe.iterrows():
-        try:
-            answer = entry["answer"]
-            id_ = str(entry["id"])
-
-            # Load responses from the first debate round file
-            responses_dir = response_base_dir / id_
-            first_response_file = responses_dir / "debate_round_0.json"
-
-            with open(first_response_file, "r") as f:
-                responses = json.load(f)
-
-            # Skip if no valid responses
-            if not responses:
-                continue
-
-            # Only use the first response
-            first_response = responses[0]
-            is_correct = evaluate_bool_responses([first_response], answer)
-            valid_count += 1
-            if is_correct:
-                correct_count += 1
-
-        except Exception:
-            continue
-
-    # Calculate and output accuracy using valid responses
-    accuracy = correct_count / valid_count if valid_count > 0 else 0
-    print(f"\nSingle LLM Accuracy: {accuracy:.2%}")
-    print(f"Valid single LLM responses: {valid_count}/{len(dataframe)}")
-
-    return accuracy
 
 
 def evaluate_ensemble_df(
@@ -164,7 +117,7 @@ def evaluate_ensemble_df(
 
 def main() -> None:
     from ...utils.download_dataset import load_save_dataset_df
-    from ..shared.evaluate import evaluate_debate_df
+    from ..shared.evaluate import evaluate_debate_df, evaluate_single_llm_df
     from .utils import process_bool_q_df
 
     dataset_path = Path("datasets/boolq")
