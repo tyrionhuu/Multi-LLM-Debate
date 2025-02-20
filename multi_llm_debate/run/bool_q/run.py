@@ -14,7 +14,7 @@ from ...utils.progress import progress
 logger = setup_logging(__name__)
 
 
-def _build_config_desc(
+def build_config_desc(
     model_configs: Optional[List[ModelConfig]], use_cot: bool, max_rounds: int
 ) -> str:
     """Build a description string for the current model configuration.
@@ -101,7 +101,7 @@ def run_debate_bool_q(
             )
 
         # Use the progress manager for the main progress bar
-        config_desc = _build_config_desc(model_configs, use_cot, max_rounds)
+        config_desc = build_config_desc(model_configs, use_cot, max_rounds)
         with progress.main_bar(
             total=len(dataframe), desc=f"Running debates [{config_desc}]", unit="debate"
         ) as pbar:
