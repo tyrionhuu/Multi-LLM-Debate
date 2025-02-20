@@ -18,6 +18,7 @@ def run_debate_single_entry(
     round_zero_fn: Callable,
     round_n_fn: Callable,
     prompt_params: Dict[str, Any],
+    required_columns: List[str],
     max_rounds: int = 10,
     base_dir: Path = Path("data"),
     use_cot: bool = True,
@@ -32,6 +33,7 @@ def run_debate_single_entry(
         round_zero_fn: Function to build the initial round prompt
         round_n_fn: Function to build subsequent round prompts
         prompt_params: Parameters to pass to the prompt builder
+        required_columns: List of required column names in the entry
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
         use_cot: Whether to use chain-of-thought prompting
@@ -44,12 +46,20 @@ def run_debate_single_entry(
         RuntimeError: If debate execution fails
     """
     try:
-        id_ = str(entry.get("id", "unknown"))
-        logger.info(f"Starting debate for entry ID: {id_}")
-
         if not isinstance(entry, pd.Series):
             logger.error("Invalid entry type")
             raise ValueError("Entry must be a pandas Series.")
+
+        # Validate required columns
+        missing_columns = [col for col in required_columns if col not in entry.index]
+        if missing_columns:
+            logger.error(f"Missing required columns: {missing_columns}")
+            raise ValueError(
+                f"Entry must contain columns: {', '.join(required_columns)}"
+            )
+
+        id_ = str(entry.get("id", "unknown"))
+        logger.info(f"Starting debate for entry ID: {id_}")
 
         output_dir = base_dir / id_
         logger.debug(f"Output directory set to: {output_dir}")
@@ -155,6 +165,7 @@ def run_debate(
                         round_zero_fn=round_zero_fn,
                         round_n_fn=round_n_fn,
                         prompt_params=prompt_params,
+                        required_columns=required_columns,
                         max_rounds=max_rounds,
                         base_dir=base_dir,
                         use_cot=use_cot,
