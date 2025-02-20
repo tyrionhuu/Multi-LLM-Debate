@@ -109,7 +109,7 @@ class AgentsEnsemble:
         """
         responses = []
         errors = []
-        
+
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = []
 
@@ -151,17 +151,17 @@ class AgentsEnsemble:
         """
         if self.concurrent:
             return self._get_response_concurrent(prompt, json_mode=json_mode)
-        
+
         responses = []
         errors = []
-        
+
         for agent in self.agents:
             try:
                 response = agent.respond(prompt, json_mode=json_mode)
                 responses.append(response)
             except LLMConnectionError as e:
                 errors.append(str(e))
-            
+
             if self.job_delay > 0:
                 time.sleep(self.job_delay)
 
