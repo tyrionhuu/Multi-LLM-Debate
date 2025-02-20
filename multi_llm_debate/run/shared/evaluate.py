@@ -1,8 +1,12 @@
-import pandas as pd
-from pathlib import Path
-from ..utils import get_latest_round_file
 import json
+from pathlib import Path
 from typing import Callable
+
+import pandas as pd
+
+from ..utils import get_latest_round_file
+
+
 def evaluate_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
