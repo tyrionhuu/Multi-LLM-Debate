@@ -18,6 +18,7 @@ def get_bool_q_prompt_params(entry: pd.Series) -> Dict[str, Any]:
         "passage": entry["passage"],
     }
 
+
 def run_debate_bool_q(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,

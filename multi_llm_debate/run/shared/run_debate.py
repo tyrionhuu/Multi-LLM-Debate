@@ -142,6 +142,7 @@ def run_debate(
             )
 
         from ..shared.utils import build_config_desc
+
         config_desc = build_config_desc(model_configs, use_cot, max_rounds)
         with progress.main_bar(
             total=len(dataframe), desc=f"Running debates [{config_desc}]", unit="debate"
