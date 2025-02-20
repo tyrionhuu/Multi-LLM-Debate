@@ -10,6 +10,7 @@ import requests.exceptions
 from ollama import Options
 from openai import OpenAI
 from PIL import Image
+from requests.exceptions import ConnectionError
 
 from ..utils.config_manager import get_api_key, get_base_url
 
@@ -288,6 +289,8 @@ def generate_with_ollama(
 
     except requests.exceptions.Timeout:
         raise TimeoutError(f"Request timed out after {timeout} seconds")
+    except ConnectionError:
+        raise ConnectionError("Failed to connect to Ollama server. Please check if Ollama is running.")
     except Exception as e:
         logging.error(f"Error in generate_with_image_ollama: {str(e)}")
         raise
@@ -348,6 +351,8 @@ def generate_with_api(
         except requests.exceptions.Timeout:
             raise TimeoutError(f"API request timed out after {timeout} seconds")
 
+    except ConnectionError:
+        raise ConnectionError("Failed to connect to API server. Please check your internet connection and API endpoint.")
     except Exception as e:
         logging.error(f"Error in generate_with_api: {str(e)}")
         raise
