@@ -8,13 +8,9 @@ import pandas as pd
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
-from ..shared.evaluate import evaluate_debate_df, evaluate_single_llm_df
 from ..utils import format_time, model_configs_to_string
-from .evaluate import (
-    evaluate_all_bool_q,
-    evaluate_bool_q_responses,
-    evaluate_ensemble_df,
-)
+from .evaluate import evaluate_all_bool_q
+
 from .run import run_bool_q
 from .utils import process_bool_q_df
 
@@ -115,7 +111,7 @@ def run(
         writer.writerow(
             [
                 model_configs_to_string(model_configs),
-                f"{results.single_llm_accuracy:.4f}",
+                "N/A" if multiple_models else f"{results.single_llm_accuracy:.4f}",
                 f"{results.ensemble_accuracy:.4f}",
                 f"{results.debate_accuracy:.4f}",
                 csv_time,
