@@ -43,9 +43,6 @@ def evaluate_bool_responses(
         return False
 
 
-
-
-
 def evaluate_ensemble_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
