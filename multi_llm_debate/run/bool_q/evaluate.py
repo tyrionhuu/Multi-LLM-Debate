@@ -116,18 +116,18 @@ def evaluate_df(
     return accuracy
 
 
-def evaluate_baseline_df(
+def evaluate_single_llm_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
 ) -> float:
-    """Evaluate the Boolean Question task using first answer baseline.
+    """Evaluate the Boolean Question task using first answer as single LLM response.
 
     Args:
         response_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing question, answer, passage and id.
 
     Returns:
-        float: Accuracy score using first answer as baseline.
+        float: Accuracy score using first answer as single LLM response.
     """
     correct_count = 0
     valid_count = 0
@@ -160,8 +160,8 @@ def evaluate_baseline_df(
 
     # Calculate and output accuracy using valid responses
     accuracy = correct_count / valid_count if valid_count > 0 else 0
-    print(f"\nBaseline Accuracy (First Answer): {accuracy:.2%}")
-    print(f"Valid baseline responses: {valid_count}/{len(dataframe)}")
+    print(f"\nSingle LLM Accuracy: {accuracy:.2%}")
+    print(f"Valid single LLM responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
 
@@ -185,8 +185,8 @@ def main() -> None:
     # Evaluate the debate responses
     evaluate_df(response_base_dir, processed_dataframe)
 
-    # Evaluate the baseline responses
-    evaluate_baseline_df(response_base_dir, processed_dataframe)
+    # Evaluate the single LLM responses
+    evaluate_single_llm_df(response_base_dir, processed_dataframe)
 
 
 if __name__ == "__main__":
