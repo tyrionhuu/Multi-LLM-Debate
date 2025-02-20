@@ -5,6 +5,8 @@ from ..shared.main import main as shared_main
 from .evaluate import evaluate_all_bool_q
 from .run_debate import run_debate_bool_q
 from .utils import process_bool_q_df
+from ..shared.utils import Args
+
 
 if __name__ == "__main__":
     import argparse
@@ -29,7 +31,7 @@ if __name__ == "__main__":
         default=16,
     )
 
-    args = parser.parse_args()
+    args = Args(**vars(parser.parse_args()))
 
     # Load the dataset
     dataset_path = Path("datasets/boolq")
