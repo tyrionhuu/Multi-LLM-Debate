@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
+from ...llm.prompt_builder import PromptBuilder
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ..shared.run_debate import run_debate, run_debate_single_entry
@@ -46,12 +47,16 @@ def run_debate_bool_q(
     Raises:
         ValueError: If DataFrame format is invalid
     """
-    return run_debate(
-        dataframe=dataframe,
+    prompt_builder = PromptBuilder(
         round_zero_fn=build_bool_q_round_zero_prompt,
         round_n_fn=build_bool_q_round_n_prompt,
+        prompt_params={"use_cot": use_cot},
+    )
+
+    return run_debate(
+        dataframe=dataframe,
+        prompt_builder=prompt_builder,
         required_columns=["question", "answer", "passage", "id"],
-        get_prompt_params=get_bool_q_prompt_params,
         max_rounds=max_rounds,
         base_dir=base_dir,
         use_cot=use_cot,
@@ -93,16 +98,18 @@ def run_debate_bool_q_single_entry(
             "Entry must contain 'question', 'answer', 'passage', and 'id'."
         )
 
-    prompt_params = {
-        "question": entry["question"],
-        "passage": entry["passage"],
-    }
+    prompt_builder = PromptBuilder(
+        round_zero_fn=build_bool_q_round_zero_prompt,
+        round_n_fn=build_bool_q_round_n_prompt,
+        prompt_params={
+            "question": entry["question"],
+            "passage": entry["passage"],
+        },
+    )
 
     run_debate_single_entry(
         entry=entry,
-        round_zero_fn=build_bool_q_round_zero_prompt,
-        round_n_fn=build_bool_q_round_n_prompt,
-        prompt_params=prompt_params,
+        prompt_builder=prompt_builder,
         required_columns=required_fields,
         max_rounds=max_rounds,
         base_dir=base_dir,

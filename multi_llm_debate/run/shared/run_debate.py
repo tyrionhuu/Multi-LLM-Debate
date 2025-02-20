@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -15,9 +15,7 @@ logger = setup_logging(__name__)
 
 def run_debate_single_entry(
     entry: pd.Series,
-    round_zero_fn: Callable,
-    round_n_fn: Callable,
-    prompt_params: Dict[str, Any],
+    prompt_builder: PromptBuilder,
     required_columns: List[str],
     max_rounds: int = 10,
     base_dir: Path = Path("data"),
@@ -30,9 +28,7 @@ def run_debate_single_entry(
 
     Args:
         entry: Pandas Series containing the debate entry data
-        round_zero_fn: Function to build the initial round prompt
-        round_n_fn: Function to build subsequent round prompts
-        prompt_params: Parameters to pass to the prompt builder
+        prompt_builder: Configured PromptBuilder instance
         required_columns: List of required column names in the entry
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
@@ -74,12 +70,7 @@ def run_debate_single_entry(
 
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        prompt_params["use_cot"] = use_cot
-        prompt_builder = PromptBuilder(
-            round_zero_fn=round_zero_fn,
-            round_n_fn=round_n_fn,
-            prompt_params=prompt_params,
-        )
+        prompt_builder.prompt_params["use_cot"] = use_cot
         agents_ensemble = AgentsEnsemble(
             config_list=model_configs, max_workers=max_workers
         )
@@ -100,10 +91,8 @@ def run_debate_single_entry(
 
 def run_debate(
     dataframe: pd.DataFrame,
-    round_zero_fn: Callable,
-    round_n_fn: Callable,
+    prompt_builder: PromptBuilder,
     required_columns: List[str],
-    get_prompt_params: Callable[[pd.Series], Dict[str, Any]],
     max_rounds: int = 10,
     base_dir: Path = Path("data"),
     use_cot: bool = True,
@@ -115,10 +104,8 @@ def run_debate(
 
     Args:
         dataframe: Pandas DataFrame containing the debate entries
-        round_zero_fn: Function to build the initial round prompt
-        round_n_fn: Function to build subsequent round prompts
+        prompt_builder: Configured PromptBuilder instance
         required_columns: List of required column names in the DataFrame
-        get_prompt_params: Function that extracts prompt parameters from an entry
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
         use_cot: Whether to use chain-of-thought prompting
@@ -159,12 +146,9 @@ def run_debate(
         ) as pbar:
             for _, entry in dataframe.iterrows():
                 try:
-                    prompt_params = get_prompt_params(entry)
                     run_debate_single_entry(
                         entry=entry,
-                        round_zero_fn=round_zero_fn,
-                        round_n_fn=round_n_fn,
-                        prompt_params=prompt_params,
+                        prompt_builder=prompt_builder,
                         required_columns=required_columns,
                         max_rounds=max_rounds,
                         base_dir=base_dir,
