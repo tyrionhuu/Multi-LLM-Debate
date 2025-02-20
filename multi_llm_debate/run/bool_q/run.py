@@ -15,12 +15,12 @@ logger = setup_logging(__name__)
 
 
 def _build_config_desc(
-    model_configs: Optional[List[List[Dict[str, Any]]]], use_cot: bool, max_rounds: int
+    model_configs: Optional[List[ModelConfig]], use_cot: bool, max_rounds: int
 ) -> str:
     """Build a description string for the current model configuration.
 
     Args:
-        model_configs: List of model configuration groups
+        model_configs: List of ModelConfig objects
         use_cot: Whether chain-of-thought is enabled
         max_rounds: Maximum number of debate rounds
 
@@ -31,15 +31,10 @@ def _build_config_desc(
     total_models = 0
 
     if model_configs:
-        for config_group in model_configs:
-            for config in config_group:
-                if isinstance(config, dict):
-                    quantity = config.get("quantity", 1)
-                    name = config.get("name", "unknown")
-                else:
-                    quantity = 1
-                    name = str(config)
-
+        for config in model_configs:
+            if isinstance(config, ModelConfig):
+                name = config.name
+                quantity = config.quantity
                 model_info.append(f"{name}×{quantity}")
                 total_models += quantity
 
