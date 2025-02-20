@@ -1,5 +1,8 @@
 from typing import Dict, List, Tuple
 
+from pathlib import Path
+import re
+import glob
 
 def format_time(seconds: float) -> Tuple[str, str]:
     """Format time in seconds to human readable format and CSV format.
@@ -51,3 +54,21 @@ def model_configs_to_string(model_configs: List[Dict]) -> str:
     return "+".join(
         f"{config['name']}({config['quantity']})" for config in sorted_configs
     )
+def get_latest_round_file(responses_dir: Path) -> Path:
+    """Get the file path for the latest debate round.
+
+    Args:
+        responses_dir: Directory containing debate round files
+
+    Returns:
+        Path to the latest debate round file
+    """
+    pattern = str(responses_dir / "debate_round_*.json")
+    files = glob.glob(pattern)
+    if not files:
+        raise ValueError(f"No debate round files found in {responses_dir}")
+
+    # Extract round numbers and find max
+    rounds = [int(re.search(r"debate_round_(\d+)", f).group(1)) for f in files]
+    latest_round = max(rounds)
+    return Path(responses_dir / f"debate_round_{latest_round}.json")
