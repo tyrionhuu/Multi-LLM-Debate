@@ -214,14 +214,10 @@ def evaluate_ensemble_df(
                 response_counts[response] = response_counts.get(response, 0) + 1
 
             # Get majority vote (most common response)
-            majority_response = max(
-                response_counts.items(), key=lambda x: x[1]
-            )[0]
+            majority_response = max(response_counts.items(), key=lambda x: x[1])[0]
 
             # Compare with correct answer
-            is_correct = evaluate_responses(
-                [{"response": majority_response}], answer
-            )
+            is_correct = evaluate_responses([{"response": majority_response}], answer)
             valid_count += 1
             if is_correct:
                 correct_count += 1
