@@ -45,7 +45,7 @@ def evaluate_responses(
         return False
 
 
-def _get_latest_round_file(responses_dir: Path) -> Path:
+def get_latest_round_file(responses_dir: Path) -> Path:
     """Get the file path for the latest debate round.
 
     Args:
@@ -90,7 +90,7 @@ def evaluate_df(
             responses_dir = response_base_dir / id_
 
             # Get the final response file
-            final_response_file = _get_latest_round_file(responses_dir)
+            final_response_file = get_latest_round_file(responses_dir)
 
             with open(final_response_file, "r") as f:
                 responses = json.load(f)
