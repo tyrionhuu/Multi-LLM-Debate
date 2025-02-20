@@ -32,11 +32,14 @@ def _build_config_desc(
 
     if model_configs:
         for config in model_configs:
-            if isinstance(config, ModelConfig):
-                name = config.name
-                quantity = config.quantity
+            try:
+                name = config["name"]
+                quantity = config["quantity"]
                 model_info.append(f"{name}×{quantity}")
                 total_models += quantity
+            except (KeyError, TypeError) as e:
+                logger.warning(f"Invalid model config format: {e}")
+                continue
 
     if not model_info:
         model_info = ["default"]
