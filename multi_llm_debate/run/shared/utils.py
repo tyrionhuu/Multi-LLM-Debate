@@ -7,6 +7,8 @@ from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 
 logger = setup_logging(__name__)
+
+
 def format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
     """Format model configurations for display in progress bar.
 
