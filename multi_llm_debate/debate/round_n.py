@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import List
 
 from ..utils.logging_config import setup_logging
-from .agents_ensemble import AgentsEnsemble
 from .agent import LLMConnectionError
+from .agents_ensemble import AgentsEnsemble
 
 logger = setup_logging(__name__)
 
