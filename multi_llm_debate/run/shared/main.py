@@ -1,9 +1,10 @@
-from typing import Any, Callable, Optional
 from pathlib import Path
-from typing import Optional
-from .utils import format_config_overview
+from typing import Any, Callable, Optional
 
 import pandas as pd
+
+from .utils import format_config_overview
+
 
 def main(
     dataframe: pd.DataFrame,
