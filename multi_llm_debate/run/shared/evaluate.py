@@ -7,7 +7,7 @@ import pandas as pd
 from ..utils import get_latest_round_file
 
 
-def evaluate_df(
+def evaluate_debate_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
     evaluation_func: Callable = None,
