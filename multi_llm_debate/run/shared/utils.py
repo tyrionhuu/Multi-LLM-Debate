@@ -25,7 +25,7 @@ class Parser:
 
     def __init__(self, description: str = "Run evaluation") -> None:
         """Initialize the parser with boolean question specific arguments.
-        
+
         Args:
             description: Description for the argument parser
         """
