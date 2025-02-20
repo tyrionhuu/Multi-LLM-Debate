@@ -43,9 +43,6 @@ def evaluate_bool_responses(
         return False
 
 
-
-
-
 def evaluate_single_llm_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
@@ -167,8 +164,9 @@ def evaluate_ensemble_df(
 
 def main() -> None:
     from ...utils.download_dataset import load_save_dataset_df
-    from .utils import process_bool_q_df
     from ..shared.evaluate import evaluate_df
+    from .utils import process_bool_q_df
+
     dataset_path = Path("datasets/boolq")
 
     # Example usage

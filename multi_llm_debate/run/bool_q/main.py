@@ -8,11 +8,16 @@ import pandas as pd
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
+from ..shared.evaluate import evaluate_df
 from ..utils import format_time, model_configs_to_string
-from .evaluate import evaluate_ensemble_df, evaluate_single_llm_df, evaluate_bool_responses
+from .evaluate import (
+    evaluate_bool_responses,
+    evaluate_ensemble_df,
+    evaluate_single_llm_df,
+)
 from .run import run_bool_q
 from .utils import process_bool_q_df
-from ..shared.evaluate import evaluate_df
+
 
 def run(
     dataframe: pd.DataFrame,
