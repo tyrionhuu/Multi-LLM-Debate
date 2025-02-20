@@ -1,4 +1,3 @@
-
 import pandas as pd
 
 
@@ -19,6 +18,3 @@ def process_bool_q_df(dataframe: pd.DataFrame) -> pd.DataFrame:
         processed_df["id"] = processed_df.index + 1
 
     return processed_df
-
-
-

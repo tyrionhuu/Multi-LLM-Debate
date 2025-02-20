@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, List
+from typing import Dict, List, Tuple
 
 
 def format_time(seconds: float) -> Tuple[str, str]:
@@ -25,6 +25,8 @@ def format_time(seconds: float) -> Tuple[str, str]:
         csv_time = f"{remaining_seconds:.2f}"
 
     return display_time, csv_time
+
+
 def model_configs_to_string(model_configs: List[Dict]) -> str:
     """Convert model configs to a string representation.
 
