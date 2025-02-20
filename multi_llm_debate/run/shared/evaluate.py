@@ -155,7 +155,7 @@ def get_majority_vote(
 
     # Get majority vote (most common response)
     majority_response = max(response_counts.items(), key=lambda x: x[1])[0]
-    
+
     # Check if it's a true majority (more than half)
     total_votes = sum(response_counts.values())
     if response_counts[majority_response] > total_votes / 2:
