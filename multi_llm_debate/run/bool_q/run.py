@@ -52,7 +52,7 @@ def _build_config_desc(
     )
 
 
-def run_bool_q(
+def run_debate_bool_q(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,
     base_dir: Path = Path("data") / "bool_q",
@@ -107,7 +107,7 @@ def run_bool_q(
         ) as pbar:
             for _, entry in dataframe.iterrows():
                 try:
-                    run_bool_q_single_entry(
+                    run_debate_bool_q_single_entry(
                         entry,
                         max_rounds,
                         base_dir,
@@ -155,7 +155,7 @@ def run_bool_q(
     }
 
 
-def run_bool_q_single_entry(
+def run_debate_bool_q_single_entry(
     entry: pd.Series,
     max_rounds: int = 10,
     base_dir: Path = Path("data") / "bool_q",
