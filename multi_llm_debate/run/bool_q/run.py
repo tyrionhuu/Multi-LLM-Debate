@@ -15,9 +15,7 @@ logger = setup_logging(__name__)
 
 
 def _build_config_desc(
-    model_configs: Optional[List[List[Dict[str, Any]]]], 
-    use_cot: bool,
-    max_rounds: int
+    model_configs: Optional[List[List[Dict[str, Any]]]], use_cot: bool, max_rounds: int
 ) -> str:
     """Build a description string for the current model configuration.
 
@@ -54,6 +52,7 @@ def _build_config_desc(
         f"{'CoT' if use_cot else 'No CoT'} | "
         f"Max rounds: {max_rounds}"
     )
+
 
 def run_bool_q(
     dataframe: pd.DataFrame,
