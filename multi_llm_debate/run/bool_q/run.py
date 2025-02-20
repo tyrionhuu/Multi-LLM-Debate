@@ -65,7 +65,7 @@ def run_bool_q(
         # Use the progress manager for the main progress bar
         model_info = []
         total_models = 0
-        
+
         if model_configs:
             for config_group in model_configs:
                 for config in config_group:
@@ -76,7 +76,7 @@ def run_bool_q(
                         # Handle string or other type configs
                         quantity = 1
                         name = str(config)
-                    
+
                     model_info.append(f"{name}×{quantity}")
                     total_models += quantity
 
@@ -90,9 +90,7 @@ def run_bool_q(
             f"Max rounds: {max_rounds}"
         )
         with progress.main_bar(
-            total=len(dataframe),
-            desc=f"Running debates [{config_desc}]",
-            unit="debate"
+            total=len(dataframe), desc=f"Running debates [{config_desc}]", unit="debate"
         ) as pbar:
             for _, entry in dataframe.iterrows():
                 try:
