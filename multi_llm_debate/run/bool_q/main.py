@@ -6,11 +6,11 @@ import pandas as pd
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
+from ..shared.run import run as shared_run
 from ..shared.utils import format_config_overview
 from .evaluate import evaluate_all_bool_q
 from .run_debate import run_debate_bool_q
 from .utils import process_bool_q_df
-from ..shared.run import run as shared_run
 
 
 def run(
@@ -40,8 +40,6 @@ def run(
         random_seed=random_seed,
         max_workers=max_workers,
     )
-
-
 
 
 def main(
