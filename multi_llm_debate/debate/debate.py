@@ -11,7 +11,7 @@ from .round_zero import run_debate_round_zero
 logger = setup_logging(__name__)
 
 
-def run_debate(
+def debate(
     max_rounds: int,
     prompt_builder: PromptBuilder,
     agents_ensemble: AgentsEnsemble,
@@ -116,7 +116,7 @@ def main():
     )
     agents_ensemble = AgentsEnsemble()
     output_dir = "data/test"
-    run_debate(3, prompt_builder, agents_ensemble, output_dir)
+    debate(3, prompt_builder, agents_ensemble, output_dir)
 
 
 if __name__ == "__main__":

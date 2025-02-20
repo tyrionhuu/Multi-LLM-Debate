@@ -1,4 +1,4 @@
-from multi_llm_debate.run.bool_q.run_debate import _build_config_desc
+from multi_llm_debate.run.bool_q.debate import _build_config_desc
 from multi_llm_debate.utils.model_config import ModelConfig
 
 
