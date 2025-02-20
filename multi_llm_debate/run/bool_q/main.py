@@ -75,12 +75,12 @@ def run(
 
     # Evaluate the results
     accuracy = evaluate_df(output_path, processed_dataframe)
-    
+
     # Only calculate single LLM accuracy when there's one type of model
     single_llm_accuracy = None
     if len(model_configs) == 1:
         single_llm_accuracy = evaluate_single_llm_df(output_path, processed_dataframe)
-    
+
     ensemble_accuracy = evaluate_ensemble_df(output_path, processed_dataframe)
     print(f"\nAccuracy: {accuracy:.2f}")
     if single_llm_accuracy is not None:
@@ -114,7 +114,11 @@ def run(
         writer.writerow(
             [
                 model_configs_to_string(model_configs),
-                f"{single_llm_accuracy:.4f}" if single_llm_accuracy is not None else "N/A",
+                (
+                    f"{single_llm_accuracy:.4f}"
+                    if single_llm_accuracy is not None
+                    else "N/A"
+                ),
                 f"{ensemble_accuracy:.4f}",
                 f"{accuracy:.4f}",
                 csv_time,
