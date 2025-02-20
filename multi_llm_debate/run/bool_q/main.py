@@ -8,12 +8,11 @@ import pandas as pd
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
-from ..shared.evaluate import evaluate_debate_df
+from ..shared.evaluate import evaluate_debate_df, evaluate_single_llm_df
 from ..utils import format_time, model_configs_to_string
 from .evaluate import (
     evaluate_bool_responses,
     evaluate_ensemble_df,
-    evaluate_single_llm_df,
 )
 from .run import run_bool_q
 from .utils import process_bool_q_df
@@ -89,7 +88,11 @@ def run(
     # Only calculate single LLM accuracy when there's one type of model
     single_llm_accuracy = None
     if len(model_configs) == 1:
-        single_llm_accuracy = evaluate_single_llm_df(output_path, processed_dataframe)
+        single_llm_accuracy = evaluate_single_llm_df(
+            response_base_dir=output_path,
+            dataframe=processed_dataframe,
+            evaluation_func=evaluate_bool_responses,
+        )
 
     ensemble_accuracy = evaluate_ensemble_df(output_path, processed_dataframe)
     print(f"\nAccuracy: {accuracy:.2f}")
