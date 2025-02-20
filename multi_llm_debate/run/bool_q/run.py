@@ -74,9 +74,7 @@ def run_bool_q(
             f"Max rounds: {max_rounds}"
         )
         with progress.main_bar(
-            total=len(dataframe),
-            desc=f"Running debates [{config_desc}]",
-            unit="debate"
+            total=len(dataframe), desc=f"Running debates [{config_desc}]", unit="debate"
         ) as pbar:
             for _, entry in dataframe.iterrows():
                 try:
