@@ -5,6 +5,7 @@ import pandas as pd
 
 from .run import run
 
+
 def main(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable[..., Any],
@@ -53,5 +54,3 @@ def main(
 
     except FileNotFoundError:
         raise FileNotFoundError(f"Configuration file not found at {config_path}")
-
-
