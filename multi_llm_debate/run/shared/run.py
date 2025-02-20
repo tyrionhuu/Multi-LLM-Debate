@@ -104,7 +104,6 @@ def run(
         if not file_exists:
             writer.writerow(
                 [
-                    "Task",
                     "Model Configuration",
                     "Single LLM Accuracy",
                     "Ensemble Accuracy",
@@ -114,7 +113,6 @@ def run(
             )
         writer.writerow(
             [
-                task_name,
                 model_configs_to_string(model_configs),
                 "N/A" if multiple_models else f"{results.single_llm_accuracy:.4f}",
                 f"{results.ensemble_accuracy:.4f}",
