@@ -77,7 +77,7 @@ def run(
     accuracy = evaluate_df(output_path, processed_dataframe)
     baseline_accuracy = evaluate_baseline_df(output_path, processed_dataframe)
     print(f"\nAccuracy: {accuracy:.2f}")
-    print(f"Baseline Accuracy: {baseline_accuracy:.2f}")
+    print(f"Single LLM Accuracy: {baseline_accuracy:.2f}")
 
     # Calculate running time
     running_time = time.time() - start_time
@@ -97,7 +97,7 @@ def run(
             writer.writerow(
                 [
                     "Model Configuration",
-                    "Baseline Accuracy",
+                    "Single LLM Accuracy",
                     "Debate Accuracy",
                     "Running Time",
                 ]
