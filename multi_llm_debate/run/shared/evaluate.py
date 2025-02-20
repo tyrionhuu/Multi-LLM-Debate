@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Callable, List, Dict, Union, Optional
+from typing import Callable, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -8,6 +8,7 @@ from ..utils import get_latest_round_file
 
 # Add type alias for the evaluation function
 EvaluationFunc = Callable[[List[Dict], Union[str, bool]], bool]
+
 
 def evaluate_debate_df(
     response_base_dir: Path,
