@@ -1,20 +1,24 @@
 import glob
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
 
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 
 logger = setup_logging(__name__)
 
+
 @dataclass
 class Args:
     """Command line arguments."""
+
     config: Optional[Path]
     sample_size: int
     max_workers: int
+
+
 def format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
     """Format model configurations for display in progress bar.
 
