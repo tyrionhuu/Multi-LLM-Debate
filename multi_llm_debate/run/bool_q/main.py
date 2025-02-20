@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 from ...utils.download_dataset import load_save_dataset_df
 from ..shared.main import main as shared_main
