@@ -1,10 +1,11 @@
 from typing import Dict, List, Union
+from pathlib import Path
 
 from ...llm.parsers import extract_bool_answer
-from ..shared.evaluate import EvaluationResults
+from ..shared.evaluate import EvaluationResults, evaluate_all
+import pandas as pd
 
-
-def evaluate_bool_responses(
+def evaluate_bool_q_responses(
     responses: List[Dict],
     answer: Union[str, bool],
 ) -> bool:
@@ -40,16 +41,36 @@ def evaluate_bool_responses(
         return False
 
 
+def evaluate_all_bool_q(
+    response_base_dir: Path,
+    dataframe: pd.DataFrame,
+) -> EvaluationResults:
+    """Run all boolean evaluations with bool-specific settings.
+
+    A convenience wrapper around evaluate_all that uses bool-specific functions.
+
+    Args:
+        response_base_dir: Directory containing response files.
+        dataframe: Pandas DataFrame containing boolean questions data.
+
+    Returns:
+        EvaluationResults: Named tuple containing accuracies for all three methods.
+    """
+    return evaluate_all(
+        response_base_dir=response_base_dir,
+        dataframe=dataframe,
+        extract_func=extract_bool_answer,
+        evaluation_func=evaluate_bool_q_responses,
+    )
+
+
 def main() -> EvaluationResults:
     """Run all evaluations and return the results.
 
     Returns:
         EvaluationResults: Named tuple containing accuracies for all three methods.
     """
-    from pathlib import Path
-
     from ...utils.download_dataset import load_save_dataset_df
-    from ..shared.evaluate import evaluate_all
     from .utils import process_bool_q_df
 
     dataset_path = Path("datasets/boolq")
@@ -63,13 +84,8 @@ def main() -> EvaluationResults:
     )
     processed_dataframe = process_bool_q_df(dataframe)
 
-    # Run all evaluations and return results
-    return evaluate_all(
-        response_base_dir,
-        processed_dataframe,
-        extract_func=extract_bool_answer,
-        evaluation_func=evaluate_bool_responses,
-    )
+    # Run all bool evaluations and return results
+    return evaluate_all_bool_q(response_base_dir, processed_dataframe)
 
 
 if __name__ == "__main__":
