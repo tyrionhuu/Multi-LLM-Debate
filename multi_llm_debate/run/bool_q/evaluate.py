@@ -166,6 +166,77 @@ def evaluate_single_llm_df(
     return accuracy
 
 
+def evaluate_ensemble_df(
+    response_base_dir: Path,
+    dataframe: pd.DataFrame,
+) -> float:
+    """Evaluate the Boolean Question task using majority vote from first round.
+
+    Args:
+        response_dir: Directory containing response files.
+        dataframe: Pandas DataFrame containing question, answer, passage and id.
+
+    Returns:
+        float: Accuracy score using majority vote from first round responses.
+    """
+    correct_count = 0
+    valid_count = 0
+
+    for _, entry in dataframe.iterrows():
+        try:
+            answer = entry["answer"]
+            id_ = str(entry["id"])
+
+            # Load responses from the first debate round file
+            responses_dir = response_base_dir / id_
+            first_response_file = responses_dir / "debate_round_0.json"
+
+            with open(first_response_file, "r") as f:
+                responses = json.load(f)
+
+            # Skip if no valid responses
+            if not responses:
+                continue
+
+            # Get all responses and their normalized boolean answers
+            raw_responses = [response["response"] for response in responses]
+            normalized_responses = [
+                extract_bool_answer(response) for response in raw_responses
+            ]
+            valid_responses = [r for r in normalized_responses if r]
+
+            if not valid_responses:
+                continue
+
+            # Count occurrences of each response
+            response_counts = {}
+            for response in valid_responses:
+                response_counts[response] = response_counts.get(response, 0) + 1
+
+            # Get majority vote (most common response)
+            majority_response = max(
+                response_counts.items(), key=lambda x: x[1]
+            )[0]
+
+            # Compare with correct answer
+            is_correct = evaluate_responses(
+                [{"response": majority_response}], answer
+            )
+            valid_count += 1
+            if is_correct:
+                correct_count += 1
+
+        except Exception:
+            continue
+
+    # Calculate and output accuracy using valid responses
+    accuracy = correct_count / valid_count if valid_count > 0 else 0
+    print(f"\nEnsemble Accuracy (First Round Majority): {accuracy:.2%}")
+    print(f"Valid ensemble responses: {valid_count}/{len(dataframe)}")
+
+    return accuracy
+
+
 def main() -> None:
     from ...utils.download_dataset import load_save_dataset_df
     from .utils import process_bool_q_df
@@ -187,6 +258,9 @@ def main() -> None:
 
     # Evaluate the single LLM responses
     evaluate_single_llm_df(response_base_dir, processed_dataframe)
+
+    # Evaluate the ensemble responses
+    evaluate_ensemble_df(response_base_dir, processed_dataframe)
 
 
 if __name__ == "__main__":
