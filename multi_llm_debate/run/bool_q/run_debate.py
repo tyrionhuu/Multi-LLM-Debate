@@ -3,8 +3,8 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from ...llm.prompt_builder import PromptBuilder
+from ...llm.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ..shared.run_debate import run_debate, run_debate_single_entry
