@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Union, NamedTuple
+from typing import Callable, Dict, List, NamedTuple, Optional, Union
 
 import pandas as pd
 
@@ -223,6 +223,7 @@ def evaluate_ensemble_df(
 
 class EvaluationResults(NamedTuple):
     """Container for evaluation results from all methods."""
+
     debate_accuracy: float
     single_llm_accuracy: float
     ensemble_accuracy: float

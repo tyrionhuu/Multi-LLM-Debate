@@ -47,13 +47,14 @@ def main() -> EvaluationResults:
         EvaluationResults: Named tuple containing accuracies for all three methods.
     """
     from pathlib import Path
-    from ..shared.evaluate import evaluate_all
+
     from ...utils.download_dataset import load_save_dataset_df
+    from ..shared.evaluate import evaluate_all
     from .utils import process_bool_q_df
 
     dataset_path = Path("datasets/boolq")
     response_base_dir = Path("data/bool_q/phi3")
-    
+
     # Load and process the dataset
     dataframe = load_save_dataset_df(
         dataset_name="google/boolq",
