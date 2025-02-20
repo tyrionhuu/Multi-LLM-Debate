@@ -46,4 +46,3 @@ def model_configs_to_string(model_configs: List[Dict]) -> str:
     return "+".join(
         f"{config['name']}({config['quantity']})" for config in sorted_configs
     )
-

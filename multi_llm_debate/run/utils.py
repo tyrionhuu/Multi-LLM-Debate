@@ -1,4 +1,6 @@
-from typing import  Tuple
+from typing import Tuple
+
+
 def format_time(seconds: float) -> Tuple[str, str]:
     """Format time in seconds to human readable format and CSV format.
 

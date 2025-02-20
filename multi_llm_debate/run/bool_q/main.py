@@ -8,10 +8,11 @@ import pandas as pd
 from ...utils.download_dataset import load_save_dataset_df
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
+from ..utils import format_time
 from .evaluate import evaluate_df, evaluate_ensemble_df, evaluate_single_llm_df
 from .run import run_bool_q
 from .utils import model_configs_to_string, process_bool_q_df
-from ..utils import format_time
+
 
 def run(
     dataframe: pd.DataFrame,
