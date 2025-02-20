@@ -12,7 +12,12 @@ EvaluationFunc = Callable[[List[Dict], Union[str, bool]], bool]
 # Add type alias for extract functions
 ExtractFunc = Callable[[str], Optional[str]]
 
+class EvaluationResults(NamedTuple):
+    """Container for evaluation results from all methods."""
 
+    debate_accuracy: float
+    single_llm_accuracy: float
+    ensemble_accuracy: float
 def evaluate_debate_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
@@ -221,12 +226,7 @@ def evaluate_ensemble_df(
     return accuracy
 
 
-class EvaluationResults(NamedTuple):
-    """Container for evaluation results from all methods."""
 
-    debate_accuracy: float
-    single_llm_accuracy: float
-    ensemble_accuracy: float
 
 
 def evaluate_all(
