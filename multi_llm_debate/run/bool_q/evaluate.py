@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import pandas as pd
 
@@ -9,7 +9,7 @@ from ...llm.parsers import extract_bool_answer
 
 def evaluate_bool_responses(
     responses: List[Dict],
-    answer: str | bool,
+    answer: Union[str, bool],
 ) -> bool:
     """Evaluate the responses from the debate.
 
