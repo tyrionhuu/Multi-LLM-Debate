@@ -10,7 +10,6 @@ from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
 from ..utils import format_time, model_configs_to_string
 from .evaluate import evaluate_all_bool_q
-
 from .run import run_bool_q
 from .utils import process_bool_q_df
 
