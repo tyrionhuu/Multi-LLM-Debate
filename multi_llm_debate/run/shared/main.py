@@ -3,8 +3,7 @@ from typing import Any, Callable, Optional
 
 import pandas as pd
 
-from .utils import format_config_overview
-
+from .run import run
 
 def main(
     dataframe: pd.DataFrame,
@@ -29,7 +28,6 @@ def main(
         config_path: Path to JSON config file
     """
     import json
-    from pathlib import Path
 
     try:
         # Use provided config path or default to config.json in task directory
@@ -39,25 +37,21 @@ def main(
         with open(config_path) as f:
             model_configs_list = json.load(f)
 
-        config_overview = format_config_overview(model_configs_list)
-        with progress.main_bar(
-            total=len(model_configs_list),
-            desc=config_overview,
-            unit="config",
-        ) as pbar:
-            for model_configs in model_configs_list:
-                run(
-                    dataframe=dataframe,
-                    run_debate_fn=run_debate_fn,
-                    evaluate_fn=evaluate_fn,
-                    process_df_fn=process_df_fn,
-                    task_name=task_name,
-                    sample_size=sample_size,
-                    report_path=Path(f"data/{task_name}"),
-                    model_configs=model_configs,
-                    max_workers=max_workers,
-                )
-                pbar.update(1)
+        # Process all configurations
+        processed_df = process_df_fn(dataframe)
+        for model_configs in model_configs_list:
+            run(
+                dataframe=processed_df,
+                run_debate_fn=run_debate_fn,
+                evaluate_fn=evaluate_fn,
+                task_name=task_name,
+                sample_size=sample_size,
+                report_path=Path(f"data/{task_name}"),
+                model_configs=model_configs,
+                max_workers=max_workers,
+            )
 
     except FileNotFoundError:
         raise FileNotFoundError(f"Configuration file not found at {config_path}")
+
+
