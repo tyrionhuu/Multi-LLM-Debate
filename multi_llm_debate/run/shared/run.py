@@ -6,8 +6,9 @@ from typing import Any, Callable, Dict, List, Optional
 import pandas as pd
 
 from ...utils.model_config import ModelConfig
-from .utils import format_time, model_configs_to_string
 from .evaluate import EvaluationResults
+from .utils import format_time, model_configs_to_string
+
 
 def run(
     dataframe: pd.DataFrame,
