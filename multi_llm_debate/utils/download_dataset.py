@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import pandas as pd
-from huggingface_hub import HfApi
 from modelscope import MsDataset
 from modelscope.utils.constant import DownloadMode
 
