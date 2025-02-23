@@ -8,6 +8,7 @@ from .utils import setup_logging
 
 logger = setup_logging(__name__)
 
+
 def main(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable[..., Any],
