@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def _check_dataset_version(dataset_name: str, dataset_path: Path) -> bool:
+def _check_dataset_version(dataset_path: Path) -> bool:
     """
     Check if the locally saved dataset is the newest version.
 
@@ -22,23 +22,23 @@ def _check_dataset_version(dataset_name: str, dataset_path: Path) -> bool:
         dataset_path (Path): Local path where dataset is saved.
 
     Returns:
-        bool: True if local version is latest, False if update needed.
+        bool: True if local version is latest or if version check fails, False if update needed.
     """
-    try:
-        api = HfApi()
-        # Get latest commit hash from Hub
-        remote_info = api.dataset_info(dataset_name)
-        remote_sha = remote_info.sha
+    if not dataset_path.exists():
+        return False
 
-        # Get local version info (stored in dataset_info.json)
+    try:
+        # Load local dataset first to verify it exists and is valid
         try:
             dataset = load_from_disk(str(dataset_path))
-            local_info = dataset.info.download_checksums
-            if not local_info or remote_sha not in str(local_info):
+            if not dataset:
                 return False
-            return True
         except Exception:
             return False
+
+        # If we can load the dataset successfully, assume it's valid
+        # Skip version checking as it's not reliably stored in the dataset
+        return True
 
     except Exception as e:
         logger.warning(f"Failed to check dataset version: {str(e)}")
@@ -77,7 +77,7 @@ def load_save_huggingface_dataset(
             else:
                 try:
                     # First check if local version exists and is up to date
-                    is_latest = _check_dataset_version(dataset_name, dataset_path)
+                    is_latest = _check_dataset_version(dataset_path)
                     if is_latest:
                         logger.info(f"Loading latest version from {dataset_path}")
                         dataset = load_from_disk(str(dataset_path))
