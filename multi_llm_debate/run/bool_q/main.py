@@ -5,7 +5,7 @@ if __name__ == "__main__":
     from ..shared.main import main as shared_main
     from ..shared.utils import Parser
     from .evaluate import evaluate_all_bool_q
-    from .run_debate import run_debate_bool_q
+    from .run_debate import run_bool_q
     from .utils import process_bool_q_df
 
     args = Parser(description="Run boolean question evaluation").parse_args()
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     dataframe = dataframe.sample(10)
     shared_main(
         dataframe=dataframe,
-        run_debate_fn=run_debate_bool_q,
+        run_debate_fn=run_bool_q,
         evaluate_fn=evaluate_all_bool_q,
         process_df_fn=process_bool_q_df,
         task_name="bool_q",
