@@ -13,6 +13,7 @@ from PIL import Image
 from requests.exceptions import ConnectionError
 
 from ..utils.config_manager import get_api_key, get_base_url
+from ..utils.retry import retry_with_timeout
 
 KEY = get_api_key()
 BASE_URL = get_base_url()
@@ -41,6 +42,10 @@ def encode_image(image_path: str) -> str:
     return encoded
 
 
+@retry_with_timeout(
+    max_retries=3,
+    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException)
+)
 def call_model(
     model_name: str = "llama3.2:11b",
     provider: Literal["api", "ollama", "openai", "anthropic"] = "ollama",
@@ -48,7 +53,7 @@ def call_model(
     temperature: float = 0.7,
     max_tokens: int = 3200,
     json_mode: bool = True,
-    timeout: Optional[int] = None,
+    timeout: Optional[int] = 30,
     vision: bool = False,
     images: Union[
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
@@ -235,6 +240,10 @@ def retry_json_generation(
             continue
 
 
+@retry_with_timeout(
+    max_retries=3,
+    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException)
+)
 def generate_with_ollama(
     model_name: str,
     prompt: str,
@@ -298,6 +307,10 @@ def generate_with_ollama(
         raise
 
 
+@retry_with_timeout(
+    max_retries=3,
+    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException)
+)
 def generate_with_api(
     model_name: str,
     prompt: str,
