@@ -46,7 +46,7 @@ def run_debate_bool_q(
         prompt_params={
             "question": None,  # Will be updated with actual data
             "passage": None,  # Will be updated with actual data
-            "answer": None,  # Will be updated with actual data
+            "json_mode": False,  # Add this if you want JSON output
         },
     )
 

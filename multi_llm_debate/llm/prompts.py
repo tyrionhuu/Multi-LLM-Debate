@@ -37,8 +37,23 @@ Final Answer: true/false
 
 
 def build_bool_q_round_zero_prompt(
-    question: str, passage: str, use_cot: bool = True, json_mode: bool = False
+    question: str, 
+    passage: str, 
+    use_cot: bool = True, 
+    json_mode: bool = False,
 ) -> str:
+    """Build prompt for round zero of boolean question debate.
+
+    Args:
+        question: The question to be answered
+        passage: The passage to base the answer on
+        use_cot: Whether to use chain-of-thought prompting
+        json_mode: Whether to return response in JSON format
+        **kwargs: Additional arguments that will be ignored
+
+    Returns:
+        str: The formatted prompt
+    """
     prompt = "You will be given a true or false question which is based on a passage. "
     if json_mode:
         prompt += "Answer in the following JSON format:" + NEW_LINE
@@ -60,6 +75,19 @@ def build_bool_q_round_n_prompt(
     use_cot: bool = True,
     json_mode: bool = False,
 ) -> str:
+    """Build prompt for subsequent rounds of boolean question debate.
+
+    Args:
+        question: The question to be answered
+        passage: The passage to base the answer on
+        responses: Previous responses from other models
+        use_cot: Whether to use chain-of-thought prompting
+        json_mode: Whether to return response in JSON format
+        **kwargs: Additional arguments that will be ignored
+
+    Returns:
+        str: The formatted prompt
+    """
     prompt = (
         "Several other models have provided responses to a true or false question, below are their responses: "
         + NEW_LINE
