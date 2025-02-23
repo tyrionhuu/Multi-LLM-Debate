@@ -17,7 +17,7 @@ if __name__ == "__main__":
         dataset_path=dataset_path,
         force_download=False,
     )
-    dataframe = dataframe.sample(10)
+    # dataframe = dataframe.sample(10)
     shared_main(
         dataframe=dataframe,
         run_debate_fn=run_bool_q,
