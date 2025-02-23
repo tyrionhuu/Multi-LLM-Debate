@@ -44,7 +44,7 @@ def encode_image(image_path: str) -> str:
 
 @retry_with_timeout(
     max_retries=3,
-    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException)
+    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException),
 )
 def call_model(
     model_name: str = "llama3.2:11b",
@@ -242,7 +242,7 @@ def retry_json_generation(
 
 @retry_with_timeout(
     max_retries=3,
-    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException)
+    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException),
 )
 def generate_with_ollama(
     model_name: str,
@@ -309,7 +309,7 @@ def generate_with_ollama(
 
 @retry_with_timeout(
     max_retries=3,
-    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException)
+    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException),
 )
 def generate_with_api(
     model_name: str,

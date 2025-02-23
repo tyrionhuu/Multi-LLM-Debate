@@ -3,11 +3,12 @@ import logging
 import time
 from typing import Any, Callable, Optional, Type, Union
 
+
 def retry_with_timeout(
     max_retries: int = 3,
     initial_delay: float = 1.0,
     backoff_factor: float = 2.0,
-    exceptions: Optional[Union[Type[Exception], tuple[Type[Exception], ...]]] = None
+    exceptions: Optional[Union[Type[Exception], tuple[Type[Exception], ...]]] = None,
 ) -> Callable:
     """A decorator that retries a function with exponential backoff.
 
@@ -36,7 +37,7 @@ def retry_with_timeout(
                     last_exception = e
                     if attempt == max_retries - 1:
                         raise last_exception
-                    
+
                     logging.warning(
                         f"Attempt {attempt + 1}/{max_retries} failed: {str(e)}. "
                         f"Retrying in {delay} seconds..."
@@ -45,4 +46,5 @@ def retry_with_timeout(
                     delay *= backoff_factor
 
         return wrapper
+
     return decorator
