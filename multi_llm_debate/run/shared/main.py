@@ -4,7 +4,9 @@ from typing import Any, Callable, Optional
 import pandas as pd
 
 from .run import run
+from .utils import setup_logging
 
+logger = setup_logging(__name__)
 
 def main(
     dataframe: pd.DataFrame,
@@ -37,6 +39,14 @@ def main(
 
         with open(config_path) as f:
             model_configs_list = json.load(f)
+
+        # Adjust sample size if it exceeds dataset size
+        if sample_size is not None and sample_size > len(dataframe):
+            logger.warning(
+                f"Sample size {sample_size} is larger than dataset size {len(dataframe)}. "
+                "Using entire dataset."
+            )
+            sample_size = None
 
         # Process all configurations
         processed_df = process_df_fn(dataframe)
