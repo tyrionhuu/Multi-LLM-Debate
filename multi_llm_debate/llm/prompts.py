@@ -37,9 +37,9 @@ Final Answer: true/false
 
 
 def build_bool_q_round_zero_prompt(
-    question: str, 
-    passage: str, 
-    use_cot: bool = True, 
+    question: str,
+    passage: str,
+    use_cot: bool = True,
     json_mode: bool = False,
 ) -> str:
     """Build prompt for round zero of boolean question debate.
