@@ -71,9 +71,9 @@ def run_debate_single_entry(
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Add entry data to prompt parameters
-        prompt_builder.prompt_params.update({
-            col: entry[col] for col in required_columns
-        })
+        prompt_builder.prompt_params.update(
+            {col: entry[col] for col in required_columns}
+        )
         prompt_builder.prompt_params["use_cot"] = use_cot
         agents_ensemble = AgentsEnsemble(
             config_list=model_configs, max_workers=max_workers

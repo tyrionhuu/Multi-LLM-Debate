@@ -45,9 +45,9 @@ def run_debate_bool_q(
         round_n_fn=build_bool_q_round_n_prompt,
         prompt_params={
             "question": None,  # Will be updated with actual data
-            "passage": None,   # Will be updated with actual data
-            "answer": None     # Will be updated with actual data
-        },  
+            "passage": None,  # Will be updated with actual data
+            "answer": None,  # Will be updated with actual data
+        },
     )
 
     # Required columns for bool_q task
