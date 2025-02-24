@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pandas as pd
 
-
+from typing import Optional
 def analyze_round_number(
-    base_dir: Path, max_round_number: int | None = 10, output_csv: Path | None = None
+    base_dir: Path, max_round_number: int | None = 10, output_csv: Optional[Path] = None
 ) -> pd.DataFrame:
     """
     Analyzes the convergence of LLMs in a debate setting.
@@ -52,3 +52,24 @@ def analyze_round_number(
         results.to_csv(output_csv, index=False)
 
     return results
+
+
+def main() -> None:
+    """Test the analyze_round_number function with example parameters."""
+    base_dir = Path("data/bool_q")
+    
+    try:
+        df = analyze_round_number(
+            base_dir=base_dir,
+            max_round_number=10,
+        )
+        print("Analysis completed successfully!")
+        print("\nDataFrame head:")
+        print(df.head())
+    except Exception as e:
+        print(f"Error during analysis: {str(e)}")
+
+
+if __name__ == "__main__":
+    main()
+
