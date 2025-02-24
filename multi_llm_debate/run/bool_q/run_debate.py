@@ -170,9 +170,13 @@ def run_bool_q_single_entry(
             debate_files = [
                 output_dir / f"debate_round_{i}.json" for i in range(max_rounds)
             ]
-            if any(f.exists() for f in debate_files):
+            debate_files_exist = any(f.exists() for f in debate_files)
+            
+            if debate_files_exist:
                 logger.info(f"Skipping entry {id_} - debate results exist")
                 return
+            else:
+                logger.debug(f"Directory exists but no debate files found for {id_}")
 
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
