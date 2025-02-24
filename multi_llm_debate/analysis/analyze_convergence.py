@@ -75,11 +75,11 @@ def analyze_round_number(
 
 def main() -> None:
     """Test the analyze_round_number function with example parameters."""
-    base_dir = Path("data/bool_q")
+    model_dir = Path("data/bool_q/gemma2:2b(3)")
 
     try:
-        df = analyze_round_number(
-            base_dir=base_dir,
+        df = count_rounds_for_model(
+            model_dir=model_dir,
             max_round_number=10,
         )
         print("Analysis completed successfully!")
