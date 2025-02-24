@@ -171,7 +171,7 @@ def run_bool_q_single_entry(
                 output_dir / f"debate_round_{i}.json" for i in range(max_rounds)
             ]
             debate_files_exist = any(f.exists() for f in debate_files)
-            
+
             if debate_files_exist:
                 logger.info(f"Skipping entry {id_} - debate results exist")
                 return
