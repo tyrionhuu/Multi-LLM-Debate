@@ -68,7 +68,20 @@ def calculate_correct_rate_by_round(
 
         for round_num in range(1, min(max_round_number + 1, last_round + 1)):
             round_file = subdir / f"debate_round_{round_num}.json"
+            
+            # Track the last successful round's results
+            last_success = None
+            
             if not round_file.exists():
+                if last_success is not None:
+                    # If we have a previous successful round and this round doesn't exist,
+                    # it means consensus was reached - copy the result
+                    logger.debug(
+                        f"Round {round_num} file missing - consensus reached in round {round_num-1}"
+                    )
+                    total_counts[round_num] += 1
+                    if last_success:
+                        correct_counts[round_num] += 1
                 continue
 
             try:
@@ -93,12 +106,14 @@ def calculate_correct_rate_by_round(
                 ):
                     logger.debug(f"Round {round_num}: Correct answer found!")
                     correct_counts[round_num] += 1
+                    last_success = True
                 else:
                     logger.debug(
                         f"Round {round_num}: Incorrect - "
                         f"unique responses: {set(valid_responses)}, "
                         f"expected: {correct_answer}"
                     )
+                    last_success = False
 
             except (json.JSONDecodeError, KeyError, TypeError) as e:
                 logger.debug(f"Error processing round {round_num}: {e}")
