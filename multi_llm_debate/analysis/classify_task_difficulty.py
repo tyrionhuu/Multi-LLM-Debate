@@ -8,28 +8,36 @@ from ..llm.parsers import extract_bool_answer
 
 def analyze_task_difficulty(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFrame:
     """
-    Analyzes the task difficulty for each task in the given DataFrame.
+    Analyzes the task difficulty for tasks that exist in the model directory.
 
     Args:
         model_dir (Path): The path to the model directory.
         dataframe (pd.DataFrame): The DataFrame containing task information.
 
     Returns:
-        pd.DataFrame: A DataFrame with an additional column 'difficulty' indicating the difficulty level of each task.
+        pd.DataFrame: A DataFrame with an additional column 'difficulty' indicating 
+        the difficulty level of each task.
     """
-    # Initialize a list to store difficulty levels
-    difficulty_levels = []
+    # Initialize difficulty dictionary
+    difficulty_dict = {}
 
-    # Iterate through each row in the DataFrame
-    for _, row in dataframe.iterrows():
-        task_dir = model_dir / row["task"]
+    # Iterate through existing task directories
+    for task_dir in model_dir.iterdir():
+        if not task_dir.is_dir():
+            continue
+            
         task_id = task_dir.name
-        answer = dataframe.loc[dataframe["task"] == task_id, "answer"].values[0]
+        if task_id not in dataframe["id"].values:
+            continue
+            
+        answer = dataframe.loc[dataframe["id"] == task_id, "answer"].values[0]
         difficulty = classify_task_difficulty(task_dir, answer)
-        difficulty_levels.append(difficulty)
+        difficulty_dict[task_id] = difficulty
 
-    # Add the difficulty levels to the DataFrame
-    dataframe["difficulty"] = difficulty_levels
+    # Add difficulty column to dataframe
+    dataframe["difficulty"] = dataframe["id"].map(
+        lambda x: difficulty_dict.get(x, -1)
+    )
 
     return dataframe
 
