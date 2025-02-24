@@ -71,8 +71,10 @@ def calculate_correct_rate_by_round(
 
                 # Only count as correct if all valid responses are the same and match answer
                 total_counts[round_num] += 1
-                if (len(set(valid_responses)) == 1 and 
-                    valid_responses[0] == correct_answer):
+                if (
+                    len(set(valid_responses)) == 1
+                    and valid_responses[0] == correct_answer
+                ):
                     correct_counts[round_num] += 1
 
             except (json.JSONDecodeError, KeyError, TypeError):
