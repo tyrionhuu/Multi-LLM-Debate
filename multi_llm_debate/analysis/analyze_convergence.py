@@ -4,6 +4,11 @@ from typing import Dict, Optional
 import pandas as pd
 
 
+class AgentCountMismatchError(ValueError):
+    """Raised when the model configuration has wrong number of agents."""
+    pass
+
+
 def _count_agents(model_configuration: str) -> int:
     """
     Count the total number of agents by summing numbers in parentheses.
@@ -43,15 +48,24 @@ def count_rounds_for_model(
         agent_count (int | None, optional): Filter for specific number of agents.
             If None, include all configurations. Defaults to None.
 
+    Raises:
+        AgentCountMismatchError: If agent_count is specified and doesn't match
+            the configuration.
+
     Returns:
         Dict[str, int | str]: Dictionary containing round counts with model
             configuration name and counts for each round.
     """
     model_configuration = model_dir.name
 
-    # Skip if agent count doesn't match
-    if agent_count is not None and _count_agents(model_configuration) != agent_count:
-        return {}
+    # Check agent count
+    if agent_count is not None:
+        actual_count = _count_agents(model_configuration)
+        if actual_count != agent_count:
+            raise AgentCountMismatchError(
+                f"Configuration '{model_configuration}' has {actual_count} "
+                f"agents, expected {agent_count}"
+            )
 
     row_data = {"model_configuration": model_configuration}
 
@@ -95,6 +109,10 @@ def analyze_round_number(
         agent_count (int | None, optional): Filter for specific number of agents.
             If None, include all configurations. Defaults to None.
 
+    Raises:
+        AgentCountMismatchError: If agent_count is specified and no configurations
+            match the expected count.
+
     Returns:
         pd.DataFrame: DataFrame containing the analysis results with columns for
             model configuration and round numbers.
@@ -104,16 +122,21 @@ def analyze_round_number(
 
     # Analyze each model configuration
     for directory in directories:
-        row_data = count_rounds_for_model(
-            directory,
-            max_round_number,
-            cumulative=cumulative,
-            agent_count=agent_count,
-        )
-        if (
-            row_data
-        ):  # Only append if not empty (agent count matched or wasn't specified)
+        try:
+            row_data = count_rounds_for_model(
+                directory,
+                max_round_number,
+                cumulative=cumulative,
+                agent_count=agent_count,
+            )
             results.append(row_data)
+        except AgentCountMismatchError:
+            continue
+
+    if not results and agent_count is not None:
+        raise AgentCountMismatchError(
+            f"No configurations found with {agent_count} agents"
+        )
 
     # Create and format DataFrame
     results_df = pd.DataFrame(results)
