@@ -5,7 +5,7 @@ import pandas as pd
 
 def analyze_round_number(
     base_dir: Path, max_round_number: int, output_csv: Path
-) -> None:
+) -> pd.DataFrame:
     """
     Analyzes the convergence of LLMs in a debate setting.
 
@@ -15,7 +15,8 @@ def analyze_round_number(
         output_csv (Path): Path to save the output CSV file.
 
     Returns:
-        None
+        pd.DataFrame: DataFrame containing the analysis results with columns for
+            model configuration and round numbers.
     """
     directories = [d for d in base_dir.iterdir() if d.is_dir()]
     results: pd.DataFrame = pd.DataFrame()
@@ -46,3 +47,5 @@ def analyze_round_number(
 
     # Save to CSV
     results.to_csv(output_csv, index=False)
+    
+    return results
