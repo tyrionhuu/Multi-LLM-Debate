@@ -97,28 +97,49 @@ def run(
     # Save results to CSV
     report_path.mkdir(parents=True, exist_ok=True)
     csv_path = report_path / "results.csv"
-    file_exists = csv_path.exists()
+    
+    # Read existing data if file exists
+    existing_data = []
+    if csv_path.exists():
+        with open(csv_path, 'r', newline='') as f:
+            reader = csv.reader(f)
+            existing_data = list(reader)
+    
+    current_config = model_configs_to_string(model_configs)
+    new_row = [
+        current_config,
+        "N/A" if multiple_models else f"{results.single_llm_accuracy:.4f}",
+        f"{results.ensemble_accuracy:.4f}",
+        f"{results.debate_accuracy:.4f}",
+        csv_time,
+    ]
 
-    with open(csv_path, "a", newline="") as f:
-        writer = csv.writer(f)
-        if not file_exists:
-            writer.writerow(
-                [
-                    "Model Configuration",
-                    "Single LLM Accuracy",
-                    "Ensemble Accuracy",
-                    "Debate Accuracy",
-                    "Running Time",
-                ]
-            )
-        writer.writerow(
+    if not existing_data:
+        # Create new file with headers
+        existing_data = [
             [
-                model_configs_to_string(model_configs),
-                "N/A" if multiple_models else f"{results.single_llm_accuracy:.4f}",
-                f"{results.ensemble_accuracy:.4f}",
-                f"{results.debate_accuracy:.4f}",
-                csv_time,
+                "Model Configuration",
+                "Single LLM Accuracy",
+                "Ensemble Accuracy",
+                "Debate Accuracy",
+                "Running Time",
             ]
-        )
+        ]
+        existing_data.append(new_row)
+    else:
+        # Update existing entry or append new one
+        found = False
+        for i, row in enumerate(existing_data[1:], 1):
+            if row[0] == current_config:
+                existing_data[i] = new_row
+                found = True
+                break
+        if not found:
+            existing_data.append(new_row)
+
+    # Write all data back to CSV
+    with open(csv_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerows(existing_data)
 
     print(f"\nResults saved to {csv_path}")
