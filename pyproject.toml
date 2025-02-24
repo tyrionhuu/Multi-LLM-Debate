@@ -27,6 +27,8 @@ datasets = "^3.3.0"
 addict = "^2.4.0"
 scipy = "^1.15.2"
 sentence-transformers = "^3.4.1"
+seaborn = "^0.13.2"
+matplotlib = "^3.10.0"
 [[tool.poetry.source]]
 name = "mirrors"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
@@ -35,6 +37,7 @@ priority = "primary"
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
 isort = "^5.13.2"
+ipykernel = "^6.29.5"
 
 [tool.black]
 line-length = 88
