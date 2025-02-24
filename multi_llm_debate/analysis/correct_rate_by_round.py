@@ -185,11 +185,15 @@ def calculate_majority_vote_correct_rate(
         with open(round_file, "r") as f:
             responses = json.load(f)
 
-        valid_responses = [
-            extract_bool_answer(response.get("response", ""))
-            for response in responses
-            if response.get("response")
-        ]
+        try:
+            valid_responses = [
+                extract_bool_answer(response.get("response", ""))
+                for response in responses
+                if response.get("response")
+            ]
+        except ValueError:
+            # Skip responses that can't be parsed
+            continue
 
         if not valid_responses:
             continue
