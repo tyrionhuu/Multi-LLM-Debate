@@ -66,21 +66,19 @@ def calculate_correct_rate_by_round(
             logger.debug(f"Error getting latest round: {e}")
             continue
 
+        last_result = None  # Tracks the last round's correctness (True/False)
+
         for round_num in range(1, min(max_round_number + 1, last_round + 1)):
             round_file = subdir / f"debate_round_{round_num}.json"
-            
-            # Track the last successful round's results
-            last_success = None
-            
             if not round_file.exists():
-                if last_success is not None:
-                    # If we have a previous successful round and this round doesn't exist,
-                    # it means consensus was reached - copy the result
+                # If no file for this round, replicate the last known result if it exists
+                if last_result is not None:
                     logger.debug(
-                        f"Round {round_num} file missing - consensus reached in round {round_num-1}"
+                        f"No file for round {round_num}; "
+                        "replicating last known consensus."
                     )
                     total_counts[round_num] += 1
-                    if last_success:
+                    if last_result:
                         correct_counts[round_num] += 1
                 continue
 
@@ -106,14 +104,14 @@ def calculate_correct_rate_by_round(
                 ):
                     logger.debug(f"Round {round_num}: Correct answer found!")
                     correct_counts[round_num] += 1
-                    last_success = True
+                    last_result = True
                 else:
                     logger.debug(
                         f"Round {round_num}: Incorrect - "
                         f"unique responses: {set(valid_responses)}, "
                         f"expected: {correct_answer}"
                     )
-                    last_success = False
+                    last_result = False
 
             except (json.JSONDecodeError, KeyError, TypeError) as e:
                 logger.debug(f"Error processing round {round_num}: {e}")
