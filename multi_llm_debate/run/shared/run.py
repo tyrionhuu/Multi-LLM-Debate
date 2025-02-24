@@ -97,14 +97,14 @@ def run(
     # Save results to CSV
     report_path.mkdir(parents=True, exist_ok=True)
     csv_path = report_path / "results.csv"
-    
+
     # Read existing data if file exists
     existing_data = []
     if csv_path.exists():
-        with open(csv_path, 'r', newline='') as f:
+        with open(csv_path, "r", newline="") as f:
             reader = csv.reader(f)
             existing_data = list(reader)
-    
+
     current_config = model_configs_to_string(model_configs)
     new_row = [
         current_config,
