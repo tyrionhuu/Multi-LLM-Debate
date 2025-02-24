@@ -160,13 +160,15 @@ def calculate_majority_vote_correct_rate(
     model_dir: Path,
 ) -> float:
     """Calculate the majority vote correct rate for a given model directory.
+    
+    Cases with equal votes for different answers are not counted in the total.
 
     Args:
         dataframe (pd.DataFrame): DataFrame containing 'id' and 'answer' columns.
         model_dir (Path): Path to the model directory containing debate results.
 
     Returns:
-        float: Majority vote correct rate.
+        float: Majority vote correct rate, excluding tied votes.
     """
     correct_count = 0
     total_count = 0
@@ -191,12 +193,25 @@ def calculate_majority_vote_correct_rate(
         if not valid_responses:
             continue
 
+        # Count occurrences of each response
+        response_counts = {}
+        for response in valid_responses:
+            response_counts[response] = response_counts.get(response, 0) + 1
+
+        # Find the most common response(s)
+        max_count = max(response_counts.values())
+        most_common = [r for r, c in response_counts.items() if c == max_count]
+
+        # Skip if there's a tie (more than one most common response)
+        if len(most_common) > 1:
+            continue
+
         total_count += 1
-        majority_response = max(set(valid_responses), key=valid_responses.count)
-        if majority_response == correct_answer:
+        if most_common[0] == correct_answer:
             correct_count += 1
 
     return correct_count / total_count if total_count > 0 else 0.0
+
 if __name__ == "__main__":
     model_dir = Path("data/bool_q/gemma2:2b(3)")
     dataframe = pd.read_csv("output/bool_q/processed_data.csv", index_col=0)
