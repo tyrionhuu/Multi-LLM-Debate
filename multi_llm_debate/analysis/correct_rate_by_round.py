@@ -1,7 +1,8 @@
 import json
 import logging
-from pathlib import Path
 import traceback
+from pathlib import Path
+
 import pandas as pd
 
 from ..llm.parsers import extract_bool_answer
@@ -115,9 +116,7 @@ def calculate_correct_rate_by_round(
 
             except (json.JSONDecodeError, KeyError, TypeError) as e:
                 logger.debug(f"Error processing round {round_num}: {e}")
-                logger.debug(
-                    f"Traceback: {traceback.format_exc()}"
-                )
+                logger.debug(f"Traceback: {traceback.format_exc()}")
                 continue
 
     # Calculate correct rates for each round
