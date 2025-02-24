@@ -7,7 +7,7 @@ import pandas as pd
 from ..llm.parsers import extract_bool_answer
 from ..run.shared.utils import get_latest_round_file
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
