@@ -1,11 +1,17 @@
 from pathlib import Path
 from typing import Dict, Optional
-
 import pandas as pd
+
+def _count_agents(model_configuration: str) -> int:
+    """Count the number of agents in a model configuration name."""
+    return sum(1 for part in model_configuration.split("+"))
 
 
 def count_rounds_for_model(
-    model_dir: Path, max_round_number: int, cumulative: bool = False
+    model_dir: Path, 
+    max_round_number: int, 
+    cumulative: bool = False,
+    agent_count: Optional[int] = None,
 ) -> Dict[str, int | str]:
     """
     Count the number of rounds completed for a specific model configuration.
@@ -15,12 +21,19 @@ def count_rounds_for_model(
         max_round_number (int): Maximum number of rounds to analyze.
         cumulative (bool, optional): If True, count cumulatively (>=),
             if False, count exact matches (==). Defaults to False.
+        agent_count (int | None, optional): Filter for specific number of agents.
+            If None, include all configurations. Defaults to None.
 
     Returns:
         Dict[str, int | str]: Dictionary containing round counts with model
             configuration name and counts for each round.
     """
     model_configuration = model_dir.name
+    
+    # Skip if agent count doesn't match
+    if agent_count is not None and _count_agents(model_configuration) != agent_count:
+        return {}
+
     row_data = {"model_configuration": model_configuration}
 
     # Get all subdirectories
@@ -47,6 +60,7 @@ def analyze_round_number(
     max_round_number: int | None = 10,
     output_csv: Optional[Path] = None,
     cumulative: bool = False,
+    agent_count: Optional[int] = None,
 ) -> pd.DataFrame:
     """
     Analyzes the convergence of LLMs in a debate setting.
@@ -59,6 +73,8 @@ def analyze_round_number(
             If None, no CSV file will be created. Defaults to None.
         cumulative (bool, optional): If True, count cumulatively (>=),
             if False, count exact matches (==). Defaults to False.
+        agent_count (int | None, optional): Filter for specific number of agents.
+            If None, include all configurations. Defaults to None.
 
     Returns:
         pd.DataFrame: DataFrame containing the analysis results with columns for
@@ -70,9 +86,13 @@ def analyze_round_number(
     # Analyze each model configuration
     for directory in directories:
         row_data = count_rounds_for_model(
-            directory, max_round_number, cumulative=cumulative
+            directory, 
+            max_round_number, 
+            cumulative=cumulative,
+            agent_count=agent_count,
         )
-        results.append(row_data)
+        if row_data:  # Only append if not empty (agent count matched or wasn't specified)
+            results.append(row_data)
 
     # Create and format DataFrame
     results_df = pd.DataFrame(results)
@@ -91,28 +111,19 @@ def analyze_round_number(
 def main() -> None:
     """Test the analyze_round_number function with example parameters."""
     base_dir = Path("data/bool_q")
-    model_dir = Path("data/bool_q/gemma2:2b(3)")
 
     try:
-        # Test both counting methods
-        print("Testing exact counting:")
-        df_exact = analyze_round_number(
-            base_dir=base_dir,
-            max_round_number=10,
-            cumulative=False,
-        )
-        print("\nExact counts:")
-        print(df_exact.head())
-
-        print("\nTesting cumulative counting:")
-        df_cumulative = analyze_round_number(
-            base_dir=base_dir,
-            max_round_number=10,
-            cumulative=True,
-        )
-        print("\nCumulative counts:")
-        print(df_cumulative.head())
-
+        # Test with different agent counts
+        for agent_count in [2, 3]:
+            print(f"\nTesting with {agent_count} agents:")
+            df = analyze_round_number(
+                base_dir=base_dir,
+                max_round_number=10,
+                cumulative=True,
+                agent_count=agent_count,
+            )
+            print(df.head())
+        
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
 
