@@ -3,8 +3,25 @@ from typing import Dict, Optional
 import pandas as pd
 
 def _count_agents(model_configuration: str) -> int:
-    """Count the number of agents in a model configuration name."""
-    return sum(1 for part in model_configuration.split("+"))
+    """
+    Count the total number of agents by summing numbers in parentheses.
+    
+    Args:
+        model_configuration (str): Model configuration string (e.g. "llama2(3)+llama3(3)")
+    
+    Returns:
+        int: Sum of numbers in parentheses
+    """
+    total = 0
+    for part in model_configuration.split("+"):
+        if "(" in part and ")" in part:
+            # Extract number between parentheses
+            num_str = part[part.find("(")+1:part.find(")")]
+            try:
+                total += int(num_str)
+            except ValueError:
+                continue
+    return total
 
 
 def count_rounds_for_model(
