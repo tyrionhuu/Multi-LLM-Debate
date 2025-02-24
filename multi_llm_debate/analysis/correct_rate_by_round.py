@@ -96,14 +96,31 @@ def calculate_correct_rate_by_round(
                 with open(round_file, "r") as f:
                     responses = json.load(f)
 
-                normalized_responses = [
-                    extract_bool_answer(response.get("response", ""))
-                    for response in responses
-                ]
-                logger.debug(f"Normalized responses: {normalized_responses}")
+                try:
+                    normalized_responses = [
+                        extract_bool_answer(response.get("response", ""))
+                        for response in responses
+                        if response.get("response")  # Skip empty responses
+                    ]
+                except ValueError as e:
+                    logger.debug(
+                        f"Error processing task directory {subdir}: {str(e)}"
+                    )
+                    print(
+                        f"Error processing task directory {model_dir}/{subdir.name}: {str(e)}"
+                    )
+                    debate_ended = True
+                    continue
 
+                logger.debug(f"Normalized responses: {normalized_responses}")
+                
+                # Only consider valid non-empty responses
                 valid_responses = [r for r in normalized_responses if r]
-                logger.debug(f"Valid responses: {valid_responses}")
+                
+                if not valid_responses:
+                    logger.debug("No valid responses found, skipping round")
+                    debate_ended = True
+                    continue
 
                 total_counts[round_num] += 1
                 if (
