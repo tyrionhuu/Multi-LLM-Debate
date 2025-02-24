@@ -36,13 +36,7 @@ def calculate_correct_rate_by_round(
         if question_id not in dataframe.index:
             continue
 
-        # Get correct answer and normalize it
         correct_answer = str(dataframe.loc[question_id, "answer"]).lower()
-        if correct_answer not in ["true", "false"]:
-            continue
-
-        # Convert string to boolean for comparison
-        correct_answer_bool = (correct_answer == "true")
 
         try:
             latest_round_file = get_latest_round_file(subdir)
@@ -59,18 +53,26 @@ def calculate_correct_rate_by_round(
                 with open(round_file, "r") as f:
                     round_data = json.load(f)
 
-                if "conclusion" not in round_data:
+                # Get all agent responses from this round
+                responses = round_data.get("responses", [])
+                if not responses:
                     continue
 
-                predicted_answer = extract_bool_answer(round_data["conclusion"])
-                if predicted_answer is None:
+                # Extract and normalize all boolean answers
+                normalized_responses = [
+                    extract_bool_answer(response.get("response", ""))
+                    for response in responses
+                ]
+
+                # Filter out invalid/empty responses
+                valid_responses = [r for r in normalized_responses if r]
+                if not valid_responses:
                     continue
 
-                # Convert string to boolean for comparison
-                predicted_answer_bool = (predicted_answer == "true")
-
+                # Only count as correct if all valid responses are the same and match answer
                 total_counts[round_num] += 1
-                if predicted_answer_bool == correct_answer_bool:
+                if (len(set(valid_responses)) == 1 and 
+                    valid_responses[0] == correct_answer):
                     correct_counts[round_num] += 1
 
             except (json.JSONDecodeError, KeyError, TypeError):
