@@ -1,5 +1,4 @@
 import json
-import traceback  # Add this import
 from pathlib import Path
 
 import pandas as pd
