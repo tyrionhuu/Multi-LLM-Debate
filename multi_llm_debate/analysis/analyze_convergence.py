@@ -161,7 +161,7 @@ def main() -> None:
         df = analyze_round_number(
             base_dir=base_dir,
             max_round_number=10,
-            cumulative=True,
+            cumulative=False,
             agent_count=3,
         )
         print("\nAnalysis for 3-agent configurations:")
