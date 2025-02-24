@@ -155,12 +155,13 @@ def calculate_correct_rate_by_round(
 
     return pd.DataFrame([row_data])
 
+
 def calculate_majority_vote_correct_rate(
     dataframe: pd.DataFrame,
     model_dir: Path,
 ) -> float:
     """Calculate the majority vote correct rate for a given model directory.
-    
+
     Cases with equal votes for different answers are not counted in the total.
 
     Args:
@@ -211,6 +212,7 @@ def calculate_majority_vote_correct_rate(
             correct_count += 1
 
     return correct_count / total_count if total_count > 0 else 0.0
+
 
 if __name__ == "__main__":
     model_dir = Path("data/bool_q/gemma2:2b(3)")
