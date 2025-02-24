@@ -121,17 +121,15 @@ def calculate_correct_rate_by_round(
                     continue
 
                 total_counts[round_num] += 1
-                if (
-                    len(set(valid_responses)) == 1
-                    and valid_responses[0] == correct_answer
-                ):
-                    logger.debug(f"Round {round_num}: Correct answer found!")
+                correct_ratio = sum(1 for r in valid_responses if r == correct_answer) / len(valid_responses)
+                if correct_ratio >= 0.5:  # Majority rule
+                    logger.debug(f"Round {round_num}: Majority correct answers!")
                     correct_counts[round_num] += 1
                     last_result = True
                 else:
                     logger.debug(
                         f"Round {round_num}: Incorrect - "
-                        f"unique responses: {set(valid_responses)}, "
+                        f"correct ratio: {correct_ratio:.2%}, "
                         f"expected: {correct_answer}"
                     )
                     last_result = False
