@@ -101,25 +101,25 @@ def classify_task_difficulty(task_dir: Path, answer: str) -> int:
 
 if __name__ == "__main__":
     from ..utils.download_dataset import load_save_dataset_df
-    
+
     # Set up paths
     model_dir = Path("data/bool_q/gemma2:2b(3)")
     dataset_path = Path("datasets/boolq")
-    
+
     # Load dataset
     dataframe = load_save_dataset_df(
         dataset_name="google/boolq",
         dataset_path=dataset_path,
         force_download=False,
     )
-    
+
     # Analyze task difficulty
     result_df = analyze_task_difficulty(model_dir, dataframe)
-    
+
     # Print summary statistics
     print("\nDifficulty Distribution:")
     print(result_df["difficulty"].value_counts().sort_index())
-    
+
     # Print error cases (difficulty = -1)
     error_cases = result_df[result_df["difficulty"] == -1]
     if not error_cases.empty:
