@@ -24,10 +24,11 @@ def count_rounds_for_model(
     # Get all subdirectories
     subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
 
-    # Count files in each subdirectory
+    # Count files in each subdirectory for exact round matches
     for round_num in range(1, max_round_number + 1):
         count = sum(
-            1 for subdir in subdirs if sum(1 for _ in subdir.glob("*")) >= round_num
+            1 for subdir in subdirs 
+            if sum(1 for _ in subdir.glob("*")) == round_num
         )
         row_data[str(round_num)] = count
 
@@ -75,16 +76,27 @@ def analyze_round_number(
 
 def main() -> None:
     """Test the analyze_round_number function with example parameters."""
+    base_dir = Path("data/bool_q")
     model_dir = Path("data/bool_q/gemma2:2b(3)")
 
     try:
-        df = count_rounds_for_model(
+        # Test single model analysis
+        print("Testing single model analysis:")
+        model_data = count_rounds_for_model(
             model_dir=model_dir,
             max_round_number=10,
         )
-        print("Analysis completed successfully!")
+        print(model_data)
+        
+        print("\nTesting full directory analysis:")
+        # Test full directory analysis
+        df = analyze_round_number(
+            base_dir=base_dir,
+            max_round_number=10,
+        )
         print("\nDataFrame head:")
         print(df.head())
+        
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
 
