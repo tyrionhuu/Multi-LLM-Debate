@@ -16,9 +16,9 @@ def classify_task_difficulty(task_dir: Path, dataframe: pd.DataFrame) -> int:
 
     Returns:
         int: The difficulty level of the task, where:
-             0 is easy
-             1 is hard
-             -1 indicates an error occurred
+                0 is easy
+                1 is hard
+                -1 indicates an error occurred
     """
     try:
         # Check if the task directory exists
