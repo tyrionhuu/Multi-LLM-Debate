@@ -155,7 +155,48 @@ def calculate_correct_rate_by_round(
 
     return pd.DataFrame([row_data])
 
+def calculate_majority_vote_correct_rate(
+    dataframe: pd.DataFrame,
+    model_dir: Path,
+) -> float:
+    """Calculate the majority vote correct rate for a given model directory.
 
+    Args:
+        dataframe (pd.DataFrame): DataFrame containing 'id' and 'answer' columns.
+        model_dir (Path): Path to the model directory containing debate results.
+
+    Returns:
+        float: Majority vote correct rate.
+    """
+    correct_count = 0
+    total_count = 0
+
+    for _, row in dataframe.iterrows():
+        question_id = str(row["id"])
+        correct_answer = str(row["answer"]).lower()
+        round_file = model_dir / question_id / "debate_round_0.json"
+
+        if not round_file.exists():
+            continue
+
+        with open(round_file, "r") as f:
+            responses = json.load(f)
+
+        valid_responses = [
+            extract_bool_answer(response.get("response", ""))
+            for response in responses
+            if response.get("response")
+        ]
+
+        if not valid_responses:
+            continue
+
+        total_count += 1
+        majority_response = max(set(valid_responses), key=valid_responses.count)
+        if majority_response == correct_answer:
+            correct_count += 1
+
+    return correct_count / total_count if total_count > 0 else 0.0
 if __name__ == "__main__":
     model_dir = Path("data/bool_q/gemma2:2b(3)")
     dataframe = pd.read_csv("output/bool_q/processed_data.csv", index_col=0)

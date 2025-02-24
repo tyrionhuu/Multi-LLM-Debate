@@ -99,7 +99,7 @@ def classify_task_difficulty(task_dir: Path, answer: str) -> int:
         accuracy = correct_count / total_responses if total_responses > 0 else 0
         # print(f"Task ID: {task_dir.name}, Correct: {correct_count}, Total: {total_responses}, Accuracy: {accuracy:.2f}")
         # Classify difficulty - if more than 50% get it right, it's easy
-        DIFFICULTY_THRESHOLD = 0.7
+        DIFFICULTY_THRESHOLD = 0.5
         return 0 if accuracy >= DIFFICULTY_THRESHOLD else 1
 
     except Exception as e:
