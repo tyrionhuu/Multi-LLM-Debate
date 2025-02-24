@@ -51,10 +51,10 @@ def main(
 
         # Process all configurations
         processed_df = process_df_fn(dataframe)
-        
+
         # Save processed DataFrame to CSV
         processed_df.to_csv(f"output/bool_q/processed_data.csv", index=False)
-        
+
         for model_configs in model_configs_list:
             run(
                 dataframe=processed_df,
