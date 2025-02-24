@@ -10,6 +10,7 @@ from ..run.shared.utils import get_latest_round_file
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 def calculate_correct_rate_by_round(
     dataframe: pd.DataFrame, model_dir: Path, max_round_number: int
 ) -> pd.DataFrame:
