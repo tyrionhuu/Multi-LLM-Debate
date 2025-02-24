@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import traceback  # Add this import
 
 import pandas as pd
 
@@ -21,13 +22,17 @@ def analyze_task_difficulty(model_dir: Path, dataframe: pd.DataFrame) -> pd.Data
     # Initialize difficulty dictionary
     difficulty_dict = {}
 
+    # Convert id column to string type if it isn't already
+    dataframe["id"] = dataframe["id"].astype(str)
+
     # Iterate through existing task directories
     for task_dir in model_dir.iterdir():
         if not task_dir.is_dir():
             continue
 
-        task_id = task_dir.name
+        task_id = str(task_dir.name)  # Ensure task_id is string
         if task_id not in dataframe["id"].values:
+            print(f"Warning: Task ID {task_id} not found in dataframe")
             continue
 
         answer = dataframe.loc[dataframe["id"] == task_id, "answer"].values[0]
@@ -35,7 +40,7 @@ def analyze_task_difficulty(model_dir: Path, dataframe: pd.DataFrame) -> pd.Data
         difficulty_dict[task_id] = difficulty
 
     # Add difficulty column to dataframe
-    dataframe["difficulty"] = dataframe["id"].map(lambda x: difficulty_dict.get(x, -1))
+    dataframe["difficulty"] = dataframe["id"].map(lambda x: difficulty_dict.get(str(x), -1))
 
     return dataframe
 
@@ -95,7 +100,9 @@ def classify_task_difficulty(task_dir: Path, answer: str) -> int:
         DIFFICULTY_THRESHOLD = 0.5
         return 0 if accuracy >= DIFFICULTY_THRESHOLD else 1
 
-    except Exception:
+    except Exception as e:
+        print(f"Error processing task directory {task_dir}: {e}")
+        # print(traceback.format_exc())
         return -1
 
 
