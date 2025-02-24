@@ -89,3 +89,15 @@ def calculate_correct_rate_by_round(
         row_data[str(round_num)] = correct_rate
 
     return pd.DataFrame([row_data])
+
+
+if __name__ == "__main__":
+    # Example usage
+    model_dir = Path("data/bool_q/gemma2:2b(3)")
+    dataframe = pd.read_csv("output/bool_q/processed_data.csv", index_col=0)
+    max_round_number = 10
+
+    result_df = calculate_correct_rate_by_round(
+        dataframe, model_dir, max_round_number
+    )
+    print(result_df)
