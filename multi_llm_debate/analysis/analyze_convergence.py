@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import pandas as pd
 
@@ -53,12 +53,12 @@ def analyze_round_number(
     """
     directories = [d for d in base_dir.iterdir() if d.is_dir()]
     results = []
-    
+
     # Analyze each model configuration
     for directory in directories:
         row_data = count_rounds_for_model(directory, max_round_number)
         results.append(row_data)
-    
+
     # Create and format DataFrame
     results_df = pd.DataFrame(results)
     column_order = ["model_configuration"] + [
@@ -76,7 +76,7 @@ def analyze_round_number(
 def main() -> None:
     """Test the analyze_round_number function with example parameters."""
     base_dir = Path("data/bool_q")
-    
+
     try:
         df = analyze_round_number(
             base_dir=base_dir,
@@ -91,4 +91,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
