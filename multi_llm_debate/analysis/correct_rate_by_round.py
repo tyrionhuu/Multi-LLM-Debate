@@ -34,6 +34,7 @@ def calculate_correct_rate_by_round(
     # Initialize counters for each round
     correct_counts = {i: 0 for i in range(0, max_round_number + 1)}
     total_counts = {i: 0 for i in range(0, max_round_number + 1)}
+    total_debates = 0  # Track total number of debates
 
     for subdir in subdirs:
         question_id = subdir.name
@@ -68,16 +69,21 @@ def calculate_correct_rate_by_round(
             continue
 
         last_result = None  # Tracks the last round's correctness (True/False)
+        total_debates += 1  # Count this debate
+        debate_ended = False
 
-        for round_num in range(0, min(max_round_number + 1, last_round + 1)):
+        for round_num in range(0, max_round_number + 1):
+            if debate_ended:
+                # If debate ended early, replicate last result for all subsequent rounds
+                total_counts[round_num] += 1
+                if last_result:
+                    correct_counts[round_num] += 1
+                continue
+
             round_file = subdir / f"debate_round_{round_num}.json"
             if not round_file.exists():
-                # If no file for this round, replicate the last known result if it exists
+                debate_ended = True
                 if last_result is not None:
-                    logger.debug(
-                        f"No file for round {round_num}; "
-                        "replicating last known consensus."
-                    )
                     total_counts[round_num] += 1
                     if last_result:
                         correct_counts[round_num] += 1
@@ -117,6 +123,7 @@ def calculate_correct_rate_by_round(
             except (json.JSONDecodeError, KeyError, TypeError) as e:
                 logger.debug(f"Error processing round {round_num}: {e}")
                 logger.debug(f"Traceback: {traceback.format_exc()}")
+                debate_ended = True
                 continue
 
     # Calculate correct rates for each round
