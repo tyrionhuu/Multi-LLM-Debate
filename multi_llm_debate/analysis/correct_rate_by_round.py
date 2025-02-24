@@ -16,45 +16,47 @@ logger = logging.getLogger(__name__)
 def calculate_correct_rate_by_round(
     dataframe: pd.DataFrame, model_dir: Path, max_round_number: int
 ) -> pd.DataFrame:
-    """Calculate the correct rate for each round in the dataframe.
+    """Calculate the correct rate for each round of debates.
+
+    This function processes debate data stored in JSON files for various
+    rounds. It reads the correct answers from the provided dataframe, then
+    compares them with normalized responses in each debate round. When a
+    debate ends early, the last known correctness is replicated across
+    remaining rounds.
 
     Args:
-        dataframe: DataFrame containing 'id' and 'answer' columns
-        model_dir: Path to the model directory containing debate results
-        max_round_number: Maximum number of debate rounds to analyze
+        dataframe (pd.DataFrame): DataFrame containing 'id' and 'answer' columns.
+        model_dir (Path): Path to the model directory containing debate results.
+        max_round_number (int): Maximum number of debate rounds to analyze.
 
     Returns:
-        DataFrame with correct rates for each round
+        pd.DataFrame: A single-row DataFrame containing correct rates
+            for each round, keyed by round number, plus the model configuration.
     """
     model_configuration = model_dir.name
     row_data = {"model_configuration": model_configuration}
 
-    # Get all subdirectories and create progress bar
     subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
     pbar = tqdm(subdirs, desc=f"Processing {model_configuration}")
 
-    # Initialize counters for each round
     correct_counts = {i: 0 for i in range(0, max_round_number + 1)}
     total_counts = {i: 0 for i in range(0, max_round_number + 1)}
-    total_debates = 0  # Track total number of debates
+    total_debates = 0
 
     for subdir in pbar:
         question_id = subdir.name
         logger.debug(f"Processing question ID: {question_id}")
 
-        # Try both string and int versions of the ID
         str_id = str(question_id)
         try:
             int_id = int(question_id)
         except ValueError:
             int_id = None
 
-        # Check if either version of the ID exists in the 'id' column
         matching_rows = dataframe[
             (dataframe["id"] == str_id)
             | (dataframe["id"] == int_id if int_id is not None else False)
         ]
-
         if matching_rows.empty:
             logger.debug(f"Skipping {question_id} - not found in dataframe")
             continue
@@ -70,13 +72,12 @@ def calculate_correct_rate_by_round(
             logger.debug(f"Error getting latest round: {e}")
             continue
 
-        last_result = None  # Tracks the last round's correctness (True/False)
-        total_debates += 1  # Count this debate
+        last_result = None
+        total_debates += 1
         debate_ended = False
 
         for round_num in range(0, max_round_number + 1):
             if debate_ended:
-                # If debate ended early, replicate last result for all subsequent rounds
                 total_counts[round_num] += 1
                 if last_result:
                     correct_counts[round_num] += 1
@@ -94,8 +95,6 @@ def calculate_correct_rate_by_round(
             try:
                 with open(round_file, "r") as f:
                     responses = json.load(f)
-
-                # logger.debug(f"Round {round_num} responses: {responses}")
 
                 normalized_responses = [
                     extract_bool_answer(response.get("response", ""))
@@ -128,7 +127,6 @@ def calculate_correct_rate_by_round(
                 debate_ended = True
                 continue
 
-    # Calculate correct rates for each round
     for round_num in range(0, max_round_number + 1):
         if total_counts[round_num] > 0:
             correct_rate = correct_counts[round_num] / total_counts[round_num]
@@ -144,7 +142,6 @@ def calculate_correct_rate_by_round(
 
 
 if __name__ == "__main__":
-    # Example usage
     model_dir = Path("data/bool_q/gemma2:2b(3)")
     dataframe = pd.read_csv("output/bool_q/processed_data.csv", index_col=0)
     max_round_number = 10
