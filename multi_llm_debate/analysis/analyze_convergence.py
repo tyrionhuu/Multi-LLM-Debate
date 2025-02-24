@@ -1,14 +1,16 @@
 from pathlib import Path
 from typing import Dict, Optional
+
 import pandas as pd
+
 
 def _count_agents(model_configuration: str) -> int:
     """
     Count the total number of agents by summing numbers in parentheses.
-    
+
     Args:
         model_configuration (str): Model configuration string (e.g. "llama2(3)+llama3(3)")
-    
+
     Returns:
         int: Sum of numbers in parentheses
     """
@@ -16,7 +18,7 @@ def _count_agents(model_configuration: str) -> int:
     for part in model_configuration.split("+"):
         if "(" in part and ")" in part:
             # Extract number between parentheses
-            num_str = part[part.find("(")+1:part.find(")")]
+            num_str = part[part.find("(") + 1 : part.find(")")]
             try:
                 total += int(num_str)
             except ValueError:
@@ -25,8 +27,8 @@ def _count_agents(model_configuration: str) -> int:
 
 
 def count_rounds_for_model(
-    model_dir: Path, 
-    max_round_number: int, 
+    model_dir: Path,
+    max_round_number: int,
     cumulative: bool = False,
     agent_count: Optional[int] = None,
 ) -> Dict[str, int | str]:
@@ -46,7 +48,7 @@ def count_rounds_for_model(
             configuration name and counts for each round.
     """
     model_configuration = model_dir.name
-    
+
     # Skip if agent count doesn't match
     if agent_count is not None and _count_agents(model_configuration) != agent_count:
         return {}
@@ -103,12 +105,14 @@ def analyze_round_number(
     # Analyze each model configuration
     for directory in directories:
         row_data = count_rounds_for_model(
-            directory, 
-            max_round_number, 
+            directory,
+            max_round_number,
             cumulative=cumulative,
             agent_count=agent_count,
         )
-        if row_data:  # Only append if not empty (agent count matched or wasn't specified)
+        if (
+            row_data
+        ):  # Only append if not empty (agent count matched or wasn't specified)
             results.append(row_data)
 
     # Create and format DataFrame
@@ -140,7 +144,7 @@ def main() -> None:
                 agent_count=agent_count,
             )
             print(df.head())
-        
+
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
 
