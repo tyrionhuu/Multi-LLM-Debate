@@ -84,18 +84,22 @@ def classify_task_difficulty(task_dir: Path, answer: str) -> int:
         for response in responses:
             response_text = response["response"]
             extracted_response = extract_bool_answer(response_text)
-
+            
             # Skip invalid responses
             if extracted_response is None:
                 total_responses -= 1
                 continue
-
-            if extracted_response == answer_bool:
+            
+            # Convert both to lowercase strings for comparison
+            if str(extracted_response).lower() == str(answer_bool).lower():
                 correct_count += 1
+                print(f"Correct answer: extracted={extracted_response}, expected={answer_bool}")
+            else:
+                print(f"Wrong answer: extracted={extracted_response}, expected={answer_bool}")
 
         # Calculate accuracy
         accuracy = correct_count / total_responses if total_responses > 0 else 0
-
+        # print(f"Task ID: {task_dir.name}, Correct: {correct_count}, Total: {total_responses}, Accuracy: {accuracy:.2f}")
         # Classify difficulty - if more than 50% get it right, it's easy
         DIFFICULTY_THRESHOLD = 0.5
         return 0 if accuracy >= DIFFICULTY_THRESHOLD else 1
