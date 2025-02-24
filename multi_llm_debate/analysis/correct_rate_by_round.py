@@ -97,7 +97,5 @@ if __name__ == "__main__":
     dataframe = pd.read_csv("output/bool_q/processed_data.csv", index_col=0)
     max_round_number = 10
 
-    result_df = calculate_correct_rate_by_round(
-        dataframe, model_dir, max_round_number
-    )
+    result_df = calculate_correct_rate_by_round(dataframe, model_dir, max_round_number)
     print(result_df)
