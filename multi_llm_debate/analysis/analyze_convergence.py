@@ -157,16 +157,14 @@ def main() -> None:
     base_dir = Path("data/bool_q")
 
     try:
-        # Test with different agent counts
-        for agent_count in [2, 3]:
-            print(f"\nTesting with {agent_count} agents:")
-            df = analyze_round_number(
-                base_dir=base_dir,
-                max_round_number=10,
-                cumulative=True,
-                agent_count=agent_count,
-            )
-            print(df.head())
+        df = analyze_round_number(
+            base_dir=base_dir,
+            max_round_number=10,
+            cumulative=True,
+            agent_count=3,
+        )
+        print("\nAnalysis for 3-agent configurations:")
+        print(df)
 
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
