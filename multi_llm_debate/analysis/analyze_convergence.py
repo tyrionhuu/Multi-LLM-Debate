@@ -13,7 +13,7 @@ def count_rounds_for_model(
     Args:
         model_dir (Path): Directory containing the model's debate data.
         max_round_number (int): Maximum number of rounds to analyze.
-        cumulative (bool, optional): If True, count cumulatively (>=), 
+        cumulative (bool, optional): If True, count cumulatively (>=),
             if False, count exact matches (==). Defaults to False.
 
     Returns:
@@ -29,7 +29,8 @@ def count_rounds_for_model(
     # Count files in each subdirectory
     for round_num in range(1, max_round_number + 1):
         count = sum(
-            1 for subdir in subdirs 
+            1
+            for subdir in subdirs
             if (
                 sum(1 for _ in subdir.glob("*")) >= round_num
                 if cumulative
@@ -42,8 +43,8 @@ def count_rounds_for_model(
 
 
 def analyze_round_number(
-    base_dir: Path, 
-    max_round_number: int | None = 10, 
+    base_dir: Path,
+    max_round_number: int | None = 10,
     output_csv: Optional[Path] = None,
     cumulative: bool = False,
 ) -> pd.DataFrame:
@@ -52,7 +53,7 @@ def analyze_round_number(
 
     Args:
         base_dir (Path): Base directory containing the debate data.
-        max_round_number (int | None, optional): Maximum number of rounds to 
+        max_round_number (int | None, optional): Maximum number of rounds to
             analyze. Defaults to 10.
         output_csv (Path | None, optional): Path to save the output CSV file.
             If None, no CSV file will be created. Defaults to None.
@@ -102,7 +103,7 @@ def main() -> None:
         )
         print("\nExact counts:")
         print(df_exact.head())
-        
+
         print("\nTesting cumulative counting:")
         df_cumulative = analyze_round_number(
             base_dir=base_dir,
@@ -111,7 +112,7 @@ def main() -> None:
         )
         print("\nCumulative counts:")
         print(df_cumulative.head())
-        
+
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
 
