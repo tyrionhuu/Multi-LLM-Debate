@@ -1,18 +1,17 @@
 import json
 from pathlib import Path
 
-import pandas as pd
 
 from ..llm.parsers import extract_bool_answer
 
 
-def classify_task_difficulty(task_dir: Path, dataframe: pd.DataFrame) -> int:
+def classify_task_difficulty(task_dir: Path, answer: str) -> int:
     """
     Classifies the difficulty of a task based on the number of examples in the task directory.
 
     Args:
         task_dir (Path): The path to the task directory.
-        dataframe (pd.DataFrame): DataFrame containing task information.
+        answer (str): The correct answer for the task ('yes'/'no' or 'true'/'false').
 
     Returns:
         int: The difficulty level of the task, where:
@@ -24,14 +23,6 @@ def classify_task_difficulty(task_dir: Path, dataframe: pd.DataFrame) -> int:
         # Check if the task directory exists
         if not task_dir.exists():
             return -1
-
-        task_id = task_dir.name
-        # Check if the task ID is in the dataframe
-        if task_id not in dataframe["id"].values:
-            return -1
-
-        # Get answer
-        answer = dataframe.loc[dataframe["id"] == task_id, "answer"].values[0]
 
         first_response_file = task_dir / "debate_round_0.json"
         # Check if the first response file exists
@@ -46,6 +37,9 @@ def classify_task_difficulty(task_dir: Path, dataframe: pd.DataFrame) -> int:
         correct_count = 0
         total_responses = len(responses)
 
+        # Convert answer to normalized boolean format
+        answer_bool = str(answer).lower().strip() in ["yes", "true", "1"]
+
         # Count correct responses in first round
         for response in responses:
             response_text = response["response"]
@@ -55,9 +49,6 @@ def classify_task_difficulty(task_dir: Path, dataframe: pd.DataFrame) -> int:
             if extracted_response is None:
                 total_responses -= 1
                 continue
-
-            # Convert answer to normalized boolean format
-            answer_bool = str(answer).lower().strip() in ["yes", "true", "1"]
 
             if extracted_response == answer_bool:
                 correct_count += 1
