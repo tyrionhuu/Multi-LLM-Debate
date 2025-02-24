@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -6,6 +7,8 @@ import pandas as pd
 from ..llm.parsers import extract_bool_answer
 from ..run.shared.utils import get_latest_round_file
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def calculate_correct_rate_by_round(
     dataframe: pd.DataFrame, model_dir: Path, max_round_number: int
@@ -32,16 +35,21 @@ def calculate_correct_rate_by_round(
 
     for subdir in subdirs:
         question_id = subdir.name
+        logger.debug(f"Processing question ID: {question_id}")
 
         if question_id not in dataframe.index:
+            logger.debug(f"Skipping {question_id} - not found in dataframe")
             continue
 
         correct_answer = str(dataframe.loc[question_id, "answer"]).lower()
+        logger.debug(f"Correct answer: {correct_answer}")
 
         try:
             latest_round_file = get_latest_round_file(subdir)
             last_round = int(latest_round_file.stem.split("_")[-1])
-        except (ValueError, FileNotFoundError):
+            logger.debug(f"Latest round: {last_round}")
+        except (ValueError, FileNotFoundError) as e:
+            logger.debug(f"Error getting latest round: {e}")
             continue
 
         for round_num in range(1, min(max_round_number + 1, last_round + 1)):
@@ -53,31 +61,34 @@ def calculate_correct_rate_by_round(
                 with open(round_file, "r") as f:
                     round_data = json.load(f)
 
-                # Get all agent responses from this round
                 responses = round_data.get("responses", [])
-                if not responses:
-                    continue
+                logger.debug(f"Round {round_num} responses: {responses}")
 
-                # Extract and normalize all boolean answers
                 normalized_responses = [
                     extract_bool_answer(response.get("response", ""))
                     for response in responses
                 ]
+                logger.debug(f"Normalized responses: {normalized_responses}")
 
-                # Filter out invalid/empty responses
                 valid_responses = [r for r in normalized_responses if r]
-                if not valid_responses:
-                    continue
+                logger.debug(f"Valid responses: {valid_responses}")
 
-                # Only count as correct if all valid responses are the same and match answer
                 total_counts[round_num] += 1
                 if (
                     len(set(valid_responses)) == 1
                     and valid_responses[0] == correct_answer
                 ):
+                    logger.debug(f"Round {round_num}: Correct answer found!")
                     correct_counts[round_num] += 1
+                else:
+                    logger.debug(
+                        f"Round {round_num}: Incorrect - "
+                        f"unique responses: {set(valid_responses)}, "
+                        f"expected: {correct_answer}"
+                    )
 
-            except (json.JSONDecodeError, KeyError, TypeError):
+            except (json.JSONDecodeError, KeyError, TypeError) as e:
+                logger.debug(f"Error processing round {round_num}: {e}")
                 continue
 
     # Calculate correct rates for each round
@@ -86,6 +97,10 @@ def calculate_correct_rate_by_round(
             correct_rate = correct_counts[round_num] / total_counts[round_num]
         else:
             correct_rate = 0.0
+        logger.debug(
+            f"Round {round_num}: {correct_counts[round_num]} correct out of "
+            f"{total_counts[round_num]} total = {correct_rate:.2%}"
+        )
         row_data[str(round_num)] = correct_rate
 
     return pd.DataFrame([row_data])
