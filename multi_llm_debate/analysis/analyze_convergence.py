@@ -4,15 +4,17 @@ import pandas as pd
 
 
 def analyze_round_number(
-    base_dir: Path, max_round_number: int, output_csv: Path
+    base_dir: Path, max_round_number: int | None = 10, output_csv: Path | None = None
 ) -> pd.DataFrame:
     """
     Analyzes the convergence of LLMs in a debate setting.
 
     Args:
         base_dir (Path): Base directory containing the debate data.
-        max_round (int): Maximum number of rounds to analyze.
-        output_csv (Path): Path to save the output CSV file.
+        max_round_number (int | None, optional): Maximum number of rounds to analyze.
+            Defaults to 10.
+        output_csv (Path | None, optional): Path to save the output CSV file.
+            If None, no CSV file will be created. Defaults to None.
 
     Returns:
         pd.DataFrame: DataFrame containing the analysis results with columns for
@@ -45,7 +47,8 @@ def analyze_round_number(
     ]
     results = results[column_order]
 
-    # Save to CSV
-    results.to_csv(output_csv, index=False)
+    # Save to CSV if path is provided
+    if output_csv is not None:
+        results.to_csv(output_csv, index=False)
     
     return results
