@@ -4,6 +4,7 @@ import traceback
 from pathlib import Path
 
 import pandas as pd
+from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
 from ..run.shared.utils import get_latest_round_file
@@ -28,15 +29,16 @@ def calculate_correct_rate_by_round(
     model_configuration = model_dir.name
     row_data = {"model_configuration": model_configuration}
 
-    # Get all subdirectories
+    # Get all subdirectories and create progress bar
     subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
+    pbar = tqdm(subdirs, desc=f"Processing {model_configuration}")
 
     # Initialize counters for each round
     correct_counts = {i: 0 for i in range(0, max_round_number + 1)}
     total_counts = {i: 0 for i in range(0, max_round_number + 1)}
     total_debates = 0  # Track total number of debates
 
-    for subdir in subdirs:
+    for subdir in pbar:
         question_id = subdir.name
         logger.debug(f"Processing question ID: {question_id}")
 
