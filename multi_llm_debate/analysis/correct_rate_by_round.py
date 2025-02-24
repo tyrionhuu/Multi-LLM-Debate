@@ -17,7 +17,7 @@ def calculate_correct_rate_by_round(
     """Calculate the correct rate for each round in the dataframe.
 
     Args:
-        dataframe: DataFrame containing the correct answers indexed by ID
+        dataframe: DataFrame containing the correct answers indexed by ID (str or int)
         model_dir: Path to the model directory containing debate results
         max_round_number: Maximum number of debate rounds to analyze
 
@@ -38,11 +38,23 @@ def calculate_correct_rate_by_round(
         question_id = subdir.name
         logger.debug(f"Processing question ID: {question_id}")
 
-        if question_id not in dataframe.index:
+        # Try both string and int versions of the ID
+        str_id = str(question_id)
+        try:
+            int_id = int(question_id)
+        except ValueError:
+            int_id = None
+
+        # Check if either version of the ID exists in the dataframe
+        if str_id in dataframe.index:
+            actual_id = str_id
+        elif int_id in dataframe.index:
+            actual_id = int_id
+        else:
             logger.debug(f"Skipping {question_id} - not found in dataframe")
             continue
 
-        correct_answer = str(dataframe.loc[question_id, "answer"]).lower()
+        correct_answer = str(dataframe.loc[actual_id, "answer"]).lower()
         logger.debug(f"Correct answer: {correct_answer}")
 
         try:
