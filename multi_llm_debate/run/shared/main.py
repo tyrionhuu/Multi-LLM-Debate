@@ -52,6 +52,10 @@ def main(
         # Process all configurations
         processed_df = process_df_fn(dataframe)
 
+        # Create output directory if it doesn't exist
+        output_dir = Path("output/bool_q")
+        output_dir.mkdir(parents=True, exist_ok=True)
+
         # Save processed DataFrame to CSV
         processed_df.to_csv(f"output/bool_q/processed_data.csv", index=False)
 
