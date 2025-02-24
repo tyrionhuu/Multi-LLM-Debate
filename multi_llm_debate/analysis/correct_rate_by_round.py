@@ -121,7 +121,9 @@ def calculate_correct_rate_by_round(
                     continue
 
                 total_counts[round_num] += 1
-                correct_ratio = sum(1 for r in valid_responses if r == correct_answer) / len(valid_responses)
+                correct_ratio = sum(
+                    1 for r in valid_responses if r == correct_answer
+                ) / len(valid_responses)
                 if correct_ratio >= 0.5:  # Majority rule
                     logger.debug(f"Round {round_num}: Majority correct answers!")
                     correct_counts[round_num] += 1
