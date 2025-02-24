@@ -1,13 +1,13 @@
 import json
 import logging
 from pathlib import Path
-
+import traceback
 import pandas as pd
 
 from ..llm.parsers import extract_bool_answer
 from ..run.shared.utils import get_latest_round_file
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -31,8 +31,8 @@ def calculate_correct_rate_by_round(
     subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
 
     # Initialize counters for each round
-    correct_counts = {i: 0 for i in range(1, max_round_number + 1)}
-    total_counts = {i: 0 for i in range(1, max_round_number + 1)}
+    correct_counts = {i: 0 for i in range(0, max_round_number + 1)}
+    total_counts = {i: 0 for i in range(0, max_round_number + 1)}
 
     for subdir in subdirs:
         question_id = subdir.name
@@ -68,7 +68,7 @@ def calculate_correct_rate_by_round(
 
         last_result = None  # Tracks the last round's correctness (True/False)
 
-        for round_num in range(1, min(max_round_number + 1, last_round + 1)):
+        for round_num in range(0, min(max_round_number + 1, last_round + 1)):
             round_file = subdir / f"debate_round_{round_num}.json"
             if not round_file.exists():
                 # If no file for this round, replicate the last known result if it exists
@@ -86,7 +86,7 @@ def calculate_correct_rate_by_round(
                 with open(round_file, "r") as f:
                     responses = json.load(f)
 
-                logger.debug(f"Round {round_num} responses: {responses}")
+                # logger.debug(f"Round {round_num} responses: {responses}")
 
                 normalized_responses = [
                     extract_bool_answer(response.get("response", ""))
@@ -115,10 +115,13 @@ def calculate_correct_rate_by_round(
 
             except (json.JSONDecodeError, KeyError, TypeError) as e:
                 logger.debug(f"Error processing round {round_num}: {e}")
+                logger.debug(
+                    f"Traceback: {traceback.format_exc()}"
+                )
                 continue
 
     # Calculate correct rates for each round
-    for round_num in range(1, max_round_number + 1):
+    for round_num in range(0, max_round_number + 1):
         if total_counts[round_num] > 0:
             correct_rate = correct_counts[round_num] / total_counts[round_num]
         else:
