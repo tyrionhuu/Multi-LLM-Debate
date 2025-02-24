@@ -50,5 +50,5 @@ def analyze_round_number(
     # Save to CSV if path is provided
     if output_csv is not None:
         results.to_csv(output_csv, index=False)
-    
+
     return results
