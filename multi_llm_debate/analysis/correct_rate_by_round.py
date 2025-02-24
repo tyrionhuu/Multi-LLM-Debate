@@ -73,9 +73,8 @@ def calculate_correct_rate_by_round(
 
             try:
                 with open(round_file, "r") as f:
-                    round_data = json.load(f)
+                    responses = json.load(f)
 
-                responses = round_data.get("responses", [])
                 logger.debug(f"Round {round_num} responses: {responses}")
 
                 normalized_responses = [
