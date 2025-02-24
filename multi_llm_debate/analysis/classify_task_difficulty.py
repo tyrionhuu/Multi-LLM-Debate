@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
 import traceback  # Add this import
+from pathlib import Path
 
 import pandas as pd
 
@@ -40,7 +40,9 @@ def analyze_task_difficulty(model_dir: Path, dataframe: pd.DataFrame) -> pd.Data
         difficulty_dict[task_id] = difficulty
 
     # Add difficulty column to dataframe
-    dataframe["difficulty"] = dataframe["id"].map(lambda x: difficulty_dict.get(str(x), -1))
+    dataframe["difficulty"] = dataframe["id"].map(
+        lambda x: difficulty_dict.get(str(x), -1)
+    )
 
     return dataframe
 
@@ -84,18 +86,15 @@ def classify_task_difficulty(task_dir: Path, answer: str) -> int:
         for response in responses:
             response_text = response["response"]
             extracted_response = extract_bool_answer(response_text)
-            
+
             # Skip invalid responses
             if extracted_response is None:
                 total_responses -= 1
                 continue
-            
+
             # Convert both to lowercase strings for comparison
             if str(extracted_response).lower() == str(answer_bool).lower():
                 correct_count += 1
-                print(f"Correct answer: extracted={extracted_response}, expected={answer_bool}")
-            else:
-                print(f"Wrong answer: extracted={extracted_response}, expected={answer_bool}")
 
         # Calculate accuracy
         accuracy = correct_count / total_responses if total_responses > 0 else 0
