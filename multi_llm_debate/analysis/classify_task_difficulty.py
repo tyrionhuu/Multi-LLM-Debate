@@ -1,8 +1,34 @@
 import json
 from pathlib import Path
-
+import pandas as pd
 from ..llm.parsers import extract_bool_answer
 
+def analyze_task_difficulty(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Analyzes the task difficulty for each task in the given DataFrame.
+
+    Args:
+        model_dir (Path): The path to the model directory.
+        dataframe (pd.DataFrame): The DataFrame containing task information.
+
+    Returns:
+        pd.DataFrame: A DataFrame with an additional column 'difficulty' indicating the difficulty level of each task.
+    """
+    # Initialize a list to store difficulty levels
+    difficulty_levels = []
+
+    # Iterate through each row in the DataFrame
+    for _, row in dataframe.iterrows():
+        task_dir = model_dir / row["task"]
+        task_id = task_dir.name
+        answer = dataframe.loc[dataframe['task'] == task_id, 'answer'].values[0]
+        difficulty = classify_task_difficulty(task_dir, answer)
+        difficulty_levels.append(difficulty)
+
+    # Add the difficulty levels to the DataFrame
+    dataframe["difficulty"] = difficulty_levels
+
+    return dataframe
 
 def classify_task_difficulty(task_dir: Path, answer: str) -> int:
     """
