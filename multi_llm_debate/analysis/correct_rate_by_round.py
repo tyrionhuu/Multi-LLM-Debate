@@ -47,10 +47,10 @@ def calculate_correct_rate_by_round(
 
         # Check if either version of the ID exists in the 'id' column
         matching_rows = dataframe[
-            (dataframe["id"] == str_id) | 
-            (dataframe["id"] == int_id if int_id is not None else False)
+            (dataframe["id"] == str_id)
+            | (dataframe["id"] == int_id if int_id is not None else False)
         ]
-        
+
         if matching_rows.empty:
             logger.debug(f"Skipping {question_id} - not found in dataframe")
             continue
