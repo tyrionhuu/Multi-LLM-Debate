@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-
 from ..llm.parsers import extract_bool_answer
 
 
