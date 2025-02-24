@@ -103,9 +103,7 @@ def calculate_correct_rate_by_round(
                         if response.get("response")  # Skip empty responses
                     ]
                 except ValueError as e:
-                    logger.debug(
-                        f"Error processing task directory {subdir}: {str(e)}"
-                    )
+                    logger.debug(f"Error processing task directory {subdir}: {str(e)}")
                     print(
                         f"Error processing task directory {model_dir}/{subdir.name}: {str(e)}"
                     )
@@ -113,10 +111,10 @@ def calculate_correct_rate_by_round(
                     continue
 
                 logger.debug(f"Normalized responses: {normalized_responses}")
-                
+
                 # Only consider valid non-empty responses
                 valid_responses = [r for r in normalized_responses if r]
-                
+
                 if not valid_responses:
                     logger.debug("No valid responses found, skipping round")
                     debate_ended = True
