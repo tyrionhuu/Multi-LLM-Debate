@@ -6,6 +6,7 @@ import pandas as pd
 
 class AgentCountMismatchError(ValueError):
     """Raised when the model configuration has wrong number of agents."""
+
     pass
 
 
