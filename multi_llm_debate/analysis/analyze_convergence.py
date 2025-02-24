@@ -146,8 +146,9 @@ def analyze_round_number(
     ]
     results_df = results_df[column_order]
 
-    # Save to CSV if path is provided
+    # Create output directory if it doesn't exist
     if output_csv is not None:
+        output_csv.parent.mkdir(parents=True, exist_ok=True)
         results_df.to_csv(output_csv, index=False)
 
     return results_df
@@ -156,16 +157,19 @@ def analyze_round_number(
 def main() -> None:
     """Test the analyze_round_number function with example parameters."""
     base_dir = Path("data/bool_q")
+    output_path = Path("output/convergence.csv")
 
     try:
         df = analyze_round_number(
             base_dir=base_dir,
             max_round_number=10,
+            output_csv=output_path,
             cumulative=False,
             agent_count=3,
         )
         print("\nAnalysis for 3-agent configurations:")
         print(df)
+        print(f"\nResults saved to: {output_path}")
 
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
