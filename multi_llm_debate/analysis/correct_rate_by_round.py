@@ -31,23 +31,25 @@ def calculate_correct_rate_by_round(
     total_counts = {i: 0 for i in range(1, max_round_number + 1)}
 
     for subdir in subdirs:
-        # Get the ID from the directory name
         question_id = subdir.name
 
-        # Skip if ID not in dataframe
         if question_id not in dataframe.index:
             continue
 
-        correct_answer = dataframe.loc[question_id, "correct_answer"]
+        # Get correct answer and normalize it
+        correct_answer = str(dataframe.loc[question_id, "answer"]).lower()
+        if correct_answer not in ["true", "false"]:
+            continue
 
-        # Find the last round for this debate
+        # Convert string to boolean for comparison
+        correct_answer_bool = (correct_answer == "true")
+
         try:
             latest_round_file = get_latest_round_file(subdir)
             last_round = int(latest_round_file.stem.split("_")[-1])
-        except ValueError:
+        except (ValueError, FileNotFoundError):
             continue
 
-        # Process each round up to either max_round_number or last_round
         for round_num in range(1, min(max_round_number + 1, last_round + 1)):
             round_file = subdir / f"debate_round_{round_num}.json"
             if not round_file.exists():
@@ -57,13 +59,21 @@ def calculate_correct_rate_by_round(
                 with open(round_file, "r") as f:
                     round_data = json.load(f)
 
-                # Extract the predicted answer for this round
+                if "conclusion" not in round_data:
+                    continue
+
                 predicted_answer = extract_bool_answer(round_data["conclusion"])
-                if predicted_answer is not None:
-                    total_counts[round_num] += 1
-                    if predicted_answer == correct_answer:
-                        correct_counts[round_num] += 1
-            except (json.JSONDecodeError, KeyError):
+                if predicted_answer is None:
+                    continue
+
+                # Convert string to boolean for comparison
+                predicted_answer_bool = (predicted_answer == "true")
+
+                total_counts[round_num] += 1
+                if predicted_answer_bool == correct_answer_bool:
+                    correct_counts[round_num] += 1
+
+            except (json.JSONDecodeError, KeyError, TypeError):
                 continue
 
     # Calculate correct rates for each round
