@@ -6,9 +6,7 @@ import pandas as pd
 from ..llm.parsers import extract_bool_answer
 
 
-def analyze_task_accuracy(
-    model_dir: Path, dataframe: pd.DataFrame
-) -> pd.DataFrame:
+def analyze_task_accuracy(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Analyzes the task accuracy for tasks that exist in the model directory.
 
