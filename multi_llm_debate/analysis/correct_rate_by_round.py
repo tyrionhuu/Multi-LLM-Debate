@@ -2,16 +2,161 @@ import json
 import logging
 import traceback
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
-from ..run.shared.utils import get_latest_round_file
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+def process_debate_round(
+    round_file: Path, correct_answer: str
+) -> Tuple[Optional[bool], bool]:
+    """Process a single debate round file and determine if the majority answer is correct.
+
+    Args:
+        round_file: Path to the debate round JSON file
+        correct_answer: The expected correct answer
+
+    Returns:
+        Tuple containing:
+        - Boolean indicating if majority answer was correct (None if invalid)
+        - Boolean indicating if debate should end
+    """
+    try:
+        with open(round_file, "r") as f:
+            responses = json.load(f)
+
+        try:
+            normalized_responses = [
+                extract_bool_answer(response.get("response", ""))
+                for response in responses
+                if response.get("response")
+            ]
+        except ValueError as e:
+            logger.debug(f"Error processing responses: {str(e)}")
+            return None, True
+
+        if not normalized_responses:
+            logger.debug("No valid responses found, skipping round")
+            return None, True
+
+        correct_ratio = sum(
+            1 for r in normalized_responses if r == correct_answer
+        ) / len(normalized_responses)
+        
+        return correct_ratio >= 0.5, False
+
+    except (json.JSONDecodeError, KeyError, TypeError) as e:
+        logger.debug(f"Error processing round: {e}")
+        logger.debug(f"Traceback: {traceback.format_exc()}")
+        return None, True
+
+def process_debate_directory(
+    subdir: Path, 
+    dataframe: pd.DataFrame, 
+    max_round_number: int
+) -> Tuple[Dict[int, int], Dict[int, int]]:
+    """Process a single debate directory and calculate correctness counts.
+
+    Args:
+        subdir: Path to the debate directory
+        dataframe: DataFrame containing correct answers
+        max_round_number: Maximum number of rounds to process
+
+    Returns:
+        Tuple of (correct_counts, total_counts) dictionaries
+    """
+    question_id = subdir.name
+    logger.debug(f"Processing question ID: {question_id}")
+
+    str_id = str(question_id)
+    try:
+        int_id = int(question_id)
+    except ValueError:
+        int_id = None
+
+    matching_rows = dataframe[
+        (dataframe["id"] == str_id)
+        | (dataframe["id"] == int_id if int_id is not None else False)
+    ]
+    if matching_rows.empty:
+        logger.debug(f"Skipping {question_id} - not found in dataframe")
+        return {}, {}
+
+    correct_answer = str(matching_rows.iloc[0]["answer"]).lower()
+    correct_counts = {i: 0 for i in range(0, max_round_number + 1)}
+    total_counts = {i: 0 for i in range(0, max_round_number + 1)}
+    
+    last_result = None
+    debate_ended = False
+
+    for round_num in range(0, max_round_number + 1):
+        if debate_ended:
+            total_counts[round_num] += 1
+            if last_result:
+                correct_counts[round_num] += 1
+            continue
+
+        round_file = subdir / f"debate_round_{round_num}.json"
+        if not round_file.exists():
+            debate_ended = True
+            if last_result is not None:
+                total_counts[round_num] += 1
+                if last_result:
+                    correct_counts[round_num] += 1
+            continue
+
+        round_result, should_end = process_debate_round(round_file, correct_answer)
+        if should_end:
+            debate_ended = True
+            continue
+
+        if round_result is not None:
+            total_counts[round_num] += 1
+            if round_result:
+                correct_counts[round_num] += 1
+            last_result = round_result
+
+    return correct_counts, total_counts
+
+def count_majority_responses(responses: List[dict], correct_answer: str) -> Optional[bool]:
+    """Count and determine if majority of responses match correct answer.
+
+    Args:
+        responses: List of response dictionaries
+        correct_answer: The expected correct answer
+
+    Returns:
+        Boolean indicating if majority was correct, or None if invalid/tie
+    """
+    try:
+        valid_responses = [
+            extract_bool_answer(response.get("response", ""))
+            for response in responses
+            if response.get("response")
+        ]
+    except ValueError:
+        return None
+
+    if not valid_responses:
+        return None
+
+    response_counts = {}
+    for response in valid_responses:
+        response_counts[response] = response_counts.get(response, 0) + 1
+
+    max_count = max(response_counts.values())
+    most_common = [r for r, c in response_counts.items() if c == max_count]
+
+    if len(most_common) > 1:
+        return None
+
+    return most_common[0] == correct_answer
 
 def calculate_correct_rate_by_round(
     dataframe: pd.DataFrame, model_dir: Path, max_round_number: int
@@ -44,112 +189,20 @@ def calculate_correct_rate_by_round(
     total_debates = 0
 
     for subdir in pbar:
-        question_id = subdir.name
-        logger.debug(f"Processing question ID: {question_id}")
-
-        str_id = str(question_id)
-        try:
-            int_id = int(question_id)
-        except ValueError:
-            int_id = None
-
-        matching_rows = dataframe[
-            (dataframe["id"] == str_id)
-            | (dataframe["id"] == int_id if int_id is not None else False)
-        ]
-        if matching_rows.empty:
-            logger.debug(f"Skipping {question_id} - not found in dataframe")
-            continue
-
-        correct_answer = str(matching_rows.iloc[0]["answer"]).lower()
-        logger.debug(f"Correct answer: {correct_answer}")
-
-        try:
-            latest_round_file = get_latest_round_file(subdir)
-            last_round = int(latest_round_file.stem.split("_")[-1])
-            logger.debug(f"Latest round: {last_round}")
-        except (ValueError, FileNotFoundError) as e:
-            logger.debug(f"Error getting latest round: {e}")
-            continue
-
-        last_result = None
-        total_debates += 1
-        debate_ended = False
-
+        round_correct_counts, round_total_counts = process_debate_directory(
+            subdir, dataframe, max_round_number
+        )
         for round_num in range(0, max_round_number + 1):
-            if debate_ended:
-                total_counts[round_num] += 1
-                if last_result:
-                    correct_counts[round_num] += 1
-                continue
-
-            round_file = subdir / f"debate_round_{round_num}.json"
-            if not round_file.exists():
-                debate_ended = True
-                if last_result is not None:
-                    total_counts[round_num] += 1
-                    if last_result:
-                        correct_counts[round_num] += 1
-                continue
-
-            try:
-                with open(round_file, "r") as f:
-                    responses = json.load(f)
-
-                try:
-                    normalized_responses = [
-                        extract_bool_answer(response.get("response", ""))
-                        for response in responses
-                        if response.get("response")  # Skip empty responses
-                    ]
-                except ValueError as e:
-                    logger.debug(f"Error processing task directory {subdir}: {str(e)}")
-                    print(
-                        f"Error processing task directory {model_dir}/{subdir.name}: {str(e)}"
-                    )
-                    debate_ended = True
-                    continue
-
-                logger.debug(f"Normalized responses: {normalized_responses}")
-
-                # Only consider valid non-empty responses
-                valid_responses = [r for r in normalized_responses if r]
-
-                if not valid_responses:
-                    logger.debug("No valid responses found, skipping round")
-                    debate_ended = True
-                    continue
-
-                total_counts[round_num] += 1
-                correct_ratio = sum(
-                    1 for r in valid_responses if r == correct_answer
-                ) / len(valid_responses)
-                if correct_ratio >= 0.5:  # Majority rule
-                    logger.debug(f"Round {round_num}: Majority correct answers!")
-                    correct_counts[round_num] += 1
-                    last_result = True
-                else:
-                    logger.debug(
-                        f"Round {round_num}: Incorrect - "
-                        f"correct ratio: {correct_ratio:.2%}, "
-                        f"expected: {correct_answer}"
-                    )
-                    last_result = False
-
-            except (json.JSONDecodeError, KeyError, TypeError) as e:
-                logger.debug(f"Error processing round {round_num}: {e}")
-                logger.debug(f"Traceback: {traceback.format_exc()}")
-                debate_ended = True
-                continue
+            correct_counts[round_num] += round_correct_counts.get(round_num, 0)
+            total_counts[round_num] += round_total_counts.get(round_num, 0)
+        if round_total_counts:
+            total_debates += 1
 
     for round_num in range(0, max_round_number + 1):
-        if total_counts[round_num] > 0:
-            correct_rate = correct_counts[round_num] / total_counts[round_num]
-        else:
-            correct_rate = 0.0
-        logger.debug(
-            f"Round {round_num}: {correct_counts[round_num]} correct out of "
-            f"{total_counts[round_num]} total = {correct_rate:.2%}"
+        correct_rate = (
+            correct_counts[round_num] / total_counts[round_num]
+            if total_counts[round_num] > 0
+            else 0.0
         )
         row_data[str(round_num)] = correct_rate
 
@@ -185,35 +238,11 @@ def calculate_majority_vote_correct_rate(
         with open(round_file, "r") as f:
             responses = json.load(f)
 
-        try:
-            valid_responses = [
-                extract_bool_answer(response.get("response", ""))
-                for response in responses
-                if response.get("response")
-            ]
-        except ValueError:
-            # Skip responses that can't be parsed
-            continue
-
-        if not valid_responses:
-            continue
-
-        # Count occurrences of each response
-        response_counts = {}
-        for response in valid_responses:
-            response_counts[response] = response_counts.get(response, 0) + 1
-
-        # Find the most common response(s)
-        max_count = max(response_counts.values())
-        most_common = [r for r, c in response_counts.items() if c == max_count]
-
-        # Skip if there's a tie (more than one most common response)
-        if len(most_common) > 1:
-            continue
-
-        total_count += 1
-        if most_common[0] == correct_answer:
-            correct_count += 1
+        result = count_majority_responses(responses, correct_answer)
+        if result is not None:
+            total_count += 1
+            if result:
+                correct_count += 1
 
     return correct_count / total_count if total_count > 0 else 0.0
 
