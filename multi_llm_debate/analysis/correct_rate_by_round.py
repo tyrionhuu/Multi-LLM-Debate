@@ -48,7 +48,7 @@ def process_debate_round(
         correct_ratio = sum(
             1 for r in normalized_responses if r == correct_answer
         ) / len(normalized_responses)
-        
+
         return correct_ratio >= 0.5, False
 
     except (json.JSONDecodeError, KeyError, TypeError) as e:
@@ -56,10 +56,9 @@ def process_debate_round(
         logger.debug(f"Traceback: {traceback.format_exc()}")
         return None, True
 
+
 def process_debate_directory(
-    subdir: Path, 
-    dataframe: pd.DataFrame, 
-    max_round_number: int
+    subdir: Path, dataframe: pd.DataFrame, max_round_number: int
 ) -> Tuple[Dict[int, int], Dict[int, int]]:
     """Process a single debate directory and calculate correctness counts.
 
@@ -91,7 +90,7 @@ def process_debate_directory(
     correct_answer = str(matching_rows.iloc[0]["answer"]).lower()
     correct_counts = {i: 0 for i in range(0, max_round_number + 1)}
     total_counts = {i: 0 for i in range(0, max_round_number + 1)}
-    
+
     last_result = None
     debate_ended = False
 
@@ -124,7 +123,10 @@ def process_debate_directory(
 
     return correct_counts, total_counts
 
-def count_majority_responses(responses: List[dict], correct_answer: str) -> Optional[bool]:
+
+def count_majority_responses(
+    responses: List[dict], correct_answer: str
+) -> Optional[bool]:
     """Count and determine if majority of responses match correct answer.
 
     Args:
@@ -157,6 +159,7 @@ def count_majority_responses(responses: List[dict], correct_answer: str) -> Opti
         return None
 
     return most_common[0] == correct_answer
+
 
 def calculate_correct_rate_by_round(
     dataframe: pd.DataFrame, model_dir: Path, max_round_number: int
