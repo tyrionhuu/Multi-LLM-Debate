@@ -6,13 +6,18 @@ import pandas as pd
 from ..llm.parsers import extract_bool_answer
 
 
-def analyze_task_difficulty(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFrame:
+def analyze_task_difficulty(
+    model_dir: Path, dataframe: pd.DataFrame, accuracy_threshold: float = 0.5
+) -> pd.DataFrame:
     """
     Analyzes the task difficulty for tasks that exist in the model directory.
 
     Args:
         model_dir (Path): The path to the model directory.
         dataframe (pd.DataFrame): The DataFrame containing task information.
+        accuracy_threshold (float): Threshold for determining task difficulty.
+            Tasks with accuracy >= threshold are considered easy (0).
+            Default is 0.5.
 
     Returns:
         pd.DataFrame: A DataFrame with an additional column 'difficulty' indicating
@@ -35,7 +40,7 @@ def analyze_task_difficulty(model_dir: Path, dataframe: pd.DataFrame) -> pd.Data
             continue
 
         answer = dataframe.loc[dataframe["id"] == task_id, "answer"].values[0]
-        difficulty = classify_task_difficulty(task_dir, answer)
+        difficulty = classify_task_difficulty(task_dir, answer, accuracy_threshold)
         difficulty_dict[task_id] = difficulty
 
     # Add difficulty column to dataframe
@@ -46,13 +51,18 @@ def analyze_task_difficulty(model_dir: Path, dataframe: pd.DataFrame) -> pd.Data
     return dataframe
 
 
-def classify_task_difficulty(task_dir: Path, answer: str) -> int:
+def classify_task_difficulty(
+    task_dir: Path, answer: str, accuracy_threshold: float = 0.5
+) -> int:
     """
     Classifies the difficulty of a task based on the number of examples in the task directory.
 
     Args:
         task_dir (Path): The path to the task directory.
         answer (str): The correct answer for the task ('yes'/'no' or 'true'/'false').
+        accuracy_threshold (float): Threshold for determining task difficulty.
+            Tasks with accuracy >= threshold are considered easy (0).
+            Default is 0.5.
 
     Returns:
         int: The difficulty level of the task, where:
@@ -98,9 +108,8 @@ def classify_task_difficulty(task_dir: Path, answer: str) -> int:
         # Calculate accuracy
         accuracy = correct_count / total_responses if total_responses > 0 else 0
         # print(f"Task ID: {task_dir.name}, Correct: {correct_count}, Total: {total_responses}, Accuracy: {accuracy:.2f}")
-        # Classify difficulty - if more than 50% get it right, it's easy
-        DIFFICULTY_THRESHOLD = 0.5
-        return 0 if accuracy >= DIFFICULTY_THRESHOLD else 1
+        # Classify difficulty based on accuracy threshold
+        return 0 if accuracy >= accuracy_threshold else 1
 
     except Exception as e:
         print(f"Error processing task directory {task_dir}: {e}")
@@ -116,7 +125,7 @@ if __name__ == "__main__":
     # Load dataset
     dataframe = pd.read_csv(data_path)
 
-    # Analyze task difficulty
+    # Analyze task difficulty with default threshold
     result_df = analyze_task_difficulty(model_dir, dataframe)
 
     # Print summary statistics
