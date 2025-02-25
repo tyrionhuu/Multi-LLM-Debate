@@ -170,23 +170,18 @@ def calculate_correct_rate_by_round(
 ) -> pd.DataFrame:
     """Calculate both majority and absolute correct rates for each round.
 
-    This function processes debate data stored in JSON files for various
-    rounds. It reads the correct answers from the provided dataframe, then
-    compares them with normalized responses in each debate round. When a
-    debate ends early, the last known correctness is replicated across
-    remaining rounds.
-
     Args:
         dataframe (pd.DataFrame): DataFrame containing 'id' and 'answer' columns.
         model_dir (Path): Path to the model directory containing debate results.
         max_round_number (int): Maximum number of debate rounds to analyze.
 
     Returns:
-        pd.DataFrame: A single-row DataFrame containing correct rates
-            for each round, keyed by round number, plus the model configuration.
+        pd.DataFrame: A DataFrame with two rows (majority and absolute) containing
+            correct rates for each round, plus the model configuration.
     """
     model_configuration = model_dir.name
-    row_data = {"model_configuration": model_configuration}
+    majority_data = {"model_configuration": model_configuration, "metric": "majority"}
+    absolute_data = {"model_configuration": model_configuration, "metric": "absolute"}
 
     subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
     pbar = tqdm(subdirs, desc=f"Processing {model_configuration}")
@@ -224,10 +219,10 @@ def calculate_correct_rate_by_round(
         else:
             majority_rate = absolute_rate = 0.0
 
-        row_data[f"{round_num}_majority"] = majority_rate
-        row_data[f"{round_num}_absolute"] = absolute_rate
+        majority_data[str(round_num)] = majority_rate
+        absolute_data[str(round_num)] = absolute_rate
 
-    return pd.DataFrame([row_data])
+    return pd.DataFrame([majority_data, absolute_data])
 
 
 def calculate_majority_vote_correct_rate(
