@@ -49,7 +49,7 @@ def process_debate_round(
         absolute_rate = sum(
             1 for r in normalized_responses if r == correct_answer
         ) / len(normalized_responses)
-        
+
         # Calculate majority vote
         majority_correct = (
             sum(1 for r in normalized_responses if r == correct_answer)
@@ -203,8 +203,12 @@ def calculate_correct_rate_by_round(
         )
         for round_num in range(0, max_round_number + 1):
             if round_num in round_correct_counts:
-                correct_counts[round_num]["majority"] += round_correct_counts[round_num]["majority"]
-                correct_counts[round_num]["absolute"] += round_correct_counts[round_num]["absolute"]
+                correct_counts[round_num]["majority"] += round_correct_counts[
+                    round_num
+                ]["majority"]
+                correct_counts[round_num]["absolute"] += round_correct_counts[
+                    round_num
+                ]["absolute"]
             total_counts[round_num] += round_total_counts.get(round_num, 0)
         if round_total_counts:
             total_debates += 1
@@ -219,7 +223,7 @@ def calculate_correct_rate_by_round(
             )
         else:
             majority_rate = absolute_rate = 0.0
-            
+
         row_data[f"{round_num}_majority"] = majority_rate
         row_data[f"{round_num}_absolute"] = absolute_rate
 
