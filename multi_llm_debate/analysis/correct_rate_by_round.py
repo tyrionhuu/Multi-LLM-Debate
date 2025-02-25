@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def process_debate_round(
     round_file: Path, correct_answer: str
 ) -> Tuple[Optional[bool], bool]:
-    """Process a single debate round file and determine if the majority answer is correct.
+    """Process a single debate round file and calculate ratio of correct answers.
 
     Args:
         round_file: Path to the debate round JSON file
@@ -24,7 +24,7 @@ def process_debate_round(
 
     Returns:
         Tuple containing:
-        - Boolean indicating if majority answer was correct (None if invalid)
+        - Boolean indicating if correct ratio >= 0.5 (None if invalid)
         - Boolean indicating if debate should end
     """
     try:
@@ -45,6 +45,7 @@ def process_debate_round(
             logger.debug("No valid responses found, skipping round")
             return None, True
 
+        # Calculate absolute correct rate
         correct_ratio = sum(
             1 for r in normalized_responses if r == correct_answer
         ) / len(normalized_responses)
@@ -124,17 +125,17 @@ def process_debate_directory(
     return correct_counts, total_counts
 
 
-def count_majority_responses(
+def count_absolute_correct_rate(
     responses: List[dict], correct_answer: str
-) -> Optional[bool]:
-    """Count and determine if majority of responses match correct answer.
+) -> Optional[float]:
+    """Calculate the absolute correct rate from responses.
 
     Args:
         responses: List of response dictionaries
         correct_answer: The expected correct answer
 
     Returns:
-        Boolean indicating if majority was correct, or None if invalid/tie
+        Float indicating correct rate, or None if invalid
     """
     try:
         valid_responses = [
@@ -148,17 +149,7 @@ def count_majority_responses(
     if not valid_responses:
         return None
 
-    response_counts = {}
-    for response in valid_responses:
-        response_counts[response] = response_counts.get(response, 0) + 1
-
-    max_count = max(response_counts.values())
-    most_common = [r for r, c in response_counts.items() if c == max_count]
-
-    if len(most_common) > 1:
-        return None
-
-    return most_common[0] == correct_answer
+    return sum(1 for r in valid_responses if r == correct_answer) / len(valid_responses)
 
 
 def calculate_correct_rate_by_round(
@@ -216,18 +207,16 @@ def calculate_majority_vote_correct_rate(
     dataframe: pd.DataFrame,
     model_dir: Path,
 ) -> float:
-    """Calculate the majority vote correct rate for a given model directory.
-
-    Cases with equal votes for different answers are not counted in the total.
+    """Calculate the absolute correct rate for a given model directory.
 
     Args:
         dataframe (pd.DataFrame): DataFrame containing 'id' and 'answer' columns.
         model_dir (Path): Path to the model directory containing debate results.
 
     Returns:
-        float: Majority vote correct rate, excluding tied votes.
+        float: Average correct rate across all valid responses.
     """
-    correct_count = 0
+    total_correct_rate = 0.0
     total_count = 0
 
     for _, row in dataframe.iterrows():
@@ -241,13 +230,12 @@ def calculate_majority_vote_correct_rate(
         with open(round_file, "r") as f:
             responses = json.load(f)
 
-        result = count_majority_responses(responses, correct_answer)
-        if result is not None:
+        correct_rate = count_absolute_correct_rate(responses, correct_answer)
+        if correct_rate is not None:
+            total_correct_rate += correct_rate
             total_count += 1
-            if result:
-                correct_count += 1
 
-    return correct_count / total_count if total_count > 0 else 0.0
+    return total_correct_rate / total_count if total_count > 0 else 0.0
 
 
 if __name__ == "__main__":
