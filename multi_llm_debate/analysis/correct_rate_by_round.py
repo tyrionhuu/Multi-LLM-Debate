@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 def process_debate_round(
     round_file: Path, correct_answer: str
-) -> Tuple[Optional[bool], bool]:
-    """Process a single debate round file and calculate ratio of correct answers.
+) -> Tuple[Optional[Tuple[bool, float]], bool]:
+    """Process a single debate round file and calculate both majority and absolute rates.
 
     Args:
         round_file: Path to the debate round JSON file
@@ -24,7 +24,7 @@ def process_debate_round(
 
     Returns:
         Tuple containing:
-        - Boolean indicating if correct ratio >= 0.5 (None if invalid)
+        - Tuple of (majority_correct, absolute_rate) or None if invalid
         - Boolean indicating if debate should end
     """
     try:
@@ -45,12 +45,18 @@ def process_debate_round(
             logger.debug("No valid responses found, skipping round")
             return None, True
 
-        # Calculate absolute correct rate
-        correct_ratio = sum(
+        # Calculate both metrics
+        absolute_rate = sum(
             1 for r in normalized_responses if r == correct_answer
         ) / len(normalized_responses)
+        
+        # Calculate majority vote
+        majority_correct = (
+            sum(1 for r in normalized_responses if r == correct_answer)
+            > len(normalized_responses) / 2
+        )
 
-        return correct_ratio >= 0.5, False
+        return (majority_correct, absolute_rate), False
 
     except (json.JSONDecodeError, KeyError, TypeError) as e:
         logger.debug(f"Error processing round: {e}")
@@ -60,7 +66,7 @@ def process_debate_round(
 
 def process_debate_directory(
     subdir: Path, dataframe: pd.DataFrame, max_round_number: int
-) -> Tuple[Dict[int, int], Dict[int, int]]:
+) -> Tuple[Dict[int, Dict[str, int]], Dict[int, int]]:
     """Process a single debate directory and calculate correctness counts.
 
     Args:
@@ -69,7 +75,8 @@ def process_debate_directory(
         max_round_number: Maximum number of rounds to process
 
     Returns:
-        Tuple of (correct_counts, total_counts) dictionaries
+        Tuple of (correct_counts, total_counts) where correct_counts contains
+        both 'majority' and 'absolute' metrics
     """
     question_id = subdir.name
     logger.debug(f"Processing question ID: {question_id}")
@@ -89,26 +96,30 @@ def process_debate_directory(
         return {}, {}
 
     correct_answer = str(matching_rows.iloc[0]["answer"]).lower()
-    correct_counts = {i: 0 for i in range(0, max_round_number + 1)}
+    correct_counts = {
+        i: {"majority": 0, "absolute": 0.0} for i in range(max_round_number + 1)
+    }
     total_counts = {i: 0 for i in range(0, max_round_number + 1)}
 
-    last_result = None
+    last_majority = None
+    last_absolute = 0.0
     debate_ended = False
 
     for round_num in range(0, max_round_number + 1):
         if debate_ended:
             total_counts[round_num] += 1
-            if last_result:
-                correct_counts[round_num] += 1
+            if last_majority is not None:
+                correct_counts[round_num]["majority"] += int(last_majority)
+                correct_counts[round_num]["absolute"] += last_absolute
             continue
 
         round_file = subdir / f"debate_round_{round_num}.json"
         if not round_file.exists():
             debate_ended = True
-            if last_result is not None:
+            if last_majority is not None:
                 total_counts[round_num] += 1
-                if last_result:
-                    correct_counts[round_num] += 1
+                correct_counts[round_num]["majority"] += int(last_majority)
+                correct_counts[round_num]["absolute"] += last_absolute
             continue
 
         round_result, should_end = process_debate_round(round_file, correct_answer)
@@ -117,10 +128,12 @@ def process_debate_directory(
             continue
 
         if round_result is not None:
+            majority_correct, absolute_rate = round_result
             total_counts[round_num] += 1
-            if round_result:
-                correct_counts[round_num] += 1
-            last_result = round_result
+            correct_counts[round_num]["majority"] += int(majority_correct)
+            correct_counts[round_num]["absolute"] += absolute_rate
+            last_majority = majority_correct
+            last_absolute = absolute_rate
 
     return correct_counts, total_counts
 
@@ -155,7 +168,7 @@ def count_absolute_correct_rate(
 def calculate_correct_rate_by_round(
     dataframe: pd.DataFrame, model_dir: Path, max_round_number: int
 ) -> pd.DataFrame:
-    """Calculate the correct rate for each round of debates.
+    """Calculate both majority and absolute correct rates for each round.
 
     This function processes debate data stored in JSON files for various
     rounds. It reads the correct answers from the provided dataframe, then
@@ -178,7 +191,9 @@ def calculate_correct_rate_by_round(
     subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
     pbar = tqdm(subdirs, desc=f"Processing {model_configuration}")
 
-    correct_counts = {i: 0 for i in range(0, max_round_number + 1)}
+    correct_counts = {
+        i: {"majority": 0, "absolute": 0.0} for i in range(max_round_number + 1)
+    }
     total_counts = {i: 0 for i in range(0, max_round_number + 1)}
     total_debates = 0
 
@@ -187,18 +202,26 @@ def calculate_correct_rate_by_round(
             subdir, dataframe, max_round_number
         )
         for round_num in range(0, max_round_number + 1):
-            correct_counts[round_num] += round_correct_counts.get(round_num, 0)
+            if round_num in round_correct_counts:
+                correct_counts[round_num]["majority"] += round_correct_counts[round_num]["majority"]
+                correct_counts[round_num]["absolute"] += round_correct_counts[round_num]["absolute"]
             total_counts[round_num] += round_total_counts.get(round_num, 0)
         if round_total_counts:
             total_debates += 1
 
     for round_num in range(0, max_round_number + 1):
-        correct_rate = (
-            correct_counts[round_num] / total_counts[round_num]
-            if total_counts[round_num] > 0
-            else 0.0
-        )
-        row_data[str(round_num)] = correct_rate
+        if total_counts[round_num] > 0:
+            majority_rate = (
+                correct_counts[round_num]["majority"] / total_counts[round_num]
+            )
+            absolute_rate = (
+                correct_counts[round_num]["absolute"] / total_counts[round_num]
+            )
+        else:
+            majority_rate = absolute_rate = 0.0
+            
+        row_data[f"{round_num}_majority"] = majority_rate
+        row_data[f"{round_num}_absolute"] = absolute_rate
 
     return pd.DataFrame([row_data])
 
@@ -239,7 +262,7 @@ def calculate_majority_vote_correct_rate(
 
 
 if __name__ == "__main__":
-    model_dir = Path("data/bool_q/gemma2:2b(3)")
+    model_dir = Path("data/bool_q/llama2(6)")
     dataframe = pd.read_csv("output/bool_q/processed_data.csv", index_col=0)
     max_round_number = 10
 
