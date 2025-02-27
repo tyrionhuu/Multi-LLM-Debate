@@ -29,7 +29,10 @@ scipy = "^1.15.2"
 sentence-transformers = "^3.4.1"
 seaborn = "^0.13.2"
 matplotlib = "^3.10.0"
+<<<<<<< HEAD
 nbstripout = "^0.8.1"
+=======
+>>>>>>> refs/remotes/origin/main
 [[tool.poetry.source]]
 name = "mirrors"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
