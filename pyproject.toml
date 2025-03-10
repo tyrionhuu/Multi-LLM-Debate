@@ -14,8 +14,6 @@ pytest-cov = "^5.0.0"
 pre-commit = "^4.0.1"
 pipenv = "^2024.2.0"
 flake8 = "^7.1.1"
-
-# For use in Mainland China, you can use the following mirror source
 ollama = "^0.4.7"
 openai = "^1.63.0"
 requests = "^2.32.3"
@@ -31,6 +29,7 @@ seaborn = "^0.13.2"
 matplotlib = "^3.10.0"
 nbstripout = "^0.8.1"
 
+# For use in Mainland China, you can use the following mirror source
 [[tool.poetry.source]]
 name = "mirrors"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
