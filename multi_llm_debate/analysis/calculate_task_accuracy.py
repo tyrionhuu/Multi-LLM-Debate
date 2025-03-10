@@ -119,4 +119,5 @@ if __name__ == "__main__":
     error_cases = result_df[result_df["accuracy"] == -1.0]
     if not error_cases.empty:
         print("\nError cases:")
+
         print(error_cases[["id", "question"]])
