@@ -187,16 +187,18 @@ def calculate_majority_vote_correct_rate_for_round_n(
 def draw_console_histogram(
     data: dict,
     title: str = "Distribution",
-    width: int = 50,
+    height: int = 15,
     show_percentages: bool = True,
 ) -> str:
-    """Draw an ASCII histogram in the console.
+    """Draw a vertical ASCII histogram in the console.
+
+    Bins are arranged horizontally, with bars extending upward.
 
     Args:
         data: Dictionary of {label: value} pairs to visualize
         title: Title for the histogram
-        width: Maximum width of the bars (not including labels)
-        show_percentages: Whether to show percentage values next to bars
+        height: Maximum height of the bars
+        show_percentages: Whether to show percentage values above bars
 
     Returns:
         String containing the complete ASCII histogram
@@ -209,29 +211,54 @@ def draw_console_histogram(
     if max_value == 0:
         return "All values are zero"
 
-    # Find the maximum label length for alignment
-    max_label_len = max(len(str(label)) for label in data.keys())
+    # Sort data by keys if they're sortable (assumes bin labels)
+    try:
+        sorted_data = {k: data[k] for k in sorted(data.keys())}
+    except TypeError:
+        sorted_data = data
 
-    # Build the histogram string
-    result = []
-    result.append(f"{title}")
-    result.append("=" * (width + max_label_len + 15))  # Header line
+    # Convert values to heights based on max_value
+    heights = {
+        label: int(height * value / max_value) if max_value > 0 else 0
+        for label, value in sorted_data.items()
+    }
 
-    # Add each bar
-    for label, value in data.items():
-        # Calculate bar width proportional to maximum value
-        bar_width = int(width * value / max_value) if max_value > 0 else 0
-        bar = "█" * bar_width
+    # Calculate percentages
+    percentages = {
+        label: (value * 100 if max_value <= 1 else (value / sum(data.values())) * 100)
+        for label, value in sorted_data.items()
+    }
 
-        # Format the bar line with proper alignment
-        if show_percentages:
-            percentage = (
-                value * 100 if max_value <= 1 else (value / sum(data.values())) * 100
-            )
-            line = f"{str(label):<{max_label_len}} | {bar:<{width}} | {percentage:.1f}%"
-        else:
-            line = f"{str(label):<{max_label_len}} | {bar:<{width}} | {value:.4f}"
+    # Calculate label width to ensure chart alignment
+    max_label_len = max(len(str(label)) for label in sorted_data.keys())
+    label_format = f"{{:^{max_label_len}}}"
 
-        result.append(line)
+    # Build the histogram
+    result = [title]
+    result.append("=" * (len(sorted_data) * (max_label_len + 1)))
+
+    # Add percentage labels if requested
+    if show_percentages:
+        percentage_line = " ".join(
+            f"{percentages[label]:^{max_label_len}.1f}%" for label in sorted_data.keys()
+        )
+        result.append(percentage_line)
+
+    # Draw the bars from top to bottom
+    for h in range(height, 0, -1):
+        row = []
+        for label, bar_height in heights.items():
+            if h <= bar_height:
+                row.append("█" * max_label_len)
+            else:
+                row.append(" " * max_label_len)
+        result.append(" ".join(row))
+
+    # Add axis line
+    result.append("=" * (len(sorted_data) * (max_label_len + 1)))
+
+    # Add bin labels at the bottom
+    label_line = " ".join(label_format.format(label) for label in sorted_data.keys())
+    result.append(label_line)
 
     return "\n".join(result)
