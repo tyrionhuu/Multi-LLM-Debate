@@ -7,23 +7,59 @@ import pandas as pd
 from ..llm.parsers import extract_bool_answer
 
 
-def compare_bool(a: Any, b: Any) -> bool:
-    """Compares two boolean values.
-
+def compare_bool(value_a: Any, value_b: Any) -> bool:
+    """Compare two boolean values with robust type conversion.
+    
+    Handles various string representations, boolean values, and numeric values.
+    
     Args:
-        a: The first value to compare.
-        b: The second value to compare.
-
+        value_a: First value to compare
+        value_b: Second value to compare
+        
     Returns:
-        bool: True if the values are equal, False otherwise.
+        True if values are equivalent booleans, False otherwise
     """
-    if isinstance(a, bool) and isinstance(b, bool):
-        return a == b
-    if isinstance(a, str):
-        a = a.lower()
-    if isinstance(b, str):
-        b = b.lower()
-    return a == b
+    # Helper function to normalize to boolean
+    def normalize_value(value: Any) -> bool:
+        if isinstance(value, bool):
+            return value
+        
+        if isinstance(value, (int, float)):
+            return bool(value)
+            
+        if isinstance(value, str):
+            # Normalize string to lowercase
+            value_lower = value.lower().strip()
+            
+            # Handle common "true" string formats
+            if value_lower in ('true', 't', 'yes', 'y', '1', 'correct'):
+                return True
+                
+            # Handle common "false" string formats
+            if value_lower in ('false', 'f', 'no', 'n', '0', 'incorrect'):
+                return False
+                
+            # Handle special case for "right/wrong" answers
+            if value_lower in ('right'):
+                return True
+            if value_lower in ('wrong'):
+                return False
+                
+            # Try numeric conversion as last resort
+            try:
+                return bool(float(value))
+            except ValueError:
+                pass
+                
+        # If all else fails, use the boolean value of the object
+        return bool(value)
+    
+    try:
+        # Normalize both values to booleans and compare
+        return normalize_value(value_a) == normalize_value(value_b)
+    except Exception:
+        # If any error occurs, they're not comparable
+        return False
 
 
 def compare_int_as_str(a: Any, b: Any) -> bool:

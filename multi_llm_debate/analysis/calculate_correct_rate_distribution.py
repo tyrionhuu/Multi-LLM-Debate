@@ -135,9 +135,16 @@ def calculate_correct_rate_distribution_for_round_n(
                 continue
 
             # Calculate correct rate for this task
-            correct_count = sum(
-                1 for r in normalized_responses if compare_bool(r, answer)
-            )
+            correct_matches = []
+            for i, r in enumerate(normalized_responses):
+                is_correct = compare_bool(r, answer)
+                correct_matches.append(is_correct)
+                logger.debug(
+                    f"Task {task_id}, Response {i}: {r} vs answer {answer} = "
+                    f"{'MATCH' if is_correct else 'NO MATCH'}"
+                )
+                
+            correct_count = sum(correct_matches)
             correct_rate = correct_count / len(normalized_responses)
 
             logger.debug(
