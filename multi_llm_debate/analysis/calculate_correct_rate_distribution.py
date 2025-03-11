@@ -34,8 +34,8 @@ def calculate_correct_rate_distribution_for_round_n(
     dataframe: pd.DataFrame,
     model_dir: Path,
     round_number: int,
-) -> Dict[str, Union[float, int]]:
-    """Calculate the overall accuracy based on majority answers for a specific round.
+) -> pd.DataFrame:
+    """Calculate the correct rate distribution for a specific round.
 
     Args:
         dataframe: DataFrame containing the experiment results.
@@ -43,20 +43,21 @@ def calculate_correct_rate_distribution_for_round_n(
         round_number: The round number to analyze.
 
     Returns:
-        Dictionary with accuracy metrics including:
-        - overall_accuracy: The fraction of tasks where the majority answer was correct
-        - total_tasks: Number of tasks evaluated
-        - correct_tasks: Number of tasks with correct majority answers
+        DataFrame with correct rate distribution. Each row represents a task,
+        with columns for bins (0-0.1, 0.1-0.2, etc.), task_id, and round_number.
     """
-    # Track metrics
-    total_tasks = 0
-    correct_tasks = 0
+    # Define the bins for correct rate distribution
+    bins = np.arange(0, 1.1, 0.1)
+    bin_labels = [f"{bins[i]:.1f}-{bins[i+1]:.1f}" for i in range(len(bins) - 1)]
+
+    # Create an empty DataFrame to store the distribution
+    result_data = []
 
     # Process each unique task
     task_dirs = [d for d in model_dir.iterdir() if d.is_dir()]
     pbar = tqdm(
         task_dirs,
-        desc=f"Calculating accuracy for round {round_number}",
+        desc=f"Calculating correct rate distribution for round {round_number}",
     )
 
     for task_dir in pbar:
@@ -115,30 +116,33 @@ def calculate_correct_rate_distribution_for_round_n(
                 )
                 continue
 
-            # Determine majority answer
-            true_count = sum(1 for r in normalized_responses if r is True)
-            false_count = sum(1 for r in normalized_responses if r is False)
-                
-            majority_answer = false_count if false_count >= true_count else true_count
-            
-            # Check if majority answer is correct
-            if majority_answer == correct_answer:
-                correct_tasks += 1
-                
-            total_tasks += 1
+            # Calculate correct rate for this task
+            correct_count = sum(1 for r in normalized_responses if r == correct_answer)
+            correct_rate = correct_count / len(normalized_responses)
+
+            # Determine which bin this correct rate falls into
+            bin_idx = min(int(correct_rate * 10), 9)  # Ensure index is within range
+
+            # Create a row with zeros for all bins
+            row = {bin_label: 0 for bin_label in bin_labels}
+            # Set the appropriate bin to 1
+            row[bin_labels[bin_idx]] = 1
+            row["task_id"] = task_id
+            row["round_number"] = round_number
+
+            result_data.append(row)
 
         except Exception as e:
             logger.error(f"Error processing task {task_id}: {e}", exc_info=True)
             continue
 
-    # Calculate accuracy
-    overall_accuracy = correct_tasks / total_tasks if total_tasks > 0 else 0.0
-    
-    logger.info(f"Round {round_number} accuracy: {overall_accuracy:.4f} ({correct_tasks}/{total_tasks})")
-    
-    return {
-        "overall_accuracy": overall_accuracy,
-        "total_tasks": total_tasks,
-        "correct_tasks": correct_tasks,
-        "round_number": round_number
-    }
+    # Create result DataFrame
+    if result_data:
+        result_df = pd.DataFrame(result_data)
+        logger.info(f"Created distribution DataFrame with {len(result_df)} tasks")
+    else:
+        # Create empty DataFrame with correct columns if no data
+        result_df = pd.DataFrame(columns=bin_labels + ["task_id", "round_number"])
+        logger.warning("No valid data collected for correct rate distribution")
+
+    return result_df
