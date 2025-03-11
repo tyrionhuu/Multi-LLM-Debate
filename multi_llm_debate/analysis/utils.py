@@ -9,51 +9,52 @@ from ..llm.parsers import extract_bool_answer
 
 def compare_bool(value_a: Any, value_b: Any) -> bool:
     """Compare two boolean values with robust type conversion.
-    
+
     Handles various string representations, boolean values, and numeric values.
-    
+
     Args:
         value_a: First value to compare
         value_b: Second value to compare
-        
+
     Returns:
         True if values are equivalent booleans, False otherwise
     """
+
     # Helper function to normalize to boolean
     def normalize_value(value: Any) -> bool:
         if isinstance(value, bool):
             return value
-        
+
         if isinstance(value, (int, float)):
             return bool(value)
-            
+
         if isinstance(value, str):
             # Normalize string to lowercase
             value_lower = value.lower().strip()
-            
+
             # Handle common "true" string formats
-            if value_lower in ('true', 't', 'yes', 'y', '1', 'correct'):
+            if value_lower in ("true", "t", "yes", "y", "1", "correct"):
                 return True
-                
+
             # Handle common "false" string formats
-            if value_lower in ('false', 'f', 'no', 'n', '0', 'incorrect'):
+            if value_lower in ("false", "f", "no", "n", "0", "incorrect"):
                 return False
-                
+
             # Handle special case for "right/wrong" answers
-            if value_lower in ('right'):
+            if value_lower in ("right"):
                 return True
-            if value_lower in ('wrong'):
+            if value_lower in ("wrong"):
                 return False
-                
+
             # Try numeric conversion as last resort
             try:
                 return bool(float(value))
             except ValueError:
                 pass
-                
+
         # If all else fails, use the boolean value of the object
         return bool(value)
-    
+
     try:
         # Normalize both values to booleans and compare
         return normalize_value(value_a) == normalize_value(value_b)

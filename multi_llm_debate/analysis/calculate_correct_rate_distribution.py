@@ -143,7 +143,7 @@ def calculate_correct_rate_distribution_for_round_n(
                     f"Task {task_id}, Response {i}: {r} vs answer {answer} = "
                     f"{'MATCH' if is_correct else 'NO MATCH'}"
                 )
-                
+
             correct_count = sum(correct_matches)
             correct_rate = correct_count / len(normalized_responses)
 
