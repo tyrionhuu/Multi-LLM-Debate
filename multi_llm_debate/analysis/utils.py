@@ -1,6 +1,17 @@
 from pathlib import Path
 from typing import Any, Optional
 
+def compare_int_as_str(a: Any[str, int], b: Any[str, int]) -> bool:
+    """Compares two values that may be integers represented as strings.
+
+    Args:
+        a: The first value to compare.
+        b: The second value to compare.
+
+    Returns:
+        bool: True if the values are equal, False otherwise.
+    """
+    return str(a) == str(b)
 
 def get_final_round(task_dir: Path) -> int:
     """Gets the final available round number for a given task directory.
