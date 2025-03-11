@@ -10,6 +10,16 @@ from tqdm import tqdm
 from ..llm.parsers import extract_bool_answer
 from .utils import compare_int_as_str, get_final_round, normalize_boolean_answer
 
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("analysis.log"),
+    ],
+)
+logger = logging.getLogger(__name__)
 
 def calculate_correct_rate_distribution(
     dataframe: pd.DataFrame,
@@ -47,3 +57,16 @@ def calculate_correct_rate_distribution_for_round_n(
         total=len(task_dirs),
         desc="Calculating correct rate distribution for round {}".format(round_number),
     )
+
+    for task_dir in task_dirs:
+        id = task_dir.name
+        task_df = dataframe[dataframe["id"] == id]
+        
+        # Get the correct answer for the task
+        answer = task_df["answer"].values[0]
+        correct_answer = normalize_boolean_answer(answer)
+        if correct_answer is None:
+            logging.warning(f"Task {id} has an invalid answer: {answer}")
+            continue
+        
+        
