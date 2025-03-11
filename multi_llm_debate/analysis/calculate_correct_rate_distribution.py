@@ -43,4 +43,7 @@ def calculate_correct_rate_distribution_for_round_n(
 
     # Process each unique task
     task_dirs = list(model_dir.iterdir())
-    pbar = tqdm(total=len(task_dirs), desc="Calculating correct rate distribution for round {}".format(round_number))
+    pbar = tqdm(
+        total=len(task_dirs),
+        desc="Calculating correct rate distribution for round {}".format(round_number),
+    )
