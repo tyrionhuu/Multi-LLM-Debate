@@ -190,7 +190,7 @@ def draw_console_histogram(
     height: int = 15,
     show_percentages: bool = True,
     sort_by: Optional[str] = None,
-    bar_char: str = '█',
+    bar_char: str = "█",
 ) -> str:
     """Draw a vertical ASCII histogram in the console.
 
@@ -225,11 +225,11 @@ def draw_console_histogram(
         return "All values are zero"
 
     # Sort data based on sort_by parameter
-    if sort_by == 'key':
+    if sort_by == "key":
         sorted_items = sorted(data.items(), key=lambda item: item[0])
-    elif sort_by == 'value':
+    elif sort_by == "value":
         sorted_items = sorted(data.items(), key=lambda item: item[1])
-    elif sort_by == 'value_desc':
+    elif sort_by == "value_desc":
         sorted_items = sorted(data.items(), key=lambda item: -item[1])
     elif sort_by is None:
         sorted_items = data.items()  # Preserve insertion order
@@ -250,15 +250,13 @@ def draw_console_histogram(
 
     # Calculate bar heights with rounding
     heights = {
-        label: round(height * value / max_value)
-        for label, value in sorted_data.items()
+        label: round(height * value / max_value) for label, value in sorted_data.items()
     }
 
     # Calculate percentages
     total_sum = sum(sorted_data.values())
     percentages = {
-        label: (value / total_sum * 100)
-        for label, value in sorted_data.items()
+        label: (value / total_sum * 100) for label, value in sorted_data.items()
     }
 
     # Build histogram
