@@ -34,8 +34,8 @@ def calculate_correct_rate_distribution_for_round_n(
     dataframe: pd.DataFrame,
     model_dir: Path,
     round_number: int,
-) -> pd.DataFrame:
-    """Calculate the correct rate distribution for a specific round.
+) -> Dict[str, Union[float, int]]:
+    """Calculate the overall accuracy based on majority answers for a specific round.
 
     Args:
         dataframe: DataFrame containing the experiment results.
@@ -43,30 +43,30 @@ def calculate_correct_rate_distribution_for_round_n(
         round_number: The round number to analyze.
 
     Returns:
-        DataFrame with correct rate distribution.
+        Dictionary with accuracy metrics including:
+        - overall_accuracy: The fraction of tasks where the majority answer was correct
+        - total_tasks: Number of tasks evaluated
+        - correct_tasks: Number of tasks with correct majority answers
     """
-    # Define the bins for correct rate distribution
-    bins = np.arange(0, 1.1, 0.1)
-    bin_labels = [f"{bins[i]:.1f}-{bins[i+1]:.1f}" for i in range(len(bins) - 1)]
-
-    # Create an empty DataFrame to store the distribution
-    result_data = []
+    # Track metrics
+    total_tasks = 0
+    correct_tasks = 0
 
     # Process each unique task
     task_dirs = [d for d in model_dir.iterdir() if d.is_dir()]
     pbar = tqdm(
         task_dirs,
-        desc=f"Calculating correct rate distribution for round {round_number}",
+        desc=f"Calculating accuracy for round {round_number}",
     )
 
     for task_dir in pbar:
         task_id = task_dir.name
         # Convert to string for consistent comparison
         task_id_str = str(task_id)
-        
+
         # Filter dataframe for this task using string comparison
         task_df = dataframe[dataframe["id"].astype(str) == task_id_str]
-        
+
         if task_df.empty:
             logger.debug(f"Skipping task {task_id}: Not found in dataframe")
             continue
@@ -83,7 +83,7 @@ def calculate_correct_rate_distribution_for_round_n(
         if final_round == -1:
             logger.warning(f"No debate data found for task {task_id}")
             continue
-            
+
         # Use the specified round or the final round if the specified round exceeds it
         actual_round = min(round_number, final_round)
         round_file = task_dir / f"debate_round_{actual_round}.json"
@@ -93,12 +93,12 @@ def calculate_correct_rate_distribution_for_round_n(
                 f"No debate data found for task {task_id} in round {actual_round}"
             )
             continue
-            
+
         try:
             # Read responses from the round file
             with open(round_file, "r") as f:
                 responses = json.load(f)
-                
+
             # Extract and normalize responses
             normalized_responses = []
             for response in responses:
@@ -108,38 +108,42 @@ def calculate_correct_rate_distribution_for_round_n(
                         normalized_responses.append(extracted)
                 except Exception as e:
                     logger.debug(f"Error extracting response: {e}")
-            
+
             if not normalized_responses:
-                logger.debug(f"No valid responses for task {task_id} in round {actual_round}")
+                logger.debug(
+                    f"No valid responses for task {task_id} in round {actual_round}"
+                )
+                continue
+
+            # Determine majority answer
+            true_count = sum(1 for r in normalized_responses if r is True)
+            false_count = sum(1 for r in normalized_responses if r is False)
+            
+            # Skip if there's a tie (should be rare with odd number of models)
+            if true_count == false_count:
+                logger.debug(f"Skipping task {task_id} due to tie in responses")
                 continue
                 
-            # Calculate correct rate for this task
-            correct_count = sum(1 for r in normalized_responses if r == correct_answer)
-            correct_rate = correct_count / len(normalized_responses)
+            majority_answer = true_count > false_count
             
-            # Determine which bin this correct rate falls into
-            bin_idx = min(int(correct_rate * 10), 9)  # Ensure index is within range
-            
-            # Create a row with zeros for all bins
-            row = {bin_label: 0 for bin_label in bin_labels}
-            # Set the appropriate bin to 1
-            row[bin_labels[bin_idx]] = 1
-            row["id"] = task_id
-            row["round_number"] = round_number
-            
-            result_data.append(row)
-            
+            # Check if majority answer is correct
+            if majority_answer == correct_answer:
+                correct_tasks += 1
+                
+            total_tasks += 1
+
         except Exception as e:
             logger.error(f"Error processing task {task_id}: {e}", exc_info=True)
             continue
 
-    # Create result DataFrame
-    if result_data:
-        result_df = pd.DataFrame(result_data)
-        logger.info(f"Created distribution DataFrame with {len(result_df)} tasks")
-    else:
-        # Create empty DataFrame with correct columns if no data
-        result_df = pd.DataFrame(columns=bin_labels + ["id", "round_number"])
-        logger.warning("No valid data collected for correct rate distribution")
-        
-    return result_df
+    # Calculate accuracy
+    overall_accuracy = correct_tasks / total_tasks if total_tasks > 0 else 0.0
+    
+    logger.info(f"Round {round_number} accuracy: {overall_accuracy:.4f} ({correct_tasks}/{total_tasks})")
+    
+    return {
+        "overall_accuracy": overall_accuracy,
+        "total_tasks": total_tasks,
+        "correct_tasks": correct_tasks,
+        "round_number": round_number
+    }
