@@ -278,7 +278,7 @@ def calculate_majority_vote_correct_rate(
 
 
 if __name__ == "__main__":
-    model_dir = Path("data/bool_q/llama2(6)")
+    model_dir = Path("data/bool_q/llama3(7)")
     dataframe = pd.read_csv("output/bool_q/processed_data.csv", index_col=0)
     max_round_number = 10
 
