@@ -1,7 +1,6 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -20,14 +19,6 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
-
-
-def calculate_correct_rate_distribution(
-    dataframe: pd.DataFrame,
-    model_dir: Path,
-    max_round: Optional[int] = None,
-):
-    pass
 
 
 def calculate_correct_rate_distribution_for_round_n(
