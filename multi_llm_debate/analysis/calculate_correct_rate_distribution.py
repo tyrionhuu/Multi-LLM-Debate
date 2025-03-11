@@ -129,16 +129,10 @@ if __name__ == "__main__":
     # Set up paths
     model_dir = Path("data/bool_q/llama3(7)")
     data_path = Path("output/bool_q/processed_data.csv")
-    max_round_number = 10
+    max_round_number = 5
 
     # Load dataset - adjust column names to match your actual data structure
     dataframe = pd.read_csv(data_path)
-
-    # Rename columns if necessary for compatibility with the function
-    if "id" in dataframe.columns and "answer" in dataframe.columns:
-        dataframe = dataframe.rename(
-            columns={"id": "id", "answer": "ground_truth"}
-        )
 
     # Calculate accuracy distribution by round
     result_df = calculate_per_round_accuracy(dataframe, model_dir, max_round_number)
