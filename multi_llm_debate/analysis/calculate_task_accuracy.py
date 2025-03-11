@@ -85,8 +85,15 @@ def calculate_task_accuracy(
         correct_count = 0
         total_responses = len(responses)
 
-        # Convert answer to normalized boolean format
-        answer_bool = str(answer).lower().strip() in ["yes", "true", "1"]
+        # Convert answer to normalized boolean format with explicit checking
+        processed_answer = str(answer).lower().strip()
+        if processed_answer in ["yes", "true", "1"]:
+            answer_bool = True
+        elif processed_answer in ["no", "false", "0"]:
+            answer_bool = False
+        else:
+            print(f"Warning: Ambiguous answer format '{answer}' for task {task_dir}")
+            return -1.0
 
         # Count correct responses in the specified round
         for response in responses:
