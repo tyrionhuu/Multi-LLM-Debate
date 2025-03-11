@@ -8,6 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
+from .utils import calculate_majority_vote_correct_rate_for_round_n
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -223,58 +224,6 @@ def calculate_correct_rate_by_round(
         absolute_data[str(round_num)] = absolute_rate
 
     return pd.DataFrame([majority_data, absolute_data])
-
-
-def calculate_majority_vote_correct_rate(
-    dataframe: pd.DataFrame,
-    model_dir: Path,
-) -> float:
-    """Calculate the majority vote correct rate for a given model directory.
-
-    Args:
-        dataframe (pd.DataFrame): DataFrame containing 'id' and 'answer' columns.
-        model_dir (Path): Path to the model directory containing debate results.
-
-    Returns:
-        float: The fraction of debates where the majority vote was correct.
-    """
-    total_correct = 0
-    total_count = 0
-
-    for _, row in dataframe.iterrows():
-        question_id = str(row["id"])
-        correct_answer = str(row["answer"]).lower()
-        round_file = model_dir / question_id / "debate_round_0.json"
-
-        if not round_file.exists():
-            continue
-
-        try:
-            with open(round_file, "r") as f:
-                responses = json.load(f)
-
-            try:
-                normalized_responses = [
-                    extract_bool_answer(response.get("response", ""))
-                    for response in responses
-                    if response.get("response")
-                ]
-            except ValueError:
-                continue
-
-            if not normalized_responses:
-                continue
-
-            # Check if majority is correct (more than 50% match correct answer)
-            correct_votes = sum(1 for r in normalized_responses if r == correct_answer)
-            if correct_votes > len(normalized_responses) / 2:
-                total_correct += 1
-            total_count += 1
-
-        except (json.JSONDecodeError, KeyError, TypeError):
-            continue
-
-    return total_correct / total_count if total_count > 0 else 0.0
 
 
 if __name__ == "__main__":
