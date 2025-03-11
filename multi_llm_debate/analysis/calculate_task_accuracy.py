@@ -46,13 +46,14 @@ def analyze_task_accuracy(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFr
     return dataframe
 
 
-def calculate_task_accuracy(task_dir: Path, answer: str) -> float:
+def calculate_task_accuracy(task_dir: Path, answer: str, round_number: int = 0) -> float:
     """
     Calculates the accuracy for a task based on the responses in the task directory.
 
     Args:
         task_dir (Path): The path to the task directory.
         answer (str): The correct answer for the task ('yes'/'no' or 'true'/'false').
+        round_number (int, optional): The debate round number to analyze. Defaults to 0.
 
     Returns:
         float: The accuracy of the task, or -1.0 if an error occurred.
@@ -62,13 +63,13 @@ def calculate_task_accuracy(task_dir: Path, answer: str) -> float:
         if not task_dir.exists():
             return -1.0
 
-        first_response_file = task_dir / "debate_round_0.json"
-        # Check if the first response file exists
-        if not first_response_file.exists():
+        response_file = task_dir / f"debate_round_{round_number}.json"
+        # Check if the response file exists
+        if not response_file.exists():
             return -1.0
 
-        # Read the first response file
-        with open(first_response_file, "r") as f:
+        # Read the response file
+        with open(response_file, "r") as f:
             responses = json.load(f)
 
         # Count correct responses
@@ -78,7 +79,7 @@ def calculate_task_accuracy(task_dir: Path, answer: str) -> float:
         # Convert answer to normalized boolean format
         answer_bool = str(answer).lower().strip() in ["yes", "true", "1"]
 
-        # Count correct responses in first round
+        # Count correct responses in the specified round
         for response in responses:
             response_text = response["response"]
             extracted_response = extract_bool_answer(response_text)
@@ -96,7 +97,7 @@ def calculate_task_accuracy(task_dir: Path, answer: str) -> float:
         return correct_count / total_responses if total_responses > 0 else 0.0
 
     except Exception as e:
-        print(f"Error processing task directory {task_dir}: {e}")
+        print(f"Error processing task directory {task_dir} for round {round_number}: {e}")
         return -1.0
 
 
