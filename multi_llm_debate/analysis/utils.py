@@ -13,8 +13,6 @@ def get_final_round(task_dir: Path) -> int:
     debate_files = list(task_dir.glob("debate_round_*.json"))
     if not debate_files:
         return -1
-    
-    round_numbers = [
-        int(f.stem.split('_')[-1]) for f in debate_files
-    ]
+
+    round_numbers = [int(f.stem.split("_")[-1]) for f in debate_files]
     return max(round_numbers)

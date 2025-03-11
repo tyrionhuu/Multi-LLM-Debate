@@ -47,7 +47,9 @@ def analyze_task_accuracy(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFr
     return dataframe
 
 
-def calculate_task_accuracy(task_dir: Path, answer: str, round_number: int = 0) -> float:
+def calculate_task_accuracy(
+    task_dir: Path, answer: str, round_number: int = 0
+) -> float:
     """
     Calculates the accuracy for a task based on the responses in the task directory.
 
@@ -63,13 +65,13 @@ def calculate_task_accuracy(task_dir: Path, answer: str, round_number: int = 0) 
     try:
         if not task_dir.exists():
             return -1.0
-            
+
         final_round = get_final_round(task_dir)
         if final_round == -1:
             return -1.0
-            
+
         actual_round = min(round_number, final_round)
-        
+
         response_file = task_dir / f"debate_round_{actual_round}.json"
         # Check if the response file exists (should be true based on logic above)
         if not response_file.exists():
@@ -104,7 +106,9 @@ def calculate_task_accuracy(task_dir: Path, answer: str, round_number: int = 0) 
         return correct_count / total_responses if total_responses > 0 else 0.0
 
     except Exception as e:
-        print(f"Error processing task directory {task_dir} for round {round_number}: {e}")
+        print(
+            f"Error processing task directory {task_dir} for round {round_number}: {e}"
+        )
         return -1.0
 
 

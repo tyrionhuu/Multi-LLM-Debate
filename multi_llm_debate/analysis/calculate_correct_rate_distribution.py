@@ -1,9 +1,10 @@
 from pathlib import Path
-from .utils import get_final_round
 
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+
+from .utils import get_final_round
 
 
 def calculate_per_round_accuracy(
@@ -40,7 +41,7 @@ def calculate_per_round_accuracy(
     for task_dir in pbar:
         task_id = task_dir.name
         final_round = get_final_round(task_dir)
-        
+
         if final_round == -1:
             continue
 
