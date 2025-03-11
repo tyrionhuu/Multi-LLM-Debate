@@ -69,3 +69,16 @@ def calculate_correct_rate_distribution_for_round_n(
         if correct_answer is None:
             logging.warning(f"Task {id} has an invalid answer: {answer}")
             continue
+
+        # Load the debate data for the specified round
+        final_round = get_final_round(task_dir)
+        if final_round == -1:
+            logging.warning(f"No debate data found for task {id}")
+            continue
+        if round_number > final_round:
+            round_number = final_round
+            
+        round_file = task_dir / f"debate_round_{round_number}.json"
+        if not round_file.exists():
+            logging.warning(f"No debate data found for task {id} in round {round_number}")
+            continue
