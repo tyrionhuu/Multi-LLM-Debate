@@ -217,6 +217,19 @@ def draw_console_histogram(
     except TypeError:
         sorted_data = data
 
+    # Calculate column width
+    # We want bin labels to be fully visible, so use their length
+    column_width = max(len(str(label)) for label in sorted_data.keys())
+    # Ensure columns aren't too narrow
+    column_width = max(column_width, 5)
+    # Use fewer characters if we have many bins
+    if len(sorted_data) > 10:
+        column_width = min(column_width, 7)
+    
+    # Column padding (spaces between columns)
+    padding = 1
+    total_column_width = column_width + padding
+    
     # Convert values to heights based on max_value
     heights = {
         label: int(height * value / max_value) if max_value > 0 else 0
@@ -224,41 +237,69 @@ def draw_console_histogram(
     }
 
     # Calculate percentages
+    total_sum = sum(sorted_data.values())
     percentages = {
-        label: (value * 100 if max_value <= 1 else (value / sum(data.values())) * 100)
+        label: (value / total_sum * 100) if total_sum > 0 else 0
         for label, value in sorted_data.items()
     }
 
-    # Calculate label width to ensure chart alignment
-    max_label_len = max(len(str(label)) for label in sorted_data.keys())
-    label_format = f"{{:^{max_label_len}}}"
-
     # Build the histogram
-    result = [title]
-    result.append("=" * (len(sorted_data) * (max_label_len + 1)))
+    result = []
+    result.append(title)
+    result.append("=" * (len(sorted_data) * total_column_width))
 
-    # Add percentage labels if requested
+    # Add percentage values at the top
     if show_percentages:
-        percentage_line = " ".join(
-            f"{percentages[label]:^{max_label_len}.1f}%" for label in sorted_data.keys()
-        )
-        result.append(percentage_line)
+        percent_line = ""
+        for label in sorted_data.keys():
+            percent_text = f"{percentages[label]:.1f}%"
+            percent_line += f"{percent_text:^{total_column_width}}"
+        result.append(percent_line)
+        
+        # Add count values
+        count_line = ""
+        for label, value in sorted_data.items():
+            count_text = f"({value:.0f})" if value >= 1 else f"({value:.2f})"
+            count_line += f"{count_text:^{total_column_width}}"
+        result.append(count_line)
+        
+        # Add a separator
+        result.append("-" * (len(sorted_data) * total_column_width))
 
     # Draw the bars from top to bottom
     for h in range(height, 0, -1):
-        row = []
-        for label, bar_height in heights.items():
+        row = ""
+        for label in sorted_data.keys():
+            bar_height = heights[label]
             if h <= bar_height:
-                row.append("█" * max_label_len)
+                row += f"{'█' * column_width:{total_column_width}}"
             else:
-                row.append(" " * max_label_len)
-        result.append(" ".join(row))
-
+                row += f"{'':{total_column_width}}"
+        result.append(row)
+    
     # Add axis line
-    result.append("=" * (len(sorted_data) * (max_label_len + 1)))
+    result.append("=" * (len(sorted_data) * total_column_width))
 
-    # Add bin labels at the bottom
-    label_line = " ".join(label_format.format(label) for label in sorted_data.keys())
-    result.append(label_line)
+    # Add bin labels at the bottom - split into multiple lines if needed
+    if column_width >= len(max(sorted_data.keys(), key=len)):
+        # Single line for labels if they fit
+        label_line = ""
+        for label in sorted_data.keys():
+            label_line += f"{str(label):^{total_column_width}}"
+        result.append(label_line)
+    else:
+        # Split labels into multiple lines
+        max_label_len = max(len(str(label)) for label in sorted_data.keys())
+        chars_per_line = column_width
+        lines_needed = (max_label_len + chars_per_line - 1) // chars_per_line
+        
+        for line_idx in range(lines_needed):
+            label_line = ""
+            for label in sorted_data.keys():
+                start = line_idx * chars_per_line
+                end = start + chars_per_line
+                part = str(label)[start:end] if start < len(str(label)) else ""
+                label_line += f"{part:^{total_column_width}}"
+            result.append(label_line)
 
     return "\n".join(result)
