@@ -52,7 +52,7 @@ def calculate_per_round_accuracy(
         if task_df.empty:
             continue
 
-        ground_truth = task_df["ground_truth"].iloc[0]
+        ground_truth = task_df["answer"].iloc[0]
 
         # Convert ground truth to normalized boolean format
         processed_answer = str(ground_truth).lower().strip()
