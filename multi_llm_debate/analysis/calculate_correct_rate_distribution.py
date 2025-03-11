@@ -8,6 +8,24 @@ from tqdm import tqdm
 def calculate_per_round_accuracy(
     dataframe: pd.DataFrame, model_dir: Path, max_round_number: int
 ) -> pd.DataFrame:
+    """Calculate accuracy distribution for each round of debate across tasks.
+    
+    This function processes a directory of debate tasks and calculates a distribution
+    of correct rates for each round. It uses majority voting to determine the
+    consensus answer for each round. If a debate converges before the maximum 
+    round number, the final round's result is used for subsequent rounds.
+    
+    Args:
+        dataframe: DataFrame containing ground truth data with columns 'task_id'
+            and 'ground_truth'.
+        model_dir: Path to the directory containing subdirectories for each task.
+        max_round_number: Maximum number of debate rounds to analyze.
+    
+    Returns:
+        DataFrame with columns for each correct rate bin (0.0-0.1, 0.1-0.2, etc.),
+        'task_id', and 'round_number'. Each bin column contains the count (0 or 1)
+        indicating whether the task's correctness for that round falls into that bin.
+    """
     subdirs = [subdir for subdir in model_dir.iterdir() if subdir.is_dir()]
     model_configuration = model_dir.name
     pbar = tqdm(subdirs, desc=f"Processing {model_configuration}")
