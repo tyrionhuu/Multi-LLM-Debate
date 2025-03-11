@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
-from .utils import get_final_round, compare_bool
+from .utils import compare_bool, get_final_round
 
 # Set up logging
 logging.basicConfig(
@@ -113,7 +113,9 @@ def calculate_correct_rate_distribution_for_round_n(
                 continue
 
             # Calculate correct rate for this task
-            correct_count = sum(1 for r in normalized_responses if compare_bool(r, answer))
+            correct_count = sum(
+                1 for r in normalized_responses if compare_bool(r, answer)
+            )
             correct_rate = correct_count / len(normalized_responses)
 
             # Determine which bin this correct rate falls into
