@@ -17,9 +17,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
-
-
 def extract_response_answer(response_text: str) -> Optional[bool]:
     """Extract a boolean answer from a response text with error handling.
 
