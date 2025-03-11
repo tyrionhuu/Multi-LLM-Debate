@@ -202,13 +202,13 @@ if __name__ == "__main__":
         
         if not round_data.empty:
             # Calculate average correct rate for this round
+            bin_columns = [col for col in round_data.columns if "-" in col]
             bin_midpoints = [
                 float(bin_name.split("-")[0]) + 0.05
-                for bin_name in round_data.columns
-                if "-" in bin_name
+                for bin_name in bin_columns
             ]
             bin_counts = [
-                round_data[col].sum() for col in round_data.columns if "-" in col
+                round_data[col].sum() for col in bin_columns
             ]
 
             weighted_sum = sum(
@@ -216,7 +216,7 @@ if __name__ == "__main__":
             )
             total_count = sum(bin_counts)
             
-            logger.debug(f"Round {round_num} bin counts: {list(zip(bin_names, bin_counts))}")
+            logger.debug(f"Round {round_num} bin counts: {list(zip(bin_columns, bin_counts))}")
             logger.debug(f"Round {round_num} weighted sum: {weighted_sum}, total count: {total_count}")
 
             avg_correct_rate = weighted_sum / total_count if total_count > 0 else 0
