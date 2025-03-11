@@ -170,7 +170,7 @@ def calculate_per_round_accuracy(
 
 if __name__ == "__main__":
     # Enable debug logging for testing
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
