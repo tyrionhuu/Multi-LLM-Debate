@@ -21,6 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 def calculate_correct_rate_distribution(
     dataframe: pd.DataFrame,
     model_dir: Path,
@@ -61,12 +62,10 @@ def calculate_correct_rate_distribution_for_round_n(
     for task_dir in task_dirs:
         id = task_dir.name
         task_df = dataframe[dataframe["id"] == id]
-        
+
         # Get the correct answer for the task
         answer = task_df["answer"].values[0]
         correct_answer = normalize_boolean_answer(answer)
         if correct_answer is None:
             logging.warning(f"Task {id} has an invalid answer: {answer}")
             continue
-        
-        
