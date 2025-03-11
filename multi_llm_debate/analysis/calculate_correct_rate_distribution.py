@@ -77,10 +77,10 @@ def calculate_correct_rate_distribution_for_round_n(
             continue
         if round_number > final_round:
             round_number = final_round
-            
+
         round_file = task_dir / f"debate_round_{round_number}.json"
         if not round_file.exists():
-            logging.warning(f"No debate data found for task {id} in round {round_number}")
+            logging.warning(
+                f"No debate data found for task {id} in round {round_number}"
+            )
             continue
-        
-        

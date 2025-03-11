@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import Any, Optional
+
 import pandas as pd
 
 from ..llm.parsers import extract_bool_answer
@@ -76,16 +77,16 @@ def calculate_majority_vote_correct_rate_for_round_n(
         question_id = str(row["id"])
         correct_answer = str(row["answer"]).lower()
         question_dir = model_dir / question_id
-        
+
         # Skip if question directory doesn't exist
         if not question_dir.exists() or not question_dir.is_dir():
             continue
-            
+
         # Find the final round number for this question
         final_round = get_final_round(question_dir)
         if final_round == -1:
             continue
-            
+
         # Use the specified round or the final round if the specified round exceeds it
         actual_round = min(round_number, final_round)
         round_file = question_dir / f"debate_round_{actual_round}.json"
@@ -113,8 +114,10 @@ def calculate_majority_vote_correct_rate_for_round_n(
             normalized_answer = normalize_boolean_answer(correct_answer)
             if normalized_answer is None:
                 continue
-                
-            correct_votes = sum(1 for r in normalized_responses if r == normalized_answer)
+
+            correct_votes = sum(
+                1 for r in normalized_responses if r == normalized_answer
+            )
             if correct_votes > len(normalized_responses) / 2:
                 total_correct += 1
             total_count += 1
