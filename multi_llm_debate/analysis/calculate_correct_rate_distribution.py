@@ -118,13 +118,8 @@ def calculate_correct_rate_distribution_for_round_n(
             # Determine majority answer
             true_count = sum(1 for r in normalized_responses if r is True)
             false_count = sum(1 for r in normalized_responses if r is False)
-            
-            # Skip if there's a tie (should be rare with odd number of models)
-            if true_count == false_count:
-                logger.debug(f"Skipping task {task_id} due to tie in responses")
-                continue
                 
-            majority_answer = true_count > false_count
+            majority_answer = false_count if false_count >= true_count else true_count
             
             # Check if majority answer is correct
             if majority_answer == correct_answer:
