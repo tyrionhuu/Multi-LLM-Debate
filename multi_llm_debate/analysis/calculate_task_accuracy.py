@@ -102,7 +102,7 @@ def calculate_task_accuracy(task_dir: Path, answer: str) -> float:
 
 if __name__ == "__main__":
     # Set up paths
-    model_dir = Path("data/bool_q/llama2(6)")
+    model_dir = Path("data/bool_q/llama3(7)")
     data_path = Path("output/bool_q/processed_data.csv")
 
     # Load dataset
