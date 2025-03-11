@@ -103,7 +103,15 @@ def calculate_per_round_accuracy(
                 # Count correct responses in the round
                 for i, response in enumerate(responses):
                     response_text = response["response"]
-                    extracted_response = extract_bool_answer(response_text)
+                    
+                    # Add error handling for extract_bool_answer
+                    try:
+                        extracted_response = extract_bool_answer(response_text)
+                    except ValueError as e:
+                        logger.debug(f"Task {id}: Could not extract answer from response {i} in round {actual_round}: {e}")
+                        invalid_responses += 1
+                        total_responses -= 1
+                        continue
 
                     # Skip invalid responses
                     if extracted_response is None:
