@@ -183,11 +183,14 @@ if __name__ == "__main__":
             for bin_label, percentage in bin_percentages.items():
                 logger.info(f"  {bin_label}: {percentage:.2f}%")
 
-            # Draw a histogram in the console
+            # Draw a more detailed histogram in the console
             histogram = draw_console_histogram(
                 bin_sums.to_dict(),
                 title=f"Correct Rate Distribution (Round {round_number})",
-                height=10,
+                height=15,  # Increased height for more detail
+                width=80,    # Set explicit width for better visualization
+                bar_char="█", # Use full block character for denser visualization
+                scale=None,   # Auto-scale to maximize detail
             )
             print("\n" + histogram + "\n")
 
