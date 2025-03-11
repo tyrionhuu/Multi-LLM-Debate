@@ -146,3 +146,53 @@ def calculate_correct_rate_distribution_for_round_n(
         logger.warning("No valid data collected for correct rate distribution")
 
     return result_df
+
+
+if __name__ == "__main__":
+    import sys
+    # Hardcoded configuration
+    data_path = "output/bool_q/processed_data.csv"
+    model_dir = "data/bool_q/llama3(7)"
+    round_number = 1
+    output_path = "output/distribution_round_1.csv"  # Set to None if you don't want to save
+    
+    # Load data
+    try:
+        dataframe = pd.read_csv(data_path)
+        logger.info(f"Loaded data from {data_path}")
+    except Exception as e:
+        logger.error(f"Error loading data: {e}")
+        sys.exit(1)
+    
+    model_dir_path = Path(model_dir)
+    if not model_dir_path.exists() or not model_dir_path.is_dir():
+        logger.error(f"Model directory does not exist: {model_dir}")
+        sys.exit(1)
+    
+    # Calculate distribution
+    result_df = calculate_correct_rate_distribution_for_round_n(
+        dataframe=dataframe,
+        model_dir=model_dir_path,
+        round_number=round_number
+    )
+    
+    # Print summary
+    bin_columns = [col for col in result_df.columns if "-" in col]
+    task_count = len(result_df)
+    
+    logger.info(f"Results for round {round_number}:")
+    logger.info(f"Total tasks analyzed: {task_count}")
+    
+    # Calculate bin distribution
+    if not result_df.empty and bin_columns:
+        bin_sums = result_df[bin_columns].sum()
+        bin_percentages = (bin_sums / task_count * 100).to_dict()
+        
+        logger.info("Correct rate distribution:")
+        for bin_label, percentage in bin_percentages.items():
+            logger.info(f"  {bin_label}: {percentage:.2f}%")
+    
+    # Save results if needed
+    if output_path:
+        result_df.to_csv(output_path, index=False)
+        logger.info(f"Results saved to {output_path}")
