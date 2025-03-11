@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 from ..llm.parsers import extract_bool_answer
-from .utils import get_final_round
+from .utils import get_final_round, normalize_boolean_answer
 
 
 def analyze_task_accuracy(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -85,13 +85,9 @@ def calculate_task_accuracy(
         correct_count = 0
         total_responses = len(responses)
 
-        # Convert answer to normalized boolean format with explicit checking
-        processed_answer = str(answer).lower().strip()
-        if processed_answer in ["yes", "true", "1"]:
-            answer_bool = True
-        elif processed_answer in ["no", "false", "0"]:
-            answer_bool = False
-        else:
+        # Use normalize_boolean_answer instead of manual conversion
+        answer_bool = normalize_boolean_answer(answer)
+        if answer_bool is None:
             print(f"Warning: Ambiguous answer format '{answer}' for task {task_dir}")
             return -1.0
 
@@ -105,8 +101,8 @@ def calculate_task_accuracy(
                 total_responses -= 1
                 continue
 
-            # Convert both to lowercase strings for comparison
-            if str(extracted_response).lower() == str(answer_bool).lower():
+            # Compare directly as booleans
+            if extracted_response == answer_bool:
                 correct_count += 1
 
         # Calculate and return accuracy
