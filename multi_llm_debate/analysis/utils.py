@@ -6,6 +6,23 @@ import pandas as pd
 
 from ..llm.parsers import extract_bool_answer
 
+def compare_bool(a: Any, b: Any) -> bool:
+    """Compares two boolean values.
+
+    Args:
+        a: The first value to compare.
+        b: The second value to compare.
+
+    Returns:
+        bool: True if the values are equal, False otherwise.
+    """
+    if isinstance(a, bool) and isinstance(b, bool):
+        return a == b
+    if isinstance(a, str):
+        a = a.lower()
+    if isinstance(b, str):
+        b = b.lower()
+    return a == b
 
 def compare_int_as_str(a: Any, b: Any) -> bool:
     """Compares two values that may be integers represented as strings.

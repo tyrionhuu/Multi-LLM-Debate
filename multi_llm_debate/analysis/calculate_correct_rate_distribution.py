@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
-from .utils import compare_int_as_str, get_final_round, normalize_boolean_answer
+from .utils import get_final_round, compare_bool
 
 # Set up logging
 logging.basicConfig(
@@ -74,10 +74,6 @@ def calculate_correct_rate_distribution_for_round_n(
 
         # Get the correct answer for the task
         answer = task_df["answer"].iloc[0]
-        correct_answer = normalize_boolean_answer(answer)
-        if correct_answer is None:
-            logger.warning(f"Task {task_id} has an invalid answer: {answer}")
-            continue
 
         # Load the debate data for the specified round
         final_round = get_final_round(task_dir)
@@ -117,7 +113,7 @@ def calculate_correct_rate_distribution_for_round_n(
                 continue
 
             # Calculate correct rate for this task
-            correct_count = sum(1 for r in normalized_responses if r == correct_answer)
+            correct_count = sum(1 for r in normalized_responses if compare_bool(r, answer))
             correct_rate = correct_count / len(normalized_responses)
 
             # Determine which bin this correct rate falls into
