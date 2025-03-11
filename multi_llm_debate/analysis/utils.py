@@ -191,6 +191,8 @@ def draw_console_histogram(
     show_percentages: bool = True,
     sort_by: Optional[str] = None,
     bar_char: str = "█",
+    scale: Optional[float] = None,
+    fine_grained: bool = True,
 ) -> str:
     """Draw a vertical ASCII histogram in the console.
 
@@ -203,6 +205,8 @@ def draw_console_histogram(
         show_percentages: Whether to show percentage values above bars
         sort_by: Sort bins by 'key', 'value', 'value_desc', or None for no sorting
         bar_char: Character to use for drawing bars
+        scale: Optional manual scaling factor
+        fine_grained: Whether to use half-block characters for more precision
 
     Returns:
         String containing the complete ASCII histogram
@@ -248,10 +252,36 @@ def draw_console_histogram(
     total_column_width = column_width + padding
     total_width = len(sorted_data) * total_column_width
 
-    # Calculate bar heights with rounding
-    heights = {
-        label: round(height * value / max_value) for label, value in sorted_data.items()
-    }
+    # Calculate scaling factor
+    scaling_factor = scale if scale is not None else (height / max_value)
+
+    # Characters for fine-grained display
+    full_block = "█"
+    half_block = "▄"
+    empty_block = " "
+    
+    # Calculate bar heights with higher precision if fine_grained is enabled
+    if fine_grained:
+        exact_heights = {
+            label: value * scaling_factor for label, value in sorted_data.items()
+        }
+        # Integer part of the height (full blocks)
+        int_heights = {
+            label: int(height) for label, height in exact_heights.items()
+        }
+        # Fractional part (for potential half blocks)
+        frac_heights = {
+            label: height - int_height 
+            for label, height, int_height in zip(
+                sorted_data.keys(), exact_heights.values(), int_heights.values()
+            )
+        }
+    else:
+        # Original rounding behavior
+        int_heights = {
+            label: round(value * scaling_factor) for label, value in sorted_data.items()
+        }
+        frac_heights = {label: 0 for label in sorted_data}
 
     # Calculate percentages
     total_sum = sum(sorted_data.values())
@@ -278,7 +308,7 @@ def draw_console_histogram(
             if isinstance(value, float) and value.is_integer():
                 count_text = f"({int(value)})"
             else:
-                count_text = f"({value:.2f})"
+                count_text = f"({value:.1f})"
             count_line += f"{count_text:^{total_column_width}}"
         result.append(count_line)
         result.append("-" * total_width)
@@ -287,12 +317,15 @@ def draw_console_histogram(
     for h in range(height, 0, -1):
         row = ""
         for label in sorted_data:
-            bar_height = heights[label]
-            row += (
-                f"{bar_char * column_width:^{total_column_width}}"
-                if h <= bar_height
-                else " " * total_column_width
-            )
+            int_height = int_heights[label]
+            char = empty_block
+            
+            if h <= int_height:
+                char = full_block
+            elif fine_grained and h == int_height + 1 and frac_heights[label] >= 0.5:
+                char = half_block
+                
+            row += f"{char * column_width:^{total_column_width}}"
         result.append(row)
 
     # Add axis line
