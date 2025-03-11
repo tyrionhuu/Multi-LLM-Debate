@@ -189,7 +189,6 @@ if __name__ == "__main__":
                 title=f"Correct Rate Distribution (Round {round_number})",
                 height=100,  # Increased height for more detail
                 bar_char="█", # Use full block character for denser visualization
-                scale=None,   # Auto-scale to maximize detail
             )
             print("\n" + histogram + "\n")
 
