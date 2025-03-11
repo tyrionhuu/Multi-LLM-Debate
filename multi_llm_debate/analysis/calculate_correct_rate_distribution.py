@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -11,8 +11,9 @@ from ..llm.parsers import extract_bool_answer
 from .utils import get_final_round
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, 
-                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -34,9 +35,7 @@ def normalize_boolean_answer(answer: Any) -> Optional[bool]:
         return None
 
 
-def extract_response_answer(
-    response_text: str
-) -> Optional[bool]:
+def extract_response_answer(response_text: str) -> Optional[bool]:
     """Extract a boolean answer from a response text with error handling.
 
     Args:
@@ -119,7 +118,7 @@ def process_task_round(
         # Read the response file
         with open(response_file, "r") as f:
             responses = json.load(f)
-        
+
         logger.debug(
             f"Task {task_id}: Loaded {len(responses)} responses for round {actual_round}"
         )
@@ -157,8 +156,7 @@ def process_task_round(
 
     except Exception as e:
         logger.error(
-            f"Error processing task {task_id} for round {round_num}: {e}",
-            exc_info=True
+            f"Error processing task {task_id} for round {round_num}: {e}", exc_info=True
         )
 
     return None
@@ -183,15 +181,15 @@ def process_debate_task(
     """
     task_results = []
     task_id = task_dir.name
-    
+
     try:
         if isinstance(task_id, str) and task_id.isdigit():
             task_id = int(task_id)
     except ValueError:
         pass
-    
+
     logger.debug(f"Processing task ID: {task_id}")
-    
+
     final_round = get_final_round(task_dir)
     if final_round == -1:
         logger.debug(f"Skipping task {task_id}: Final round not found")
@@ -217,16 +215,11 @@ def process_debate_task(
     # Process each round up to max_round_number
     for round_num in range(1, max_round_number + 1):
         actual_round = min(round_num, final_round)
-        
+
         row = process_task_round(
-            task_id, 
-            task_dir, 
-            round_num, 
-            actual_round, 
-            normalized_truth,
-            bin_names
+            task_id, task_dir, round_num, actual_round, normalized_truth, bin_names
         )
-        
+
         if row:
             task_results.append(row)
 
@@ -294,12 +287,12 @@ if __name__ == "__main__":
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
-    
+
     # Set up paths
     model_dir = Path("data/bool_q/llama3(7)")
     data_path = Path("output/bool_q/processed_data.csv")
     max_round_number = 5
-    
+
     logger.info(f"Testing calculate_per_round_accuracy with:")
     logger.info(f"  - Model dir: {model_dir}")
     logger.info(f"  - Data path: {data_path}")
@@ -321,25 +314,27 @@ if __name__ == "__main__":
     # Print overall summary statistics instead of per-round details
     logger.info(f"Total tasks processed: {len(result_df['id'].unique())}")
     logger.info(f"Total rounds processed: {result_df['round_number'].nunique()}")
-    
+
     # Calculate overall correct rate across all rounds
     bin_columns = [col for col in result_df.columns if "-" in col]
     bin_midpoints = [float(bin_name.split("-")[0]) + 0.05 for bin_name in bin_columns]
     bin_counts = [result_df[col].sum() for col in bin_columns]
-    
+
     # Print bin distribution
     logger.info("\nOverall correct rate distribution:")
     for bin_name, count in zip(bin_columns, bin_counts):
         percentage = (count / len(result_df)) * 100 if len(result_df) > 0 else 0
         logger.info(f"  {bin_name}: {count} ({percentage:.1f}%)")
-    
+
     # Calculate overall weighted average correct rate
-    weighted_sum = sum(midpoint * count for midpoint, count in zip(bin_midpoints, bin_counts))
+    weighted_sum = sum(
+        midpoint * count for midpoint, count in zip(bin_midpoints, bin_counts)
+    )
     total_count = sum(bin_counts)
     overall_avg_correct_rate = weighted_sum / total_count if total_count > 0 else 0
-    
+
     logger.info(f"\nOverall average correct rate: {overall_avg_correct_rate:.3f}")
-    
+
     # Compute model performance by round (summarized)
     round_avg_rates = {}
     for round_num in range(1, max_round_number + 1):
@@ -348,23 +343,25 @@ if __name__ == "__main__":
             # Calculate average correct rate for this round
             round_bin_counts = [round_data[col].sum() for col in bin_columns]
             round_weighted_sum = sum(
-                midpoint * count 
+                midpoint * count
                 for midpoint, count in zip(bin_midpoints, round_bin_counts)
             )
             round_total_count = sum(round_bin_counts)
-            
+
             if round_total_count > 0:
                 round_avg_rates[round_num] = round_weighted_sum / round_total_count
-    
+
     # Print concise round performance summary
     logger.info("\nCorrect rate by round:")
     for round_num in sorted(round_avg_rates.keys()):
         logger.info(f"  Round {round_num}: {round_avg_rates[round_num]:.3f}")
-    
+
     # If available, show first-to-last round improvement
     first_round = min(round_avg_rates.keys()) if round_avg_rates else None
     last_round = max(round_avg_rates.keys()) if round_avg_rates else None
     if first_round is not None and last_round is not None and first_round != last_round:
         improvement = round_avg_rates[last_round] - round_avg_rates[first_round]
-        logger.info(f"\nImprovement from round {first_round} to {last_round}: "
-                   f"{improvement:.3f} ({improvement/round_avg_rates[first_round]*100:.1f}%)")
+        logger.info(
+            f"\nImprovement from round {first_round} to {last_round}: "
+            f"{improvement:.3f} ({improvement/round_avg_rates[first_round]*100:.1f}%)"
+        )
