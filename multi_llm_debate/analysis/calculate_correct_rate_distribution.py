@@ -123,3 +123,56 @@ def calculate_per_round_accuracy(
         result_df = pd.DataFrame(columns=columns)
 
     return result_df
+
+
+if __name__ == "__main__":
+    # Set up paths
+    model_dir = Path("data/bool_q/llama3(7)")
+    data_path = Path("output/bool_q/processed_data.csv")
+    max_round_number = 10
+    
+    # Load dataset - adjust column names to match your actual data structure
+    dataframe = pd.read_csv(data_path)
+    
+    # Rename columns if necessary for compatibility with the function
+    if "id" in dataframe.columns and "answer" in dataframe.columns:
+        dataframe = dataframe.rename(
+            columns={"id": "task_id", "answer": "ground_truth"}
+        )
+    
+    # Calculate accuracy distribution by round
+    result_df = calculate_per_round_accuracy(dataframe, model_dir, max_round_number)
+    
+    # Print the results
+    print("Accuracy distribution by round:")
+    print(result_df.head())
+    
+    # Calculate and print summary statistics by round
+    round_stats = {}
+    for round_num in range(1, max_round_number + 1):
+        round_data = result_df[result_df["round_number"] == round_num]
+        if not round_data.empty:
+            # Calculate average correct rate for this round
+            bin_midpoints = [float(bin_name.split('-')[0]) + 0.05 
+                             for bin_name in round_data.columns 
+                             if '-' in bin_name]
+            bin_counts = [round_data[col].sum() 
+                          for col in round_data.columns 
+                          if '-' in col]
+            
+            weighted_sum = sum(midpoint * count 
+                               for midpoint, count in zip(bin_midpoints, bin_counts))
+            total_count = sum(bin_counts)
+            
+            avg_correct_rate = weighted_sum / total_count if total_count > 0 else 0
+            round_stats[round_num] = {
+                "avg_correct_rate": avg_correct_rate,
+                "task_count": len(round_data)
+            }
+    
+    # Print summary statistics
+    print("\nSummary statistics by round:")
+    for round_num, stats in round_stats.items():
+        print(f"Round {round_num}: "
+              f"Average Correct Rate: {stats['avg_correct_rate']:.3f}, "
+              f"Tasks: {stats['task_count']}")
