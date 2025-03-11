@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
-from .utils import get_final_round
+from .utils import get_final_round, normalize_boolean_answer
 
 # Set up logging
 logging.basicConfig(
@@ -17,22 +17,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def normalize_boolean_answer(answer: Any) -> Optional[bool]:
-    """Normalize an answer to a boolean value.
 
-    Args:
-        answer: The answer to normalize, can be any type.
-
-    Returns:
-        A boolean value or None if the answer cannot be normalized.
-    """
-    processed_answer = str(answer).lower().strip()
-    if processed_answer in ["yes", "true", "1"]:
-        return True
-    elif processed_answer in ["no", "false", "0"]:
-        return False
-    else:
-        return None
 
 
 def extract_response_answer(response_text: str) -> Optional[bool]:
