@@ -57,7 +57,7 @@ def main(
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Save processed DataFrame to CSV
-        processed_df.to_csv(f"output/bool_q/processed_data.csv", index=False)
+        processed_df.to_csv("output/bool_q/processed_data.csv", index=False)
 
         for model_configs in model_configs_list:
             run(

@@ -8,7 +8,6 @@ import pandas as pd
 from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
-from .utils import calculate_majority_vote_correct_rate_for_round_n
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
