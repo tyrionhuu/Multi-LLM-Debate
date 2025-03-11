@@ -225,11 +225,11 @@ def draw_console_histogram(
     # Use fewer characters if we have many bins
     if len(sorted_data) > 10:
         column_width = min(column_width, 7)
-    
+
     # Column padding (spaces between columns)
     padding = 1
     total_column_width = column_width + padding
-    
+
     # Convert values to heights based on max_value
     heights = {
         label: int(height * value / max_value) if max_value > 0 else 0
@@ -255,14 +255,14 @@ def draw_console_histogram(
             percent_text = f"{percentages[label]:.1f}%"
             percent_line += f"{percent_text:^{total_column_width}}"
         result.append(percent_line)
-        
+
         # Add count values
         count_line = ""
         for label, value in sorted_data.items():
             count_text = f"({value:.0f})" if value >= 1 else f"({value:.2f})"
             count_line += f"{count_text:^{total_column_width}}"
         result.append(count_line)
-        
+
         # Add a separator
         result.append("-" * (len(sorted_data) * total_column_width))
 
@@ -276,7 +276,7 @@ def draw_console_histogram(
             else:
                 row += f"{'':{total_column_width}}"
         result.append(row)
-    
+
     # Add axis line
     result.append("=" * (len(sorted_data) * total_column_width))
 
@@ -292,7 +292,7 @@ def draw_console_histogram(
         max_label_len = max(len(str(label)) for label in sorted_data.keys())
         chars_per_line = column_width
         lines_needed = (max_label_len + chars_per_line - 1) // chars_per_line
-        
+
         for line_idx in range(lines_needed):
             label_line = ""
             for label in sorted_data.keys():
