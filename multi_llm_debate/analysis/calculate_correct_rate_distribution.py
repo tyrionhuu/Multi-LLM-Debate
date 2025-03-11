@@ -20,14 +20,14 @@ def calculate_per_round_accuracy(
     round number, the final round's result is used for subsequent rounds.
 
     Args:
-        dataframe: DataFrame containing ground truth data with columns 'task_id'
+        dataframe: DataFrame containing ground truth data with columns 'id'
             and 'ground_truth'.
         model_dir: Path to the directory containing subdirectories for each task.
         max_round_number: Maximum number of debate rounds to analyze.
 
     Returns:
         DataFrame with columns for each correct rate bin (0.0-0.1, 0.1-0.2, etc.),
-        'task_id', and 'round_number'. Each bin column contains the count (0 or 1)
+        'id', and 'round_number'. Each bin column contains the count (0 or 1)
         indicating whether the task's correctness for that round falls into that bin.
     """
     subdirs = [subdir for subdir in model_dir.iterdir() if subdir.is_dir()]
@@ -41,14 +41,14 @@ def calculate_per_round_accuracy(
     result_data = []
 
     for task_dir in pbar:
-        task_id = task_dir.name
+        id = task_dir.name
         final_round = get_final_round(task_dir)
 
         if final_round == -1:
             continue
 
         # Filter dataframe for this task
-        task_df = dataframe[dataframe["task_id"] == task_id]
+        task_df = dataframe[dataframe["id"] == id]
         if task_df.empty:
             continue
 
@@ -106,12 +106,12 @@ def calculate_per_round_accuracy(
                     # Create a row with zeros
                     row = {bin_name: 0 for bin_name in bin_names}
                     row[bin_names[bin_idx]] = 1  # Set the correct bin to 1
-                    row["task_id"] = task_id
+                    row["id"] = id
                     row["round_number"] = round_num
 
                     result_data.append(row)
             except Exception as e:
-                print(f"Error processing task {task_id} for round {round_num}: {e}")
+                print(f"Error processing task {id} for round {round_num}: {e}")
                 continue
 
     # Create the result dataframe
@@ -119,7 +119,7 @@ def calculate_per_round_accuracy(
         result_df = pd.DataFrame(result_data)
     else:
         # If no data was collected, create an empty DataFrame with the correct columns
-        columns = bin_names + ["task_id", "round_number"]
+        columns = bin_names + ["id", "round_number"]
         result_df = pd.DataFrame(columns=columns)
 
     return result_df
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     # Rename columns if necessary for compatibility with the function
     if "id" in dataframe.columns and "answer" in dataframe.columns:
         dataframe = dataframe.rename(
-            columns={"id": "task_id", "answer": "ground_truth"}
+            columns={"id": "id", "answer": "ground_truth"}
         )
 
     # Calculate accuracy distribution by round
