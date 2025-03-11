@@ -263,6 +263,32 @@ def calculate_per_round_accuracy(
     return result_df
 
 
+def print_console_bar_chart(
+    data: Dict[str, float], title: str, max_width: int = 50
+) -> None:
+    """Print a simple bar chart in the console.
+    
+    Args:
+        data: Dictionary of labels and values to plot.
+        title: Title of the chart.
+        max_width: Maximum width of the bars in characters.
+    """
+    if not data:
+        print(f"No data to plot for '{title}'")
+        return
+        
+    print(f"\n{title}")
+    print("=" * (len(title) + 10))
+    
+    max_val = max(data.values())
+    max_label_len = max(len(str(label)) for label in data.keys())
+    
+    for label, value in data.items():
+        bar_width = int((value / max_val) * max_width) if max_val > 0 else 0
+        bar = "█" * bar_width
+        print(f"{label:{max_label_len}} | {bar} {value:.3f}")
+
+
 if __name__ == "__main__":
     # Enable debug logging for testing
     logger.setLevel(logging.INFO)
@@ -294,8 +320,8 @@ if __name__ == "__main__":
     result_df = calculate_per_round_accuracy(dataframe, model_dir, max_round_number)
 
     # Print overall summary statistics instead of per-round details
-    logger.info(f"Total tasks processed: {len(result_df['id'].unique())}")
-    logger.info(f"Total rounds processed: {result_df['round_number'].nunique()}")
+    print(f"Total tasks processed: {len(result_df['id'].unique())}")
+    print(f"Total rounds processed: {result_df['round_number'].nunique()}")
 
     # Calculate overall correct rate across all rounds
     bin_columns = [col for col in result_df.columns if "-" in col]
@@ -303,10 +329,10 @@ if __name__ == "__main__":
     bin_counts = [result_df[col].sum() for col in bin_columns]
 
     # Print bin distribution
-    logger.info("\nOverall correct rate distribution:")
+    print("\nOverall correct rate distribution:")
     for bin_name, count in zip(bin_columns, bin_counts):
         percentage = (count / len(result_df)) * 100 if len(result_df) > 0 else 0
-        logger.info(f"  {bin_name}: {count} ({percentage:.1f}%)")
+        print(f"  {bin_name}: {count} ({percentage:.1f}%)")
 
     # Calculate overall weighted average correct rate
     weighted_sum = sum(
@@ -315,7 +341,7 @@ if __name__ == "__main__":
     total_count = sum(bin_counts)
     overall_avg_correct_rate = weighted_sum / total_count if total_count > 0 else 0
 
-    logger.info(f"\nOverall average correct rate: {overall_avg_correct_rate:.3f}")
+    print(f"\nOverall average correct rate: {overall_avg_correct_rate:.3f}")
 
     # Compute model performance by round (summarized)
     round_avg_rates = {}
@@ -334,16 +360,41 @@ if __name__ == "__main__":
                 round_avg_rates[round_num] = round_weighted_sum / round_total_count
 
     # Print concise round performance summary
-    logger.info("\nCorrect rate by round:")
+    print("\nCorrect rate by round:")
     for round_num in sorted(round_avg_rates.keys()):
-        logger.info(f"  Round {round_num}: {round_avg_rates[round_num]:.3f}")
-
+        print(f"  Round {round_num}: {round_avg_rates[round_num]:.3f}")
+    
+    # Generate bar charts for each round
+    print("\nVisualization of correct rate distributions by round:")
+    
+    # For each round, create a bar chart showing bin distributions
+    for round_num in range(1, max_round_number + 5):
+        round_data = result_df[result_df["round_number"] == round_num]
+        if not round_data.empty:
+            # Calculate distribution for this round
+            distribution = {}
+            for bin_name in bin_columns:
+                bin_count = round_data[bin_name].sum()
+                bin_percentage = (bin_count / len(round_data)) * 100
+                distribution[bin_name] = bin_percentage
+                
+            # Print bar chart
+            chart_title = f"Round {round_num} Correct Rate Distribution (% of tasks)"
+            print_console_bar_chart(distribution, chart_title)
+    
     # If available, show first-to-last round improvement
     first_round = min(round_avg_rates.keys()) if round_avg_rates else None
     last_round = max(round_avg_rates.keys()) if round_avg_rates else None
     if first_round is not None and last_round is not None and first_round != last_round:
         improvement = round_avg_rates[last_round] - round_avg_rates[first_round]
-        logger.info(
+        print(
             f"\nImprovement from round {first_round} to {last_round}: "
             f"{improvement:.3f} ({improvement/round_avg_rates[first_round]*100:.1f}%)"
         )
+    
+    # Generate bar chart comparing rounds
+    round_comparison = {f"Round {r}": rate for r, rate in round_avg_rates.items()}
+    print_console_bar_chart(
+        round_comparison, 
+        "Comparison of Average Correct Rates by Round"
+    )
