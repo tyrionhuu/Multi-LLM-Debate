@@ -1,5 +1,6 @@
-from pathlib import Path
 import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -14,7 +15,7 @@ def calculate_per_round_accuracy(
     """Calculate accuracy distribution for each round of debate across tasks.
 
     This function processes a directory of debate tasks and calculates a distribution
-    of correct rates for each round. It uses responses from debate rounds to determine 
+    of correct rates for each round. It uses responses from debate rounds to determine
     the accuracy for each task. If a debate converges before the maximum
     round number, the final round's result is used for subsequent rounds.
 
@@ -50,9 +51,9 @@ def calculate_per_round_accuracy(
         task_df = dataframe[dataframe["task_id"] == task_id]
         if task_df.empty:
             continue
-            
+
         ground_truth = task_df["ground_truth"].iloc[0]
-        
+
         # Convert ground truth to normalized boolean format
         processed_answer = str(ground_truth).lower().strip()
         if processed_answer in ["yes", "true", "1"]:
@@ -66,46 +67,48 @@ def calculate_per_round_accuracy(
         for round_num in range(1, max_round_number + 1):
             actual_round = min(round_num, final_round)
             response_file = task_dir / f"debate_round_{actual_round}.json"
-            
+
             if not response_file.exists():
                 continue
-                
+
             try:
                 # Read the response file
                 with open(response_file, "r") as f:
                     responses = json.load(f)
-                    
+
                 # Count correct responses
                 correct_count = 0
                 total_responses = len(responses)
-                
+
                 # Count correct responses in the round
                 for response in responses:
                     response_text = response["response"]
                     extracted_response = extract_bool_answer(response_text)
-                    
+
                     # Skip invalid responses
                     if extracted_response is None:
                         total_responses -= 1
                         continue
-                        
+
                     # Compare with ground truth
                     if str(extracted_response).lower() == str(answer_bool).lower():
                         correct_count += 1
-                        
+
                 # Calculate correct rate
                 if total_responses > 0:
                     correct_rate = correct_count / total_responses
-                    
+
                     # Find which bin this correct rate falls into
-                    bin_idx = min(int(correct_rate * 10), 9)  # Ensure index is within range
-                    
+                    bin_idx = min(
+                        int(correct_rate * 10), 9
+                    )  # Ensure index is within range
+
                     # Create a row with zeros
                     row = {bin_name: 0 for bin_name in bin_names}
                     row[bin_names[bin_idx]] = 1  # Set the correct bin to 1
                     row["task_id"] = task_id
                     row["round_number"] = round_num
-                    
+
                     result_data.append(row)
             except Exception as e:
                 print(f"Error processing task {task_id} for round {round_num}: {e}")
