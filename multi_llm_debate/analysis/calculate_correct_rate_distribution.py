@@ -186,7 +186,7 @@ if __name__ == "__main__":
         histogram = draw_console_histogram(
             bin_sums.to_dict(),
             title=f"Correct Rate Distribution (Round {round_number})",
-            width=40,
+            height=10,  # Changed from 'width' to 'height'
         )
         print("\n" + histogram + "\n")
 
