@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Any, Union
 
 import numpy as np
 import pandas as pd
@@ -15,6 +16,223 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 
+def normalize_boolean_answer(answer: Any) -> Optional[bool]:
+    """Normalize an answer to a boolean value.
+
+    Args:
+        answer: The answer to normalize, can be any type.
+
+    Returns:
+        A boolean value or None if the answer cannot be normalized.
+    """
+    processed_answer = str(answer).lower().strip()
+    if processed_answer in ["yes", "true", "1"]:
+        return True
+    elif processed_answer in ["no", "false", "0"]:
+        return False
+    else:
+        return None
+
+
+def extract_response_answer(
+    response_text: str
+) -> Optional[bool]:
+    """Extract a boolean answer from a response text with error handling.
+
+    Args:
+        response_text: The text to extract the answer from.
+
+    Returns:
+        A boolean value representing the answer, or None if extraction fails.
+    """
+    try:
+        return extract_bool_answer(response_text)
+    except ValueError:
+        return None
+
+
+def process_responses(
+    responses: List[Dict[str, Any]], ground_truth: bool
+) -> Tuple[int, int, int]:
+    """Process debate responses and count correct answers.
+
+    Args:
+        responses: List of response dictionaries from the debate.
+        ground_truth: The correct answer as a boolean value.
+
+    Returns:
+        Tuple containing (correct_count, total_valid_responses, invalid_count).
+    """
+    correct_count = 0
+    invalid_count = 0
+    total_responses = len(responses)
+
+    for response in responses:
+        response_text = response.get("response", "")
+        extracted_response = extract_response_answer(response_text)
+
+        if extracted_response is None:
+            invalid_count += 1
+            continue
+
+        if extracted_response == ground_truth:
+            correct_count += 1
+
+    valid_count = total_responses - invalid_count
+    return correct_count, valid_count, invalid_count
+
+
+def process_task_round(
+    task_id: Union[int, str],
+    task_dir: Path,
+    round_num: int,
+    actual_round: int,
+    ground_truth: bool,
+    bin_names: List[str],
+) -> Optional[Dict[str, Any]]:
+    """Process a single round for a debate task.
+
+    Args:
+        task_id: ID of the task being processed.
+        task_dir: Path to the task directory.
+        round_num: The round number to report in the result.
+        actual_round: The actual round number to read data from.
+        ground_truth: The correct answer as a boolean.
+        bin_names: List of bin names for result categorization.
+
+    Returns:
+        A dictionary representing the results row, or None if processing fails.
+    """
+    logger.debug(
+        f"Task {task_id}: Processing round {round_num} "
+        f"(using data from round {actual_round})"
+    )
+    response_file = task_dir / f"debate_round_{actual_round}.json"
+
+    if not response_file.exists():
+        logger.debug(
+            f"Task {task_id}: Response file for round {actual_round} not found"
+        )
+        return None
+
+    try:
+        # Read the response file
+        with open(response_file, "r") as f:
+            responses = json.load(f)
+        
+        logger.debug(
+            f"Task {task_id}: Loaded {len(responses)} responses for round {actual_round}"
+        )
+
+        correct_count, valid_count, invalid_count = process_responses(
+            responses, ground_truth
+        )
+
+        logger.debug(
+            f"Task {task_id}: Round {actual_round} summary - "
+            f"{correct_count}/{valid_count} correct, "
+            f"{invalid_count} invalid responses"
+        )
+
+        # Calculate correct rate
+        if valid_count > 0:
+            correct_rate = correct_count / valid_count
+            logger.debug(
+                f"Task {task_id}: Round {actual_round} correct rate: {correct_rate:.3f}"
+            )
+
+            # Find which bin this correct rate falls into
+            bin_idx = min(int(correct_rate * 10), 9)  # Ensure index is within range
+            logger.debug(
+                f"Task {task_id}: Round {actual_round} falls into bin {bin_names[bin_idx]}"
+            )
+
+            # Create a row with zeros
+            row = {bin_name: 0 for bin_name in bin_names}
+            row[bin_names[bin_idx]] = 1  # Set the correct bin to 1
+            row["id"] = task_id
+            row["round_number"] = round_num
+
+            return row
+
+    except Exception as e:
+        logger.error(
+            f"Error processing task {task_id} for round {round_num}: {e}",
+            exc_info=True
+        )
+
+    return None
+
+
+def process_debate_task(
+    task_dir: Path,
+    dataframe: pd.DataFrame,
+    max_round_number: int,
+    bin_names: List[str],
+) -> List[Dict[str, Any]]:
+    """Process a single debate task and calculate accuracy by round.
+
+    Args:
+        task_dir: Path to the task directory.
+        dataframe: DataFrame containing ground truth data.
+        max_round_number: Maximum number of rounds to process.
+        bin_names: List of bin names for result categorization.
+
+    Returns:
+        List of dictionaries representing results for each valid round.
+    """
+    task_results = []
+    task_id = task_dir.name
+    
+    try:
+        if isinstance(task_id, str) and task_id.isdigit():
+            task_id = int(task_id)
+    except ValueError:
+        pass
+    
+    logger.debug(f"Processing task ID: {task_id}")
+    
+    final_round = get_final_round(task_dir)
+    if final_round == -1:
+        logger.debug(f"Skipping task {task_id}: Final round not found")
+        return []
+
+    # Filter dataframe for this task
+    task_df = dataframe[dataframe["id"] == task_id]
+    if task_df.empty:
+        logger.debug(f"Skipping task {task_id}: Not found in dataframe")
+        return []
+
+    ground_truth = task_df["answer"].iloc[0]
+    logger.debug(f"Task {task_id} ground truth: {ground_truth}")
+
+    # Convert ground truth to normalized boolean format
+    normalized_truth = normalize_boolean_answer(ground_truth)
+    if normalized_truth is None:
+        logger.debug(
+            f"Skipping task {task_id}: Invalid ground truth format '{ground_truth}'"
+        )
+        return []
+
+    # Process each round up to max_round_number
+    for round_num in range(1, max_round_number + 1):
+        actual_round = min(round_num, final_round)
+        
+        row = process_task_round(
+            task_id, 
+            task_dir, 
+            round_num, 
+            actual_round, 
+            normalized_truth,
+            bin_names
+        )
+        
+        if row:
+            task_results.append(row)
+
+    return task_results
+
+
 def calculate_per_round_accuracy(
     dataframe: pd.DataFrame, model_dir: Path, max_round_number: int
 ) -> pd.DataFrame:
@@ -27,7 +245,7 @@ def calculate_per_round_accuracy(
 
     Args:
         dataframe: DataFrame containing ground truth data with columns 'id'
-            and 'ground_truth'.
+            and 'answer'.
         model_dir: Path to the directory containing subdirectories for each task.
         max_round_number: Maximum number of debate rounds to analyze.
 
@@ -50,108 +268,10 @@ def calculate_per_round_accuracy(
     result_data = []
 
     for task_dir in pbar:
-        id = task_dir.name
-        if isinstance(id, str):
-            id = int(id)
-        logger.debug(f"Processing task ID: {id}")
-        final_round = get_final_round(task_dir)
-
-        if final_round == -1:
-            logger.debug(f"Skipping task {id}: Final round not found")
-            continue
-
-        # Filter dataframe for this task
-        task_df = dataframe[dataframe["id"] == id]
-        if task_df.empty:
-            logger.debug(f"Skipping task {id}: Not found in dataframe")
-            continue
-
-        ground_truth = task_df["answer"].iloc[0]
-        logger.debug(f"Task {id} ground truth: {ground_truth}")
-
-        # Convert ground truth to normalized boolean format
-        processed_answer = str(ground_truth).lower().strip()
-        if processed_answer in ["yes", "true", "1"]:
-            answer_bool = True
-        elif processed_answer in ["no", "false", "0"]:
-            answer_bool = False
-        else:
-            logger.debug(f"Skipping task {id}: Invalid ground truth format '{processed_answer}'")
-            continue
-
-        # Process each round up to max_round_number
-        for round_num in range(1, max_round_number + 1):
-            actual_round = min(round_num, final_round)
-            logger.debug(f"Task {id}: Processing round {round_num} (using data from round {actual_round})")
-            response_file = task_dir / f"debate_round_{actual_round}.json"
-
-            if not response_file.exists():
-                logger.debug(f"Task {id}: Response file for round {actual_round} not found")
-                continue
-
-            try:
-                # Read the response file
-                with open(response_file, "r") as f:
-                    responses = json.load(f)
-                logger.debug(f"Task {id}: Loaded {len(responses)} responses for round {actual_round}")
-
-                # Count correct responses
-                correct_count = 0
-                total_responses = len(responses)
-                invalid_responses = 0
-
-                # Count correct responses in the round
-                for i, response in enumerate(responses):
-                    response_text = response["response"]
-                    
-                    # Add error handling for extract_bool_answer
-                    try:
-                        extracted_response = extract_bool_answer(response_text)
-                    except ValueError as e:
-                        logger.debug(f"Task {id}: Could not extract answer from response {i} in round {actual_round}: {e}")
-                        invalid_responses += 1
-                        total_responses -= 1
-                        continue
-
-                    # Skip invalid responses
-                    if extracted_response is None:
-                        invalid_responses += 1
-                        total_responses -= 1
-                        logger.debug(f"Task {id}: Invalid response {i} in round {actual_round}")
-                        continue
-
-                    # Compare with ground truth
-                    is_correct = str(extracted_response).lower() == str(answer_bool).lower()
-                    if is_correct:
-                        correct_count += 1
-                    logger.debug(f"Task {id}: Response {i} in round {actual_round} - "
-                                f"extracted: {extracted_response}, correct: {is_correct}")
-
-                logger.debug(f"Task {id}: Round {actual_round} summary - "
-                           f"{correct_count}/{total_responses} correct, "
-                           f"{invalid_responses} invalid responses")
-
-                # Calculate correct rate
-                if total_responses > 0:
-                    correct_rate = correct_count / total_responses
-                    logger.debug(f"Task {id}: Round {actual_round} correct rate: {correct_rate:.3f}")
-
-                    # Find which bin this correct rate falls into
-                    bin_idx = min(
-                        int(correct_rate * 10), 9
-                    )  # Ensure index is within range
-                    logger.debug(f"Task {id}: Round {actual_round} falls into bin {bin_names[bin_idx]}")
-
-                    # Create a row with zeros
-                    row = {bin_name: 0 for bin_name in bin_names}
-                    row[bin_names[bin_idx]] = 1  # Set the correct bin to 1
-                    row["id"] = id
-                    row["round_number"] = round_num
-
-                    result_data.append(row)
-            except Exception as e:
-                logger.error(f"Error processing task {id} for round {round_num}: {e}", exc_info=True)
-                continue
+        task_results = process_debate_task(
+            task_dir, dataframe, max_round_number, bin_names
+        )
+        result_data.extend(task_results)
 
     logger.info(f"Processed {len(result_data)} valid task-round combinations")
 
@@ -190,7 +310,6 @@ if __name__ == "__main__":
         dataframe = pd.read_csv(data_path)
         logger.info(f"Loaded dataframe with {len(dataframe)} rows")
         logger.debug(f"Dataframe columns: {dataframe.columns.tolist()}")
-        logger.debug(f"First few rows: \n{dataframe.head().to_string()}")
     except Exception as e:
         logger.error(f"Error loading dataframe: {e}", exc_info=True)
         exit(1)
@@ -199,47 +318,53 @@ if __name__ == "__main__":
     logger.info("Starting accuracy distribution calculation")
     result_df = calculate_per_round_accuracy(dataframe, model_dir, max_round_number)
 
-    # Print the results
-    logger.info("Accuracy distribution by round:")
-    logger.info(f"Result shape: {result_df.shape}")
-    logger.info(f"\n{result_df.head().to_string()}")
-
-    # Calculate and print summary statistics by round
-    round_stats = {}
+    # Print overall summary statistics instead of per-round details
+    logger.info(f"Total tasks processed: {len(result_df['id'].unique())}")
+    logger.info(f"Total rounds processed: {result_df['round_number'].nunique()}")
+    
+    # Calculate overall correct rate across all rounds
+    bin_columns = [col for col in result_df.columns if "-" in col]
+    bin_midpoints = [float(bin_name.split("-")[0]) + 0.05 for bin_name in bin_columns]
+    bin_counts = [result_df[col].sum() for col in bin_columns]
+    
+    # Print bin distribution
+    logger.info("\nOverall correct rate distribution:")
+    for bin_name, count in zip(bin_columns, bin_counts):
+        percentage = (count / len(result_df)) * 100 if len(result_df) > 0 else 0
+        logger.info(f"  {bin_name}: {count} ({percentage:.1f}%)")
+    
+    # Calculate overall weighted average correct rate
+    weighted_sum = sum(midpoint * count for midpoint, count in zip(bin_midpoints, bin_counts))
+    total_count = sum(bin_counts)
+    overall_avg_correct_rate = weighted_sum / total_count if total_count > 0 else 0
+    
+    logger.info(f"\nOverall average correct rate: {overall_avg_correct_rate:.3f}")
+    
+    # Compute model performance by round (summarized)
+    round_avg_rates = {}
     for round_num in range(1, max_round_number + 1):
         round_data = result_df[result_df["round_number"] == round_num]
-        logger.info(f"Processing statistics for round {round_num}: {len(round_data)} tasks")
-        
         if not round_data.empty:
             # Calculate average correct rate for this round
-            bin_columns = [col for col in round_data.columns if "-" in col]
-            bin_midpoints = [
-                float(bin_name.split("-")[0]) + 0.05
-                for bin_name in bin_columns
-            ]
-            bin_counts = [
-                round_data[col].sum() for col in bin_columns
-            ]
-
-            weighted_sum = sum(
-                midpoint * count for midpoint, count in zip(bin_midpoints, bin_counts)
+            round_bin_counts = [round_data[col].sum() for col in bin_columns]
+            round_weighted_sum = sum(
+                midpoint * count 
+                for midpoint, count in zip(bin_midpoints, round_bin_counts)
             )
-            total_count = sum(bin_counts)
+            round_total_count = sum(round_bin_counts)
             
-            logger.debug(f"Round {round_num} bin counts: {list(zip(bin_columns, bin_counts))}")
-            logger.debug(f"Round {round_num} weighted sum: {weighted_sum}, total count: {total_count}")
-
-            avg_correct_rate = weighted_sum / total_count if total_count > 0 else 0
-            round_stats[round_num] = {
-                "avg_correct_rate": avg_correct_rate,
-                "task_count": len(round_data),
-            }
-
-    # Print summary statistics
-    logger.info("\nSummary statistics by round:")
-    for round_num, stats in round_stats.items():
-        logger.info(
-            f"Round {round_num}: "
-            f"Average Correct Rate: {stats['avg_correct_rate']:.3f}, "
-            f"Tasks: {stats['task_count']}"
-        )
+            if round_total_count > 0:
+                round_avg_rates[round_num] = round_weighted_sum / round_total_count
+    
+    # Print concise round performance summary
+    logger.info("\nCorrect rate by round:")
+    for round_num in sorted(round_avg_rates.keys()):
+        logger.info(f"  Round {round_num}: {round_avg_rates[round_num]:.3f}")
+    
+    # If available, show first-to-last round improvement
+    first_round = min(round_avg_rates.keys()) if round_avg_rates else None
+    last_round = max(round_avg_rates.keys()) if round_avg_rates else None
+    if first_round is not None and last_round is not None and first_round != last_round:
+        improvement = round_avg_rates[last_round] - round_avg_rates[first_round]
+        logger.info(f"\nImprovement from round {first_round} to {last_round}: "
+                   f"{improvement:.3f} ({improvement/round_avg_rates[first_round]*100:.1f}%)")
