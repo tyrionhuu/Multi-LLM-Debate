@@ -259,19 +259,17 @@ def draw_console_histogram(
     full_block = "█"
     half_block = "▄"
     empty_block = " "
-    
+
     # Calculate bar heights with higher precision if fine_grained is enabled
     if fine_grained:
         exact_heights = {
             label: value * scaling_factor for label, value in sorted_data.items()
         }
         # Integer part of the height (full blocks)
-        int_heights = {
-            label: int(height) for label, height in exact_heights.items()
-        }
+        int_heights = {label: int(height) for label, height in exact_heights.items()}
         # Fractional part (for potential half blocks)
         frac_heights = {
-            label: height - int_height 
+            label: height - int_height
             for label, height, int_height in zip(
                 sorted_data.keys(), exact_heights.values(), int_heights.values()
             )
@@ -319,12 +317,12 @@ def draw_console_histogram(
         for label in sorted_data:
             int_height = int_heights[label]
             char = empty_block
-            
+
             if h <= int_height:
                 char = full_block
             elif fine_grained and h == int_height + 1 and frac_heights[label] >= 0.5:
                 char = half_block
-                
+
             row += f"{char * column_width:^{total_column_width}}"
         result.append(row)
 

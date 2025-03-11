@@ -161,7 +161,7 @@ if __name__ == "__main__":
     # Process rounds 0 through 5
     for round_number in range(6):  # 0 to 5
         logger.info(f"Processing round {round_number}...")
-        
+
         # Calculate distribution
         result_df = calculate_correct_rate_distribution_for_round_n(
             dataframe=dataframe, model_dir=model_dir_path, round_number=round_number
@@ -197,5 +197,5 @@ if __name__ == "__main__":
         # output_path = output_path_pattern.format(round_number)
         # result_df.to_csv(output_path, index=False)
         # logger.info(f"Results for round {round_number} saved to {output_path}")
-        
+
         print("\n" + "-" * 80 + "\n")  # Add separator between rounds
