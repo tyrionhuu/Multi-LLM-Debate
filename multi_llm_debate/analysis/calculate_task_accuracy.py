@@ -110,7 +110,8 @@ if __name__ == "__main__":
 
     # Analyze task accuracy
     result_df = analyze_task_accuracy(model_dir, dataframe)
-
+    print(result_df)
+    
     # Print summary statistics
     print("\nAccuracy Statistics:")
     print(result_df["accuracy"].describe())
