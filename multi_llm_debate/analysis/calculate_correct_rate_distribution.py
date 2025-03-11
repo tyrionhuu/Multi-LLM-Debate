@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
-from .utils import compare_bool, get_final_round, draw_console_histogram
+from .utils import compare_bool, draw_console_histogram, get_final_round
 
 # Set up logging
 logging.basicConfig(
@@ -190,12 +190,12 @@ if __name__ == "__main__":
         logger.info("Correct rate distribution:")
         for bin_label, percentage in bin_percentages.items():
             logger.info(f"  {bin_label}: {percentage:.2f}%")
-            
+
         # Draw a histogram in the console
         histogram = draw_console_histogram(
             bin_sums.to_dict(),
             title=f"Correct Rate Distribution (Round {round_number})",
-            width=40
+            width=40,
         )
         print("\n" + histogram + "\n")
 

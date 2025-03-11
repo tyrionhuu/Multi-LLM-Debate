@@ -185,10 +185,10 @@ def calculate_majority_vote_correct_rate_for_round_n(
 
 
 def draw_console_histogram(
-    data: dict, 
-    title: str = "Distribution", 
+    data: dict,
+    title: str = "Distribution",
     width: int = 50,
-    show_percentages: bool = True
+    show_percentages: bool = True,
 ) -> str:
     """Draw an ASCII histogram in the console.
 
@@ -203,33 +203,35 @@ def draw_console_histogram(
     """
     if not data:
         return "No data to display"
-    
+
     # Find the maximum value for scaling
     max_value = max(data.values())
     if max_value == 0:
         return "All values are zero"
-        
+
     # Find the maximum label length for alignment
     max_label_len = max(len(str(label)) for label in data.keys())
-    
+
     # Build the histogram string
     result = []
     result.append(f"{title}")
     result.append("=" * (width + max_label_len + 15))  # Header line
-    
+
     # Add each bar
     for label, value in data.items():
         # Calculate bar width proportional to maximum value
         bar_width = int(width * value / max_value) if max_value > 0 else 0
         bar = "█" * bar_width
-        
+
         # Format the bar line with proper alignment
         if show_percentages:
-            percentage = value * 100 if max_value <= 1 else (value / sum(data.values())) * 100
+            percentage = (
+                value * 100 if max_value <= 1 else (value / sum(data.values())) * 100
+            )
             line = f"{str(label):<{max_label_len}} | {bar:<{width}} | {percentage:.1f}%"
         else:
             line = f"{str(label):<{max_label_len}} | {bar:<{width}} | {value:.4f}"
-        
+
         result.append(line)
-    
+
     return "\n".join(result)
