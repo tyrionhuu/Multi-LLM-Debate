@@ -1,9 +1,10 @@
 from pathlib import Path
-
+import json
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from ..llm.parsers import extract_bool_answer
 from .utils import get_final_round
 
 
@@ -13,8 +14,8 @@ def calculate_per_round_accuracy(
     """Calculate accuracy distribution for each round of debate across tasks.
 
     This function processes a directory of debate tasks and calculates a distribution
-    of correct rates for each round. It uses majority voting to determine the
-    consensus answer for each round. If a debate converges before the maximum
+    of correct rates for each round. It uses responses from debate rounds to determine 
+    the accuracy for each task. If a debate converges before the maximum
     round number, the final round's result is used for subsequent rounds.
 
     Args:
@@ -45,57 +46,70 @@ def calculate_per_round_accuracy(
         if final_round == -1:
             continue
 
+        # Filter dataframe for this task
+        task_df = dataframe[dataframe["task_id"] == task_id]
+        if task_df.empty:
+            continue
+            
+        ground_truth = task_df["ground_truth"].iloc[0]
+        
+        # Convert ground truth to normalized boolean format
+        processed_answer = str(ground_truth).lower().strip()
+        if processed_answer in ["yes", "true", "1"]:
+            answer_bool = True
+        elif processed_answer in ["no", "false", "0"]:
+            answer_bool = False
+        else:
+            continue
+
         # Process each round up to max_round_number
         for round_num in range(1, max_round_number + 1):
-            round_dir = task_dir / f"round_{round_num}"
-
-            # If this round doesn't exist, use the final round's results
-            if not round_dir.exists():
-                if final_round >= 0:
-                    round_dir = task_dir / f"round_{final_round}"
-                else:
-                    continue
-
-            # Get answers for this round
-            answers = []
-            for agent_dir in round_dir.glob("agent_*"):
-                answer_file = agent_dir / "answer.txt"
-                if answer_file.exists():
-                    with open(answer_file, "r") as f:
-                        answer = f.read().strip()
-                        answers.append(answer)
-
-            if not answers:
+            actual_round = min(round_num, final_round)
+            response_file = task_dir / f"debate_round_{actual_round}.json"
+            
+            if not response_file.exists():
                 continue
-
-            # Get the majority vote answer
-            if answers:
-                answer_counts = {}
-                for answer in answers:
-                    if answer in answer_counts:
-                        answer_counts[answer] += 1
-                    else:
-                        answer_counts[answer] = 1
-
-                majority_answer = max(answer_counts, key=answer_counts.get)
-
-                # Filter dataframe for this task
-                task_df = dataframe[dataframe["task_id"] == task_id]
-
-                if not task_df.empty:
-                    # Calculate correct rate (1 if majority answer matches ground truth, 0 otherwise)
-                    correct = int(majority_answer == task_df["ground_truth"].iloc[0])
-
+                
+            try:
+                # Read the response file
+                with open(response_file, "r") as f:
+                    responses = json.load(f)
+                    
+                # Count correct responses
+                correct_count = 0
+                total_responses = len(responses)
+                
+                # Count correct responses in the round
+                for response in responses:
+                    response_text = response["response"]
+                    extracted_response = extract_bool_answer(response_text)
+                    
+                    # Skip invalid responses
+                    if extracted_response is None:
+                        total_responses -= 1
+                        continue
+                        
+                    # Compare with ground truth
+                    if str(extracted_response).lower() == str(answer_bool).lower():
+                        correct_count += 1
+                        
+                # Calculate correct rate
+                if total_responses > 0:
+                    correct_rate = correct_count / total_responses
+                    
                     # Find which bin this correct rate falls into
-                    bin_idx = min(int(correct * 10), 9)  # Ensure index is within range
-
+                    bin_idx = min(int(correct_rate * 10), 9)  # Ensure index is within range
+                    
                     # Create a row with zeros
                     row = {bin_name: 0 for bin_name in bin_names}
                     row[bin_names[bin_idx]] = 1  # Set the correct bin to 1
                     row["task_id"] = task_id
                     row["round_number"] = round_num
-
+                    
                     result_data.append(row)
+            except Exception as e:
+                print(f"Error processing task {task_id} for round {round_num}: {e}")
+                continue
 
     # Create the result dataframe
     if result_data:
