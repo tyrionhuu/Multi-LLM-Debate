@@ -57,7 +57,7 @@ def calculate_correct_rate_distribution_for_round_n(
     # Process each unique task
     task_dirs = [d for d in model_dir.iterdir() if d.is_dir()]
     logger.info(f"Found {len(task_dirs)} task directories to process")
-    
+
     pbar = tqdm(
         task_dirs,
         desc=f"Calculating correct rate distribution for round {round_number}",
@@ -70,7 +70,7 @@ def calculate_correct_rate_distribution_for_round_n(
         task_id = task_dir.name
         # Convert to string for consistent comparison
         task_id_str = str(task_id)
-        
+
         logger.debug(f"Processing task ID: {task_id}")
 
         # Filter dataframe for this task using string comparison
@@ -94,8 +94,10 @@ def calculate_correct_rate_distribution_for_round_n(
 
         # Use the specified round or the final round if the specified round exceeds it
         actual_round = min(round_number, final_round)
-        logger.debug(f"Using round {actual_round} for task {task_id} (final round was {final_round})")
-        
+        logger.debug(
+            f"Using round {actual_round} for task {task_id} (final round was {final_round})"
+        )
+
         round_file = task_dir / f"debate_round_{actual_round}.json"
 
         if not round_file.exists():
@@ -109,7 +111,7 @@ def calculate_correct_rate_distribution_for_round_n(
             # Read responses from the round file
             with open(round_file, "r") as f:
                 responses = json.load(f)
-            
+
             logger.debug(f"Loaded {len(responses)} responses for task {task_id}")
 
             # Extract and normalize responses
@@ -137,7 +139,7 @@ def calculate_correct_rate_distribution_for_round_n(
                 1 for r in normalized_responses if compare_bool(r, answer)
             )
             correct_rate = correct_count / len(normalized_responses)
-            
+
             logger.debug(
                 f"Task {task_id}: correct_count={correct_count}, "
                 f"total={len(normalized_responses)}, correct_rate={correct_rate:.2f}"
@@ -166,10 +168,12 @@ def calculate_correct_rate_distribution_for_round_n(
     if result_data:
         result_df = pd.DataFrame(result_data)
         logger.info(f"Created distribution DataFrame with {len(result_df)} tasks")
-        
+
         # Add more detailed statistics about distribution
-        bin_sums = {bin_label: sum(row[bin_label] for row in result_data) 
-                   for bin_label in bin_labels}
+        bin_sums = {
+            bin_label: sum(row[bin_label] for row in result_data)
+            for bin_label in bin_labels
+        }
         logger.debug(f"Raw bin counts: {bin_sums}")
     else:
         # Create empty DataFrame with correct columns if no data
@@ -178,7 +182,7 @@ def calculate_correct_rate_distribution_for_round_n(
 
     logger.info(f"Successfully processed {successful_tasks} tasks")
     logger.info(f"Skipped {skipped_tasks} tasks")
-    
+
     return result_df
 
 
