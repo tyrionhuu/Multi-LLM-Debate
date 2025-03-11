@@ -51,6 +51,8 @@ def calculate_per_round_accuracy(
 
     for task_dir in pbar:
         id = task_dir.name
+        if isinstance(id, str):
+            id = int(id)
         logger.debug(f"Processing task ID: {id}")
         final_round = get_final_round(task_dir)
 
@@ -160,7 +162,7 @@ def calculate_per_round_accuracy(
 
 if __name__ == "__main__":
     # Enable debug logging for testing
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.WARNING)
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
