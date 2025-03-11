@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 from ..llm.parsers import extract_bool_answer
+from .utils import get_final_round
 
 
 def analyze_task_accuracy(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -54,17 +55,23 @@ def calculate_task_accuracy(task_dir: Path, answer: str, round_number: int = 0) 
         task_dir (Path): The path to the task directory.
         answer (str): The correct answer for the task ('yes'/'no' or 'true'/'false').
         round_number (int, optional): The debate round number to analyze. Defaults to 0.
+            If this round is larger than the final round, the final round's data will be used.
 
     Returns:
         float: The accuracy of the task, or -1.0 if an error occurred.
     """
     try:
-        # Check if the task directory exists
         if not task_dir.exists():
             return -1.0
-
-        response_file = task_dir / f"debate_round_{round_number}.json"
-        # Check if the response file exists
+            
+        final_round = get_final_round(task_dir)
+        if final_round == -1:
+            return -1.0
+            
+        actual_round = min(round_number, final_round)
+        
+        response_file = task_dir / f"debate_round_{actual_round}.json"
+        # Check if the response file exists (should be true based on logic above)
         if not response_file.exists():
             return -1.0
 

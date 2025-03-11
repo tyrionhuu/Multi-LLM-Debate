@@ -1,4 +1,5 @@
 from pathlib import Path
+from .utils import get_final_round
 
 import numpy as np
 import pandas as pd
@@ -38,15 +39,10 @@ def calculate_per_round_accuracy(
 
     for task_dir in pbar:
         task_id = task_dir.name
-
-        # Find the final round for this task
-        rounds_present = []
-        for round_num in range(1, max_round_number + 1):
-            round_dir = task_dir / f"round_{round_num}"
-            if round_dir.exists():
-                rounds_present.append(round_num)
-
-        final_round = max(rounds_present) if rounds_present else 0
+        final_round = get_final_round(task_dir)
+        
+        if final_round == -1:
+            continue
 
         # Process each round up to max_round_number
         for round_num in range(1, max_round_number + 1):
@@ -54,7 +50,7 @@ def calculate_per_round_accuracy(
 
             # If this round doesn't exist, use the final round's results
             if not round_dir.exists():
-                if final_round > 0:
+                if final_round >= 0:
                     round_dir = task_dir / f"round_{final_round}"
                 else:
                     continue
