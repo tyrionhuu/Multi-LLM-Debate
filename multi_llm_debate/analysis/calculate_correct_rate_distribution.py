@@ -163,34 +163,30 @@ def process_debate_task(
     """
     task_results = []
     task_id = task_dir.name
-
-    try:
-        if isinstance(task_id, str) and task_id.isdigit():
-            task_id = int(task_id)
-    except ValueError:
-        pass
-
-    logger.debug(f"Processing task ID: {task_id}")
+    # Convert to string for consistent comparison
+    task_id_str = str(task_id)
+    
+    logger.debug(f"Processing task ID: {task_id_str}")
 
     final_round = get_final_round(task_dir)
     if final_round == -1:
-        logger.debug(f"Skipping task {task_id}: Final round not found")
+        logger.debug(f"Skipping task {task_id_str}: Final round not found")
         return []
 
-    # Filter dataframe for this task
-    task_df = dataframe[dataframe["id"] == task_id]
+    # Filter dataframe for this task using string comparison
+    task_df = dataframe[dataframe["id"].astype(str) == task_id_str]
     if task_df.empty:
-        logger.debug(f"Skipping task {task_id}: Not found in dataframe")
+        logger.debug(f"Skipping task {task_id_str}: Not found in dataframe")
         return []
 
     ground_truth = task_df["answer"].iloc[0]
-    logger.debug(f"Task {task_id} ground truth: {ground_truth}")
+    logger.debug(f"Task {task_id_str} ground truth: {ground_truth}")
 
     # Convert ground truth to normalized boolean format
     normalized_truth = normalize_boolean_answer(ground_truth)
     if normalized_truth is None:
         logger.debug(
-            f"Skipping task {task_id}: Invalid ground truth format '{ground_truth}'"
+            f"Skipping task {task_id_str}: Invalid ground truth format '{ground_truth}'"
         )
         return []
 
@@ -199,7 +195,7 @@ def process_debate_task(
         actual_round = min(round_num, final_round)
 
         row = process_task_round(
-            task_id, task_dir, round_num, actual_round, normalized_truth, bin_names
+            task_id_str, task_dir, round_num, actual_round, normalized_truth, bin_names
         )
 
         if row:
@@ -291,7 +287,7 @@ def print_console_bar_chart(
 
 if __name__ == "__main__":
     # Enable debug logging for testing
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
