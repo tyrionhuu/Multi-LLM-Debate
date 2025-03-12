@@ -21,7 +21,7 @@ __pycache__/
 data/
 dataset/
 datasets/
-
+output/
 
 # Cache
 .mypy_cache/
