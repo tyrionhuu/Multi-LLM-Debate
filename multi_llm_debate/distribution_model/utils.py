@@ -8,7 +8,7 @@ from scipy.stats import betabinom, entropy
 
 def beta_binomial_pmf(
     s: Union[int, NDArray[np.int_]], k: int, alpha: float, beta: float
-) -> Union[float, NDArray[np.float_]]:
+) -> Union[float, NDArray[np.float64]]:
     """Compute the PMF of Beta-Binomial distribution.
 
     Args:
@@ -31,7 +31,7 @@ def compute_predicted_pmf(
     beta1: float,
     alpha2: float,
     beta2: float,
-) -> NDArray[np.float_]:
+) -> NDArray[np.float64]:
     """Compute the predicted probability mass function for a mixture model.
 
     Args:
@@ -52,7 +52,7 @@ def compute_predicted_pmf(
 
 
 def compute_tvd(
-    observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.float_]
+    observed_pmf: NDArray[np.float64], predicted_pmf: NDArray[np.float64]
 ) -> float:
     """Compute the Total Variation Distance between two distributions.
 
@@ -66,7 +66,7 @@ def compute_tvd(
     return 0.5 * np.sum(np.abs(observed_pmf - predicted_pmf))
 
 
-def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_]:
+def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float64]:
     """Convert the distribution DataFrame to observed PMF for S^t.
 
     Args:

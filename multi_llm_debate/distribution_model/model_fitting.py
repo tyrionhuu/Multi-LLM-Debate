@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 # EM algorithm for fitting the mixture of two Beta-Binomial distributions
 def fit_mixture_em(
-    observed_pmf: NDArray[np.float_], k: int, max_iter: int = 100, tol: float = 1e-5
+    observed_pmf: NDArray[np.float64], k: int, max_iter: int = 100, tol: float = 1e-5
 ) -> Tuple[float, float, float, float, float]:
     """Fit a mixture of two Beta-Binomial distributions using EM algorithm.
 
@@ -56,7 +56,7 @@ def fit_mixture_em(
 
         w_new = np.sum(resp1 * observed_pmf) / np.sum(observed_pmf)
 
-        def neg_log_likelihood1(params: NDArray[np.float_]) -> float:
+        def neg_log_likelihood1(params: NDArray[np.float64]) -> float:
             alpha, beta = params
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp1 * observed_pmf * np.log(pmf + 1e-10))
@@ -66,7 +66,7 @@ def fit_mixture_em(
         )
         alpha1_new, beta1_new = res1.x
 
-        def neg_log_likelihood2(params: NDArray[np.float_]) -> float:
+        def neg_log_likelihood2(params: NDArray[np.float64]) -> float:
             alpha, beta = params
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp2 * observed_pmf * np.log(pmf + 1e-10))
