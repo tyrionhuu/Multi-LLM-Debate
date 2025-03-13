@@ -219,70 +219,50 @@ def fit_model_for_rounds(
     return params_round0, params_round1
 
 
-# Main function to test with synthetic data
 def main():
-    """Test the model fitting process with synthetic data."""
-    # Parameters
-    num_tasks = 2000
-    k = 10  # Number of judges
-    bin_labels = [f"{i/10:.1f}-{(i+1)/10:.1f}" for i in range(10)]
+    """Test the model fitting process using calculate_correct_rate_distribution_for_round_n."""
+    # Hardcoded configuration from your original __main__
+    from ..analysis.calculate_correct_rate_distribution import (
+        calculate_correct_rate_distribution_for_round_n,
+    )  # Adjust the import path as necessary
+    
+    data_path = "output/bool_q/processed_data.csv"
+    model_dir = "data/bool_q/llama3(7)"
+    k = 10  # Assuming 10 judges; adjust based on your data
 
-    # Generate synthetic data for round 0
-    np.random.seed(42)
-    correct_rates_r0 = np.concatenate(
-        [
-            np.random.beta(10, 1, size=int(num_tasks * 0.6)),  # High accuracy
-            np.random.beta(1, 10, size=int(num_tasks * 0.4)),  # Low accuracy
-        ]
+    # Load data
+    try:
+        dataframe = pd.read_csv(data_path)
+        logger.info(f"Loaded data from {data_path}")
+    except Exception as e:
+        logger.error(f"Error loading data: {e}")
+        import sys
+        sys.exit(1)
+
+    model_dir_path = Path(model_dir)
+    if not model_dir_path.exists() or not model_dir_path.is_dir():
+        logger.error(f"Model directory does not exist: {model_dir}")
+        import sys
+        sys.exit(1)
+
+    # Calculate distributions for rounds 0 and 1
+    logger.info("Calculating correct rate distribution for round 0...")
+    dist_round0 = calculate_correct_rate_distribution_for_round_n(
+        dataframe=dataframe, model_dir=model_dir_path, round_number=0
     )
-    np.random.shuffle(correct_rates_r0)
-    data_r0 = []
-    for i in range(num_tasks):
-        rate = correct_rates_r0[i]
-        bin_idx = min(int(rate * 10), 9)
-        row = {label: 0 for label in bin_labels}
-        row[bin_labels[bin_idx]] = 1
-        row["task_id"] = f"task_{i}"
-        row["round_number"] = 0
-        data_r0.append(row)
-    dist_round0 = pd.DataFrame(data_r0)
 
-    # Generate synthetic data for round 1
-    np.random.seed(43)
-    correct_rates_r1 = np.concatenate(
-        [
-            np.random.beta(15, 1, size=int(num_tasks * 0.7)),  # Higher accuracy
-            np.random.beta(1, 15, size=int(num_tasks * 0.3)),  # Lower accuracy
-        ]
+    logger.info("Calculating correct rate distribution for round 1...")
+    dist_round1 = calculate_correct_rate_distribution_for_round_n(
+        dataframe=dataframe, model_dir=model_dir_path, round_number=1
     )
-    np.random.shuffle(correct_rates_r1)
-    data_r1 = []
-    for i in range(num_tasks):
-        rate = correct_rates_r1[i]
-        bin_idx = min(int(rate * 10), 9)
-        row = {label: 0 for label in bin_labels}
-        row[bin_labels[bin_idx]] = 1
-        row["task_id"] = f"task_{i}"
-        row["round_number"] = 1
-        data_r1.append(row)
-    dist_round1 = pd.DataFrame(data_r1)
 
-    # Dummy dataframe and model_dir for compatibility (not used)
-    dummy_dataframe = pd.DataFrame(
-        {
-            "id": [f"task_{i}" for i in range(num_tasks)],
-            "answer": [True if i % 2 == 0 else False for i in range(num_tasks)],
-        }
-    )
-    dummy_model_dir = Path("./dummy_model_dir")
-
-    # Run the fitting process
-    logger.info("Starting model fitting test with synthetic data...")
+    # Fit the model and evaluate
+    logger.info("Starting model fitting for rounds 0 and 1...")
     params_round0, params_round1 = fit_model_for_rounds(dist_round0, dist_round1, k)
 
     if params_round0 and params_round1:
         logger.info("Model fitting completed successfully.")
-        # Extrapolate to round 2 as an example
+        # Optional: Extrapolate to round 2
         w0, a1_0, b1_0, a2_0, b2_0 = params_round0
         w1, a1_1, b1_1, a2_1, b2_1 = params_round1
         delta_w = w1 - w0
@@ -296,16 +276,13 @@ def main():
             max(1, a1_0 + t * delta_a1),
             max(1, b1_0 + t * delta_b1),
             max(1, a2_0 + t * delta_a2),
-            max(1, b2_0 + t * delta_b2),
+            max(1, b2_0 + t * delta_b2)
         )
-        logger.info(
-            f"Predicted parameters for round {t}: w={params_round2[0]:.3f}, "
-            f"alpha1={params_round2[1]:.2f}, beta1={params_round2[2]:.2f}, "
-            f"alpha2={params_round2[3]:.2f}, beta2={params_round2[4]:.2f}"
-        )
+        logger.info(f"Predicted parameters for round {t}: w={params_round2[0]:.3f}, "
+                    f"alpha1={params_round2[1]:.2f}, beta1={params_round2[2]:.2f}, "
+                    f"alpha2={params_round2[3]:.2f}, beta2={params_round2[4]:.2f}")
     else:
         logger.error("Model fitting failed.")
-
 
 if __name__ == "__main__":
     main()
