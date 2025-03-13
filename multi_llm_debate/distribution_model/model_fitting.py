@@ -8,10 +8,6 @@ from numpy.typing import NDArray
 from scipy.optimize import minimize
 from scipy.stats import betabinom
 
-from ..analysis.calculate_correct_rate_distribution import (
-    calculate_correct_rate_distribution_for_round_n,
-)
-
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -22,7 +18,6 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
-
 
 # Function to compute Beta-Binomial PMF
 def beta_binomial_pmf(
@@ -41,7 +36,6 @@ def beta_binomial_pmf(
     """
     return betabinom.pmf(s, k, alpha, beta)
 
-
 # EM algorithm for fitting the mixture of two Beta-Binomial distributions
 def fit_mixture_em(
     observed_pmf: NDArray[np.float_], k: int, max_iter: int = 100, tol: float = 1e-5
@@ -58,72 +52,46 @@ def fit_mixture_em(
         Tuple of (w, alpha1, beta1, alpha2, beta2)
     """
     s_values = np.arange(k + 1)
-
-    # Initialize parameters: w, alpha1, beta1, alpha2, beta2
     w = 0.5
     alpha1, beta1 = 10, 1  # High accuracy component
     alpha2, beta2 = 1, 10  # Low accuracy component
 
     for _ in range(max_iter):
-        # E-step: Compute responsibilities
         pmf1 = beta_binomial_pmf(s_values, k, alpha1, beta1)
         pmf2 = beta_binomial_pmf(s_values, k, alpha2, beta2)
         total_pmf = w * pmf1 + (1 - w) * pmf2
-
-        # Avoid division by zero
         total_pmf[total_pmf == 0] = 1e-10
-
         resp1 = (w * pmf1) / total_pmf
         resp2 = ((1 - w) * pmf2) / total_pmf
 
-        # M-step: Update parameters
-        # Update mixture weight w
         w_new = np.sum(resp1 * observed_pmf) / np.sum(observed_pmf)
 
-        # Update alpha1, beta1 for component 1
         def neg_log_likelihood1(params: NDArray[np.float_]) -> float:
             alpha, beta = params
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp1 * observed_pmf * np.log(pmf + 1e-10))
 
-        res1 = minimize(
-            neg_log_likelihood1, [alpha1, beta1], bounds=[(0.1, None), (0.1, None)]
-        )
+        res1 = minimize(neg_log_likelihood1, [alpha1, beta1], bounds=[(0.1, None), (0.1, None)])
         alpha1_new, beta1_new = res1.x
 
-        # Update alpha2, beta2 for component 2
         def neg_log_likelihood2(params: NDArray[np.float_]) -> float:
             alpha, beta = params
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp2 * observed_pmf * np.log(pmf + 1e-10))
 
-        res2 = minimize(
-            neg_log_likelihood2, [alpha2, beta2], bounds=[(0.1, None), (0.1, None)]
-        )
+        res2 = minimize(neg_log_likelihood2, [alpha2, beta2], bounds=[(0.1, None), (0.1, None)])
         alpha2_new, beta2_new = res2.x
 
-        # Check for convergence
         param_diff = (
-            np.abs(w_new - w)
-            + np.abs(alpha1_new - alpha1)
-            + np.abs(beta1_new - beta1)
-            + np.abs(alpha2_new - alpha2)
-            + np.abs(beta2_new - beta2)
+            np.abs(w_new - w) + np.abs(alpha1_new - alpha1) + np.abs(beta1_new - beta1) +
+            np.abs(alpha2_new - alpha2) + np.abs(beta2_new - beta2)
         )
         if param_diff < tol:
             break
 
-        # Update parameters for next iteration
-        w, alpha1, beta1, alpha2, beta2 = (
-            w_new,
-            alpha1_new,
-            beta1_new,
-            alpha2_new,
-            beta2_new,
-        )
+        w, alpha1, beta1, alpha2, beta2 = w_new, alpha1_new, beta1_new, alpha2_new, beta2_new
 
     return w, alpha1, beta1, alpha2, beta2
-
 
 # Function to compute observed PMF from distribution DataFrame
 def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_]:
@@ -143,79 +111,43 @@ def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_
         for bin_label in bin_labels:
             if row[bin_label] == 1:
                 bin_idx = bin_labels.index(bin_label)
-                # Map bin to possible S values
                 min_rate, max_rate = bin_idx / 10, (bin_idx + 1) / 10
                 possible_s = [
-                    s
-                    for s in range(k + 1)
-                    if min_rate <= s / k <= max_rate
-                    or (max_rate == 1.0 and s / k == 1.0)
+                    s for s in range(k + 1)
+                    if min_rate <= s / k <= max_rate or (max_rate == 1.0 and s / k == 1.0)
                 ]
                 if possible_s:
-                    # Distribute count uniformly within the bin
                     for s in possible_s:
                         observed_counts[s] += 1 / len(possible_s)
                 break
 
-    # Normalize to get PMF
-    observed_pmf = (
-        observed_counts / observed_counts.sum()
-        if observed_counts.sum() > 0
-        else observed_counts
-    )
+    observed_pmf = observed_counts / observed_counts.sum() if observed_counts.sum() > 0 else observed_counts
     return observed_pmf
 
-
+# Compute predicted PMF
 def compute_predicted_pmf(
-    s_values: NDArray[np.int_],
-    k: int,
-    w: float,
-    alpha1: float,
-    beta1: float,
-    alpha2: float,
-    beta2: float,
+    s_values: NDArray[np.int_], k: int, w: float, alpha1: float, beta1: float, alpha2: float, beta2: float
 ) -> NDArray[np.float_]:
-    """Compute the predicted PMF using the mixture model.
-
-    Args:
-        s_values: Array of possible S values (0 to k).
-        k: Number of judges.
-        w: Mixture weight.
-        alpha1, beta1: Parameters for the first Beta-Binomial component.
-        alpha2, beta2: Parameters for the second Beta-Binomial component.
-
-    Returns:
-        predicted_pmf: Array of predicted probabilities for S = 0 to k.
-    """
     pmf1 = beta_binomial_pmf(s_values, k, alpha1, beta1)
     pmf2 = beta_binomial_pmf(s_values, k, alpha2, beta2)
     return w * pmf1 + (1 - w) * pmf2
 
-
-def compute_tvd(
-    observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.float_]
-) -> float:
-    """Compute the Total Variation Distance (TVD).
-
-    Args:
-        observed_pmf: Array of observed probabilities.
-        predicted_pmf: Array of predicted probabilities.
-
-    Returns:
-        tvd: The TVD value.
-    """
+# Compute TVD
+def compute_tvd(observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.float_]) -> float:
     return 0.5 * np.sum(np.abs(observed_pmf - predicted_pmf))
 
-
-def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tuple[
+# Modified fit_model_for_rounds to accept pre-computed distributions
+def fit_model_for_rounds(
+    dist_round0: pd.DataFrame, dist_round1: pd.DataFrame, k: int
+) -> Tuple[
     Optional[Tuple[float, float, float, float, float]],
-    Optional[Tuple[float, float, float, float, float]],
+    Optional[Tuple[float, float, float, float, float]]
 ]:
-    """Fit the mixture model for rounds 0 and 1 and evaluate fit using TVD.
+    """Fit the mixture model for rounds 0 and 1 using pre-computed distributions and evaluate fit using TVD.
 
     Args:
-        dataframe: DataFrame with experiment results.
-        model_dir: Directory with model outputs.
+        dist_round0: DataFrame with correct rate distribution for round 0.
+        dist_round1: DataFrame with correct rate distribution for round 1.
         k: Number of judges (responses per task).
 
     Returns:
@@ -224,9 +156,6 @@ def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tu
     s_values = np.arange(k + 1)
 
     # Fit for round 0
-    dist_round0 = calculate_correct_rate_distribution_for_round_n(
-        dataframe, model_dir, 0
-    )
     if dist_round0.empty:
         logger.error("No data available for round 0")
         return None, None
@@ -241,9 +170,6 @@ def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tu
     logger.info(f"Round 0 - TVD: {tvd_round0:.4f}")
 
     # Fit for round 1
-    dist_round1 = calculate_correct_rate_distribution_for_round_n(
-        dataframe, model_dir, 1
-    )
     if dist_round1.empty:
         logger.error("No data available for round 1")
         return params_round0, None
@@ -258,3 +184,85 @@ def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tu
     logger.info(f"Round 1 - TVD: {tvd_round1:.4f}")
 
     return params_round0, params_round1
+
+# Main function to test with synthetic data
+def main():
+    """Test the model fitting process with synthetic data."""
+    # Parameters
+    num_tasks = 2000
+    k = 10  # Number of judges
+    bin_labels = [f"{i/10:.1f}-{(i+1)/10:.1f}" for i in range(10)]
+
+    # Generate synthetic data for round 0
+    np.random.seed(42)
+    correct_rates_r0 = np.concatenate([
+        np.random.beta(10, 1, size=int(num_tasks * 0.6)),  # High accuracy
+        np.random.beta(1, 10, size=int(num_tasks * 0.4))   # Low accuracy
+    ])
+    np.random.shuffle(correct_rates_r0)
+    data_r0 = []
+    for i in range(num_tasks):
+        rate = correct_rates_r0[i]
+        bin_idx = min(int(rate * 10), 9)
+        row = {label: 0 for label in bin_labels}
+        row[bin_labels[bin_idx]] = 1
+        row["task_id"] = f"task_{i}"
+        row["round_number"] = 0
+        data_r0.append(row)
+    dist_round0 = pd.DataFrame(data_r0)
+
+    # Generate synthetic data for round 1
+    np.random.seed(43)
+    correct_rates_r1 = np.concatenate([
+        np.random.beta(15, 1, size=int(num_tasks * 0.7)),  # Higher accuracy
+        np.random.beta(1, 15, size=int(num_tasks * 0.3))   # Lower accuracy
+    ])
+    np.random.shuffle(correct_rates_r1)
+    data_r1 = []
+    for i in range(num_tasks):
+        rate = correct_rates_r1[i]
+        bin_idx = min(int(rate * 10), 9)
+        row = {label: 0 for label in bin_labels}
+        row[bin_labels[bin_idx]] = 1
+        row["task_id"] = f"task_{i}"
+        row["round_number"] = 1
+        data_r1.append(row)
+    dist_round1 = pd.DataFrame(data_r1)
+
+    # Dummy dataframe and model_dir for compatibility (not used)
+    dummy_dataframe = pd.DataFrame({
+        "id": [f"task_{i}" for i in range(num_tasks)],
+        "answer": [True if i % 2 == 0 else False for i in range(num_tasks)]
+    })
+    dummy_model_dir = Path("./dummy_model_dir")
+
+    # Run the fitting process
+    logger.info("Starting model fitting test with synthetic data...")
+    params_round0, params_round1 = fit_model_for_rounds(dist_round0, dist_round1, k)
+
+    if params_round0 and params_round1:
+        logger.info("Model fitting completed successfully.")
+        # Extrapolate to round 2 as an example
+        w0, a1_0, b1_0, a2_0, b2_0 = params_round0
+        w1, a1_1, b1_1, a2_1, b2_1 = params_round1
+        delta_w = w1 - w0
+        delta_a1 = a1_1 - a1_0
+        delta_b1 = b1_1 - b1_0
+        delta_a2 = a2_1 - a2_0
+        delta_b2 = b2_1 - b2_0
+        t = 2
+        params_round2 = (
+            max(0, min(1, w0 + t * delta_w)),
+            max(1, a1_0 + t * delta_a1),
+            max(1, b1_0 + t * delta_b1),
+            max(1, a2_0 + t * delta_a2),
+            max(1, b2_0 + t * delta_b2)
+        )
+        logger.info(f"Predicted parameters for round {t}: w={params_round2[0]:.3f}, "
+                    f"alpha1={params_round2[1]:.2f}, beta1={params_round2[2]:.2f}, "
+                    f"alpha2={params_round2[3]:.2f}, beta2={params_round2[4]:.2f}")
+    else:
+        logger.error("Model fitting failed.")
+
+if __name__ == "__main__":
+    main()
