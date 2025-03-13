@@ -1,11 +1,13 @@
-from scipy.stats import betabinom
-from scipy.optimize import minimize
+import logging
+from pathlib import Path
+from typing import Optional, Tuple, Union
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-import logging
-from typing import Tuple, Optional, Union
 from numpy.typing import NDArray
+from scipy.optimize import minimize
+from scipy.stats import betabinom
+
 from ..analysis.calculate_correct_rate_distribution import (
     calculate_correct_rate_distribution_for_round_n,
 )
@@ -21,25 +23,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 # Function to compute Beta-Binomial PMF
-def beta_binomial_pmf(s: Union[int, NDArray[np.int_]], k: int, 
-                      alpha: float, beta: float) -> Union[float, NDArray[np.float_]]:
+def beta_binomial_pmf(
+    s: Union[int, NDArray[np.int_]], k: int, alpha: float, beta: float
+) -> Union[float, NDArray[np.float_]]:
     """Compute the PMF of Beta-Binomial distribution.
-    
+
     Args:
         s: Success count or array of success counts.
         k: Number of trials.
         alpha: First shape parameter of the beta distribution.
         beta: Second shape parameter of the beta distribution.
-        
+
     Returns:
         Probability mass at s or array of probabilities.
     """
     return betabinom.pmf(s, k, alpha, beta)
 
+
 # EM algorithm for fitting the mixture of two Beta-Binomial distributions
-def fit_mixture_em(observed_pmf: NDArray[np.float_], k: int, 
-                   max_iter: int = 100, tol: float = 1e-5) -> Tuple[float, float, float, float, float]:
+def fit_mixture_em(
+    observed_pmf: NDArray[np.float_], k: int, max_iter: int = 100, tol: float = 1e-5
+) -> Tuple[float, float, float, float, float]:
     """Fit a mixture of two Beta-Binomial distributions using EM algorithm.
 
     Args:
@@ -80,7 +86,9 @@ def fit_mixture_em(observed_pmf: NDArray[np.float_], k: int,
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp1 * observed_pmf * np.log(pmf + 1e-10))
 
-        res1 = minimize(neg_log_likelihood1, [alpha1, beta1], bounds=[(0.1, None), (0.1, None)])
+        res1 = minimize(
+            neg_log_likelihood1, [alpha1, beta1], bounds=[(0.1, None), (0.1, None)]
+        )
         alpha1_new, beta1_new = res1.x
 
         # Update alpha2, beta2 for component 2
@@ -89,19 +97,33 @@ def fit_mixture_em(observed_pmf: NDArray[np.float_], k: int,
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp2 * observed_pmf * np.log(pmf + 1e-10))
 
-        res2 = minimize(neg_log_likelihood2, [alpha2, beta2], bounds=[(0.1, None), (0.1, None)])
+        res2 = minimize(
+            neg_log_likelihood2, [alpha2, beta2], bounds=[(0.1, None), (0.1, None)]
+        )
         alpha2_new, beta2_new = res2.x
 
         # Check for convergence
-        param_diff = np.abs(w_new - w) + np.abs(alpha1_new - alpha1) + np.abs(beta1_new - beta1) + \
-                     np.abs(alpha2_new - alpha2) + np.abs(beta2_new - beta2)
+        param_diff = (
+            np.abs(w_new - w)
+            + np.abs(alpha1_new - alpha1)
+            + np.abs(beta1_new - beta1)
+            + np.abs(alpha2_new - alpha2)
+            + np.abs(beta2_new - beta2)
+        )
         if param_diff < tol:
             break
 
         # Update parameters for next iteration
-        w, alpha1, beta1, alpha2, beta2 = w_new, alpha1_new, beta1_new, alpha2_new, beta2_new
+        w, alpha1, beta1, alpha2, beta2 = (
+            w_new,
+            alpha1_new,
+            beta1_new,
+            alpha2_new,
+            beta2_new,
+        )
 
     return w, alpha1, beta1, alpha2, beta2
+
 
 # Function to compute observed PMF from distribution DataFrame
 def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_]:
@@ -123,8 +145,12 @@ def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_
                 bin_idx = bin_labels.index(bin_label)
                 # Map bin to possible S values
                 min_rate, max_rate = bin_idx / 10, (bin_idx + 1) / 10
-                possible_s = [s for s in range(k + 1) if min_rate <= s / k <= max_rate or 
-                              (max_rate == 1.0 and s / k == 1.0)]
+                possible_s = [
+                    s
+                    for s in range(k + 1)
+                    if min_rate <= s / k <= max_rate
+                    or (max_rate == 1.0 and s / k == 1.0)
+                ]
                 if possible_s:
                     # Distribute count uniformly within the bin
                     for s in possible_s:
@@ -132,14 +158,19 @@ def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_
                 break
 
     # Normalize to get PMF
-    observed_pmf = observed_counts / observed_counts.sum() if observed_counts.sum() > 0 else observed_counts
+    observed_pmf = (
+        observed_counts / observed_counts.sum()
+        if observed_counts.sum() > 0
+        else observed_counts
+    )
     return observed_pmf
+
 
 # Main function to fit the model for rounds 0 and 1
 def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tuple[
-        Optional[Tuple[float, float, float, float, float]],
-        Optional[Tuple[float, float, float, float, float]]
-    ]:
+    Optional[Tuple[float, float, float, float, float]],
+    Optional[Tuple[float, float, float, float, float]],
+]:
     """Fit the mixture model for rounds 0 and 1.
 
     Args:
@@ -148,27 +179,35 @@ def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tu
         k: Number of judges (responses per task).
 
     Returns:
-        params_round0, params_round1: Tuples with fitted parameters 
+        params_round0, params_round1: Tuples with fitted parameters
         (w, alpha1, beta1, alpha2, beta2).
     """
     # Fit for round 0
-    dist_round0 = calculate_correct_rate_distribution_for_round_n(dataframe, model_dir, 0)
+    dist_round0 = calculate_correct_rate_distribution_for_round_n(
+        dataframe, model_dir, 0
+    )
     if dist_round0.empty:
         logger.error("No data available for round 0")
         return None, None
     observed_pmf_round0 = get_observed_pmf(dist_round0, k)
     params_round0 = fit_mixture_em(observed_pmf_round0, k)
-    logger.info(f"Round 0 parameters: w={params_round0[0]:.3f}, alpha1={params_round0[1]:.2f}, "
-                f"beta1={params_round0[2]:.2f}, alpha2={params_round0[3]:.2f}, beta2={params_round0[4]:.2f}")
+    logger.info(
+        f"Round 0 parameters: w={params_round0[0]:.3f}, alpha1={params_round0[1]:.2f}, "
+        f"beta1={params_round0[2]:.2f}, alpha2={params_round0[3]:.2f}, beta2={params_round0[4]:.2f}"
+    )
 
     # Fit for round 1
-    dist_round1 = calculate_correct_rate_distribution_for_round_n(dataframe, model_dir, 1)
+    dist_round1 = calculate_correct_rate_distribution_for_round_n(
+        dataframe, model_dir, 1
+    )
     if dist_round1.empty:
         logger.error("No data available for round 1")
         return params_round0, None
     observed_pmf_round1 = get_observed_pmf(dist_round1, k)
     params_round1 = fit_mixture_em(observed_pmf_round1, k)
-    logger.info(f"Round 1 parameters: w={params_round1[0]:.3f}, alpha1={params_round1[1]:.2f}, "
-                f"beta1={params_round1[2]:.2f}, alpha2={params_round1[3]:.2f}, beta2={params_round1[4]:.2f}")
+    logger.info(
+        f"Round 1 parameters: w={params_round1[0]:.3f}, alpha1={params_round1[1]:.2f}, "
+        f"beta1={params_round1[2]:.2f}, alpha2={params_round1[3]:.2f}, beta2={params_round1[4]:.2f}"
+    )
 
     return params_round0, params_round1
