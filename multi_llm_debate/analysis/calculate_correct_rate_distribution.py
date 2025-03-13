@@ -35,13 +35,9 @@ def calculate_correct_rate_distribution_for_round_n(
 
     Returns:
         DataFrame with correct rate distribution. Each row represents a task,
-        with columns for bins (0-0.1, 0.1-0.2, etc.), task_id, and round_number.
+        with columns for the number of correct agents (0, 1, 2, etc.),
+        task_id, and round_number.
     """
-    # Define the bins for correct rate distribution
-    bins = np.arange(0, 1.1, 0.1)
-    bin_labels = [f"{bins[i]:.1f}-{bins[i+1]:.1f}" for i in range(len(bins) - 1)]
-
-    # Create an empty DataFrame to store the distribution
     result_data = []
 
     # Process each unique task
@@ -50,6 +46,9 @@ def calculate_correct_rate_distribution_for_round_n(
         task_dirs,
         desc=f"Calculating correct rate distribution for round {round_number}",
     )
+
+    # Track maximum number of agents to create appropriate bins later
+    max_agents = 0
 
     for task_dir in pbar:
         task_id = task_dir.name
@@ -103,22 +102,16 @@ def calculate_correct_rate_distribution_for_round_n(
                 )
                 continue
 
-            # Calculate correct rate for this task
+            # Calculate the number of correct agents for this task
             correct_count = sum(
                 1 for r in normalized_responses if compare_bool(r, answer)
             )
-            correct_rate = correct_count / len(normalized_responses)
+            
+            # Keep track of maximum number of agents to define bins later
+            max_agents = max(max_agents, len(normalized_responses))
 
-            # Determine which bin this correct rate falls into
-            bin_idx = min(int(correct_rate * 10), 9)  # Ensure index is within range
-
-            # Create a row with zeros for all bins
-            row = {bin_label: 0 for bin_label in bin_labels}
-            # Set the appropriate bin to 1
-            row[bin_labels[bin_idx]] = 1
-            row["task_id"] = task_id
-            row["round_number"] = round_number
-
+            # Create a row for this task
+            row = {"task_id": task_id, "round_number": round_number, "correct_count": correct_count}
             result_data.append(row)
 
         except Exception as e:
@@ -128,9 +121,21 @@ def calculate_correct_rate_distribution_for_round_n(
     # Create result DataFrame
     if result_data:
         result_df = pd.DataFrame(result_data)
+        
+        # Create the bins based on the actual number of agents observed (0 to max_agents)
+        bin_labels = [str(i) for i in range(max_agents + 1)]
+        
+        # Convert from raw counts to one-hot encoding for the bins
+        for bin_label in bin_labels:
+            result_df[bin_label] = (result_df["correct_count"] == int(bin_label)).astype(int)
+        
+        # Drop the temporary correct_count column
+        result_df = result_df.drop(columns=["correct_count"])
+        
         logger.info(f"Created distribution DataFrame with {len(result_df)} tasks")
     else:
-        # Create empty DataFrame with correct columns if no data
+        # We don't know max_agents if there's no data, so assume a reasonable default
+        bin_labels = [str(i) for i in range(10)]  # Default to 0-9 agents
         result_df = pd.DataFrame(columns=bin_labels + ["task_id", "round_number"])
         logger.warning("No valid data collected for correct rate distribution")
 
