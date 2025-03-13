@@ -2,10 +2,10 @@ import logging
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import betabinom, entropy
-import matplotlib.pyplot as plt
 
 # Set up logging
 logging.basicConfig(
@@ -17,4 +17,3 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
-
