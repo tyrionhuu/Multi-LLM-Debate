@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import logging
+from typing import Tuple, Optional, Union
+from numpy.typing import NDArray
 from ..analysis.calculate_correct_rate_distribution import (
     calculate_correct_rate_distribution_for_round_n,
 )
-
-
 
 # Set up logging
 logging.basicConfig(
@@ -22,12 +22,24 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Function to compute Beta-Binomial PMF
-def beta_binomial_pmf(s, k, alpha, beta):
-    """Compute the PMF of Beta-Binomial distribution."""
+def beta_binomial_pmf(s: Union[int, NDArray[np.int_]], k: int, 
+                      alpha: float, beta: float) -> Union[float, NDArray[np.float_]]:
+    """Compute the PMF of Beta-Binomial distribution.
+    
+    Args:
+        s: Success count or array of success counts.
+        k: Number of trials.
+        alpha: First shape parameter of the beta distribution.
+        beta: Second shape parameter of the beta distribution.
+        
+    Returns:
+        Probability mass at s or array of probabilities.
+    """
     return betabinom.pmf(s, k, alpha, beta)
 
 # EM algorithm for fitting the mixture of two Beta-Binomial distributions
-def fit_mixture_em(observed_pmf, k, max_iter=100, tol=1e-5):
+def fit_mixture_em(observed_pmf: NDArray[np.float_], k: int, 
+                   max_iter: int = 100, tol: float = 1e-5) -> Tuple[float, float, float, float, float]:
     """Fit a mixture of two Beta-Binomial distributions using EM algorithm.
 
     Args:
@@ -63,7 +75,7 @@ def fit_mixture_em(observed_pmf, k, max_iter=100, tol=1e-5):
         w_new = np.sum(resp1 * observed_pmf) / np.sum(observed_pmf)
 
         # Update alpha1, beta1 for component 1
-        def neg_log_likelihood1(params):
+        def neg_log_likelihood1(params: NDArray[np.float_]) -> float:
             alpha, beta = params
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp1 * observed_pmf * np.log(pmf + 1e-10))
@@ -72,7 +84,7 @@ def fit_mixture_em(observed_pmf, k, max_iter=100, tol=1e-5):
         alpha1_new, beta1_new = res1.x
 
         # Update alpha2, beta2 for component 2
-        def neg_log_likelihood2(params):
+        def neg_log_likelihood2(params: NDArray[np.float_]) -> float:
             alpha, beta = params
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp2 * observed_pmf * np.log(pmf + 1e-10))
@@ -92,7 +104,7 @@ def fit_mixture_em(observed_pmf, k, max_iter=100, tol=1e-5):
     return w, alpha1, beta1, alpha2, beta2
 
 # Function to compute observed PMF from distribution DataFrame
-def get_observed_pmf(distribution_df, k):
+def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_]:
     """Convert the distribution DataFrame to observed PMF for S^t.
 
     Args:
@@ -124,7 +136,10 @@ def get_observed_pmf(distribution_df, k):
     return observed_pmf
 
 # Main function to fit the model for rounds 0 and 1
-def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int):
+def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tuple[
+        Optional[Tuple[float, float, float, float, float]],
+        Optional[Tuple[float, float, float, float, float]]
+    ]:
     """Fit the mixture model for rounds 0 and 1.
 
     Args:
@@ -133,7 +148,8 @@ def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int):
         k: Number of judges (responses per task).
 
     Returns:
-        params_round0, params_round1: Tuples with fitted parameters (w, alpha1, beta1, alpha2, beta2).
+        params_round0, params_round1: Tuples with fitted parameters 
+        (w, alpha1, beta1, alpha2, beta2).
     """
     # Fit for round 0
     dist_round0 = calculate_correct_rate_distribution_for_round_n(dataframe, model_dir, 0)
