@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 from scipy.stats import betabinom
-
+from scipy.stats import entropy
 
 def beta_binomial_pmf(
     s: Union[int, NDArray[np.int_]], k: int, alpha: float, beta: float
@@ -101,3 +101,15 @@ def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_
         else observed_counts
     )
     return observed_pmf
+
+# Function to compute Kullback-Leibler (KL) Divergence
+def compute_kl_divergence(observed_pmf: np.ndarray, predicted_pmf: np.ndarray) -> float:
+    """Compute the KL Divergence from observed to predicted PMF."""
+    # Add small epsilon to avoid log(0)
+    epsilon = 1e-10
+    observed_pmf = observed_pmf + epsilon
+    predicted_pmf = predicted_pmf + epsilon
+    # Normalize to ensure sums are 1 after adding epsilon
+    observed_pmf = observed_pmf / observed_pmf.sum()
+    predicted_pmf = predicted_pmf / predicted_pmf.sum()
+    return entropy(observed_pmf, predicted_pmf)
