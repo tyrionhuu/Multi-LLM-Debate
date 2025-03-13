@@ -106,12 +106,16 @@ def calculate_correct_rate_distribution_for_round_n(
             correct_count = sum(
                 1 for r in normalized_responses if compare_bool(r, answer)
             )
-            
+
             # Keep track of maximum number of agents to define bins later
             max_agents = max(max_agents, len(normalized_responses))
 
             # Create a row for this task
-            row = {"task_id": task_id, "round_number": round_number, "correct_count": correct_count}
+            row = {
+                "task_id": task_id,
+                "round_number": round_number,
+                "correct_count": correct_count,
+            }
             result_data.append(row)
 
         except Exception as e:
@@ -121,17 +125,19 @@ def calculate_correct_rate_distribution_for_round_n(
     # Create result DataFrame
     if result_data:
         result_df = pd.DataFrame(result_data)
-        
+
         # Create the bins based on the actual number of agents observed (0 to max_agents)
         bin_labels = [str(i) for i in range(max_agents + 1)]
-        
+
         # Convert from raw counts to one-hot encoding for the bins
         for bin_label in bin_labels:
-            result_df[bin_label] = (result_df["correct_count"] == int(bin_label)).astype(int)
-        
+            result_df[bin_label] = (
+                result_df["correct_count"] == int(bin_label)
+            ).astype(int)
+
         # Drop the temporary correct_count column
         result_df = result_df.drop(columns=["correct_count"])
-        
+
         logger.info(f"Created distribution DataFrame with {len(result_df)} tasks")
     else:
         # We don't know max_agents if there's no data, so assume a reasonable default
