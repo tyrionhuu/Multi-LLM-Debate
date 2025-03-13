@@ -19,6 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 # Function to compute Beta-Binomial PMF
 def beta_binomial_pmf(
     s: Union[int, NDArray[np.int_]], k: int, alpha: float, beta: float
@@ -35,6 +36,7 @@ def beta_binomial_pmf(
         Probability mass at s or array of probabilities.
     """
     return betabinom.pmf(s, k, alpha, beta)
+
 
 # EM algorithm for fitting the mixture of two Beta-Binomial distributions
 def fit_mixture_em(
@@ -71,7 +73,9 @@ def fit_mixture_em(
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp1 * observed_pmf * np.log(pmf + 1e-10))
 
-        res1 = minimize(neg_log_likelihood1, [alpha1, beta1], bounds=[(0.1, None), (0.1, None)])
+        res1 = minimize(
+            neg_log_likelihood1, [alpha1, beta1], bounds=[(0.1, None), (0.1, None)]
+        )
         alpha1_new, beta1_new = res1.x
 
         def neg_log_likelihood2(params: NDArray[np.float_]) -> float:
@@ -79,19 +83,31 @@ def fit_mixture_em(
             pmf = beta_binomial_pmf(s_values, k, alpha, beta)
             return -np.sum(resp2 * observed_pmf * np.log(pmf + 1e-10))
 
-        res2 = minimize(neg_log_likelihood2, [alpha2, beta2], bounds=[(0.1, None), (0.1, None)])
+        res2 = minimize(
+            neg_log_likelihood2, [alpha2, beta2], bounds=[(0.1, None), (0.1, None)]
+        )
         alpha2_new, beta2_new = res2.x
 
         param_diff = (
-            np.abs(w_new - w) + np.abs(alpha1_new - alpha1) + np.abs(beta1_new - beta1) +
-            np.abs(alpha2_new - alpha2) + np.abs(beta2_new - beta2)
+            np.abs(w_new - w)
+            + np.abs(alpha1_new - alpha1)
+            + np.abs(beta1_new - beta1)
+            + np.abs(alpha2_new - alpha2)
+            + np.abs(beta2_new - beta2)
         )
         if param_diff < tol:
             break
 
-        w, alpha1, beta1, alpha2, beta2 = w_new, alpha1_new, beta1_new, alpha2_new, beta2_new
+        w, alpha1, beta1, alpha2, beta2 = (
+            w_new,
+            alpha1_new,
+            beta1_new,
+            alpha2_new,
+            beta2_new,
+        )
 
     return w, alpha1, beta1, alpha2, beta2
+
 
 # Function to compute observed PMF from distribution DataFrame
 def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_]:
@@ -113,35 +129,52 @@ def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_
                 bin_idx = bin_labels.index(bin_label)
                 min_rate, max_rate = bin_idx / 10, (bin_idx + 1) / 10
                 possible_s = [
-                    s for s in range(k + 1)
-                    if min_rate <= s / k <= max_rate or (max_rate == 1.0 and s / k == 1.0)
+                    s
+                    for s in range(k + 1)
+                    if min_rate <= s / k <= max_rate
+                    or (max_rate == 1.0 and s / k == 1.0)
                 ]
                 if possible_s:
                     for s in possible_s:
                         observed_counts[s] += 1 / len(possible_s)
                 break
 
-    observed_pmf = observed_counts / observed_counts.sum() if observed_counts.sum() > 0 else observed_counts
+    observed_pmf = (
+        observed_counts / observed_counts.sum()
+        if observed_counts.sum() > 0
+        else observed_counts
+    )
     return observed_pmf
+
 
 # Compute predicted PMF
 def compute_predicted_pmf(
-    s_values: NDArray[np.int_], k: int, w: float, alpha1: float, beta1: float, alpha2: float, beta2: float
+    s_values: NDArray[np.int_],
+    k: int,
+    w: float,
+    alpha1: float,
+    beta1: float,
+    alpha2: float,
+    beta2: float,
 ) -> NDArray[np.float_]:
     pmf1 = beta_binomial_pmf(s_values, k, alpha1, beta1)
     pmf2 = beta_binomial_pmf(s_values, k, alpha2, beta2)
     return w * pmf1 + (1 - w) * pmf2
 
+
 # Compute TVD
-def compute_tvd(observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.float_]) -> float:
+def compute_tvd(
+    observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.float_]
+) -> float:
     return 0.5 * np.sum(np.abs(observed_pmf - predicted_pmf))
+
 
 # Modified fit_model_for_rounds to accept pre-computed distributions
 def fit_model_for_rounds(
     dist_round0: pd.DataFrame, dist_round1: pd.DataFrame, k: int
 ) -> Tuple[
     Optional[Tuple[float, float, float, float, float]],
-    Optional[Tuple[float, float, float, float, float]]
+    Optional[Tuple[float, float, float, float, float]],
 ]:
     """Fit the mixture model for rounds 0 and 1 using pre-computed distributions and evaluate fit using TVD.
 
@@ -185,6 +218,7 @@ def fit_model_for_rounds(
 
     return params_round0, params_round1
 
+
 # Main function to test with synthetic data
 def main():
     """Test the model fitting process with synthetic data."""
@@ -195,10 +229,12 @@ def main():
 
     # Generate synthetic data for round 0
     np.random.seed(42)
-    correct_rates_r0 = np.concatenate([
-        np.random.beta(10, 1, size=int(num_tasks * 0.6)),  # High accuracy
-        np.random.beta(1, 10, size=int(num_tasks * 0.4))   # Low accuracy
-    ])
+    correct_rates_r0 = np.concatenate(
+        [
+            np.random.beta(10, 1, size=int(num_tasks * 0.6)),  # High accuracy
+            np.random.beta(1, 10, size=int(num_tasks * 0.4)),  # Low accuracy
+        ]
+    )
     np.random.shuffle(correct_rates_r0)
     data_r0 = []
     for i in range(num_tasks):
@@ -213,10 +249,12 @@ def main():
 
     # Generate synthetic data for round 1
     np.random.seed(43)
-    correct_rates_r1 = np.concatenate([
-        np.random.beta(15, 1, size=int(num_tasks * 0.7)),  # Higher accuracy
-        np.random.beta(1, 15, size=int(num_tasks * 0.3))   # Lower accuracy
-    ])
+    correct_rates_r1 = np.concatenate(
+        [
+            np.random.beta(15, 1, size=int(num_tasks * 0.7)),  # Higher accuracy
+            np.random.beta(1, 15, size=int(num_tasks * 0.3)),  # Lower accuracy
+        ]
+    )
     np.random.shuffle(correct_rates_r1)
     data_r1 = []
     for i in range(num_tasks):
@@ -230,10 +268,12 @@ def main():
     dist_round1 = pd.DataFrame(data_r1)
 
     # Dummy dataframe and model_dir for compatibility (not used)
-    dummy_dataframe = pd.DataFrame({
-        "id": [f"task_{i}" for i in range(num_tasks)],
-        "answer": [True if i % 2 == 0 else False for i in range(num_tasks)]
-    })
+    dummy_dataframe = pd.DataFrame(
+        {
+            "id": [f"task_{i}" for i in range(num_tasks)],
+            "answer": [True if i % 2 == 0 else False for i in range(num_tasks)],
+        }
+    )
     dummy_model_dir = Path("./dummy_model_dir")
 
     # Run the fitting process
@@ -256,13 +296,16 @@ def main():
             max(1, a1_0 + t * delta_a1),
             max(1, b1_0 + t * delta_b1),
             max(1, a2_0 + t * delta_a2),
-            max(1, b2_0 + t * delta_b2)
+            max(1, b2_0 + t * delta_b2),
         )
-        logger.info(f"Predicted parameters for round {t}: w={params_round2[0]:.3f}, "
-                    f"alpha1={params_round2[1]:.2f}, beta1={params_round2[2]:.2f}, "
-                    f"alpha2={params_round2[3]:.2f}, beta2={params_round2[4]:.2f}")
+        logger.info(
+            f"Predicted parameters for round {t}: w={params_round2[0]:.3f}, "
+            f"alpha1={params_round2[1]:.2f}, beta1={params_round2[2]:.2f}, "
+            f"alpha2={params_round2[3]:.2f}, beta2={params_round2[4]:.2f}"
+        )
     else:
         logger.error("Model fitting failed.")
+
 
 if __name__ == "__main__":
     main()
