@@ -222,10 +222,10 @@ def fit_model_for_rounds(
 def main():
     """Test the model fitting process using calculate_correct_rate_distribution_for_round_n."""
     # Hardcoded configuration from your original __main__
-    from ..analysis.calculate_correct_rate_distribution import (
+    from ..analysis.calculate_correct_rate_distribution import (  # Adjust the import path as necessary
         calculate_correct_rate_distribution_for_round_n,
-    )  # Adjust the import path as necessary
-    
+    )
+
     data_path = "output/bool_q/processed_data.csv"
     model_dir = "data/bool_q/llama3(7)"
     k = 10  # Assuming 10 judges; adjust based on your data
@@ -237,12 +237,14 @@ def main():
     except Exception as e:
         logger.error(f"Error loading data: {e}")
         import sys
+
         sys.exit(1)
 
     model_dir_path = Path(model_dir)
     if not model_dir_path.exists() or not model_dir_path.is_dir():
         logger.error(f"Model directory does not exist: {model_dir}")
         import sys
+
         sys.exit(1)
 
     # Calculate distributions for rounds 0 and 1
@@ -276,13 +278,16 @@ def main():
             max(1, a1_0 + t * delta_a1),
             max(1, b1_0 + t * delta_b1),
             max(1, a2_0 + t * delta_a2),
-            max(1, b2_0 + t * delta_b2)
+            max(1, b2_0 + t * delta_b2),
         )
-        logger.info(f"Predicted parameters for round {t}: w={params_round2[0]:.3f}, "
-                    f"alpha1={params_round2[1]:.2f}, beta1={params_round2[2]:.2f}, "
-                    f"alpha2={params_round2[3]:.2f}, beta2={params_round2[4]:.2f}")
+        logger.info(
+            f"Predicted parameters for round {t}: w={params_round2[0]:.3f}, "
+            f"alpha1={params_round2[1]:.2f}, beta1={params_round2[2]:.2f}, "
+            f"alpha2={params_round2[3]:.2f}, beta2={params_round2[4]:.2f}"
+        )
     else:
         logger.error("Model fitting failed.")
+
 
 if __name__ == "__main__":
     main()
