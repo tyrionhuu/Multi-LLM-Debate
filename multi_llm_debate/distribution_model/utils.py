@@ -1,5 +1,3 @@
-"""Utility functions for distribution model fitting and analysis."""
-
 from typing import Union
 
 import numpy as np
@@ -35,7 +33,7 @@ def compute_predicted_pmf(
     beta2: float,
 ) -> NDArray[np.float_]:
     """Compute the predicted probability mass function for a mixture model.
-    
+
     Args:
         s_values: Array of success counts.
         k: Number of trials.
@@ -44,7 +42,7 @@ def compute_predicted_pmf(
         beta1: Second shape parameter of the first beta distribution.
         alpha2: First shape parameter of the second beta distribution.
         beta2: Second shape parameter of the second beta distribution.
-        
+
     Returns:
         Array of predicted probabilities.
     """
@@ -57,11 +55,11 @@ def compute_tvd(
     observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.float_]
 ) -> float:
     """Compute the Total Variation Distance between two distributions.
-    
+
     Args:
         observed_pmf: Observed probability mass function.
         predicted_pmf: Predicted probability mass function.
-        
+
     Returns:
         Total variation distance.
     """
