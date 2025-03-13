@@ -167,7 +167,13 @@ def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_
 
 
 def compute_predicted_pmf(
-    s_values: NDArray[np.int_], k: int, w: float, alpha1: float, beta1: float, alpha2: float, beta2: float
+    s_values: NDArray[np.int_],
+    k: int,
+    w: float,
+    alpha1: float,
+    beta1: float,
+    alpha2: float,
+    beta2: float,
 ) -> NDArray[np.float_]:
     """Compute the predicted PMF using the mixture model.
 
@@ -185,7 +191,10 @@ def compute_predicted_pmf(
     pmf2 = beta_binomial_pmf(s_values, k, alpha2, beta2)
     return w * pmf1 + (1 - w) * pmf2
 
-def compute_tvd(observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.float_]) -> float:
+
+def compute_tvd(
+    observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.float_]
+) -> float:
     """Compute the Total Variation Distance (TVD).
 
     Args:
@@ -197,11 +206,10 @@ def compute_tvd(observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.floa
     """
     return 0.5 * np.sum(np.abs(observed_pmf - predicted_pmf))
 
-def fit_model_for_rounds(
-    dataframe: pd.DataFrame, model_dir: Path, k: int
-) -> Tuple[
+
+def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tuple[
     Optional[Tuple[float, float, float, float, float]],
-    Optional[Tuple[float, float, float, float, float]]
+    Optional[Tuple[float, float, float, float, float]],
 ]:
     """Fit the mixture model for rounds 0 and 1 and evaluate fit using TVD.
 
@@ -216,7 +224,9 @@ def fit_model_for_rounds(
     s_values = np.arange(k + 1)
 
     # Fit for round 0
-    dist_round0 = calculate_correct_rate_distribution_for_round_n(dataframe, model_dir, 0)
+    dist_round0 = calculate_correct_rate_distribution_for_round_n(
+        dataframe, model_dir, 0
+    )
     if dist_round0.empty:
         logger.error("No data available for round 0")
         return None, None
@@ -231,7 +241,9 @@ def fit_model_for_rounds(
     logger.info(f"Round 0 - TVD: {tvd_round0:.4f}")
 
     # Fit for round 1
-    dist_round1 = calculate_correct_rate_distribution_for_round_n(dataframe, model_dir, 1)
+    dist_round1 = calculate_correct_rate_distribution_for_round_n(
+        dataframe, model_dir, 1
+    )
     if dist_round1.empty:
         logger.error("No data available for round 1")
         return params_round0, None
