@@ -166,12 +166,44 @@ def get_observed_pmf(distribution_df: pd.DataFrame, k: int) -> NDArray[np.float_
     return observed_pmf
 
 
-# Main function to fit the model for rounds 0 and 1
-def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tuple[
+def compute_predicted_pmf(
+    s_values: NDArray[np.int_], k: int, w: float, alpha1: float, beta1: float, alpha2: float, beta2: float
+) -> NDArray[np.float_]:
+    """Compute the predicted PMF using the mixture model.
+
+    Args:
+        s_values: Array of possible S values (0 to k).
+        k: Number of judges.
+        w: Mixture weight.
+        alpha1, beta1: Parameters for the first Beta-Binomial component.
+        alpha2, beta2: Parameters for the second Beta-Binomial component.
+
+    Returns:
+        predicted_pmf: Array of predicted probabilities for S = 0 to k.
+    """
+    pmf1 = beta_binomial_pmf(s_values, k, alpha1, beta1)
+    pmf2 = beta_binomial_pmf(s_values, k, alpha2, beta2)
+    return w * pmf1 + (1 - w) * pmf2
+
+def compute_tvd(observed_pmf: NDArray[np.float_], predicted_pmf: NDArray[np.float_]) -> float:
+    """Compute the Total Variation Distance (TVD).
+
+    Args:
+        observed_pmf: Array of observed probabilities.
+        predicted_pmf: Array of predicted probabilities.
+
+    Returns:
+        tvd: The TVD value.
+    """
+    return 0.5 * np.sum(np.abs(observed_pmf - predicted_pmf))
+
+def fit_model_for_rounds(
+    dataframe: pd.DataFrame, model_dir: Path, k: int
+) -> Tuple[
     Optional[Tuple[float, float, float, float, float]],
-    Optional[Tuple[float, float, float, float, float]],
+    Optional[Tuple[float, float, float, float, float]]
 ]:
-    """Fit the mixture model for rounds 0 and 1.
+    """Fit the mixture model for rounds 0 and 1 and evaluate fit using TVD.
 
     Args:
         dataframe: DataFrame with experiment results.
@@ -179,35 +211,38 @@ def fit_model_for_rounds(dataframe: pd.DataFrame, model_dir: Path, k: int) -> Tu
         k: Number of judges (responses per task).
 
     Returns:
-        params_round0, params_round1: Tuples with fitted parameters
-        (w, alpha1, beta1, alpha2, beta2).
+        params_round0, params_round1: Tuples with fitted parameters (w, alpha1, beta1, alpha2, beta2).
     """
+    s_values = np.arange(k + 1)
+
     # Fit for round 0
-    dist_round0 = calculate_correct_rate_distribution_for_round_n(
-        dataframe, model_dir, 0
-    )
+    dist_round0 = calculate_correct_rate_distribution_for_round_n(dataframe, model_dir, 0)
     if dist_round0.empty:
         logger.error("No data available for round 0")
         return None, None
     observed_pmf_round0 = get_observed_pmf(dist_round0, k)
     params_round0 = fit_mixture_em(observed_pmf_round0, k)
+    predicted_pmf_round0 = compute_predicted_pmf(s_values, k, *params_round0)
+    tvd_round0 = compute_tvd(observed_pmf_round0, predicted_pmf_round0)
     logger.info(
         f"Round 0 parameters: w={params_round0[0]:.3f}, alpha1={params_round0[1]:.2f}, "
         f"beta1={params_round0[2]:.2f}, alpha2={params_round0[3]:.2f}, beta2={params_round0[4]:.2f}"
     )
+    logger.info(f"Round 0 - TVD: {tvd_round0:.4f}")
 
     # Fit for round 1
-    dist_round1 = calculate_correct_rate_distribution_for_round_n(
-        dataframe, model_dir, 1
-    )
+    dist_round1 = calculate_correct_rate_distribution_for_round_n(dataframe, model_dir, 1)
     if dist_round1.empty:
         logger.error("No data available for round 1")
         return params_round0, None
     observed_pmf_round1 = get_observed_pmf(dist_round1, k)
     params_round1 = fit_mixture_em(observed_pmf_round1, k)
+    predicted_pmf_round1 = compute_predicted_pmf(s_values, k, *params_round1)
+    tvd_round1 = compute_tvd(observed_pmf_round1, predicted_pmf_round1)
     logger.info(
         f"Round 1 parameters: w={params_round1[0]:.3f}, alpha1={params_round1[1]:.2f}, "
         f"beta1={params_round1[2]:.2f}, alpha2={params_round1[3]:.2f}, beta2={params_round1[4]:.2f}"
     )
+    logger.info(f"Round 1 - TVD: {tvd_round1:.4f}")
 
     return params_round0, params_round1
