@@ -180,11 +180,10 @@ if __name__ == "__main__":
 
         # Print summary
         # Update bin column selection to look for numeric columns instead of ones with "-"
-        bin_columns = [col for col in result_df.columns 
-                      if col.isdigit()]
+        bin_columns = [col for col in result_df.columns if col.isdigit()]
         # Sort the bin columns numerically
         bin_columns.sort(key=int)
-        
+
         task_count = len(result_df)
 
         logger.info(f"Results for round {round_number}:")
