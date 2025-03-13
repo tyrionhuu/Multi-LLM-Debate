@@ -11,7 +11,7 @@ from .utils import compare_bool, draw_console_histogram, get_final_round
 
 # Set up logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
@@ -179,7 +179,12 @@ if __name__ == "__main__":
         )
 
         # Print summary
-        bin_columns = [col for col in result_df.columns if "-" in col]
+        # Update bin column selection to look for numeric columns instead of ones with "-"
+        bin_columns = [col for col in result_df.columns 
+                      if col.isdigit()]
+        # Sort the bin columns numerically
+        bin_columns.sort(key=int)
+        
         task_count = len(result_df)
 
         logger.info(f"Results for round {round_number}:")
@@ -192,12 +197,12 @@ if __name__ == "__main__":
 
             logger.info(f"Correct rate distribution for round {round_number}:")
             for bin_label, percentage in bin_percentages.items():
-                logger.info(f"  {bin_label}: {percentage:.2f}%")
+                logger.info(f"  {bin_label} correct agents: {percentage:.2f}%")
 
             # Draw a more detailed histogram in the console
             histogram = draw_console_histogram(
                 bin_sums.to_dict(),
-                title=f"Correct Rate Distribution (Round {round_number})",
+                title=f"Number of Correct Agents Distribution (Round {round_number})",
                 height=20,  # More reasonable height while still showing detail
                 bar_char="█",
                 fine_grained=True,  # Enable fine-grained display
