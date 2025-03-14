@@ -336,6 +336,3 @@ if __name__ == "__main__":
     # 2) Plot parameter trends across rounds
     param_fig = visualize_parameter_trends(model_results, output_dir=OUTPUT_DIR)
     print(f"Saved parameter trend plot to {OUTPUT_DIR}")
-
-    # Show plots if desired
-    plt.show()
