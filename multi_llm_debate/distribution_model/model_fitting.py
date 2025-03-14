@@ -227,24 +227,24 @@ if __name__ == "__main__":
     for _, row in aggregated_df.iterrows():
         round_number = int(row["round_number"])
         print(f"Processing round {round_number}...")
-        
+
         # Extract bin columns (representing correct counts)
         bin_columns = [col for col in aggregated_df.columns if col.isdigit()]
-        
+
         # Create a Series with the counts for each bin
         counts_dict = {int(bin_col): row[bin_col] for bin_col in bin_columns}
-        
+
         # Convert to a format suitable for em_mixture_beta_binomial
         # We need to repeat each count value by its frequency
         all_counts = []
         for count_val, frequency in counts_dict.items():
             all_counts.extend([count_val] * int(frequency))
-        
+
         counts_array = np.array(all_counts)
-        
+
         # Find the maximum bin value to use as k
         k = max(int(col) for col in bin_columns if col.isdigit())
-        
+
         # Fit the model
         fit_result = em_mixture_beta_binomial(counts_array, k=k)
 
@@ -274,5 +274,5 @@ if __name__ == "__main__":
 
         # Store current results for next round's delta calculation
         prev_fit_result = fit_result.copy()
-        
+
         print("-" * 80)  # Separator between rounds
