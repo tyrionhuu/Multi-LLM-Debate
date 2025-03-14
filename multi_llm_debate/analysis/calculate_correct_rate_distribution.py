@@ -194,7 +194,7 @@ def main():
     # Hardcoded paths for this example
     answers_csv = "output/bool_q/processed_data.csv"  # your "id" -> "answer" file
     debates_csv = "data/bool_q/llama3(11)/debate_rounds.csv"  # the merged CSV
-    max_rounds = None  # or an int
+    max_rounds = 6
 
     # 1) Load the "answer" DataFrame
     try:
