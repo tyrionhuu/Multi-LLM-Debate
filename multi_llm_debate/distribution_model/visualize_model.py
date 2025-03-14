@@ -2,7 +2,7 @@
 import math
 from pathlib import Path
 from typing import Dict, List, Optional
-
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
@@ -311,40 +311,54 @@ def visualize_parameter_trends(
     return fig
 
 
-if __name__ == "__main__":
-    import sys
+def run_visualization(
+    answers_csv_path: Path,
+    debates_csv_path: Path,
+    output_dir: Path,
+    max_rounds: Optional[int] = None,
+    fitting_method: str = "direct",
+    n_restarts: int = 2,
+    verbose: bool = True,
+    enforce_increasing_success: bool = False,
+) -> tuple[pd.DataFrame, list[dict], List[Figure]]:
+    """Run the complete visualization pipeline from data loading to generating plots.
 
-    # Define paths for input and output
-    ANSWERS_CSV = Path("output/bool_q/processed_data.csv")  # id -> answer file
-    DEBATES_CSV = Path("data/bool_q/llama3(11)/debate_rounds.csv")  # debate rounds data
-    OUTPUT_DIR = Path("output/visualizations/bool_q")
-    MAX_ROUNDS = None  # or an int
+    Args:
+        answers_csv_path: Path to CSV with correct answers
+        debates_csv_path: Path to CSV with debate rounds data
+        output_dir: Directory to save visualization outputs
+        max_rounds: Maximum number of rounds to analyze (None for all)
+        fitting_method: Method to use for fitting models ("em" or "direct")
+        n_restarts: Number of random restarts for model fitting
+        verbose: Whether to print progress information
+        enforce_increasing_success: Whether to ensure expected success probability 
+                                    doesn't decrease
 
-    # Choose the fitting method: "em" or "direct"
-    FIT_METHOD = "direct"  # Change to "direct" to use direct optimization approach
-    N_RESTARTS = 2  # Number of random restarts for more stable fitting
-
+    Returns:
+        tuple: (aggregated_df, model_results, figures) containing the analysis 
+               results and generated figures
+    """
     # Create output directory if it doesn't exist
-    OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
-
-    try:
-        # Use the new analysis function
+    output_dir.mkdir(exist_ok=True, parents=True)
+    
+    if verbose:
         print("Analyzing debate rounds and fitting models...")
-        aggregated_df, model_results = analyze_rounds_distribution(
-            answers_csv_path=ANSWERS_CSV,
-            debates_csv_path=DEBATES_CSV,
-            fitting_method=FIT_METHOD,
-            max_rounds=MAX_ROUNDS,
-            n_restarts=N_RESTARTS,
-            verbose=True,
-        )
-    except Exception as e:
-        print(f"Error in analysis: {e}")
-        sys.exit(1)
+    
+    # Use the analysis function
+    aggregated_df, model_results = analyze_rounds_distribution(
+        answers_csv_path=answers_csv_path,
+        debates_csv_path=debates_csv_path,
+        fitting_method=fitting_method,
+        max_rounds=max_rounds,
+        n_restarts=n_restarts,
+        verbose=verbose,
+        enforce_increasing_success=enforce_increasing_success,
+    )
 
     if aggregated_df.empty:
-        print("No data available for analysis")
-        sys.exit(1)
+        if verbose:
+            print("No data available for analysis")
+        return aggregated_df, model_results, []
 
     # Extract bin columns (representing correct counts)
     bin_columns = [col for col in aggregated_df.columns if col.isdigit()]
@@ -361,14 +375,56 @@ if __name__ == "__main__":
         observed_data.append(counts_dict)
 
     # Generate visualizations
-    print("Generating visualizations...")
-
+    if verbose:
+        print("Generating visualizations...")
+    
+    figures = []
+    
     # 1) Plot evolution of each round in subplots and individual figures
     evolution_figs = plot_model_evolution(
-        model_results, k, observed_data, output_dir=OUTPUT_DIR
+        model_results, k, observed_data, output_dir=output_dir
     )
-    print(f"Saved model evolution plots to {OUTPUT_DIR}")
+    if verbose:
+        print(f"Saved model evolution plots to {output_dir}")
+    figures.extend(evolution_figs)
 
     # 2) Plot parameter trends across rounds
-    param_fig = visualize_parameter_trends(model_results, output_dir=OUTPUT_DIR)
-    print(f"Saved parameter trend plot to {OUTPUT_DIR}")
+    param_fig = visualize_parameter_trends(model_results, output_dir=output_dir)
+    if verbose:
+        print(f"Saved parameter trend plot to {output_dir}")
+    figures.append(param_fig)
+
+    return aggregated_df, model_results, figures
+
+
+if __name__ == "__main__":
+    import sys
+
+    # Define paths for input and output
+    ANSWERS_CSV = Path("output/bool_q/processed_data.csv")  # id -> answer file
+    DEBATES_CSV = Path("data/bool_q/llama3(11)/debate_rounds.csv")  # debate rounds data
+    OUTPUT_DIR = Path("output/visualizations/bool_q")
+    MAX_ROUNDS = None  # or an int
+
+    # Analysis settings
+    FIT_METHOD = "direct"  # "direct" or "em" optimization approach
+    N_RESTARTS = 2  # Number of random restarts for more stable fitting
+    ENFORCE_INCREASING = True  # Enforce non-decreasing expected success probability
+
+    try:
+        # Call the visualization pipeline function
+        aggregated_df, model_results, figures = run_visualization(
+            answers_csv_path=ANSWERS_CSV,
+            debates_csv_path=DEBATES_CSV,
+            output_dir=OUTPUT_DIR,
+            max_rounds=MAX_ROUNDS,
+            fitting_method=FIT_METHOD,
+            n_restarts=N_RESTARTS,
+            verbose=True,
+            enforce_increasing_success=ENFORCE_INCREASING,
+        )
+        
+        print(f"Visualization complete with {len(figures)} figures generated")
+    except Exception as e:
+        print(f"Error in visualization: {e}")
+        sys.exit(1)
