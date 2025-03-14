@@ -1,8 +1,9 @@
-import sys
 import csv
 import json
 import re
+import sys
 from pathlib import Path
+
 
 def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
     """
@@ -16,8 +17,9 @@ def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
     with output_csv.open("w", newline="", encoding="utf-8") as fout:
         writer = csv.writer(fout)
         # Write header row
-        writer.writerow(["task_id", "round_number", "agent_index", 
-                         "agent_id", "model", "response"])
+        writer.writerow(
+            ["task_id", "round_number", "agent_index", "agent_id", "model", "response"]
+        )
 
         # Regex for "debate_round_X.json" -> captures X as the round number
         round_pattern = re.compile(r"^debate_round_(\d+)\.json$")
@@ -50,7 +52,10 @@ def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
                     with json_file.open("r", encoding="utf-8") as f:
                         data = json.load(f)
                 except Exception as e:
-                    print(f"Warning: cannot load JSON from {json_file}: {e}", file=sys.stderr)
+                    print(
+                        f"Warning: cannot load JSON from {json_file}: {e}",
+                        file=sys.stderr,
+                    )
                     continue
 
                 if not isinstance(data, list):
@@ -63,13 +68,23 @@ def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
                     model_name = item.get("model", "")
                     response_text = item.get("response", "")
 
-                    writer.writerow([task_id, round_number, idx, 
-                                     agent_id, model_name, response_text])
+                    writer.writerow(
+                        [
+                            task_id,
+                            round_number,
+                            idx,
+                            agent_id,
+                            model_name,
+                            response_text,
+                        ]
+                    )
 
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: python merge_model_dir_to_csv.py /path/to/model_dir /path/to/output.csv")
+        print(
+            "Usage: python merge_model_dir_to_csv.py /path/to/model_dir /path/to/output.csv"
+        )
         sys.exit(1)
 
     model_dir_arg = sys.argv[1]
@@ -85,9 +100,12 @@ def main():
     # Ensure the parent directory for the output CSV exists
     output_csv.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"Merging all debate_round_*.json from numeric task dirs in {model_dir} into {output_csv} ...")
+    print(
+        f"Merging all debate_round_*.json from numeric task dirs in {model_dir} into {output_csv} ..."
+    )
     merge_json_files_to_csv(model_dir, output_csv)
     print("Done.")
+
 
 if __name__ == "__main__":
     main()
