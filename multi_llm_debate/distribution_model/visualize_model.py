@@ -13,6 +13,7 @@ from ..analysis.calculate_correct_rate_distribution import (
 )
 from .model_fitting import (
     fit_mixture_beta_binomial,  # this wrapper lets us choose "em" or "direct"
+    analyze_rounds_distribution,  # new function for analyzing rounds
 )
 from .model_fitting import beta_binomial_pmf
 
@@ -259,46 +260,24 @@ if __name__ == "__main__":
 
     # Choose the fitting method: "em" or "direct"
     FIT_METHOD = "direct"  # Change to "direct" to use direct optimization approach
+    N_RESTARTS = 2  # Number of random restarts for more stable fitting
 
     # Create output directory if it doesn't exist
     OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
-    # Load answers data
     try:
-        df_answers = pd.read_csv(ANSWERS_CSV)
-        # Convert id to numeric and clean
-        df_answers["id"] = pd.to_numeric(df_answers["id"], errors="coerce")
-        df_answers.dropna(subset=["id"], inplace=True)
-        df_answers["id"] = df_answers["id"].astype(int)
-        print(f"Loaded answers data from {ANSWERS_CSV}")
-    except Exception as e:
-        print(f"Error loading answers data: {e}")
-        sys.exit(1)
-
-    # Load debate rounds data
-    try:
-        df_debates = pd.read_csv(DEBATES_CSV)
-        # Convert task_id and round_number to numeric and clean
-        df_debates["task_id"] = pd.to_numeric(df_debates["task_id"], errors="coerce")
-        df_debates["round_number"] = pd.to_numeric(
-            df_debates["round_number"], errors="coerce"
-        )
-        df_debates.dropna(subset=["task_id", "round_number"], inplace=True)
-        df_debates["task_id"] = df_debates["task_id"].astype(int)
-        df_debates["round_number"] = df_debates["round_number"].astype(int)
-        print(f"Loaded debate rounds from {DEBATES_CSV}")
-    except Exception as e:
-        print(f"Error loading debate rounds data: {e}")
-        sys.exit(1)
-
-    # Get aggregated data for all rounds
-    try:
-        print("Calculating correct rate distribution...")
-        aggregated_df = calculate_correct_rate_distribution(
-            df_answers=df_answers, df_debates=df_debates, max_rounds=MAX_ROUNDS
+        # Use the new analysis function
+        print("Analyzing debate rounds and fitting models...")
+        aggregated_df, model_results = analyze_rounds_distribution(
+            answers_csv_path=ANSWERS_CSV,
+            debates_csv_path=DEBATES_CSV,
+            fitting_method=FIT_METHOD,
+            max_rounds=MAX_ROUNDS,
+            n_restarts=N_RESTARTS,
+            verbose=True
         )
     except Exception as e:
-        print(f"Error calculating correct rate distribution: {e}")
+        print(f"Error in analysis: {e}")
         sys.exit(1)
 
     if aggregated_df.empty:
@@ -311,37 +290,13 @@ if __name__ == "__main__":
 
     # Find the maximum bin value to use as k
     k = max(int(col) for col in bin_columns if col.isdigit())
-
-    # Store fit results + observed data per round
-    model_results = []
+    
+    # Prepare observed data for visualization
     observed_data = []
-
-    # Process each row (each round) in aggregated_df
     for _, row in aggregated_df.iterrows():
-        round_number = int(row["round_number"])
-        print(f"Processing round {round_number} (fitting method='{FIT_METHOD}')...")
-
         # Build a dictionary of bin -> frequency
         counts_dict = {int(bin_col): int(row[bin_col]) for bin_col in bin_columns}
         observed_data.append(counts_dict)
-
-        # Expand to an array of counts
-        all_counts = []
-        for count_val, freq in counts_dict.items():
-            all_counts.extend([count_val] * freq)
-
-        counts_array = np.array(all_counts)
-
-        # Fit model (uses the chosen method)
-        fit_result = fit_mixture_beta_binomial(
-            counts_array, k=k, fitting_method=FIT_METHOD
-        )
-        model_results.append(fit_result)
-
-        print(f"  Fitted model for round {round_number}:")
-        print(f"    w={fit_result['w']:.4f}")
-        print(f"    alpha1={fit_result['alpha1']:.4f}, beta1={fit_result['beta1']:.4f}")
-        print(f"    alpha2={fit_result['alpha2']:.4f}, beta2={fit_result['beta2']:.4f}")
 
     # Generate visualizations
     print("Generating visualizations...")

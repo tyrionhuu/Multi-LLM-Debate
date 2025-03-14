@@ -403,45 +403,46 @@ def fit_mixture_beta_binomial(
         raise ValueError(f"Unknown fitting_method: {fitting_method}")
 
 
-# -------------------------------------------------------------------
-# Example usage in main
-# -------------------------------------------------------------------
-if __name__ == "__main__":
-    import sys
-    from pathlib import Path
+def analyze_rounds_distribution(
+    answers_csv_path: Path,
+    debates_csv_path: Path,
+    fitting_method: str = "direct",
+    max_rounds: Optional[int] = None,
+    n_restarts: int = 2,
+    verbose: bool = True,
+) -> tuple[pd.DataFrame, list[dict]]:
+    """
+    Analyze the correct rate distribution across debate rounds and fit
+    Beta-Binomial mixture models to the data.
 
-    import pandas as pd
+    Args:
+        answers_csv_path: Path to CSV with correct answers ("id", "answer" columns)
+        debates_csv_path: Path to CSV with debate rounds data
+        fitting_method: Method to use for fitting Beta-Binomial mixtures ("em" or "direct")
+        max_rounds: Maximum number of rounds to analyze (None for all)
+        n_restarts: Number of random restarts for model fitting
+        verbose: Whether to print progress and results
 
-    # Example import from your code:
-    from ..analysis.calculate_correct_rate_distribution import (
-        calculate_correct_rate_distribution,
-    )
-
-    # PATHS (placeholders in this example)
-    ANSWERS_CSV = Path("output/bool_q/processed_data.csv")  # your "id" -> "answer" file
-    DEBATES_CSV = Path(
-        "data/bool_q/llama3(11)/debate_rounds.csv"
-    )  # the debate rounds CSV
-    MAX_ROUNDS = None  # or an int
-
-    # Choose which method to use for fitting
-    FIT_METHOD = "em"  # or "direct"
-
+    Returns:
+        tuple: (aggregated_df, fit_results) where:
+            - aggregated_df: DataFrame with correct rate distribution per round
+            - fit_results: List of dictionaries containing fitted model parameters
+    """
     # Load answers data
     try:
-        df_answers = pd.read_csv(ANSWERS_CSV)
+        df_answers = pd.read_csv(answers_csv_path)
         # Convert id to numeric and clean
         df_answers["id"] = pd.to_numeric(df_answers["id"], errors="coerce")
         df_answers.dropna(subset=["id"], inplace=True)
         df_answers["id"] = df_answers["id"].astype(int)
-        print(f"Loaded answers data from {ANSWERS_CSV}")
+        if verbose:
+            print(f"Loaded answers data from {answers_csv_path}")
     except Exception as e:
-        print(f"Failed to load answers data: {e}")
-        sys.exit(1)
+        raise ValueError(f"Failed to load answers data: {e}")
 
     # Load debate rounds data
     try:
-        df_debates = pd.read_csv(DEBATES_CSV)
+        df_debates = pd.read_csv(debates_csv_path)
         # Convert task_id and round_number to numeric and clean
         df_debates["task_id"] = pd.to_numeric(df_debates["task_id"], errors="coerce")
         df_debates["round_number"] = pd.to_numeric(
@@ -450,35 +451,37 @@ if __name__ == "__main__":
         df_debates.dropna(subset=["task_id", "round_number"], inplace=True)
         df_debates["task_id"] = df_debates["task_id"].astype(int)
         df_debates["round_number"] = df_debates["round_number"].astype(int)
-        print(f"Loaded debate rounds from {DEBATES_CSV}")
+        if verbose:
+            print(f"Loaded debate rounds from {debates_csv_path}")
     except Exception as e:
-        print(f"Error loading debate rounds data: {e}")
-        sys.exit(1)
+        raise ValueError(f"Error loading debate rounds data: {e}")
 
     # Get aggregated data for all rounds
     try:
-        print("Calculating correct rate distribution...")
+        if verbose:
+            print("Calculating correct rate distribution...")
         aggregated_df = calculate_correct_rate_distribution(
-            df_answers=df_answers, df_debates=df_debates, max_rounds=MAX_ROUNDS
+            df_answers=df_answers, df_debates=df_debates, max_rounds=max_rounds
         )
     except Exception as e:
-        print(f"Error calculating correct rate distribution: {e}")
-        sys.exit(1)
+        raise ValueError(f"Error calculating correct rate distribution: {e}")
 
     if aggregated_df.empty:
-        print("No data available for analysis.")
-        sys.exit(1)
+        raise ValueError("No data available for analysis.")
 
-    # Print the aggregated DataFrame
-    print("Aggregated DataFrame:")
-    print(aggregated_df)
+    # Print the aggregated DataFrame if verbose
+    if verbose:
+        print("Aggregated DataFrame:")
+        print(aggregated_df)
 
     prev_fit_result = None
+    fit_results = []
 
     # Process each round in the aggregated data
     for _, row in aggregated_df.iterrows():
         round_number = int(row["round_number"])
-        print(f"Processing round {round_number} using fitting method: {FIT_METHOD}")
+        if verbose:
+            print(f"Processing round {round_number} using fitting method: {fitting_method}")
 
         # Extract bin columns (representing correct counts)
         bin_columns = [col for col in aggregated_df.columns if col.isdigit()]
@@ -498,32 +501,76 @@ if __name__ == "__main__":
 
         # Fit the model (choose EM or direct)
         fit_result = fit_mixture_beta_binomial(
-            counts_array, k=k, fitting_method=FIT_METHOD
+            counts_array, k=k, fitting_method=fitting_method, n_restarts=n_restarts
         )
+        fit_results.append(fit_result)
 
-        # Print the fit results
-        print(f"Round {round_number} fit results:")
-        print(f"  Mixture weight (w): {fit_result['w']:.4f}")
-        print(f"  Alpha1: {fit_result['alpha1']:.4f}")
-        print(f"  Beta1:  {fit_result['beta1']:.4f}")
-        print(f"  Alpha2: {fit_result['alpha2']:.4f}")
-        print(f"  Beta2:  {fit_result['beta2']:.4f}")
-        print(f"  Log-likelihood: {fit_result['log_likelihood']:.4f}")
-        print(f"  Number of iterations: {fit_result['n_iter']}")
-        print(f"  Total tasks analyzed: {row['total_tasks']}")
+        if verbose:
+            # Print the fit results
+            print(f"Round {round_number} fit results:")
+            print(f"  Mixture weight (w): {fit_result['w']:.4f}")
+            print(f"  Alpha1: {fit_result['alpha1']:.4f}")
+            print(f"  Beta1:  {fit_result['beta1']:.4f}")
+            print(f"  Alpha2: {fit_result['alpha2']:.4f}")
+            print(f"  Beta2:  {fit_result['beta2']:.4f}")
+            print(f"  Log-likelihood: {fit_result['log_likelihood']:.4f}")
+            print(f"  Number of iterations: {fit_result['n_iter']}")
+            print(f"  Total tasks analyzed: {row['total_tasks']}")
 
-        # Print deltas from previous round if available
-        if round_number > 0 and prev_fit_result is not None:
-            print("  Deltas from previous round:")
-            print(f"    Δ Mixture weight: {fit_result['w'] - prev_fit_result['w']:.4f}")
-            print(
-                f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}"
-            )
-            print(f"    Δ Beta1: {fit_result['beta1'] - prev_fit_result['beta1']:.4f}")
-            print(
-                f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}"
-            )
-            print(f"    Δ Beta2: {fit_result['beta2'] - prev_fit_result['beta2']:.4f}")
+            # Print deltas from previous round if available
+            if round_number > 0 and prev_fit_result is not None:
+                print("  Deltas from previous round:")
+                print(f"    Δ Mixture weight: {fit_result['w'] - prev_fit_result['w']:.4f}")
+                print(
+                    f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}"
+                )
+                print(f"    Δ Beta1: {fit_result['beta1'] - prev_fit_result['beta1']:.4f}")
+                print(
+                    f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}"
+                )
+                print(f"    Δ Beta2: {fit_result['beta2'] - prev_fit_result['beta2']:.4f}")
+            print("-" * 80)
 
         prev_fit_result = fit_result.copy()
-        print("-" * 80)
+
+    return aggregated_df, fit_results
+
+
+# -------------------------------------------------------------------
+# Example usage in main
+# -------------------------------------------------------------------
+if __name__ == "__main__":
+    import sys
+    from pathlib import Path
+    from typing import Optional
+
+    import pandas as pd
+
+    # Example import from your code:
+    from ..analysis.calculate_correct_rate_distribution import (
+        calculate_correct_rate_distribution,
+    )
+
+    # PATHS (placeholders in this example)
+    ANSWERS_CSV = Path("output/bool_q/processed_data.csv")  # your "id" -> "answer" file
+    DEBATES_CSV = Path(
+        "data/bool_q/llama3(11)/debate_rounds.csv"
+    )  # the debate rounds CSV
+    MAX_ROUNDS = None  # or an int
+
+    # Choose which method to use for fitting
+    FIT_METHOD = "em"  # or "direct"
+
+    try:
+        # Call the analysis function with our parameters
+        aggregated_df, fit_results = analyze_rounds_distribution(
+            answers_csv_path=ANSWERS_CSV,
+            debates_csv_path=DEBATES_CSV, 
+            fitting_method=FIT_METHOD,
+            max_rounds=MAX_ROUNDS,
+            verbose=True
+        )
+        print(f"Successfully analyzed {len(fit_results)} rounds")
+    except Exception as e:
+        print(f"Analysis failed: {e}")
+        sys.exit(1)
