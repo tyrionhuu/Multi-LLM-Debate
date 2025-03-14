@@ -81,14 +81,9 @@ def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
 
 
 def main():
-    if len(sys.argv) < 3:
-        print(
-            "Usage: python merge_model_dir_to_csv.py /path/to/model_dir /path/to/output.csv"
-        )
-        sys.exit(1)
-
-    model_dir_arg = sys.argv[1]
-    output_csv_arg = sys.argv[2]
+    # Hardcoded paths instead of using sys.argv
+    model_dir_arg = "/path/to/model_dir"
+    output_csv_arg = "/path/to/output.csv"
 
     model_dir = Path(model_dir_arg)
     output_csv = Path(output_csv_arg)
