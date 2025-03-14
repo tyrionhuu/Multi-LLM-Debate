@@ -125,6 +125,41 @@ def direct_mixture_log_likelihood(
     return ll
 
 
+def ensure_consistent_component_ordering(params: dict) -> dict:
+    """
+    Ensure consistent ordering of mixture components to make comparison across
+    rounds more reliable. This function sorts components so that component 1
+    has higher expected success rate (alpha1/(alpha1+beta1) > alpha2/(alpha2+beta2)).
+
+    Args:
+        params: Dictionary with fitted model parameters
+                (w, alpha1, beta1, alpha2, beta2)
+
+    Returns:
+        dict: Dictionary with consistently ordered components
+    """
+    # Calculate expected value of each beta component: alpha/(alpha+beta)
+    expected1 = params["alpha1"] / (params["alpha1"] + params["beta1"])
+    expected2 = params["alpha2"] / (params["alpha2"] + params["beta2"])
+    
+    # If the components are in the wrong order, swap them
+    if expected1 < expected2:
+        # Swap components
+        return {
+            "w": 1.0 - params["w"],  # Adjust weight accordingly
+            "alpha1": params["alpha2"],
+            "beta1": params["beta2"],
+            "alpha2": params["alpha1"],
+            "beta2": params["beta1"],
+            "log_likelihood": params.get("log_likelihood"),
+            "n_iter": params.get("n_iter"),
+            "restart": params.get("restart", 0),
+        }
+    
+    # Components already in correct order
+    return params
+
+
 def fit_mixture_direct(
     counts, k, max_iter=100, tol=1e-6, random_state=42, n_restarts=3
 ):
@@ -209,7 +244,8 @@ def fit_mixture_direct(
                 "restart": restart,
             }
 
-    return best_result
+    # Apply consistent ordering to components before returning
+    return ensure_consistent_component_ordering(best_result)
 
 
 # -------------------------------------------------------------------
@@ -358,7 +394,8 @@ def em_mixture_beta_binomial(
             best_ll = old_ll
             best_result = result
 
-    return best_result
+    # Apply consistent ordering to components before returning
+    return ensure_consistent_component_ordering(best_result)
 
 
 def fit_mixture_beta_binomial(
@@ -507,10 +544,13 @@ def analyze_rounds_distribution(
         # k = max possible correct
         k = max(int(col) for col in bin_columns)
 
-        # Fit the model (choose EM or direct)
+        # Fit the model (choose EM or direct) - component ordering handled inside fitting methods
         fit_result = fit_mixture_beta_binomial(
             counts_array, k=k, fitting_method=fitting_method, n_restarts=n_restarts
         )
+        
+        # Ensure consistent ordering (just in case, though fitting methods should already do this)
+        fit_result = ensure_consistent_component_ordering(fit_result)
         fit_results.append(fit_result)
 
         if verbose:
