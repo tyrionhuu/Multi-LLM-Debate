@@ -515,75 +515,75 @@ def fit_mixture_beta_binomial_with_constraints(
     result = fit_mixture_beta_binomial(
         counts, k, fitting_method, max_iter, tol, random_state, n_restarts
     )
-    
+
     # If no previous success probability or no constraint needed, return the result
     if prev_exp_success is None:
         return result
-    
+
     # Calculate the expected success probability of the current fit
     w = result["w"]
     alpha1 = result["alpha1"]
     beta1 = result["beta1"]
     alpha2 = result["alpha2"]
     beta2 = result["beta2"]
-    
+
     exp1 = alpha1 / (alpha1 + beta1)
     exp2 = alpha2 / (alpha2 + beta2)
-    
+
     # Weighted average of the two components' expected probabilities
     curr_exp_success = w * exp1 + (1 - w) * exp2
-    
+
     # Check if constraint is satisfied
     if curr_exp_success >= prev_exp_success:
         return result  # Constraint already satisfied
-    
+
     # If constraint not satisfied, adjust parameters to meet it
-    # Approach: Scale alpha and beta to increase the expected value while 
+    # Approach: Scale alpha and beta to increase the expected value while
     # preserving the shape characteristics of the distribution
-    
+
     # Calculate how much we need to increase the expected probability
     target_increase = (prev_exp_success - curr_exp_success) * 1.01  # Add small buffer
-    
+
     # Option 1: Adjust component 1 (higher success probability)
     if exp1 < 0.95:  # Make sure we don't push it too close to 1
         # How much we need to increase exp1 to achieve target
         delta_exp1 = target_increase / w
         # New expected value for component 1
         new_exp1 = min(0.95, exp1 + delta_exp1)
-        
+
         # Scale parameters to achieve the new expected value
         scale1 = (new_exp1 * (1 - exp1)) / (exp1 * (1 - new_exp1))
         new_alpha1 = alpha1 * scale1
         new_beta1 = beta1
-        
+
         # Calculate the new overall expected probability
         new_curr_exp_success = w * new_exp1 + (1 - w) * exp2
-        
+
         if new_curr_exp_success >= prev_exp_success:
             result["alpha1"] = new_alpha1
             result["beta1"] = new_beta1
             return result
-    
+
     # Option 2: Adjust component 2 (lower success probability)
     if exp2 < 0.9:  # Make sure we don't push it too close to 1
         # How much we need to increase exp2 to achieve target
         delta_exp2 = target_increase / (1 - w)
         # New expected value for component 2
         new_exp2 = min(0.9, exp2 + delta_exp2)
-        
+
         # Scale parameters to achieve the new expected value
         scale2 = (new_exp2 * (1 - exp2)) / (exp2 * (1 - new_exp2))
         new_alpha2 = alpha2 * scale2
         new_beta2 = beta2
-        
+
         # Calculate the new overall expected probability
         new_curr_exp_success = w * exp1 + (1 - w) * new_exp2
-        
+
         if new_curr_exp_success >= prev_exp_success:
             result["alpha2"] = new_alpha2
             result["beta2"] = new_beta2
             return result
-    
+
     # Option 3: Adjust mixture weight
     # If individual components can't be adjusted enough, try adjusting the weight
     if exp1 > exp2:  # Ensure component 1 has higher success probability
@@ -591,9 +591,9 @@ def fit_mixture_beta_binomial_with_constraints(
         # Solve for w: w*exp1 + (1-w)*exp2 = target_exp
         new_w = (target_exp - exp2) / (exp1 - exp2)
         new_w = min(max(new_w, 0.1), 0.9)  # Ensure w stays in reasonable range
-        
+
         result["w"] = new_w
-    
+
     return result
 
 
@@ -702,11 +702,11 @@ def analyze_rounds_distribution(
         # Fit the model with constraints if requested
         if enforce_increasing_success and prev_exp_success is not None:
             fit_result = fit_mixture_beta_binomial_with_constraints(
-                counts_array, 
-                k=k, 
-                fitting_method=fitting_method, 
+                counts_array,
+                k=k,
+                fitting_method=fitting_method,
                 n_restarts=n_restarts,
-                prev_exp_success=prev_exp_success
+                prev_exp_success=prev_exp_success,
             )
         else:
             # Standard fitting without constraints
@@ -725,14 +725,14 @@ def analyze_rounds_distribution(
             beta1 = fit_result["beta1"]
             alpha2 = fit_result["alpha2"]
             beta2 = fit_result["beta2"]
-            
+
             exp1 = alpha1 / (alpha1 + beta1)
             exp2 = alpha2 / (alpha2 + beta2)
-            
+
             # Weighted average of the two components' expected probabilities
             curr_exp_success = w * exp1 + (1 - w) * exp2
             prev_exp_success = curr_exp_success
-            
+
             if verbose:
                 print(f"  Expected success probability: {curr_exp_success:.4f}")
 
@@ -789,7 +789,7 @@ if __name__ == "__main__":
 
     # Choose which method to use for fitting
     FIT_METHOD = "em"  # or "direct"
-    
+
     # Set to True to enforce increasing success probability constraint
     ENFORCE_INCREASING_SUCCESS = True
 
