@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
-from .utils import compare_bool, get_final_round
+from .utils import compare_bool
 
 # Set up logging
 logging.basicConfig(
@@ -25,8 +25,8 @@ def calculate_correct_rate_distribution_for_round_n(
     round_number: int,
 ) -> pd.DataFrame:
     """
-    Compute correct-rate distribution for a *requested* round_number. 
-    For each task, if that round is not present, we *fallback* to the 
+    Compute correct-rate distribution for a *requested* round_number.
+    For each task, if that round is not present, we *fallback* to the
     highest round found for that task.
 
     Args:
@@ -40,9 +40,9 @@ def calculate_correct_rate_distribution_for_round_n(
         DataFrame with columns [task_id, round_number, 0, 1, 2, ...]
         where each row is a single task, and there's exactly one "1" in
         the bin column that matches how many agents were correct.
-        Note: If a task didn't have the requested round, we use its 
+        Note: If a task didn't have the requested round, we use its
               highest available round. The 'round_number' column in
-              the result still shows the *requested* round, but that 
+              the result still shows the *requested* round, but that
               row's data is actually from whichever round was used.
     """
 
@@ -86,9 +86,7 @@ def calculate_correct_rate_distribution_for_round_n(
                 if extracted is not None:
                     normalized_responses.append(extracted)
             except ValueError:
-                logger.debug(
-                    f"Could not extract boolean answer for task {task_id_val}"
-                )
+                logger.debug(f"Could not extract boolean answer for task {task_id_val}")
                 continue
 
         # Count how many are correct
@@ -96,19 +94,21 @@ def calculate_correct_rate_distribution_for_round_n(
             correct_count = 0
             num_agents = 0
         else:
-            correct_count = sum(compare_bool(r, correct_label) for r in normalized_responses)
+            correct_count = sum(
+                compare_bool(r, correct_label) for r in normalized_responses
+            )
             num_agents = len(normalized_responses)
 
         max_agents = max(max_agents, num_agents)
 
-        merged_rows.append({
-            "task_id": task_id_val,
-            # For consistency, we'll still store 'round_number' = the requested round
-            # even though for this particular task we might be using a fallback round.
-            "round_number": round_number,
-            "correct_count": correct_count,
-            "num_agents": num_agents,
-        })
+        merged_rows.append(
+            {
+                "task_id": task_id_val,
+                "round_number": round_number,
+                "correct_count": correct_count,
+                "num_agents": num_agents,
+            }
+        )
 
     if not merged_rows:
         return pd.DataFrame()
@@ -121,7 +121,9 @@ def calculate_correct_rate_distribution_for_round_n(
     # Create bin columns [0..max_agents]
     bin_labels = [str(i) for i in range(max_agents + 1)]
     for bin_label in bin_labels:
-        df_result[bin_label] = (df_result["correct_count"] == int(bin_label)).astype(int)
+        df_result[bin_label] = (df_result["correct_count"] == int(bin_label)).astype(
+            int
+        )
 
     # Drop the raw counts
     df_result.drop(columns=["correct_count", "num_agents"], inplace=True)
@@ -147,7 +149,7 @@ def calculate_correct_rate_distribution(
     Returns:
         DataFrame aggregated by round, with columns:
            [round_number, 0, 1, 2, ..., total_tasks]
-        The `round_number` column indicates which round was *requested*, 
+        The `round_number` column indicates which round was *requested*,
         though some tasks might have used their fallback if that round wasn't available.
     """
     # 1) Identify all round_numbers in df_debates
@@ -234,7 +236,9 @@ def main():
     if df_distribution.empty:
         logger.warning("No distribution data produced.")
     else:
-        print("\nAggregated distribution across requested rounds (fallback used if missing):")
+        print(
+            "\nAggregated distribution across requested rounds (fallback used if missing):"
+        )
         print(df_distribution)
         # e.g., you could write to CSV here:
         # df_distribution.to_csv("output/bool_q/correct_rate_distribution.csv", index=False)
