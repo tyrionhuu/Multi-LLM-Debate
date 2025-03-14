@@ -260,61 +260,62 @@ if __name__ == "__main__":
         logger.error(f"Model directory does not exist: {model_dir}")
         sys.exit(1)
 
-    # Process rounds 0 through 5
-    for round_number in range(6):  # 0 to 5
-        logger.info(f"Processing round {round_number}...")
-
-        # Calculate distribution
-        result_df = calculate_correct_rate_distribution_for_round_n(
-            dataframe=dataframe, model_dir=model_dir_path, round_number=round_number
+    # First test the aggregated function for all rounds
+    logger.info("Testing calculate_correct_rate_distribution for all rounds...")
+    
+    try:
+        aggregated_df = calculate_correct_rate_distribution(
+            dataframe=dataframe, 
+            model_dir=model_dir_path
         )
+        
+        if not aggregated_df.empty:
+            print("\nAggregated DataFrame for all rounds:")
+            print(aggregated_df.to_string())
+            print(f"\nDataFrame shape: {aggregated_df.shape}")
+            print(f"DataFrame columns: {', '.join(aggregated_df.columns)}")
+            
+            # Get numeric columns (bins)
+            bin_columns = [col for col in aggregated_df.columns 
+                          if col.isdigit()]
+            bin_columns.sort(key=int)
+            
+            if bin_columns:
+                # Calculate percentages for each round
+                for _, row in aggregated_df.iterrows():
+                    round_num = int(row['round_number'])
+                    total = row['total_tasks']
+                    
+                    print(f"\nRound {round_num} distribution:")
+                    print(f"Total tasks: {total}")
+                    
+                    # Create a dictionary for the histogram
+                    bin_counts = {bin_col: row[bin_col] for bin_col in bin_columns}
+                    bin_percentages = {
+                        bin_col: (row[bin_col] / total * 100) 
+                        for bin_col in bin_columns
+                    }
+                    
+                    for bin_col in bin_columns:
+                        count = row[bin_col]
+                        pct = bin_percentages[bin_col]
+                        print(f"  {bin_col} correct agents: {count} tasks ({pct:.2f}%)")
+                    
+                    # Draw histogram
+                    histogram = draw_console_histogram(
+                        bin_counts,
+                        title=f"Number of Correct Agents Distribution (Round {round_num})",
+                        height=15,
+                        bar_char="█",
+                        fine_grained=True,
+                    )
+                    print("\n" + histogram + "\n")
+            
+        else:
+            logger.warning("No aggregated data available to display")
+    
+    except Exception as e:
+        logger.error(f"Error testing aggregated function: {e}", exc_info=True)
+    
+    print("\n" + "="*80 + "\n")  # Separator between aggregated and per-round analysis
 
-        # Print raw DataFrame output
-        print(f"\nRaw DataFrame for round {round_number}:")
-        print(result_df.to_string(max_rows=20))
-        print(f"\nDataFrame shape: {result_df.shape}")
-        print(f"DataFrame columns: {', '.join(result_df.columns)}")
-
-        # Get summary statistics
-        if not result_df.empty:
-            numeric_cols = [col for col in result_df.columns if col.isdigit()]
-            if numeric_cols:
-                print("\nSummary statistics for bin columns:")
-                print(result_df[numeric_cols].describe())
-
-        # Print summary
-        # Update bin column selection to look for numeric columns instead of ones with "-"
-        bin_columns = [col for col in result_df.columns if col.isdigit()]
-        # Sort the bin columns numerically
-        bin_columns.sort(key=int)
-
-        task_count = len(result_df)
-
-        logger.info(f"Results for round {round_number}:")
-        logger.info(f"Total tasks analyzed: {task_count}")
-
-        # Calculate bin distribution
-        if not result_df.empty and bin_columns:
-            bin_sums = result_df[bin_columns].sum()
-            bin_percentages = (bin_sums / task_count * 100).to_dict()
-
-            logger.info(f"Correct rate distribution for round {round_number}:")
-            for bin_label, percentage in bin_percentages.items():
-                logger.info(f"  {bin_label} correct agents: {percentage:.2f}%")
-
-            # Draw a more detailed histogram in the console
-            histogram = draw_console_histogram(
-                bin_sums.to_dict(),
-                title=f"Number of Correct Agents Distribution (Round {round_number})",
-                height=20,  # More reasonable height while still showing detail
-                bar_char="█",
-                fine_grained=True,  # Enable fine-grained display
-            )
-            print("\n" + histogram + "\n")
-
-        # Save results if needed
-        # output_path = output_path_pattern.format(round_number)
-        # result_df.to_csv(output_path, index=False)
-        # logger.info(f"Results for round {round_number} saved to {output_path}")
-
-        print("\n" + "-" * 80 + "\n")  # Add separator between rounds
