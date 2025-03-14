@@ -481,7 +481,9 @@ def analyze_rounds_distribution(
     for _, row in aggregated_df.iterrows():
         round_number = int(row["round_number"])
         if verbose:
-            print(f"Processing round {round_number} using fitting method: {fitting_method}")
+            print(
+                f"Processing round {round_number} using fitting method: {fitting_method}"
+            )
 
         # Extract bin columns (representing correct counts)
         bin_columns = [col for col in aggregated_df.columns if col.isdigit()]
@@ -520,15 +522,21 @@ def analyze_rounds_distribution(
             # Print deltas from previous round if available
             if round_number > 0 and prev_fit_result is not None:
                 print("  Deltas from previous round:")
-                print(f"    Δ Mixture weight: {fit_result['w'] - prev_fit_result['w']:.4f}")
+                print(
+                    f"    Δ Mixture weight: {fit_result['w'] - prev_fit_result['w']:.4f}"
+                )
                 print(
                     f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}"
                 )
-                print(f"    Δ Beta1: {fit_result['beta1'] - prev_fit_result['beta1']:.4f}")
+                print(
+                    f"    Δ Beta1: {fit_result['beta1'] - prev_fit_result['beta1']:.4f}"
+                )
                 print(
                     f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}"
                 )
-                print(f"    Δ Beta2: {fit_result['beta2'] - prev_fit_result['beta2']:.4f}")
+                print(
+                    f"    Δ Beta2: {fit_result['beta2'] - prev_fit_result['beta2']:.4f}"
+                )
             print("-" * 80)
 
         prev_fit_result = fit_result.copy()
@@ -565,10 +573,10 @@ if __name__ == "__main__":
         # Call the analysis function with our parameters
         aggregated_df, fit_results = analyze_rounds_distribution(
             answers_csv_path=ANSWERS_CSV,
-            debates_csv_path=DEBATES_CSV, 
+            debates_csv_path=DEBATES_CSV,
             fitting_method=FIT_METHOD,
             max_rounds=MAX_ROUNDS,
-            verbose=True
+            verbose=True,
         )
         print(f"Successfully analyzed {len(fit_results)} rounds")
     except Exception as e:

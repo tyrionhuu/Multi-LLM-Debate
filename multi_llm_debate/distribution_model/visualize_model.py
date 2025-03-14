@@ -12,8 +12,10 @@ from ..analysis.calculate_correct_rate_distribution import (
     calculate_correct_rate_distribution,
 )
 from .model_fitting import (
-    fit_mixture_beta_binomial,  # this wrapper lets us choose "em" or "direct"
     analyze_rounds_distribution,  # new function for analyzing rounds
+)
+from .model_fitting import (
+    fit_mixture_beta_binomial,  # this wrapper lets us choose "em" or "direct"
 )
 from .model_fitting import beta_binomial_pmf
 
@@ -274,7 +276,7 @@ if __name__ == "__main__":
             fitting_method=FIT_METHOD,
             max_rounds=MAX_ROUNDS,
             n_restarts=N_RESTARTS,
-            verbose=True
+            verbose=True,
         )
     except Exception as e:
         print(f"Error in analysis: {e}")
@@ -290,7 +292,7 @@ if __name__ == "__main__":
 
     # Find the maximum bin value to use as k
     k = max(int(col) for col in bin_columns if col.isdigit())
-    
+
     # Prepare observed data for visualization
     observed_data = []
     for _, row in aggregated_df.iterrows():
