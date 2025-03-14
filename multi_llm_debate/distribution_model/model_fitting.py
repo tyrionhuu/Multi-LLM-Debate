@@ -7,9 +7,11 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 from scipy.special import gammaln  # More efficient than math.lgamma
+
 from ..analysis.calculate_correct_rate_distribution import (
     calculate_correct_rate_distribution,
 )
+
 
 # -------------------------------------------------------------------
 # Beta-Binomial PMF and log-PMF with caching
@@ -555,8 +557,6 @@ if __name__ == "__main__":
     import sys
 
     # Example import from your code:
-
-
     # PATHS (placeholders in this example)
     ANSWERS_CSV = Path("output/bool_q/processed_data.csv")  # your "id" -> "answer" file
     DEBATES_CSV = Path(
