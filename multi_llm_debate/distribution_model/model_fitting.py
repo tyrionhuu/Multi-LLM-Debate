@@ -70,8 +70,12 @@ def log_beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
 # 1) Direct Maximum Likelihood approach - Optimized
 # -------------------------------------------------------------------
 def direct_mixture_log_likelihood(
-    params, counts, k, unique_counts=None, count_freq=None
-):
+    params: list[float],
+    counts: np.ndarray,
+    k: int,
+    unique_counts: np.ndarray = None,
+    count_freq: np.ndarray = None
+) -> float:
     """
     Computes the log-likelihood of the dataset under a 2-component Beta-Binomial mixture
     with parameters = (w, alpha1, beta1, alpha2, beta2).
