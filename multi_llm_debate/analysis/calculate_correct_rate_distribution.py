@@ -1,4 +1,6 @@
-import json
+#!/usr/bin/env python
+
+import sys
 import logging
 from pathlib import Path
 from typing import Optional
@@ -6,10 +8,30 @@ from typing import Optional
 import pandas as pd
 from tqdm import tqdm
 
-from ..llm.parsers import extract_bool_answer
-from .utils import compare_bool, draw_console_histogram, get_final_round
+# Suppose these helpers parse/compare booleans from the text
+# (like your "extract_bool_answer", "compare_bool").
+# We replicate them minimally here, or import from your .utils
+def extract_bool_answer(response_text: str) -> Optional[bool]:
+    """
+    Example placeholder that tries to parse a 'true/false' from the response.
+    Adjust to your real logic for extracting a boolean from the agent response.
+    """
+    # Very naive example
+    lower = response_text.lower()
+    if "true" in lower:
+        return True
+    elif "false" in lower:
+        return False
+    else:
+        return None
 
-# Set up logging
+def compare_bool(pred: bool, gold: bool) -> bool:
+    return pred == gold
+
+# ---------------------------------------------------------------------
+# Main distribution code using debate_rounds.csv
+# ---------------------------------------------------------------------
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -21,303 +43,192 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def calculate_correct_rate_distribution_for_round_n(
-    dataframe: pd.DataFrame,
-    model_dir: Path,
-    round_number: int,
+def calculate_correct_rate_distribution_for_round_n_from_csv(
+    df_answers: pd.DataFrame,
+    df_debates: pd.DataFrame,
+    round_number: int
 ) -> pd.DataFrame:
-    """Calculate the correct rate distribution for a specific round.
+    """
+    Compute correct-rate distribution for a specific round, using the merged CSV data
+    (df_debates) instead of reading individual JSON files.
 
     Args:
-        dataframe: DataFrame containing the experiment results.
-        model_dir: Directory containing the model outputs.
-        round_number: The round number to analyze.
+        df_answers: DataFrame with columns ["id", "answer"].
+                    `id` is numeric, `answer` is the correct boolean.
+        df_debates: DataFrame from debate_rounds.csv, containing columns:
+                    [task_id, round_number, agent_index, agent_id, model, response]
+        round_number: which round to analyze
 
     Returns:
-        DataFrame with correct rate distribution. Each row represents a task,
-        with columns for the number of correct agents (0, 1, 2, etc.),
-        task_id, and round_number.
+        DataFrame with columns [task_id, round_number, 0, 1, 2, ...]
+        where each row is a single task, and there's exactly one "1" in
+        the bin column that matches how many agents were correct.
     """
-    result_data = []
+    # 1) Filter debate_df to this round
+    df_this_round = df_debates[df_debates["round_number"] == round_number]
+    if df_this_round.empty:
+        return pd.DataFrame()  # No data for this round
 
-    # Process each unique task
-    task_dirs = [d for d in model_dir.iterdir() if d.is_dir()]
-    pbar = tqdm(
-        task_dirs,
-        desc=f"Calculating correct rate distribution for round {round_number}",
-    )
+    # 2) We'll need to group by task_id. For each task, figure out how many
+    #    agents answered correctly.
+    merged_rows = []
+    # We do a group-by on "task_id" so we can handle each task's set of agent responses
+    grouped = df_this_round.groupby("task_id")
 
-    # Track maximum number of agents to create appropriate bins later
     max_agents = 0
 
-    for task_dir in pbar:
-        task_id = task_dir.name
-        # Convert to string for consistent comparison
-        task_id_str = str(task_id)
-
-        # Filter dataframe for this task using string comparison
-        task_df = dataframe[dataframe["id"].astype(str) == task_id_str]
-
-        if task_df.empty:
-            logger.debug(f"Skipping task {task_id}: Not found in dataframe")
+    for task_id_val, group_df in tqdm(grouped, desc=f"Round {round_number}", unit="task"):
+        # Convert to int or str for consistent merges
+        # The df_answers has "id" that lines up with "task_id"
+        # We'll find the correct label by matching "id == task_id_val"
+        ans_row = df_answers[df_answers["id"] == task_id_val]
+        if ans_row.empty:
+            # no known correct label
             continue
+        correct_label = ans_row["answer"].iloc[0]
 
-        # Get the correct answer for the task
-        answer = task_df["answer"].iloc[0]
+        # For each agent response, parse True/False if possible
+        normalized_responses = []
+        for _, row in group_df.iterrows():
+            extracted = extract_bool_answer(row["response"])
+            if extracted is not None:
+                normalized_responses.append(extracted)
 
-        # Load the debate data for the specified round
-        final_round = get_final_round(task_dir)
-        if final_round == -1:
-            logger.warning(f"No debate data found for task {task_id}")
-            continue
+        if not normalized_responses:
+            continue  # no valid responses
 
-        # Use the specified round or the final round if the specified round exceeds it
-        actual_round = min(round_number, final_round)
-        round_file = task_dir / f"debate_round_{actual_round}.json"
+        correct_count = sum(compare_bool(r, correct_label) for r in normalized_responses)
+        num_agents = len(normalized_responses)
+        max_agents = max(max_agents, num_agents)
 
-        if not round_file.exists():
-            logger.warning(
-                f"No debate data found for task {task_id} in round {actual_round}"
-            )
-            continue
+        merged_rows.append({
+            "task_id": task_id_val,
+            "round_number": round_number,
+            "correct_count": correct_count,
+            "num_agents": num_agents,
+        })
 
-        try:
-            # Read responses from the round file
-            with open(round_file, "r") as f:
-                responses = json.load(f)
+    if not merged_rows:
+        return pd.DataFrame()
 
-            # Extract and normalize responses
-            normalized_responses = []
-            for response in responses:
-                try:
-                    extracted = extract_bool_answer(response.get("response", ""))
-                    if extracted is not None:
-                        normalized_responses.append(extracted)
-                except Exception as e:
-                    logger.debug(f"Error extracting response: {e}")
+    # Build DataFrame
+    df_result = pd.DataFrame(merged_rows)
+    if df_result.empty:
+        return df_result
 
-            if not normalized_responses:
-                logger.debug(
-                    f"No valid responses for task {task_id} in round {actual_round}"
-                )
-                continue
+    # Now we create bin columns [0..max_agents]
+    bin_labels = [str(i) for i in range(max_agents + 1)]
+    for bin_label in bin_labels:
+        df_result[bin_label] = (df_result["correct_count"] == int(bin_label)).astype(int)
 
-            # Calculate the number of correct agents for this task
-            correct_count = sum(
-                1 for r in normalized_responses if compare_bool(r, answer)
-            )
-
-            # Keep track of maximum number of agents to define bins later
-            max_agents = max(max_agents, len(normalized_responses))
-
-            # Create a row for this task
-            row = {
-                "task_id": task_id,
-                "round_number": round_number,
-                "correct_count": correct_count,
-            }
-            result_data.append(row)
-
-        except Exception as e:
-            logger.error(f"Error processing task {task_id}: {e}", exc_info=True)
-            continue
-
-    # Create result DataFrame
-    if result_data:
-        result_df = pd.DataFrame(result_data)
-
-        # Create the bins based on the actual number of agents observed (0 to max_agents)
-        bin_labels = [str(i) for i in range(max_agents + 1)]
-
-        # Convert from raw counts to one-hot encoding for the bins
-        for bin_label in bin_labels:
-            result_df[bin_label] = (
-                result_df["correct_count"] == int(bin_label)
-            ).astype(int)
-
-        # Drop the temporary correct_count column
-        result_df = result_df.drop(columns=["correct_count"])
-
-        logger.info(f"Created distribution DataFrame with {len(result_df)} tasks")
-    else:
-        # We don't know max_agents if there's no data, so assume a reasonable default
-        bin_labels = [str(i) for i in range(10)]  # Default to 0-9 agents
-        result_df = pd.DataFrame(columns=bin_labels + ["task_id", "round_number"])
-        logger.warning("No valid data collected for correct rate distribution")
-
-    return result_df
+    # Drop the raw counts
+    df_result.drop(columns=["correct_count", "num_agents"], inplace=True)
+    return df_result
 
 
-def calculate_correct_rate_distribution(
-    dataframe: pd.DataFrame,
-    model_dir: Path,
+def calculate_correct_rate_distribution_from_csv(
+    df_answers: pd.DataFrame,
+    df_debates: pd.DataFrame,
     max_rounds: Optional[int] = None,
 ) -> pd.DataFrame:
-    """Calculate the correct rate distribution aggregated by round.
+    """
+    Aggregate correct-rate distribution across all rounds found in df_debates.
+
+    This replicates your old logic of summing bin columns, but now we do it by
+    reading from the single debate_rounds CSV DataFrame (df_debates).
 
     Args:
-        dataframe: DataFrame containing the experiment results.
-        model_dir: Directory containing the model outputs.
-        max_rounds: Maximum number of rounds to process. If None, processes
-            all available rounds.
+        df_answers: DataFrame with columns ["id", "answer"] (the correct labels).
+        df_debates: DataFrame from debate_rounds.csv
+                    columns: ["task_id", "round_number", "agent_index", "agent_id", "model", "response"]
+        max_rounds: if provided, limit to [0..max_rounds-1], else use all found
 
     Returns:
-        DataFrame with data aggregated by round. Each row represents a round,
-        with columns for the count of tasks having different numbers of
-        correct agents (0, 1, 2, etc.) and the round_number.
+        DataFrame aggregated by round, with columns:
+           [round_number, 0, 1, 2, ..., total_tasks]
     """
-    # Sample one task directory to determine the maximum round
-    task_dirs = [d for d in model_dir.iterdir() if d.is_dir()]
-    if not task_dirs:
-        logger.warning(f"No task directories found in {model_dir}")
+    # 1) Identify all round_numbers in df_debates
+    unique_rounds = sorted(df_debates["round_number"].unique())
+    if max_rounds is not None:
+        unique_rounds = [r for r in unique_rounds if r < max_rounds]
+
+    aggregated_rows = []
+
+    for rnum in unique_rounds:
+        df_round = calculate_correct_rate_distribution_for_round_n_from_csv(
+            df_answers, df_debates, rnum
+        )
+        if df_round.empty:
+            continue
+
+        # Identify bin columns
+        bin_cols = [c for c in df_round.columns if c.isdigit()]
+        bin_cols.sort(key=int)
+
+        # We drop "task_id" and "round_number" before summing
+        tmp = df_round.drop(columns=["task_id", "round_number"])
+
+        # Sum the bins across tasks
+        aggregated_row = {"round_number": rnum}
+        for bc in bin_cols:
+            aggregated_row[bc] = tmp[bc].sum()
+
+        aggregated_row["total_tasks"] = len(df_round)
+        aggregated_rows.append(aggregated_row)
+
+    if not aggregated_rows:
         return pd.DataFrame()
 
-    # Find maximum round available across all tasks
-    available_rounds = set()
-    for task_dir in task_dirs[:20]:  # Sample a subset for efficiency
-        files = list(task_dir.glob("debate_round_*.json"))
-        rounds = [int(f.stem.split("_")[-1]) for f in files]
-        available_rounds.update(rounds)
+    df_combined = pd.DataFrame(aggregated_rows)
+    return df_combined
 
-    if not available_rounds:
-        logger.warning("No debate round files found in sampled directories")
-        return pd.DataFrame()
 
-    max_available_round = max(available_rounds)
-    rounds_to_process = min(max_available_round + 1, max_rounds or float("inf"))
-    rounds_to_process = int(rounds_to_process)
+def main():
+    # Hardcoded paths for this example
+    answers_csv = "output/bool_q/processed_data.csv"    # your "id" -> "answer" file
+    debates_csv = "data/bool_q/llama3(11)/debate_rounds.csv"  # the merged CSV
+    max_rounds = None  # or an int
 
-    logger.info(f"Processing {rounds_to_process} rounds (0 to {rounds_to_process-1})")
+    # 1) Load the "answer" DataFrame
+    try:
+        df_answers = pd.read_csv(answers_csv)
+        # df_answers has columns like ["id", "answer"]
+        # Make sure "id" is numeric
+        df_answers["id"] = pd.to_numeric(df_answers["id"], errors="coerce")
+        df_answers.dropna(subset=["id"], inplace=True)
+        df_answers["id"] = df_answers["id"].astype(int)
+        logger.info(f"Loaded answers from {answers_csv}")
+    except Exception as e:
+        logger.error(f"Failed to load {answers_csv}: {e}")
+        sys.exit(1)
 
-    aggregated_results = []
+    # 2) Load the merged debate CSV
+    try:
+        df_debates = pd.read_csv(debates_csv)
+        # columns: "task_id","round_number","agent_index","agent_id","model","response"
+        # ensure task_id, round_number are int
+        df_debates["task_id"] = pd.to_numeric(df_debates["task_id"], errors="coerce")
+        df_debates["round_number"] = pd.to_numeric(df_debates["round_number"], errors="coerce")
+        df_debates.dropna(subset=["task_id","round_number"], inplace=True)
+        df_debates["task_id"] = df_debates["task_id"].astype(int)
+        df_debates["round_number"] = df_debates["round_number"].astype(int)
+        logger.info(f"Loaded debates from {debates_csv}")
+    except Exception as e:
+        logger.error(f"Failed to load {debates_csv}: {e}")
+        sys.exit(1)
 
-    # Process each round
-    for round_number in range(rounds_to_process):
-        logger.info(f"Processing round {round_number}...")
+    # 3) Calculate the distribution
+    logger.info(f"Calculating distribution from merged CSV, max_rounds={max_rounds} ...")
+    df_distribution = calculate_correct_rate_distribution_from_csv(
+        df_answers, df_debates, max_rounds=max_rounds
+    )
 
-        try:
-            result_df = calculate_correct_rate_distribution_for_round_n(
-                dataframe=dataframe, model_dir=model_dir, round_number=round_number
-            )
-
-            if not result_df.empty:
-                # Get the columns that represent numbers of correct agents (0, 1, 2, etc.)
-                bin_columns = [col for col in result_df.columns if col.isdigit()]
-                bin_columns.sort(key=int)
-
-                # Drop the task_id column and aggregate by summing across all tasks
-                if "task_id" in result_df.columns:
-                    result_df = result_df.drop(columns=["task_id"])
-
-                # Sum the counts for each bin
-                aggregated_row = {"round_number": round_number}
-                for bin_col in bin_columns:
-                    aggregated_row[bin_col] = result_df[bin_col].sum()
-
-                # Add total tasks count for convenience
-                aggregated_row["total_tasks"] = len(result_df)
-
-                aggregated_results.append(aggregated_row)
-                logger.info(
-                    f"Aggregated data from {len(result_df)} tasks for round {round_number}"
-                )
-            else:
-                logger.warning(f"No valid data found for round {round_number}")
-
-        except Exception as e:
-            logger.error(f"Error processing round {round_number}: {e}", exc_info=True)
-
-    # Combine all results
-    if aggregated_results:
-        combined_df = pd.DataFrame(aggregated_results)
-        logger.info(f"Created aggregated DataFrame with {len(combined_df)} rounds")
-        return combined_df
+    if df_distribution.empty:
+        logger.warning("No distribution data produced.")
     else:
-        logger.warning("No valid data collected from any round")
-        return pd.DataFrame()
-
+        print("\nAggregated distribution across rounds:")
+        print(df_distribution)
+        # for each row, you can do further analysis or write to CSV, etc.
 
 if __name__ == "__main__":
-    import sys
-
-    # Hardcoded configuration
-    data_path = "output/bool_q/processed_data.csv"
-    model_dir = "data/bool_q/llama3(7)"
-    # output_path_pattern = "output/distribution_round_{}.csv"  # Template for output paths
-
-    # Load data
-    try:
-        dataframe = pd.read_csv(data_path)
-        logger.info(f"Loaded data from {data_path}")
-    except Exception as e:
-        logger.error(f"Error loading data: {e}")
-        sys.exit(1)
-
-    model_dir_path = Path(model_dir)
-    if not model_dir_path.exists() or not model_dir_path.is_dir():
-        logger.error(f"Model directory does not exist: {model_dir}")
-        sys.exit(1)
-
-    # First test the aggregated function for all rounds
-    logger.info("Testing calculate_correct_rate_distribution for all rounds...")
-
-    try:
-        aggregated_df = calculate_correct_rate_distribution(
-            dataframe=dataframe, model_dir=model_dir_path
-        )
-
-        if not aggregated_df.empty:
-            print("\nAggregated DataFrame for all rounds:")
-            print(aggregated_df.to_string())
-            print(f"\nDataFrame shape: {aggregated_df.shape}")
-            print(f"DataFrame columns: {', '.join(aggregated_df.columns)}")
-
-            # Get numeric columns (bins)
-            bin_columns = [col for col in aggregated_df.columns if col.isdigit()]
-            bin_columns.sort(key=int)
-
-            if bin_columns:
-                # Calculate percentages for each round
-                for _, row in aggregated_df.iterrows():
-                    round_num = int(row["round_number"])
-                    total = row["total_tasks"]
-
-                    print(f"\nRound {round_num} distribution:")
-                    print(f"Total tasks: {total}")
-
-                    # Create a dictionary for the histogram
-                    # Convert values to float to ensure they're numeric
-                    bin_counts = {
-                        bin_col: float(row[bin_col]) for bin_col in bin_columns
-                    }
-                    bin_percentages = {
-                        bin_col: (float(row[bin_col]) / total * 100)
-                        for bin_col in bin_columns
-                    }
-
-                    for bin_col in bin_columns:
-                        count = row[bin_col]
-                        pct = bin_percentages[bin_col]
-                        print(f"  {bin_col} correct agents: {count} tasks ({pct:.2f}%)")
-
-                    # Draw histogram
-                    try:
-                        histogram = draw_console_histogram(
-                            bin_counts,
-                            title=f"Number of Correct Agents Distribution (Round {round_num})",
-                            height=15,
-                            bar_char="█",
-                            fine_grained=True,
-                        )
-                        print("\n" + histogram + "\n")
-                    except Exception as e:
-                        logger.error(f"Error drawing histogram: {e}")
-                        print("Could not draw histogram due to an error.")
-
-        else:
-            logger.warning("No aggregated data available to display")
-
-    except Exception as e:
-        logger.error(f"Error testing aggregated function: {e}", exc_info=True)
-
-    print("\n" + "=" * 80 + "\n")  # Separator between aggregated and per-round analysis
+    main()
