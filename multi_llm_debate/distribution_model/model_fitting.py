@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 from functools import lru_cache
-
-import numpy as np
-from scipy.optimize import minimize
-from scipy.special import gammaln  # More efficient than math.lgamma
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pandas as pd
+from scipy.optimize import minimize
+from scipy.special import gammaln  # More efficient than math.lgamma
+
 
 # -------------------------------------------------------------------
 # Beta-Binomial PMF and log-PMF with caching
@@ -551,7 +551,6 @@ def analyze_rounds_distribution(
 # -------------------------------------------------------------------
 if __name__ == "__main__":
     import sys
-
 
     # Example import from your code:
     from ..analysis.calculate_correct_rate_distribution import (
