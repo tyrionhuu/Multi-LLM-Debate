@@ -293,7 +293,7 @@ if __name__ == "__main__":
                         bin_col: float(row[bin_col]) for bin_col in bin_columns
                     }
                     bin_percentages = {
-                        bin_col: (float(row[bin_col]) / total * 100) 
+                        bin_col: (float(row[bin_col]) / total * 100)
                         for bin_col in bin_columns
                     }
 
