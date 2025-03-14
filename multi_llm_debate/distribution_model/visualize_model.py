@@ -410,7 +410,7 @@ if __name__ == "__main__":
     # Analysis settings
     FIT_METHOD = "direct"  # "direct" or "em" optimization approach
     N_RESTARTS = 2  # Number of random restarts for more stable fitting
-    ENFORCE_INCREASING = True  # Enforce non-decreasing expected success probability
+    ENFORCE_INCREASING = False  # Enforce non-decreasing expected success probability
 
     try:
         # Call the visualization pipeline function

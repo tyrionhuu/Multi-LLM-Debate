@@ -191,7 +191,6 @@ def fit_mixture_beta_binomial(
     # Try to use parallel processing if requested and available
     if parallel:
         try:
-
             print("Using parallel processing for model fitting")
             # This would need additional code to implement parallel fitting
             # Not implemented in this example
