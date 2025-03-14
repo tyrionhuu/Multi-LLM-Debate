@@ -1,19 +1,25 @@
 #!/usr/bin/env python
-"""Visualize fitted Beta-Binomial mixture models."""
 
 import math
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
-
+from typing import Dict, List, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-from ..analysis.calculate_correct_rate_distribution import (
-    calculate_correct_rate_distribution,
+# --------------------------------------------------------------------
+# Instead of importing em_mixture_beta_binomial directly,
+# we import a single 'fit_mixture_beta_binomial' function
+# from model_fitting.py that allows "em" or "direct".
+# We also need beta_binomial_pmf for plotting.
+# --------------------------------------------------------------------
+from .model_fitting import (
+    beta_binomial_pmf,
+    fit_mixture_beta_binomial,  # this wrapper lets us choose "em" or "direct"
 )
-from .model_fitting import beta_binomial_pmf, em_mixture_beta_binomial
+
+from ..analysis.calculate_correct_rate_distribution import calculate_correct_rate_distribution
 
 
 def plot_mixture_model(
@@ -91,10 +97,9 @@ def plot_mixture_model(
     if observed_data is not None:
         # Normalize counts to get probabilities
         total_count = sum(observed_data.values())
-        observed_probs = {k: v / total_count for k, v in observed_data.items()}
+        observed_probs = {kval: cnt / total_count for kval, cnt in observed_data.items()}
 
-        # Plot as bar chart
-        obs_x = list(observed_probs.keys())
+        # Plot as a bar chart
         obs_y = [observed_probs.get(i, 0) for i in range(k + 1)]
         ax.bar(range(k + 1), obs_y, alpha=0.3, color="gray", label="Observed")
 
@@ -164,7 +169,7 @@ def plot_model_evolution(
 
         figures.append(fig_ind)
 
-        # Save if output directory is provided
+        # Optionally save each figure individually
         # if output_dir is not None:
         #     output_dir.mkdir(exist_ok=True, parents=True)
         #     fig_ind.savefig(output_dir / f"mixture_model_round_{i}.png", dpi=300)
@@ -253,6 +258,9 @@ if __name__ == "__main__":
     MODEL_DIR_PATH = Path("data/bool_q/llama3(7)")
     OUTPUT_DIR = Path("output/visualizations")
 
+    # Choose the fitting method: "em" or "direct"
+    FIT_METHOD = "em"  # Change to "direct" to use direct optimization approach
+
     # Create output directory if it doesn't exist
     OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
@@ -288,44 +296,49 @@ if __name__ == "__main__":
     # Find the maximum bin value to use as k
     k = max(int(col) for col in bin_columns if col.isdigit())
 
-    # Process each round and store results
+    # Store fit results + observed data per round
     model_results = []
     observed_data = []
 
+    # Process each row (each round) in aggregated_df
     for _, row in aggregated_df.iterrows():
         round_number = int(row["round_number"])
-        print(f"Processing round {round_number}...")
+        print(f"Processing round {round_number} (fitting method='{FIT_METHOD}')...")
 
-        # Create a Series with the counts for each bin
+        # Build a dictionary of bin -> frequency
         counts_dict = {int(bin_col): int(row[bin_col]) for bin_col in bin_columns}
         observed_data.append(counts_dict)
 
-        # Convert to a format suitable for em_mixture_beta_binomial
-        # We need to repeat each count value by its frequency
+        # Expand to an array of counts
         all_counts = []
-        for count_val, frequency in counts_dict.items():
-            all_counts.extend([count_val] * frequency)
+        for count_val, freq in counts_dict.items():
+            all_counts.extend([count_val] * freq)
 
         counts_array = np.array(all_counts)
 
-        # Fit the model
-        fit_result = em_mixture_beta_binomial(counts_array, k=k)
+        # Fit model (uses the chosen method)
+        fit_result = fit_mixture_beta_binomial(
+            counts_array, k=k, fitting_method=FIT_METHOD
+        )
         model_results.append(fit_result)
 
-        print(f"  Fitted model for round {round_number}")
+        print(f"  Fitted model for round {round_number}:")
+        print(f"    w={fit_result['w']:.4f}")
+        print(f"    alpha1={fit_result['alpha1']:.4f}, beta1={fit_result['beta1']:.4f}")
+        print(f"    alpha2={fit_result['alpha2']:.4f}, beta2={fit_result['beta2']:.4f}")
 
     # Generate visualizations
     print("Generating visualizations...")
 
-    # Plot model evolution
-    evolution_figures = plot_model_evolution(
+    # 1) Plot evolution of each round in subplots and individual figures
+    evolution_figs = plot_model_evolution(
         model_results, k, observed_data, output_dir=OUTPUT_DIR
     )
     print(f"Saved model evolution plots to {OUTPUT_DIR}")
 
-    # Plot parameter trends
+    # 2) Plot parameter trends across rounds
     param_fig = visualize_parameter_trends(model_results, output_dir=OUTPUT_DIR)
     print(f"Saved parameter trend plot to {OUTPUT_DIR}")
 
-    # Show plots if running in interactive mode
+    # Show plots if desired
     plt.show()
