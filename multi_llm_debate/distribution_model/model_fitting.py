@@ -185,6 +185,10 @@ if __name__ == "__main__":
         # Fit the model
         fit_result = em_mixture_beta_binomial(correct_counts.values, k=5)
         
+        # Store previous round results for delta calculation
+        if round_number == 0:
+            prev_fit_result = None
+            
         # Print the fit results
         print(f"Round {round_number} fit results:")
         print(f"  Mixture weight (w): {fit_result['w']}")
@@ -195,3 +199,15 @@ if __name__ == "__main__":
         print(f"  Log-likelihood: {fit_result['log_likelihood']}")
         print(f"  Number of iterations: {fit_result['n_iter']}")
         print(f"  Total tasks analyzed: {len(correct_counts)}")
+
+        # Print deltas from previous round if available
+        if round_number > 0 and prev_fit_result is not None:
+            print(f"  Deltas from previous round:")
+            print(f"    Δ Mixture weight: {fit_result['w'] - prev_fit_result['w']:.4f}")
+            print(f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}")
+            print(f"    Δ Beta1: {fit_result['beta1'] - prev_fit_result['beta1']:.4f}")
+            print(f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}")
+            print(f"    Δ Beta2: {fit_result['beta2'] - prev_fit_result['beta2']:.4f}")
+
+        # Store current results for next round's delta calculation
+        prev_fit_result = fit_result.copy()
