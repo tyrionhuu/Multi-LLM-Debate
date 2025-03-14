@@ -256,7 +256,7 @@ if __name__ == "__main__":
     OUTPUT_DIR = Path("output/visualizations")
 
     # Choose the fitting method: "em" or "direct"
-    FIT_METHOD = "em"  # Change to "direct" to use direct optimization approach
+    FIT_METHOD = "direct"  # Change to "direct" to use direct optimization approach
 
     # Create output directory if it doesn't exist
     OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
