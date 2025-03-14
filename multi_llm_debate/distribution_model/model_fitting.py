@@ -12,20 +12,20 @@ from scipy.optimize import minimize
 def beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
     """
     Beta-Binomial PMF: BB(s | k, alpha, beta) = C(k, s) * B(alpha+s, beta+k-s) / B(alpha, beta).
-    
+
     Args:
         s: Number of successes, must be between 0 and k inclusive
         k: Number of trials
         alpha: First shape parameter of the beta distribution
         beta: Second shape parameter of the beta distribution
-        
+
     Returns:
         float: The probability mass at s
     """
     # Validate inputs
     if not (0 <= s <= k):
         return 0.0
-    
+
     log_comb = math.lgamma(k + 1) - math.lgamma(s + 1) - math.lgamma(k - s + 1)
     log_num = (
         math.lgamma(alpha + s)
@@ -40,20 +40,20 @@ def beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
 def log_beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
     """
     Returns the log of the Beta-Binomial PMF for s.
-    
+
     Args:
         s: Number of successes, must be between 0 and k inclusive
         k: Number of trials
         alpha: First shape parameter of the beta distribution
         beta: Second shape parameter of the beta distribution
-        
+
     Returns:
         float: The log probability mass at s
     """
     # Validate inputs
     if not (0 <= s <= k):
-        return float('-inf')  # log(0) = -infinity for invalid inputs
-    
+        return float("-inf")  # log(0) = -infinity for invalid inputs
+
     log_comb = math.lgamma(k + 1) - math.lgamma(s + 1) - math.lgamma(k - s + 1)
     log_num = (
         math.lgamma(alpha + s)
@@ -78,25 +78,27 @@ def em_mixture_beta_binomial(
     Fit a two-component mixture of Beta-Binomial distributions to observed counts {s_i},
     each s_i in [0, k].  The model is:
        S ~ w * BB(k, alpha1, beta1) + (1-w) * BB(k, alpha2, beta2).
-    
+
     Args:
         counts: Array of observed counts
         k: Number of trials
         max_iter: Maximum number of EM iterations
         tol: Convergence tolerance for log-likelihood
         random_state: Random seed for initialization
-        
+
     Returns:
         dict: Dictionary of the learned parameters
     """
     rng = np.random.default_rng(random_state)
-    
+
     # Filter out invalid counts
     valid_mask = (counts >= 0) & (counts <= k)
     if not np.all(valid_mask):
-        print(f"Warning: Filtered out {np.sum(~valid_mask)} invalid counts outside [0, {k}]")
+        print(
+            f"Warning: Filtered out {np.sum(~valid_mask)} invalid counts outside [0, {k}]"
+        )
         counts = counts[valid_mask]
-        
+
     if len(counts) == 0:
         raise ValueError(f"No valid counts found in input data")
 
