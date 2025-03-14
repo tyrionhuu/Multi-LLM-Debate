@@ -153,7 +153,7 @@ def calculate_correct_rate_distribution(
     model_dir: Path,
     max_rounds: Optional[int] = None,
 ) -> pd.DataFrame:
-    """Calculate the correct rate distribution for all available rounds.
+    """Calculate the correct rate distribution aggregated by round.
 
     Args:
         dataframe: DataFrame containing the experiment results.
@@ -162,9 +162,9 @@ def calculate_correct_rate_distribution(
             all available rounds.
 
     Returns:
-        DataFrame with all rounds' data combined. Each row represents a task in
-        a specific round, with columns for the number of correct agents,
-        task_id, and round_number.
+        DataFrame with data aggregated by round. Each row represents a round,
+        with columns for the count of tasks having different numbers of 
+        correct agents (0, 1, 2, etc.) and the round_number.
     """
     all_results: List[pd.DataFrame] = []
     
@@ -191,6 +191,8 @@ def calculate_correct_rate_distribution(
     
     logger.info(f"Processing {rounds_to_process} rounds (0 to {rounds_to_process-1})")
     
+    aggregated_results = []
+    
     # Process each round
     for round_number in range(rounds_to_process):
         logger.info(f"Processing round {round_number}...")
@@ -203,8 +205,24 @@ def calculate_correct_rate_distribution(
             )
             
             if not result_df.empty:
-                all_results.append(result_df)
-                logger.info(f"Added {len(result_df)} tasks from round {round_number}")
+                # Get the columns that represent numbers of correct agents (0, 1, 2, etc.)
+                bin_columns = [col for col in result_df.columns if col.isdigit()]
+                bin_columns.sort(key=int)
+                
+                # Drop the task_id column and aggregate by summing across all tasks
+                if "task_id" in result_df.columns:
+                    result_df = result_df.drop(columns=["task_id"])
+                
+                # Sum the counts for each bin
+                aggregated_row = {"round_number": round_number}
+                for bin_col in bin_columns:
+                    aggregated_row[bin_col] = result_df[bin_col].sum()
+                
+                # Add total tasks count for convenience
+                aggregated_row["total_tasks"] = len(result_df)
+                
+                aggregated_results.append(aggregated_row)
+                logger.info(f"Aggregated data from {len(result_df)} tasks for round {round_number}")
             else:
                 logger.warning(f"No valid data found for round {round_number}")
                 
@@ -212,9 +230,9 @@ def calculate_correct_rate_distribution(
             logger.error(f"Error processing round {round_number}: {e}", exc_info=True)
     
     # Combine all results
-    if all_results:
-        combined_df = pd.concat(all_results, ignore_index=True)
-        logger.info(f"Combined data contains {len(combined_df)} rows across all rounds")
+    if aggregated_results:
+        combined_df = pd.DataFrame(aggregated_results)
+        logger.info(f"Created aggregated DataFrame with {len(combined_df)} rounds")
         return combined_df
     else:
         logger.warning("No valid data collected from any round")
