@@ -7,8 +7,6 @@ from scipy.optimize import minimize
 from scipy.special import gammaln  # More efficient than math.lgamma
 
 
-
-
 # -------------------------------------------------------------------
 # Beta-Binomial PMF and log-PMF with caching
 # -------------------------------------------------------------------

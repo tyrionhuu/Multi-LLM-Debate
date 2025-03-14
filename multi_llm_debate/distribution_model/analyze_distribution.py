@@ -1,15 +1,19 @@
 from pathlib import Path
+from typing import Optional
+
+import numpy as np
 import pandas as pd
+
 from ..analysis.calculate_correct_rate_distribution import (
     calculate_correct_rate_distribution,
 )
-from typing import Optional
-import numpy as np
 from .model_fitting import (
+    ensure_consistent_component_ordering,
     fit_mixture_beta_binomial,
     fit_mixture_beta_binomial_with_constraints,
-    ensure_consistent_component_ordering,
 )
+
+
 def analyze_rounds_distribution(
     answers_csv_path: Path,
     debates_csv_path: Path,
