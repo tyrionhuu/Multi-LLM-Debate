@@ -182,7 +182,7 @@ if __name__ == "__main__":
         print(result_df.to_string(max_rows=20))
         print(f"\nDataFrame shape: {result_df.shape}")
         print(f"DataFrame columns: {', '.join(result_df.columns)}")
-        
+
         # Get summary statistics
         if not result_df.empty:
             numeric_cols = [col for col in result_df.columns if col.isdigit()]
