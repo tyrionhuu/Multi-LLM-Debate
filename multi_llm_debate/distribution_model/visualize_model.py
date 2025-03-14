@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 
-from .model_fitting import (
+from .analyze_distribution import (
     analyze_rounds_distribution,  # new function for analyzing rounds
 )
 from .model_fitting import beta_binomial_pmf
