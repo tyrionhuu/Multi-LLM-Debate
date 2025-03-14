@@ -141,7 +141,7 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
     # Calculate expected value of each beta component: alpha/(alpha+beta)
     expected1 = params["alpha1"] / (params["alpha1"] + params["beta1"])
     expected2 = params["alpha2"] / (params["alpha2"] + params["beta2"])
-    
+
     # If the components are in the wrong order, swap them
     if expected1 < expected2:
         # Swap components
@@ -155,7 +155,7 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
             "n_iter": params.get("n_iter"),
             "restart": params.get("restart", 0),
         }
-    
+
     # Components already in correct order
     return params
 
@@ -548,7 +548,7 @@ def analyze_rounds_distribution(
         fit_result = fit_mixture_beta_binomial(
             counts_array, k=k, fitting_method=fitting_method, n_restarts=n_restarts
         )
-        
+
         # Ensure consistent ordering (just in case, though fitting methods should already do this)
         fit_result = ensure_consistent_component_ordering(fit_result)
         fit_results.append(fit_result)
