@@ -180,7 +180,7 @@ def calculate_correct_rate_distribution(
         available_rounds.update(rounds)
 
     if not available_rounds:
-        logger.warning(f"No debate round files found in sampled directories")
+        logger.warning("No debate round files found in sampled directories")
         return pd.DataFrame()
 
     max_available_round = max(available_rounds)

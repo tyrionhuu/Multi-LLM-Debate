@@ -201,7 +201,6 @@ def em_mixture_beta_binomial(
         return -log_likelihood(params)
 
     old_ll = -np.inf
-    n = len(counts)
 
     for iteration in range(max_iter):
         # E-step: compute responsibilities gamma_i = Prob(component=1 | s_i)
@@ -375,7 +374,7 @@ if __name__ == "__main__":
 
         # Print deltas from previous round if available
         if round_number > 0 and prev_fit_result is not None:
-            print(f"  Deltas from previous round:")
+            print("  Deltas from previous round:")
             print(f"    Δ Mixture weight: {fit_result['w'] - prev_fit_result['w']:.4f}")
             print(
                 f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}"
