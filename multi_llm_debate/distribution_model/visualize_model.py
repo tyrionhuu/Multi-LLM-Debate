@@ -11,7 +11,7 @@ from matplotlib.figure import Figure
 from .analyze_distribution import (
     analyze_rounds_distribution,  # new function for analyzing rounds
 )
-from .model_fitting import beta_binomial_pmf
+from .pmf import beta_binomial_pmf
 
 
 def plot_mixture_model(

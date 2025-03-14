@@ -4,11 +4,13 @@ from typing import Optional
 
 import numpy as np
 from scipy.optimize import minimize
+
 from .pmf import (
-    log_beta_binomial_pmf,
     ensure_consistent_component_ordering,
     fit_mixture_direct,
+    log_beta_binomial_pmf,
 )
+
 
 # -------------------------------------------------------------------
 # 2) EM Optimization for Beta-Binomial mixture
