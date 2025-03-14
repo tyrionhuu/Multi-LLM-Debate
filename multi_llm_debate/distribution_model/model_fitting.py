@@ -128,8 +128,12 @@ def direct_mixture_log_likelihood(
 def ensure_consistent_component_ordering(params: dict) -> dict:
     """
     Ensure consistent ordering of mixture components to make comparison across
-    rounds more reliable. This function sorts components so that component 1
-    has higher expected success rate (alpha1/(alpha1+beta1) > alpha2/(alpha2+beta2)).
+    rounds more reliable. This function:
+    
+    1. Orders components so that component 1 has higher expected success rate
+       (alpha1/(alpha1+beta1) > alpha2/(alpha2+beta2))
+    2. For component 1 (higher success): Ensures alpha1 > beta1 when possible
+    3. For component 2 (lower success): Ensures alpha2 < beta2 when possible
 
     Args:
         params: Dictionary with fitted model parameters
@@ -142,10 +146,10 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
     expected1 = params["alpha1"] / (params["alpha1"] + params["beta1"])
     expected2 = params["alpha2"] / (params["alpha2"] + params["beta2"])
 
-    # If the components are in the wrong order, swap them
+    # Step 1: Ensure components are ordered by expected success rate
     if expected1 < expected2:
         # Swap components
-        return {
+        result = {
             "w": 1.0 - params["w"],  # Adjust weight accordingly
             "alpha1": params["alpha2"],
             "beta1": params["beta2"],
@@ -155,9 +159,43 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
             "n_iter": params.get("n_iter"),
             "restart": params.get("restart", 0),
         }
-
-    # Components already in correct order
-    return params
+    else:
+        # Components already in correct order
+        result = params.copy()
+    
+    # Step 2: Now ensure alpha and beta are ordered within each component
+    # For component 1 (higher success rate): Prefer alpha1 > beta1
+    if result["alpha1"] < result["beta1"]:
+        # Only swap if it doesn't change the expected value significantly
+        # This ensures we don't disrupt the mixture interpretation
+        exp1 = result["alpha1"] / (result["alpha1"] + result["beta1"])
+        # Calculate what would happen if we scaled alpha1 and beta1
+        scale = result["beta1"] / result["alpha1"]
+        new_alpha1 = result["beta1"] * scale
+        new_beta1 = result["alpha1"]
+        new_exp1 = new_alpha1 / (new_alpha1 + new_beta1)
+        
+        # Only swap if the change in expected value is small
+        if abs(new_exp1 - exp1) < 0.01:
+            result["alpha1"] = new_alpha1
+            result["beta1"] = new_beta1
+    
+    # For component 2 (lower success rate): Prefer alpha2 < beta2
+    if result["alpha2"] > result["beta2"]:
+        # Only swap if it doesn't change the expected value significantly
+        exp2 = result["alpha2"] / (result["alpha2"] + result["beta2"])
+        # Calculate what would happen if we scaled alpha2 and beta2
+        scale = result["alpha2"] / result["beta2"]
+        new_alpha2 = result["beta2"]
+        new_beta2 = result["alpha2"] * scale
+        new_exp2 = new_alpha2 / (new_alpha2 + new_beta2)
+        
+        # Only swap if the change in expected value is small
+        if abs(new_exp2 - exp2) < 0.01:
+            result["alpha2"] = new_alpha2
+            result["beta2"] = new_beta2
+    
+    return result
 
 
 def fit_mixture_direct(
