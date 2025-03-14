@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from typing import List, Optional, Union
 
 import pandas as pd
 from tqdm import tqdm
@@ -145,6 +146,79 @@ def calculate_correct_rate_distribution_for_round_n(
         logger.warning("No valid data collected for correct rate distribution")
 
     return result_df
+
+
+def calculate_correct_rate_distribution(
+    dataframe: pd.DataFrame,
+    model_dir: Path,
+    max_rounds: Optional[int] = None,
+) -> pd.DataFrame:
+    """Calculate the correct rate distribution for all available rounds.
+
+    Args:
+        dataframe: DataFrame containing the experiment results.
+        model_dir: Directory containing the model outputs.
+        max_rounds: Maximum number of rounds to process. If None, processes
+            all available rounds.
+
+    Returns:
+        DataFrame with all rounds' data combined. Each row represents a task in
+        a specific round, with columns for the number of correct agents,
+        task_id, and round_number.
+    """
+    all_results: List[pd.DataFrame] = []
+    
+    # Sample one task directory to determine the maximum round
+    task_dirs = [d for d in model_dir.iterdir() if d.is_dir()]
+    if not task_dirs:
+        logger.warning(f"No task directories found in {model_dir}")
+        return pd.DataFrame()
+    
+    # Find maximum round available across all tasks
+    available_rounds = set()
+    for task_dir in task_dirs[:20]:  # Sample a subset for efficiency
+        files = list(task_dir.glob("debate_round_*.json"))
+        rounds = [int(f.stem.split("_")[-1]) for f in files]
+        available_rounds.update(rounds)
+    
+    if not available_rounds:
+        logger.warning(f"No debate round files found in sampled directories")
+        return pd.DataFrame()
+    
+    max_available_round = max(available_rounds)
+    rounds_to_process = min(max_available_round + 1, max_rounds or float('inf'))
+    rounds_to_process = int(rounds_to_process)
+    
+    logger.info(f"Processing {rounds_to_process} rounds (0 to {rounds_to_process-1})")
+    
+    # Process each round
+    for round_number in range(rounds_to_process):
+        logger.info(f"Processing round {round_number}...")
+        
+        try:
+            result_df = calculate_correct_rate_distribution_for_round_n(
+                dataframe=dataframe, 
+                model_dir=model_dir, 
+                round_number=round_number
+            )
+            
+            if not result_df.empty:
+                all_results.append(result_df)
+                logger.info(f"Added {len(result_df)} tasks from round {round_number}")
+            else:
+                logger.warning(f"No valid data found for round {round_number}")
+                
+        except Exception as e:
+            logger.error(f"Error processing round {round_number}: {e}", exc_info=True)
+    
+    # Combine all results
+    if all_results:
+        combined_df = pd.concat(all_results, ignore_index=True)
+        logger.info(f"Combined data contains {len(combined_df)} rows across all rounds")
+        return combined_df
+    else:
+        logger.warning("No valid data collected from any round")
+        return pd.DataFrame()
 
 
 if __name__ == "__main__":
