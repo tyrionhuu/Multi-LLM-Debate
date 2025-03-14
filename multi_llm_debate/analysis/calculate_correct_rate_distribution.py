@@ -56,17 +56,14 @@ def calculate_correct_rate_distribution_for_round_n(
     for task_id_val, group_df in tqdm(
         grouped, desc=f"Round {round_number}", unit="task"
     ):
-        # Convert to int or str for consistent merges
-        # The df_answers has "id" that lines up with "task_id"
-        # We'll find the correct label by matching "id == task_id_val"
         ans_row = df_answers[df_answers["id"] == task_id_val]
         if ans_row.empty:
-            # no known correct label
-            continue
-        correct_label = ans_row["answer"].iloc[0]
+            correct_label = None
+        else:
+            correct_label = ans_row["answer"].iloc[0]
 
-        # For each agent response, parse True/False if possible
         normalized_responses = []
+        # For each agent response, parse True/False if possible
         for _, row in group_df.iterrows():
             try:
                 extracted = extract_bool_answer(row["response"])
@@ -77,13 +74,15 @@ def calculate_correct_rate_distribution_for_round_n(
                 logger.warning(f"Could not extract boolean answer for task {task_id_val}")
                 continue
 
-        if not normalized_responses:
-            continue  # no valid responses
+        if correct_label is None or not normalized_responses:
+            correct_count = 0
+            num_agents = 0
+        else:
+            correct_count = sum(
+                compare_bool(r, correct_label) for r in normalized_responses
+            )
+            num_agents = len(normalized_responses)
 
-        correct_count = sum(
-            compare_bool(r, correct_label) for r in normalized_responses
-        )
-        num_agents = len(normalized_responses)
         max_agents = max(max_agents, num_agents)
 
         merged_rows.append(

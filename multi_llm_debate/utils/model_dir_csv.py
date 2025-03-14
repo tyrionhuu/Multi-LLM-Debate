@@ -1,9 +1,10 @@
+#!/usr/bin/env python3
+
 import csv
 import json
 import re
 import sys
 from pathlib import Path
-
 
 def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
     """
@@ -41,6 +42,7 @@ def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
                 match = round_pattern.match(json_file.name)
                 if not match:
                     continue
+
                 try:
                     round_number = int(match.group(1))
                 except ValueError:
@@ -91,6 +93,13 @@ def main():
     if not model_dir.exists() or not model_dir.is_dir():
         print(f"Error: '{model_dir}' is not a valid directory.")
         sys.exit(1)
+
+    # -----------------------------------------------------
+    # Check if the CSV file already exists. If so, skip.
+    # -----------------------------------------------------
+    if output_csv.exists():
+        print(f"CSV file '{output_csv}' already exists; skipping merge.")
+        sys.exit(0)
 
     # Ensure the parent directory for the output CSV exists
     output_csv.parent.mkdir(parents=True, exist_ok=True)
