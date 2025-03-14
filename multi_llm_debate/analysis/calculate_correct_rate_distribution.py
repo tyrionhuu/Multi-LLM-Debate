@@ -288,9 +288,13 @@ if __name__ == "__main__":
                     print(f"Total tasks: {total}")
 
                     # Create a dictionary for the histogram
-                    bin_counts = {bin_col: row[bin_col] for bin_col in bin_columns}
+                    # Convert values to float to ensure they're numeric
+                    bin_counts = {
+                        bin_col: float(row[bin_col]) for bin_col in bin_columns
+                    }
                     bin_percentages = {
-                        bin_col: (row[bin_col] / total * 100) for bin_col in bin_columns
+                        bin_col: (float(row[bin_col]) / total * 100) 
+                        for bin_col in bin_columns
                     }
 
                     for bin_col in bin_columns:
@@ -299,14 +303,18 @@ if __name__ == "__main__":
                         print(f"  {bin_col} correct agents: {count} tasks ({pct:.2f}%)")
 
                     # Draw histogram
-                    histogram = draw_console_histogram(
-                        bin_counts,
-                        title=f"Number of Correct Agents Distribution (Round {round_num})",
-                        height=15,
-                        bar_char="█",
-                        fine_grained=True,
-                    )
-                    print("\n" + histogram + "\n")
+                    try:
+                        histogram = draw_console_histogram(
+                            bin_counts,
+                            title=f"Number of Correct Agents Distribution (Round {round_num})",
+                            height=15,
+                            bar_char="█",
+                            fine_grained=True,
+                        )
+                        print("\n" + histogram + "\n")
+                    except Exception as e:
+                        logger.error(f"Error drawing histogram: {e}")
+                        print("Could not draw histogram due to an error.")
 
         else:
             logger.warning("No aggregated data available to display")
