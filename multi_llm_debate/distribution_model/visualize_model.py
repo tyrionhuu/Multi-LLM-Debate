@@ -253,7 +253,7 @@ if __name__ == "__main__":
 
     DATA_PATH = Path("output/bool_q/processed_data.csv")
     MODEL_DIR_PATH = Path("data/bool_q/llama3(7)")
-    OUTPUT_DIR = Path("output/visualizations")
+    OUTPUT_DIR = Path("output/visualizations/bool_q")
 
     # Choose the fitting method: "em" or "direct"
     FIT_METHOD = "direct"  # Change to "direct" to use direct optimization approach
