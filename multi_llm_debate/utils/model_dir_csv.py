@@ -82,8 +82,8 @@ def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
 
 def main():
     # Hardcoded paths instead of using sys.argv
-    model_dir_arg = "/path/to/model_dir"
-    output_csv_arg = "/path/to/output.csv"
+    model_dir_arg = "data/bool_q/llama3(11)"
+    output_csv_arg = model_dir_arg + "/debate_rounds.csv"
 
     model_dir = Path(model_dir_arg)
     output_csv = Path(output_csv_arg)
