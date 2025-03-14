@@ -191,9 +191,8 @@ if __name__ == "__main__":
     import pandas as pd
 
     from ..analysis.calculate_correct_rate_distribution import (
-        calculate_correct_rate_distribution_for_round_n,
+        calculate_correct_rate_distribution,
     )
-    from .utils import extract_correct_counts
 
     DATA_PATH = Path("output/bool_q/processed_data.csv")
     MODEL_DIR_PATH = Path("data/bool_q/llama3(11)")
@@ -208,25 +207,46 @@ if __name__ == "__main__":
     if not MODEL_DIR_PATH.exists() or not MODEL_DIR_PATH.is_dir():
         sys.exit(1)
 
-    # Process rounds 0 through 5
-    for round_number in range(6):  # 0 to 5
-        try:
-            result_df = calculate_correct_rate_distribution_for_round_n(
-                dataframe=dataframe, model_dir=MODEL_DIR_PATH, round_number=round_number
-            )
-        except Exception as e:
-            print(f"Error processing round {round_number}: {e}")
-            continue
+    # Get aggregated data for all rounds
+    try:
+        aggregated_df = calculate_correct_rate_distribution(
+            dataframe=dataframe, model_dir=MODEL_DIR_PATH
+        )
+    except Exception as e:
+        print(f"Error calculating correct rate distribution: {e}")
+        sys.exit(1)
 
-        # Extract correct counts
-        correct_counts = extract_correct_counts(result_df)
+    if aggregated_df.empty:
+        print("No data available for analysis")
+        sys.exit(1)
 
+    # Keep track of previous round results for delta calculation
+    prev_fit_result = None
+
+    # Process each round in the aggregated data
+    for _, row in aggregated_df.iterrows():
+        round_number = int(row["round_number"])
+        print(f"Processing round {round_number}...")
+        
+        # Extract bin columns (representing correct counts)
+        bin_columns = [col for col in aggregated_df.columns if col.isdigit()]
+        
+        # Create a Series with the counts for each bin
+        counts_dict = {int(bin_col): row[bin_col] for bin_col in bin_columns}
+        
+        # Convert to a format suitable for em_mixture_beta_binomial
+        # We need to repeat each count value by its frequency
+        all_counts = []
+        for count_val, frequency in counts_dict.items():
+            all_counts.extend([count_val] * int(frequency))
+        
+        counts_array = np.array(all_counts)
+        
+        # Find the maximum bin value to use as k
+        k = max(int(col) for col in bin_columns if col.isdigit())
+        
         # Fit the model
-        fit_result = em_mixture_beta_binomial(correct_counts.values, k=5)
-
-        # Store previous round results for delta calculation
-        if round_number == 0:
-            prev_fit_result = None
+        fit_result = em_mixture_beta_binomial(counts_array, k=k)
 
         # Print the fit results
         print(f"Round {round_number} fit results:")
@@ -237,7 +257,7 @@ if __name__ == "__main__":
         print(f"  Beta2: {fit_result['beta2']}")
         print(f"  Log-likelihood: {fit_result['log_likelihood']}")
         print(f"  Number of iterations: {fit_result['n_iter']}")
-        print(f"  Total tasks analyzed: {len(correct_counts)}")
+        print(f"  Total tasks analyzed: {row['total_tasks']}")
 
         # Print deltas from previous round if available
         if round_number > 0 and prev_fit_result is not None:
@@ -254,3 +274,5 @@ if __name__ == "__main__":
 
         # Store current results for next round's delta calculation
         prev_fit_result = fit_result.copy()
+        
+        print("-" * 80)  # Separator between rounds
