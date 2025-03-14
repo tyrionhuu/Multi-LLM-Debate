@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import math
 from math import exp
+
 import numpy as np
 from scipy.optimize import minimize
 
@@ -107,21 +108,25 @@ def fit_mixture_direct(counts, k, max_iter=100, tol=1e-6, random_state=42):
     # Bounds to keep alpha, beta > 0 and w in (0,1)
     bnds = [
         (1e-9, 1 - 1e-9),  # w
-        (1e-9, None),      # alpha1
-        (1e-9, None),      # beta1
-        (1e-9, None),      # alpha2
-        (1e-9, None)       # beta2
+        (1e-9, None),  # alpha1
+        (1e-9, None),  # beta1
+        (1e-9, None),  # alpha2
+        (1e-9, None),  # beta2
     ]
 
     def objective(param_vec):
         return -direct_mixture_log_likelihood(param_vec, counts, k)
 
     # We can use L-BFGS-B or any other method
-    res = minimize(objective, x0, method="L-BFGS-B", bounds=bnds, options=dict(maxiter=max_iter))
+    res = minimize(
+        objective, x0, method="L-BFGS-B", bounds=bnds, options=dict(maxiter=max_iter)
+    )
     w, alpha1, beta1, alpha2, beta2 = res.x
     w = np.clip(w, 1e-9, 1 - 1e-9)
 
-    final_ll = direct_mixture_log_likelihood([w, alpha1, beta1, alpha2, beta2], counts, k)
+    final_ll = direct_mixture_log_likelihood(
+        [w, alpha1, beta1, alpha2, beta2], counts, k
+    )
     return {
         "w": w,
         "alpha1": alpha1,
@@ -218,10 +223,10 @@ def em_mixture_beta_binomial(
         x0 = [w, alpha1, beta1, alpha2, beta2]
         bnds = [
             (1e-9, 1 - 1e-9),  # w in (0,1)
-            (1e-9, None),      # alpha1 > 0
-            (1e-9, None),      # beta1 > 0
-            (1e-9, None),      # alpha2 > 0
-            (1e-9, None),      # beta2 > 0
+            (1e-9, None),  # alpha1 > 0
+            (1e-9, None),  # beta1 > 0
+            (1e-9, None),  # alpha2 > 0
+            (1e-9, None),  # beta2 > 0
         ]
         res = minimize(neg_log_likelihood, x0, method="L-BFGS-B", bounds=bnds)
         w, alpha1, beta1, alpha2, beta2 = res.x
@@ -286,10 +291,13 @@ def fit_mixture_beta_binomial(
 if __name__ == "__main__":
     import sys
     from pathlib import Path
+
     import pandas as pd
 
     # Example import from your code:
-    from ..analysis.calculate_correct_rate_distribution import calculate_correct_rate_distribution
+    from ..analysis.calculate_correct_rate_distribution import (
+        calculate_correct_rate_distribution,
+    )
 
     # PATHS (placeholders in this example)
     DATA_PATH = Path("output/bool_q/processed_data.csv")
@@ -312,8 +320,7 @@ if __name__ == "__main__":
     # Get aggregated data for all rounds
     try:
         aggregated_df = calculate_correct_rate_distribution(
-            dataframe=dataframe,
-            model_dir=MODEL_DIR_PATH
+            dataframe=dataframe, model_dir=MODEL_DIR_PATH
         )
     except Exception as e:
         print(f"Error calculating correct rate distribution: {e}")
@@ -370,9 +377,13 @@ if __name__ == "__main__":
         if round_number > 0 and prev_fit_result is not None:
             print(f"  Deltas from previous round:")
             print(f"    Δ Mixture weight: {fit_result['w'] - prev_fit_result['w']:.4f}")
-            print(f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}")
+            print(
+                f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}"
+            )
             print(f"    Δ Beta1: {fit_result['beta1'] - prev_fit_result['beta1']:.4f}")
-            print(f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}")
+            print(
+                f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}"
+            )
             print(f"    Δ Beta2: {fit_result['beta2'] - prev_fit_result['beta2']:.4f}")
 
         prev_fit_result = fit_result.copy()
