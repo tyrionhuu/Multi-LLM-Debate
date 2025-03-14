@@ -148,27 +148,31 @@ def em_mixture_beta_binomial(
         "n_iter": max_iter,
     }
 
+
 if __name__ == "__main__":
-    from .utils import extract_correct_counts
+    import sys
+    from pathlib import Path
+
+    import pandas as pd
+
     from ..analysis.calculate_correct_rate_distribution import (
         calculate_correct_rate_distribution_for_round_n,
     )
-    from pathlib import Path
-    import pandas as pd
-    import sys
+    from .utils import extract_correct_counts
+
     DATA_PATH = Path("../output/bool_q/processed_data.csv")
     MODEL_DIR_PATH = Path("../data/bool_q/llama3(11)")
     OUTPUT_DIR = Path("../output")
-    
+
     # Load data
     try:
         dataframe = pd.read_csv(DATA_PATH)
     except Exception as e:
         sys.exit(1)
-    
+
     if not MODEL_DIR_PATH.exists() or not MODEL_DIR_PATH.is_dir():
         sys.exit(1)
-        
+
     # Process rounds 0 through 5
     for round_number in range(6):  # 0 to 5
         try:
@@ -178,17 +182,17 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Error processing round {round_number}: {e}")
             continue
-        
+
         # Extract correct counts
         correct_counts = extract_correct_counts(result_df)
-        
+
         # Fit the model
         fit_result = em_mixture_beta_binomial(correct_counts.values, k=5)
-        
+
         # Store previous round results for delta calculation
         if round_number == 0:
             prev_fit_result = None
-            
+
         # Print the fit results
         print(f"Round {round_number} fit results:")
         print(f"  Mixture weight (w): {fit_result['w']}")
@@ -204,9 +208,13 @@ if __name__ == "__main__":
         if round_number > 0 and prev_fit_result is not None:
             print(f"  Deltas from previous round:")
             print(f"    Δ Mixture weight: {fit_result['w'] - prev_fit_result['w']:.4f}")
-            print(f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}")
+            print(
+                f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}"
+            )
             print(f"    Δ Beta1: {fit_result['beta1'] - prev_fit_result['beta1']:.4f}")
-            print(f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}")
+            print(
+                f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}"
+            )
             print(f"    Δ Beta2: {fit_result['beta2'] - prev_fit_result['beta2']:.4f}")
 
         # Store current results for next round's delta calculation
