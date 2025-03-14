@@ -1,6 +1,6 @@
 import numpy as np
-from scipy.special import betaln, binom
 import pandas as pd
+from scipy.special import betaln, binom
 
 
 def beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
@@ -131,10 +131,10 @@ if __name__ == "__main__":
             if not s_list:
                 print(f"Round {round_num}: No data available")
                 continue
-                
+
             k = max(s_list)  # Assumes max(s) = number of agents
             w, a1, b1, a2, b2 = beta_binomial_em(s_list, k)
-            
+
             print(f"Round {round_num}:")
             print(f"  Component 1 (weight={w:.4f}): alpha={a1:.4f}, beta={b1:.4f}")
             print(f"  Component 2 (weight={1-w:.4f}): alpha={a2:.4f}, beta={b2:.4f}")
