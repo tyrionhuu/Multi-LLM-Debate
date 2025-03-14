@@ -104,7 +104,7 @@ def extract_si_from_distribution(df: pd.DataFrame) -> list[int]:
 if __name__ == "__main__":
     from pathlib import Path
 
-    from analysis.calculate_correct_rate_distribution import (
+    from ..analysis.calculate_correct_rate_distribution import (
         calculate_correct_rate_distribution_for_round_n,
     )
 
