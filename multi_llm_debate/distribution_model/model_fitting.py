@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import math
 from math import exp
-
 import numpy as np
 from scipy.optimize import minimize
 
@@ -65,7 +64,77 @@ def log_beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
 
 
 # -------------------------------------------------------------------
-# EM for a 2-component mixture of Beta-Binomial distributions
+# 1) Direct Maximum Likelihood approach (no explicit EM).
+# -------------------------------------------------------------------
+def direct_mixture_log_likelihood(params, counts, k):
+    """
+    Computes the log-likelihood of the dataset under a 2-component Beta-Binomial mixture
+    with parameters = (w, alpha1, beta1, alpha2, beta2).
+    """
+    w, alpha1, beta1, alpha2, beta2 = params
+    # clip w to avoid invalid probability
+    w = np.clip(w, 1e-9, 1 - 1e-9)
+    ll = 0.0
+    for s in counts:
+        p1 = beta_binomial_pmf(s, k, alpha1, beta1)
+        p2 = beta_binomial_pmf(s, k, alpha2, beta2)
+        # mixture
+        mix_val = w * p1 + (1 - w) * p2
+        # add small offset to avoid log(0)
+        ll += math.log(mix_val + 1e-16)
+    return ll
+
+
+def fit_mixture_direct(counts, k, max_iter=100, tol=1e-6, random_state=42):
+    """
+    Fit a two-component Beta-Binomial mixture by directly maximizing the overall
+    mixture log-likelihood (no explicit E-step).
+    """
+    rng = np.random.default_rng(random_state)
+
+    # Filter out invalid counts
+    valid_mask = (counts >= 0) & (counts <= k)
+    counts = counts[valid_mask]
+    if len(counts) == 0:
+        raise ValueError("No valid counts found for direct fitting.")
+
+    # Initial guess
+    w0 = 0.5
+    alpha10, beta10 = 1.0 + 2 * rng.random(), 1.0 + 2 * rng.random()
+    alpha20, beta20 = 1.0 + 2 * rng.random(), 1.0 + 2 * rng.random()
+    x0 = [w0, alpha10, beta10, alpha20, beta20]
+
+    # Bounds to keep alpha, beta > 0 and w in (0,1)
+    bnds = [
+        (1e-9, 1 - 1e-9),  # w
+        (1e-9, None),      # alpha1
+        (1e-9, None),      # beta1
+        (1e-9, None),      # alpha2
+        (1e-9, None)       # beta2
+    ]
+
+    def objective(param_vec):
+        return -direct_mixture_log_likelihood(param_vec, counts, k)
+
+    # We can use L-BFGS-B or any other method
+    res = minimize(objective, x0, method="L-BFGS-B", bounds=bnds, options=dict(maxiter=max_iter))
+    w, alpha1, beta1, alpha2, beta2 = res.x
+    w = np.clip(w, 1e-9, 1 - 1e-9)
+
+    final_ll = direct_mixture_log_likelihood([w, alpha1, beta1, alpha2, beta2], counts, k)
+    return {
+        "w": w,
+        "alpha1": alpha1,
+        "beta1": beta1,
+        "alpha2": alpha2,
+        "beta2": beta2,
+        "log_likelihood": final_ll,
+        "n_iter": res.nit,
+    }
+
+
+# -------------------------------------------------------------------
+# 2) EM for a 2-component mixture of Beta-Binomial distributions
 # -------------------------------------------------------------------
 def em_mixture_beta_binomial(
     counts: np.ndarray,
@@ -100,7 +169,7 @@ def em_mixture_beta_binomial(
         counts = counts[valid_mask]
 
     if len(counts) == 0:
-        raise ValueError(f"No valid counts found in input data")
+        raise ValueError("No valid counts found in input data")
 
     # 1) Initialization
     w = 0.5
@@ -142,18 +211,17 @@ def em_mixture_beta_binomial(
         denom = max_ + np.log(np.exp(logw1 - max_) + np.exp(logw2 - max_))
         gamma = np.exp(logw1 - denom)  # shape = (n,)
 
-        # M-step: update w, alpha1, beta1, alpha2, beta2 by maximizing weighted LL
+        # M-step: update w, alpha1, beta1, alpha2, beta2
         w = gamma.mean()  # simple closed form for mixture weight
 
-        # joint optimization over all five parameters
-        # Our param vector is [w, alpha1, beta1, alpha2, beta2].
+        # joint numeric optimization to refine [w, alpha1, beta1, alpha2, beta2]
         x0 = [w, alpha1, beta1, alpha2, beta2]
         bnds = [
             (1e-9, 1 - 1e-9),  # w in (0,1)
-            (1e-9, None),  # alpha1 > 0
-            (1e-9, None),  # beta1 > 0
-            (1e-9, None),  # alpha2 > 0
-            (1e-9, None),  # beta2 > 0
+            (1e-9, None),      # alpha1 > 0
+            (1e-9, None),      # beta1 > 0
+            (1e-9, None),      # alpha2 > 0
+            (1e-9, None),      # beta2 > 0
         ]
         res = minimize(neg_log_likelihood, x0, method="L-BFGS-B", bounds=bnds)
         w, alpha1, beta1, alpha2, beta2 = res.x
@@ -172,7 +240,7 @@ def em_mixture_beta_binomial(
             }
         old_ll = new_ll
 
-    # If max_iter reached
+    # If max_iter reached, return final
     return {
         "w": w,
         "alpha1": alpha1,
@@ -184,82 +252,117 @@ def em_mixture_beta_binomial(
     }
 
 
+def fit_mixture_beta_binomial(
+    counts: np.ndarray,
+    k: int,
+    fitting_method="em",  # <--- CHOOSE "em" or "direct"
+    max_iter: int = 100,
+    tol: float = 1e-6,
+    random_state: int = 42,
+):
+    """
+    Wrapper that calls either the EM-based or direct-likelihood-based approach
+    to fit a 2-component Beta-Binomial mixture.
+
+    Args:
+        counts: array of observed counts in [0..k]
+        k: number of trials
+        fitting_method: "em" or "direct"
+        max_iter: max iteration limit
+        tol: convergence tolerance
+        random_state: seed for random initialization
+    """
+    if fitting_method == "em":
+        return em_mixture_beta_binomial(counts, k, max_iter, tol, random_state)
+    elif fitting_method == "direct":
+        return fit_mixture_direct(counts, k, max_iter, tol, random_state)
+    else:
+        raise ValueError(f"Unknown fitting_method: {fitting_method}")
+
+
+# -------------------------------------------------------------------
+# Example usage in main
+# -------------------------------------------------------------------
 if __name__ == "__main__":
     import sys
     from pathlib import Path
-
     import pandas as pd
 
-    from ..analysis.calculate_correct_rate_distribution import (
-        calculate_correct_rate_distribution,
-    )
+    # Example import from your code:
+    from ..analysis.calculate_correct_rate_distribution import calculate_correct_rate_distribution
 
+    # PATHS (placeholders in this example)
     DATA_PATH = Path("output/bool_q/processed_data.csv")
     MODEL_DIR_PATH = Path("data/bool_q/llama3(7)")
-    OUTPUT_DIR = Path("output")
+
+    # Choose which method to use for fitting
+    FIT_METHOD = "em"  # or "direct"
 
     # Load data
     try:
         dataframe = pd.read_csv(DATA_PATH)
     except Exception as e:
+        print(f"Failed to load data: {e}")
         sys.exit(1)
 
     if not MODEL_DIR_PATH.exists() or not MODEL_DIR_PATH.is_dir():
+        print("Model dir does not exist. Exiting.")
         sys.exit(1)
 
     # Get aggregated data for all rounds
     try:
         aggregated_df = calculate_correct_rate_distribution(
-            dataframe=dataframe, model_dir=MODEL_DIR_PATH
+            dataframe=dataframe,
+            model_dir=MODEL_DIR_PATH
         )
     except Exception as e:
         print(f"Error calculating correct rate distribution: {e}")
         sys.exit(1)
 
     if aggregated_df.empty:
-        print("No data available for analysis")
+        print("No data available for analysis.")
         sys.exit(1)
 
     # Print the aggregated DataFrame
     print("Aggregated DataFrame:")
     print(aggregated_df)
 
-    # Keep track of previous round results for delta calculation
     prev_fit_result = None
 
     # Process each round in the aggregated data
     for _, row in aggregated_df.iterrows():
         round_number = int(row["round_number"])
-        print(f"Processing round {round_number}...")
+        print(f"Processing round {round_number} using fitting method: {FIT_METHOD}")
 
         # Extract bin columns (representing correct counts)
         bin_columns = [col for col in aggregated_df.columns if col.isdigit()]
 
-        # Create a Series with the counts for each bin
+        # Create a dict: {count_value: frequency}
         counts_dict = {int(bin_col): row[bin_col] for bin_col in bin_columns}
 
-        # Convert to a format suitable for em_mixture_beta_binomial
-        # We need to repeat each count value by its frequency
+        # Expand into a list of counts repeated by their frequency
         all_counts = []
         for count_val, frequency in counts_dict.items():
             all_counts.extend([count_val] * int(frequency))
 
         counts_array = np.array(all_counts)
 
-        # Find the maximum bin value to use as k
-        k = max(int(col) for col in bin_columns if col.isdigit())
+        # k = max possible correct
+        k = max(int(col) for col in bin_columns)
 
-        # Fit the model
-        fit_result = em_mixture_beta_binomial(counts_array, k=k)
+        # Fit the model (choose EM or direct)
+        fit_result = fit_mixture_beta_binomial(
+            counts_array, k=k, fitting_method=FIT_METHOD
+        )
 
         # Print the fit results
         print(f"Round {round_number} fit results:")
-        print(f"  Mixture weight (w): {fit_result['w']}")
-        print(f"  Alpha1: {fit_result['alpha1']}")
-        print(f"  Beta1: {fit_result['beta1']}")
-        print(f"  Alpha2: {fit_result['alpha2']}")
-        print(f"  Beta2: {fit_result['beta2']}")
-        print(f"  Log-likelihood: {fit_result['log_likelihood']}")
+        print(f"  Mixture weight (w): {fit_result['w']:.4f}")
+        print(f"  Alpha1: {fit_result['alpha1']:.4f}")
+        print(f"  Beta1:  {fit_result['beta1']:.4f}")
+        print(f"  Alpha2: {fit_result['alpha2']:.4f}")
+        print(f"  Beta2:  {fit_result['beta2']:.4f}")
+        print(f"  Log-likelihood: {fit_result['log_likelihood']:.4f}")
         print(f"  Number of iterations: {fit_result['n_iter']}")
         print(f"  Total tasks analyzed: {row['total_tasks']}")
 
@@ -267,16 +370,10 @@ if __name__ == "__main__":
         if round_number > 0 and prev_fit_result is not None:
             print(f"  Deltas from previous round:")
             print(f"    Δ Mixture weight: {fit_result['w'] - prev_fit_result['w']:.4f}")
-            print(
-                f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}"
-            )
+            print(f"    Δ Alpha1: {fit_result['alpha1'] - prev_fit_result['alpha1']:.4f}")
             print(f"    Δ Beta1: {fit_result['beta1'] - prev_fit_result['beta1']:.4f}")
-            print(
-                f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}"
-            )
+            print(f"    Δ Alpha2: {fit_result['alpha2'] - prev_fit_result['alpha2']:.4f}")
             print(f"    Δ Beta2: {fit_result['beta2'] - prev_fit_result['beta2']:.4f}")
 
-        # Store current results for next round's delta calculation
         prev_fit_result = fit_result.copy()
-
-        print("-" * 80)  # Separator between rounds
+        print("-" * 80)
