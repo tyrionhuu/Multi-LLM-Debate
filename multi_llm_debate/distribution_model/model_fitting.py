@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-import math
 from functools import lru_cache
-from math import exp
 
 import numpy as np
 from scipy.optimize import minimize
