@@ -2,9 +2,10 @@
 import math
 from pathlib import Path
 from typing import Dict, List, Optional
-import pandas as pd
+
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from matplotlib.figure import Figure
 
 from .analyze_distribution import (
@@ -331,19 +332,19 @@ def run_visualization(
         fitting_method: Method to use for fitting models ("em" or "direct")
         n_restarts: Number of random restarts for model fitting
         verbose: Whether to print progress information
-        enforce_increasing_success: Whether to ensure expected success probability 
+        enforce_increasing_success: Whether to ensure expected success probability
                                     doesn't decrease
 
     Returns:
-        tuple: (aggregated_df, model_results, figures) containing the analysis 
+        tuple: (aggregated_df, model_results, figures) containing the analysis
                results and generated figures
     """
     # Create output directory if it doesn't exist
     output_dir.mkdir(exist_ok=True, parents=True)
-    
+
     if verbose:
         print("Analyzing debate rounds and fitting models...")
-    
+
     # Use the analysis function
     aggregated_df, model_results = analyze_rounds_distribution(
         answers_csv_path=answers_csv_path,
@@ -377,9 +378,9 @@ def run_visualization(
     # Generate visualizations
     if verbose:
         print("Generating visualizations...")
-    
+
     figures = []
-    
+
     # 1) Plot evolution of each round in subplots and individual figures
     evolution_figs = plot_model_evolution(
         model_results, k, observed_data, output_dir=output_dir
@@ -423,7 +424,7 @@ if __name__ == "__main__":
             verbose=True,
             enforce_increasing_success=ENFORCE_INCREASING,
         )
-        
+
         print(f"Visualization complete with {len(figures)} figures generated")
     except Exception as e:
         print(f"Error in visualization: {e}")
