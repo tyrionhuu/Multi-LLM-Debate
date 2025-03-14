@@ -71,7 +71,9 @@ def calculate_correct_rate_distribution_for_round_n(
                     normalized_responses.append(extracted)
             except ValueError:
                 # Handle the case where answer is not recognized
-                logger.warning(f"Could not extract boolean answer for task {task_id_val}")
+                logger.warning(
+                    f"Could not extract boolean answer for task {task_id_val}"
+                )
                 continue
 
         if correct_label is None or not normalized_responses:
