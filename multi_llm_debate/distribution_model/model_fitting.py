@@ -160,9 +160,9 @@ if __name__ == "__main__":
     )
     from .utils import extract_correct_counts
 
-    DATA_PATH = Path("../output/bool_q/processed_data.csv")
-    MODEL_DIR_PATH = Path("../data/bool_q/llama3(11)")
-    OUTPUT_DIR = Path("../output")
+    DATA_PATH = Path("output/bool_q/processed_data.csv")
+    MODEL_DIR_PATH = Path("data/bool_q/llama3(11)")
+    OUTPUT_DIR = Path("output")
 
     # Load data
     try:
