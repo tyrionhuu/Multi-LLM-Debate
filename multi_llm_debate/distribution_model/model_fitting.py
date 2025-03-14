@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.special import betaln, binom
+import pandas as pd
 
 
 def beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
@@ -103,7 +104,6 @@ def extract_si_from_distribution(df: pd.DataFrame) -> list[int]:
 if __name__ == "__main__":
     from pathlib import Path
 
-    import pandas as pd
     from analysis.calculate_correct_rate_distribution import (
         calculate_correct_rate_distribution_for_round_n,
     )
@@ -119,18 +119,24 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error loading data: {e}")
 
-    # For round 0
-    round0_df = calculate_correct_rate_distribution_for_round_n(
-        dataframe, MODEL_DIR_PATH, 0
-    )
-    s_list_0 = extract_si_from_distribution(round0_df)
-    k = max(s_list_0)  # Assumes max(s) = number of agents
-    w0, a1_0, b1_0, a2_0, b2_0 = beta_binomial_em(s_list_0, k)
-
-    # For round 1
-    round1_df = calculate_correct_rate_distribution_for_round_n(
-        dataframe, MODEL_DIR_PATH, 1
-    )
-    s_list_1 = extract_si_from_distribution(round1_df)
-    k = max(s_list_1)
-    w1, a1_1, b1_1, a2_1, b2_1 = beta_binomial_em(s_list_1, k)
+    # Process all 11 rounds
+    print("\nBeta-Binomial parameters for 11 rounds:")
+    print("---------------------------------------")
+    for round_num in range(11):
+        try:
+            round_df = calculate_correct_rate_distribution_for_round_n(
+                dataframe, MODEL_DIR_PATH, round_num
+            )
+            s_list = extract_si_from_distribution(round_df)
+            if not s_list:
+                print(f"Round {round_num}: No data available")
+                continue
+                
+            k = max(s_list)  # Assumes max(s) = number of agents
+            w, a1, b1, a2, b2 = beta_binomial_em(s_list, k)
+            
+            print(f"Round {round_num}:")
+            print(f"  Component 1 (weight={w:.4f}): alpha={a1:.4f}, beta={b1:.4f}")
+            print(f"  Component 2 (weight={1-w:.4f}): alpha={a2:.4f}, beta={b2:.4f}")
+        except Exception as e:
+            print(f"Round {round_num}: Error - {e}")
