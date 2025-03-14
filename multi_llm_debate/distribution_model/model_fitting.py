@@ -72,7 +72,7 @@ def direct_mixture_log_likelihood(
     counts: np.ndarray,
     k: int,
     unique_counts: np.ndarray = None,
-    count_freq: np.ndarray = None
+    count_freq: np.ndarray = None,
 ) -> float:
     """
     Computes the log-likelihood of the dataset under a 2-component Beta-Binomial mixture
