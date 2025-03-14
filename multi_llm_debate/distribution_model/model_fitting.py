@@ -56,13 +56,13 @@ def em_mixture_beta_binomial(
 
     Returns a dictionary of the learned parameters:
         {
-          'w': mixture weight,
-          'alpha1': ...,
-          'beta1': ...,
-          'alpha2': ...,
-          'beta2': ...,
-          'log_likelihood': final log-likelihood,
-          'n_iter': number of iterations
+            'w': mixture weight,
+            'alpha1': ...,
+            'beta1': ...,
+            'alpha2': ...,
+            'beta2': ...,
+            'log_likelihood': final log-likelihood,
+            'n_iter': number of iterations
         }
     """
     rng = np.random.default_rng(random_state)
