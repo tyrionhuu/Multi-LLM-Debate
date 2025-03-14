@@ -165,9 +165,9 @@ def plot_model_evolution(
         figures.append(fig_ind)
 
         # Save if output directory is provided
-        if output_dir is not None:
-            output_dir.mkdir(exist_ok=True, parents=True)
-            fig_ind.savefig(output_dir / f"mixture_model_round_{i}.png", dpi=300)
+        # if output_dir is not None:
+        #     output_dir.mkdir(exist_ok=True, parents=True)
+        #     fig_ind.savefig(output_dir / f"mixture_model_round_{i}.png", dpi=300)
 
     # Adjust the combined figure layout
     plt.tight_layout()
