@@ -6,6 +6,7 @@ import re
 import sys
 from pathlib import Path
 
+
 def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
     """
     Scan 'model_dir' for subdirectories named by a *pure numeric* task_id.
@@ -18,8 +19,9 @@ def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
     with output_csv.open("w", newline="", encoding="utf-8") as fout:
         writer = csv.writer(fout)
         # Write header row
-        writer.writerow(["task_id", "round_number", "agent_index", 
-                         "agent_id", "model", "response"])
+        writer.writerow(
+            ["task_id", "round_number", "agent_index", "agent_id", "model", "response"]
+        )
 
         # Regex for "debate_round_X.json" -> captures X as the round number
         round_pattern = re.compile(r"^debate_round_(\d+)\.json$")
@@ -53,7 +55,10 @@ def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
                     with json_file.open("r", encoding="utf-8") as f:
                         data = json.load(f)
                 except Exception as e:
-                    print(f"Warning: cannot load JSON from {json_file}: {e}", file=sys.stderr)
+                    print(
+                        f"Warning: cannot load JSON from {json_file}: {e}",
+                        file=sys.stderr,
+                    )
                     continue
 
                 if not isinstance(data, list):
@@ -66,14 +71,17 @@ def merge_json_files_to_csv(model_dir: Path, output_csv: Path):
                     model_name = item.get("model", "")
                     response_text = item.get("response", "")
 
-                    writer.writerow([
-                        task_id,
-                        round_number,
-                        idx,
-                        agent_id,
-                        model_name,
-                        response_text,
-                    ])
+                    writer.writerow(
+                        [
+                            task_id,
+                            round_number,
+                            idx,
+                            agent_id,
+                            model_name,
+                            response_text,
+                        ]
+                    )
+
 
 def create_csv_for_all_model_dirs(root_data_dir: Path):
     """
@@ -110,6 +118,7 @@ def create_csv_for_all_model_dirs(root_data_dir: Path):
         merge_json_files_to_csv(model_subdir, output_csv)
         print("Done.")
 
+
 def main():
     """
     Example main that calls `create_csv_for_all_model_dirs` for data/bool_q.
@@ -120,6 +129,7 @@ def main():
     # Convert to Path
     root_data_dir = Path(root_data_dir_arg)
     create_csv_for_all_model_dirs(root_data_dir)
+
 
 if __name__ == "__main__":
     main()
