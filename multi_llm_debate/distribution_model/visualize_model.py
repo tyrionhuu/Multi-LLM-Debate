@@ -252,7 +252,7 @@ if __name__ == "__main__":
     import sys
 
     DATA_PATH = Path("output/bool_q/processed_data.csv")
-    MODEL_DIR_PATH = Path("data/bool_q/llama3(7)")
+    MODEL_DIR_PATH = Path("data/bool_q/llama3(11)")
     OUTPUT_DIR = Path("output/visualizations/bool_q")
 
     # Choose the fitting method: "em" or "direct"
