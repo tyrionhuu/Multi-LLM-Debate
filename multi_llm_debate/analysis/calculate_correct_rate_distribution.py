@@ -166,8 +166,6 @@ def calculate_correct_rate_distribution(
         with columns for the count of tasks having different numbers of
         correct agents (0, 1, 2, etc.) and the round_number.
     """
-    all_results: List[pd.DataFrame] = []
-
     # Sample one task directory to determine the maximum round
     task_dirs = [d for d in model_dir.iterdir() if d.is_dir()]
     if not task_dirs:
