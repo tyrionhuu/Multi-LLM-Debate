@@ -203,16 +203,20 @@ def visualize_parameter_trends(
 
     # Calculate derived parameters
     # Expected success probabilities: alpha/(alpha+beta)
-    success_prob1_values = [alpha1/(alpha1+beta1) for alpha1, beta1 
-                            in zip(alpha1_values, beta1_values)]
-    success_prob2_values = [alpha2/(alpha2+beta2) for alpha2, beta2 
-                            in zip(alpha2_values, beta2_values)]
-    
+    success_prob1_values = [
+        alpha1 / (alpha1 + beta1) for alpha1, beta1 in zip(alpha1_values, beta1_values)
+    ]
+    success_prob2_values = [
+        alpha2 / (alpha2 + beta2) for alpha2, beta2 in zip(alpha2_values, beta2_values)
+    ]
+
     # Expected failure probabilities: beta/(alpha+beta)
-    failure_prob1_values = [beta1/(alpha1+beta1) for alpha1, beta1 
-                           in zip(alpha1_values, beta1_values)]
-    failure_prob2_values = [beta2/(alpha2+beta2) for alpha2, beta2 
-                           in zip(alpha2_values, beta2_values)]
+    failure_prob1_values = [
+        beta1 / (alpha1 + beta1) for alpha1, beta1 in zip(alpha1_values, beta1_values)
+    ]
+    failure_prob2_values = [
+        beta2 / (alpha2 + beta2) for alpha2, beta2 in zip(alpha2_values, beta2_values)
+    ]
 
     # Create the figure with 5 subplots
     fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(10, 20))
@@ -228,10 +232,22 @@ def visualize_parameter_trends(
     axes[0].set_xticks(rounds)
 
     # Plot expected success probabilities
-    axes[1].plot(rounds, success_prob1_values, marker="o", linestyle="-", 
-                label="Comp 1: α₁/(α₁+β₁)", color="green")
-    axes[1].plot(rounds, success_prob2_values, marker="s", linestyle="-", 
-                label="Comp 2: α₂/(α₂+β₂)", color="purple")
+    axes[1].plot(
+        rounds,
+        success_prob1_values,
+        marker="o",
+        linestyle="-",
+        label="Comp 1: α₁/(α₁+β₁)",
+        color="green",
+    )
+    axes[1].plot(
+        rounds,
+        success_prob2_values,
+        marker="s",
+        linestyle="-",
+        label="Comp 2: α₂/(α₂+β₂)",
+        color="purple",
+    )
     axes[1].set_title("Expected Success Probability Evolution")
     axes[1].set_xlabel("Round")
     axes[1].set_ylabel("Success Probability")
@@ -241,10 +257,22 @@ def visualize_parameter_trends(
     axes[1].set_ylim(0, 1)  # Probabilities are between 0 and 1
 
     # Plot expected failure probabilities
-    axes[2].plot(rounds, failure_prob1_values, marker="o", linestyle="-", 
-                label="Comp 1: β₁/(α₁+β₁)", color="green")
-    axes[2].plot(rounds, failure_prob2_values, marker="s", linestyle="-", 
-                label="Comp 2: β₂/(α₂+β₂)", color="purple")
+    axes[2].plot(
+        rounds,
+        failure_prob1_values,
+        marker="o",
+        linestyle="-",
+        label="Comp 1: β₁/(α₁+β₁)",
+        color="green",
+    )
+    axes[2].plot(
+        rounds,
+        failure_prob2_values,
+        marker="s",
+        linestyle="-",
+        label="Comp 2: β₂/(α₂+β₂)",
+        color="purple",
+    )
     axes[2].set_title("Expected Failure Probability Evolution")
     axes[2].set_xlabel("Round")
     axes[2].set_ylabel("Failure Probability")
