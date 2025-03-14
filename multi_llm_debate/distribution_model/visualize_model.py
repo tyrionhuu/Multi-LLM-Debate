@@ -5,17 +5,10 @@ from typing import Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from matplotlib.figure import Figure
 
-from ..analysis.calculate_correct_rate_distribution import (
-    calculate_correct_rate_distribution,
-)
 from .model_fitting import (
     analyze_rounds_distribution,  # new function for analyzing rounds
-)
-from .model_fitting import (
-    fit_mixture_beta_binomial,  # this wrapper lets us choose "em" or "direct"
 )
 from .model_fitting import beta_binomial_pmf
 
