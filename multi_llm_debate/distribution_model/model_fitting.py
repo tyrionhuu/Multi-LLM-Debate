@@ -147,3 +147,51 @@ def em_mixture_beta_binomial(
         "log_likelihood": old_ll,
         "n_iter": max_iter,
     }
+
+if __name__ == "__main__":
+    from .utils import extract_correct_counts
+    from ..analysis.calculate_correct_rate_distribution import (
+        calculate_correct_rate_distribution_for_round_n,
+    )
+    from pathlib import Path
+    import pandas as pd
+    import sys
+    DATA_PATH = Path("../output/bool_q/processed_data.csv")
+    MODEL_DIR_PATH = Path("../data/bool_q/llama3(11)")
+    OUTPUT_DIR = Path("../output")
+    
+    # Load data
+    try:
+        dataframe = pd.read_csv(DATA_PATH)
+    except Exception as e:
+        sys.exit(1)
+    
+    if not MODEL_DIR_PATH.exists() or not MODEL_DIR_PATH.is_dir():
+        sys.exit(1)
+        
+    # Process rounds 0 through 5
+    for round_number in range(6):  # 0 to 5
+        try:
+            result_df = calculate_correct_rate_distribution_for_round_n(
+                dataframe=dataframe, model_dir=MODEL_DIR_PATH, round_number=round_number
+            )
+        except Exception as e:
+            print(f"Error processing round {round_number}: {e}")
+            continue
+        
+        # Extract correct counts
+        correct_counts = extract_correct_counts(result_df)
+        
+        # Fit the model
+        fit_result = em_mixture_beta_binomial(correct_counts.values, k=5)
+        
+        # Print the fit results
+        print(f"Round {round_number} fit results:")
+        print(f"  Mixture weight (w): {fit_result['w']}")
+        print(f"  Alpha1: {fit_result['alpha1']}")
+        print(f"  Beta1: {fit_result['beta1']}")
+        print(f"  Alpha2: {fit_result['alpha2']}")
+        print(f"  Beta2: {fit_result['beta2']}")
+        print(f"  Log-likelihood: {fit_result['log_likelihood']}")
+        print(f"  Number of iterations: {fit_result['n_iter']}")
+        print(f"  Total tasks analyzed: {len(correct_counts)}")
