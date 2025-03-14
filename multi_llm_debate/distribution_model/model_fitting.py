@@ -301,7 +301,7 @@ if __name__ == "__main__":
     # PATHS (placeholders in this example)
     ANSWERS_CSV = Path("output/bool_q/processed_data.csv")  # your "id" -> "answer" file
     DEBATES_CSV = Path(
-        "data/bool_q/llama3(7)/debate_rounds.csv"
+        "data/bool_q/llama3(11)/debate_rounds.csv"
     )  # the debate rounds CSV
     MAX_ROUNDS = None  # or an int
 
