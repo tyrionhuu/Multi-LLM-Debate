@@ -1,4 +1,6 @@
 import pandas as pd
+
+
 def extract_correct_counts(round_df: pd.DataFrame) -> pd.Series:
     """
     Given the distribution DataFrame with columns "task_id", "round_number", "0", "1", ..., "k",
