@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import math
+from math import exp
 
 import numpy as np
 from scipy.optimize import minimize
@@ -12,7 +13,6 @@ def beta_binomial_pmf(s, k, alpha, beta):
     """
     Beta-Binomial PMF: BB(s | k, alpha, beta) = C(k, s) * B(alpha+s, beta+k-s) / B(alpha, beta).
     """
-    from math import exp, lgamma
 
     log_comb = math.lgamma(k + 1) - math.lgamma(s + 1) - math.lgamma(k - s + 1)
     log_num = (
