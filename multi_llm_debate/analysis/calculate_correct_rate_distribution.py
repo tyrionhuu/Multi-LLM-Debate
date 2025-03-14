@@ -163,72 +163,72 @@ def calculate_correct_rate_distribution(
 
     Returns:
         DataFrame with data aggregated by round. Each row represents a round,
-        with columns for the count of tasks having different numbers of 
+        with columns for the count of tasks having different numbers of
         correct agents (0, 1, 2, etc.) and the round_number.
     """
     all_results: List[pd.DataFrame] = []
-    
+
     # Sample one task directory to determine the maximum round
     task_dirs = [d for d in model_dir.iterdir() if d.is_dir()]
     if not task_dirs:
         logger.warning(f"No task directories found in {model_dir}")
         return pd.DataFrame()
-    
+
     # Find maximum round available across all tasks
     available_rounds = set()
     for task_dir in task_dirs[:20]:  # Sample a subset for efficiency
         files = list(task_dir.glob("debate_round_*.json"))
         rounds = [int(f.stem.split("_")[-1]) for f in files]
         available_rounds.update(rounds)
-    
+
     if not available_rounds:
         logger.warning(f"No debate round files found in sampled directories")
         return pd.DataFrame()
-    
+
     max_available_round = max(available_rounds)
-    rounds_to_process = min(max_available_round + 1, max_rounds or float('inf'))
+    rounds_to_process = min(max_available_round + 1, max_rounds or float("inf"))
     rounds_to_process = int(rounds_to_process)
-    
+
     logger.info(f"Processing {rounds_to_process} rounds (0 to {rounds_to_process-1})")
-    
+
     aggregated_results = []
-    
+
     # Process each round
     for round_number in range(rounds_to_process):
         logger.info(f"Processing round {round_number}...")
-        
+
         try:
             result_df = calculate_correct_rate_distribution_for_round_n(
-                dataframe=dataframe, 
-                model_dir=model_dir, 
-                round_number=round_number
+                dataframe=dataframe, model_dir=model_dir, round_number=round_number
             )
-            
+
             if not result_df.empty:
                 # Get the columns that represent numbers of correct agents (0, 1, 2, etc.)
                 bin_columns = [col for col in result_df.columns if col.isdigit()]
                 bin_columns.sort(key=int)
-                
+
                 # Drop the task_id column and aggregate by summing across all tasks
                 if "task_id" in result_df.columns:
                     result_df = result_df.drop(columns=["task_id"])
-                
+
                 # Sum the counts for each bin
                 aggregated_row = {"round_number": round_number}
                 for bin_col in bin_columns:
                     aggregated_row[bin_col] = result_df[bin_col].sum()
-                
+
                 # Add total tasks count for convenience
                 aggregated_row["total_tasks"] = len(result_df)
-                
+
                 aggregated_results.append(aggregated_row)
-                logger.info(f"Aggregated data from {len(result_df)} tasks for round {round_number}")
+                logger.info(
+                    f"Aggregated data from {len(result_df)} tasks for round {round_number}"
+                )
             else:
                 logger.warning(f"No valid data found for round {round_number}")
-                
+
         except Exception as e:
             logger.error(f"Error processing round {round_number}: {e}", exc_info=True)
-    
+
     # Combine all results
     if aggregated_results:
         combined_df = pd.DataFrame(aggregated_results)
@@ -262,45 +262,42 @@ if __name__ == "__main__":
 
     # First test the aggregated function for all rounds
     logger.info("Testing calculate_correct_rate_distribution for all rounds...")
-    
+
     try:
         aggregated_df = calculate_correct_rate_distribution(
-            dataframe=dataframe, 
-            model_dir=model_dir_path
+            dataframe=dataframe, model_dir=model_dir_path
         )
-        
+
         if not aggregated_df.empty:
             print("\nAggregated DataFrame for all rounds:")
             print(aggregated_df.to_string())
             print(f"\nDataFrame shape: {aggregated_df.shape}")
             print(f"DataFrame columns: {', '.join(aggregated_df.columns)}")
-            
+
             # Get numeric columns (bins)
-            bin_columns = [col for col in aggregated_df.columns 
-                          if col.isdigit()]
+            bin_columns = [col for col in aggregated_df.columns if col.isdigit()]
             bin_columns.sort(key=int)
-            
+
             if bin_columns:
                 # Calculate percentages for each round
                 for _, row in aggregated_df.iterrows():
-                    round_num = int(row['round_number'])
-                    total = row['total_tasks']
-                    
+                    round_num = int(row["round_number"])
+                    total = row["total_tasks"]
+
                     print(f"\nRound {round_num} distribution:")
                     print(f"Total tasks: {total}")
-                    
+
                     # Create a dictionary for the histogram
                     bin_counts = {bin_col: row[bin_col] for bin_col in bin_columns}
                     bin_percentages = {
-                        bin_col: (row[bin_col] / total * 100) 
-                        for bin_col in bin_columns
+                        bin_col: (row[bin_col] / total * 100) for bin_col in bin_columns
                     }
-                    
+
                     for bin_col in bin_columns:
                         count = row[bin_col]
                         pct = bin_percentages[bin_col]
                         print(f"  {bin_col} correct agents: {count} tasks ({pct:.2f}%)")
-                    
+
                     # Draw histogram
                     histogram = draw_console_histogram(
                         bin_counts,
@@ -310,12 +307,11 @@ if __name__ == "__main__":
                         fine_grained=True,
                     )
                     print("\n" + histogram + "\n")
-            
+
         else:
             logger.warning("No aggregated data available to display")
-    
+
     except Exception as e:
         logger.error(f"Error testing aggregated function: {e}", exc_info=True)
-    
-    print("\n" + "="*80 + "\n")  # Separator between aggregated and per-round analysis
 
+    print("\n" + "=" * 80 + "\n")  # Separator between aggregated and per-round analysis
