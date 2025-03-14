@@ -4,7 +4,10 @@ from functools import lru_cache
 import numpy as np
 from scipy.optimize import minimize
 from scipy.special import gammaln  # More efficient than math.lgamma
+from pathlib import Path
+from typing import Optional
 
+import pandas as pd
 
 # -------------------------------------------------------------------
 # Beta-Binomial PMF and log-PMF with caching
@@ -384,7 +387,6 @@ def fit_mixture_beta_binomial(
     # Try to use parallel processing if requested and available
     if parallel:
         try:
-            import joblib
 
             print("Using parallel processing for model fitting")
             # This would need additional code to implement parallel fitting
@@ -549,10 +551,7 @@ def analyze_rounds_distribution(
 # -------------------------------------------------------------------
 if __name__ == "__main__":
     import sys
-    from pathlib import Path
-    from typing import Optional
 
-    import pandas as pd
 
     # Example import from your code:
     from ..analysis.calculate_correct_rate_distribution import (
