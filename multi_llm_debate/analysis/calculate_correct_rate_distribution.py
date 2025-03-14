@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 import logging
 from pathlib import Path
@@ -5,8 +6,6 @@ from typing import List, Optional, Union
 
 import pandas as pd
 from tqdm import tqdm
-
-import concurrent.futures
 
 from ..llm.parsers import extract_bool_answer
 from .utils import compare_bool, draw_console_histogram, get_final_round
@@ -80,7 +79,7 @@ def calculate_correct_rate_distribution_for_round_n(
     dataframe: pd.DataFrame,
     model_dir: Path,
     round_number: int,
-    max_workers: int = 8,   # how many threads to use
+    max_workers: int = 8,  # how many threads to use
 ) -> pd.DataFrame:
     """
     Calculate the correct rate distribution for a specific round, but read JSON files in parallel.
@@ -288,8 +287,8 @@ if __name__ == "__main__":
         aggregated_df = calculate_correct_rate_distribution(
             dataframe=dataframe,
             model_dir=model_dir_path,
-            max_rounds=None,        # or some integer
-            max_workers=8,         # adjust # of threads
+            max_rounds=None,  # or some integer
+            max_workers=8,  # adjust # of threads
         )
 
         if not aggregated_df.empty:
@@ -302,6 +301,9 @@ if __name__ == "__main__":
             logger.warning("No aggregated data available to display")
 
     except Exception as e:
-        logger.error(f"Error during parallel reading or distribution calculation: {e}", exc_info=True)
+        logger.error(
+            f"Error during parallel reading or distribution calculation: {e}",
+            exc_info=True,
+        )
 
     print("\n" + "=" * 80 + "\n")
