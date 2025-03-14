@@ -201,8 +201,21 @@ def visualize_parameter_trends(
     alpha2_values = [r["alpha2"] for r in model_results]
     beta2_values = [r["beta2"] for r in model_results]
 
-    # Create the figure
-    fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10, 12))
+    # Calculate derived parameters
+    # Expected success probabilities: alpha/(alpha+beta)
+    success_prob1_values = [alpha1/(alpha1+beta1) for alpha1, beta1 
+                            in zip(alpha1_values, beta1_values)]
+    success_prob2_values = [alpha2/(alpha2+beta2) for alpha2, beta2 
+                            in zip(alpha2_values, beta2_values)]
+    
+    # Expected failure probabilities: beta/(alpha+beta)
+    failure_prob1_values = [beta1/(alpha1+beta1) for alpha1, beta1 
+                           in zip(alpha1_values, beta1_values)]
+    failure_prob2_values = [beta2/(alpha2+beta2) for alpha2, beta2 
+                           in zip(alpha2_values, beta2_values)]
+
+    # Create the figure with 5 subplots
+    fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(10, 20))
 
     # Plot mixture weight
     axes[0].plot(
@@ -214,25 +227,51 @@ def visualize_parameter_trends(
     axes[0].grid(alpha=0.3)
     axes[0].set_xticks(rounds)
 
-    # Plot alpha parameters
-    axes[1].plot(rounds, alpha1_values, marker="o", linestyle="-", label="Alpha1")
-    axes[1].plot(rounds, alpha2_values, marker="s", linestyle="-", label="Alpha2")
-    axes[1].set_title("Alpha Parameters Evolution")
+    # Plot expected success probabilities
+    axes[1].plot(rounds, success_prob1_values, marker="o", linestyle="-", 
+                label="Comp 1: α₁/(α₁+β₁)", color="green")
+    axes[1].plot(rounds, success_prob2_values, marker="s", linestyle="-", 
+                label="Comp 2: α₂/(α₂+β₂)", color="purple")
+    axes[1].set_title("Expected Success Probability Evolution")
     axes[1].set_xlabel("Round")
-    axes[1].set_ylabel("Alpha Value")
+    axes[1].set_ylabel("Success Probability")
     axes[1].legend()
     axes[1].grid(alpha=0.3)
     axes[1].set_xticks(rounds)
+    axes[1].set_ylim(0, 1)  # Probabilities are between 0 and 1
 
-    # Plot beta parameters
-    axes[2].plot(rounds, beta1_values, marker="o", linestyle="-", label="Beta1")
-    axes[2].plot(rounds, beta2_values, marker="s", linestyle="-", label="Beta2")
-    axes[2].set_title("Beta Parameters Evolution")
+    # Plot expected failure probabilities
+    axes[2].plot(rounds, failure_prob1_values, marker="o", linestyle="-", 
+                label="Comp 1: β₁/(α₁+β₁)", color="green")
+    axes[2].plot(rounds, failure_prob2_values, marker="s", linestyle="-", 
+                label="Comp 2: β₂/(α₂+β₂)", color="purple")
+    axes[2].set_title("Expected Failure Probability Evolution")
     axes[2].set_xlabel("Round")
-    axes[2].set_ylabel("Beta Value")
+    axes[2].set_ylabel("Failure Probability")
     axes[2].legend()
     axes[2].grid(alpha=0.3)
     axes[2].set_xticks(rounds)
+    axes[2].set_ylim(0, 1)  # Probabilities are between 0 and 1
+
+    # Plot alpha parameters
+    axes[3].plot(rounds, alpha1_values, marker="o", linestyle="-", label="Alpha1")
+    axes[3].plot(rounds, alpha2_values, marker="s", linestyle="-", label="Alpha2")
+    axes[3].set_title("Alpha Parameters Evolution")
+    axes[3].set_xlabel("Round")
+    axes[3].set_ylabel("Alpha Value")
+    axes[3].legend()
+    axes[3].grid(alpha=0.3)
+    axes[3].set_xticks(rounds)
+
+    # Plot beta parameters
+    axes[4].plot(rounds, beta1_values, marker="o", linestyle="-", label="Beta1")
+    axes[4].plot(rounds, beta2_values, marker="s", linestyle="-", label="Beta2")
+    axes[4].set_title("Beta Parameters Evolution")
+    axes[4].set_xlabel("Round")
+    axes[4].set_ylabel("Beta Value")
+    axes[4].legend()
+    axes[4].grid(alpha=0.3)
+    axes[4].set_xticks(rounds)
 
     plt.tight_layout()
 
