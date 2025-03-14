@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from ..llm.parsers import extract_bool_answer
-from .utils import compare_bool
+from .utils import compare_bool, get_final_round
 
 # Set up logging
 logging.basicConfig(
