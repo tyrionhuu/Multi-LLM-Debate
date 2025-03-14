@@ -3,23 +3,19 @@
 import math
 from pathlib import Path
 from typing import Dict, List, Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-# --------------------------------------------------------------------
-# Instead of importing em_mixture_beta_binomial directly,
-# we import a single 'fit_mixture_beta_binomial' function
-# from model_fitting.py that allows "em" or "direct".
-# We also need beta_binomial_pmf for plotting.
-# --------------------------------------------------------------------
+from ..analysis.calculate_correct_rate_distribution import (
+    calculate_correct_rate_distribution,
+)
 from .model_fitting import (
-    beta_binomial_pmf,
     fit_mixture_beta_binomial,  # this wrapper lets us choose "em" or "direct"
 )
-
-from ..analysis.calculate_correct_rate_distribution import calculate_correct_rate_distribution
+from .model_fitting import beta_binomial_pmf
 
 
 def plot_mixture_model(
@@ -97,7 +93,9 @@ def plot_mixture_model(
     if observed_data is not None:
         # Normalize counts to get probabilities
         total_count = sum(observed_data.values())
-        observed_probs = {kval: cnt / total_count for kval, cnt in observed_data.items()}
+        observed_probs = {
+            kval: cnt / total_count for kval, cnt in observed_data.items()
+        }
 
         # Plot as a bar chart
         obs_y = [observed_probs.get(i, 0) for i in range(k + 1)]
