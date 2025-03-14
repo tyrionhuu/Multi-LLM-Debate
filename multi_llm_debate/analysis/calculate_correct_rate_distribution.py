@@ -68,9 +68,14 @@ def calculate_correct_rate_distribution_for_round_n(
         # For each agent response, parse True/False if possible
         normalized_responses = []
         for _, row in group_df.iterrows():
-            extracted = extract_bool_answer(row["response"])
-            if extracted is not None:
-                normalized_responses.append(extracted)
+            try:
+                extracted = extract_bool_answer(row["response"])
+                if extracted is not None:
+                    normalized_responses.append(extracted)
+            except ValueError:
+                # Handle the case where answer is not recognized
+                logger.warning(f"Could not extract boolean answer for task {task_id_val}")
+                continue
 
         if not normalized_responses:
             continue  # no valid responses
