@@ -147,6 +147,46 @@ def fit_model_for_rounds(
     return params_round0, params_round1
 
 
+def extrapolate_parameters(
+    params_round0: Tuple[float, float, float, float, float],
+    params_round1: Tuple[float, float, float, float, float],
+    rounds: int
+) -> list[Tuple[float, float, float, float, float]]:
+    """Extrapolate model parameters for future rounds based on linear trend.
+    
+    Args:
+        params_round0: Parameters for round 0 (w, alpha1, beta1, alpha2, beta2).
+        params_round1: Parameters for round 1 (w, alpha1, beta1, alpha2, beta2).
+        rounds: Number of rounds to extrapolate (including rounds 0 and 1).
+        
+    Returns:
+        List of parameter tuples for each round.
+    """
+    w0, a1_0, b1_0, a2_0, b2_0 = params_round0
+    w1, a1_1, b1_1, a2_1, b2_1 = params_round1
+    
+    # Calculate deltas (changes between rounds)
+    delta_w = w1 - w0
+    delta_a1 = a1_1 - a1_0
+    delta_b1 = b1_1 - b1_0
+    delta_a2 = a2_1 - a2_0
+    delta_b2 = b2_1 - b2_0
+    
+    all_params = [params_round0, params_round1]
+    
+    # Extrapolate for future rounds
+    for t in range(2, rounds):
+        params_round_t = (
+            max(0, min(1, w0 + t * delta_w)),
+            max(0.1, a1_0 + t * delta_a1),
+            max(0.1, b1_0 + t * delta_b1),
+            max(0.1, a2_0 + t * delta_a2),
+            max(0.1, b2_0 + t * delta_b2),
+        )
+        all_params.append(params_round_t)
+    
+    return all_params
+
 def main():
     """Test the model fitting process using calculate_correct_rate_distribution_for_round_n."""
     # Hardcoded configuration from your original __main__
@@ -192,27 +232,20 @@ def main():
 
     if params_round0 and params_round1:
         logger.info("Model fitting completed successfully.")
-        # Optional: Extrapolate to round 2
-        w0, a1_0, b1_0, a2_0, b2_0 = params_round0
-        w1, a1_1, b1_1, a2_1, b2_1 = params_round1
-        delta_w = w1 - w0
-        delta_a1 = a1_1 - a1_0
-        delta_b1 = b1_1 - b1_0
-        delta_a2 = a2_1 - a2_0
-        delta_b2 = b2_1 - b2_0
-        t = 2
-        params_round2 = (
-            max(0, min(1, w0 + t * delta_w)),
-            max(1, a1_0 + t * delta_a1),
-            max(1, b1_0 + t * delta_b1),
-            max(1, a2_0 + t * delta_a2),
-            max(1, b2_0 + t * delta_b2),
-        )
-        logger.info(
-            f"Predicted parameters for round {t}: w={params_round2[0]:.3f}, "
-            f"alpha1={params_round2[1]:.2f}, beta1={params_round2[2]:.2f}, "
-            f"alpha2={params_round2[3]:.2f}, beta2={params_round2[4]:.2f}"
-        )
+        
+        # Extrapolate parameters for 11 rounds (0-10)
+        all_params = extrapolate_parameters(params_round0, params_round1, 11)
+        
+        # Print parameters for all rounds
+        logger.info(f"{'Round':^10}{'w':^10}{'alpha1':^10}{'beta1':^10}{'alpha2':^10}{'beta2':^10}")
+        logger.info("-" * 60)
+        
+        for i, params in enumerate(all_params):
+            w, alpha1, beta1, alpha2, beta2 = params
+            logger.info(
+                f"{i:^10}{w:.3f}:^10{alpha1:.2f}:^10{beta1:.2f}:^10{alpha2:.2f}:^10{beta2:.2f}"
+            )
+            print(f"Round {i}: w={w:.3f}, alpha1={alpha1:.2f}, beta1={beta1:.2f}, alpha2={alpha2:.2f}, beta2={beta2:.2f}")
     else:
         logger.error("Model fitting failed.")
 
