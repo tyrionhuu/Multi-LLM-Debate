@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 import math
-from math import exp
 from functools import lru_cache
+from math import exp
 
 import numpy as np
 from scipy.optimize import minimize
 from scipy.special import gammaln  # More efficient than math.lgamma
+
 
 # -------------------------------------------------------------------
 # Beta-Binomial PMF and log-PMF with caching
@@ -14,7 +15,7 @@ from scipy.special import gammaln  # More efficient than math.lgamma
 def beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
     """
     Beta-Binomial PMF: BB(s | k, alpha, beta) = C(k, s) * B(alpha+s, beta+k-s) / B(alpha, beta).
-    
+
     This implementation uses caching to avoid redundant calculations.
 
     Args:
@@ -32,11 +33,7 @@ def beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
 
     # Use vectorized gammaln (scipy.special) instead of math.lgamma
     log_comb = gammaln(k + 1) - gammaln(s + 1) - gammaln(k - s + 1)
-    log_num = (
-        gammaln(alpha + s)
-        + gammaln(beta + (k - s))
-        - gammaln(alpha + beta + k)
-    )
+    log_num = gammaln(alpha + s) + gammaln(beta + (k - s)) - gammaln(alpha + beta + k)
     log_den = gammaln(alpha) + gammaln(beta) - gammaln(alpha + beta)
     log_p = log_comb + log_num - log_den
     return np.exp(log_p)  # np.exp can be faster than math.exp
@@ -46,7 +43,7 @@ def beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
 def log_beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
     """
     Returns the log of the Beta-Binomial PMF for s.
-    
+
     This implementation uses caching to avoid redundant calculations.
 
     Args:
@@ -64,11 +61,7 @@ def log_beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
 
     # Use vectorized gammaln (scipy.special) instead of math.lgamma
     log_comb = gammaln(k + 1) - gammaln(s + 1) - gammaln(k - s + 1)
-    log_num = (
-        gammaln(alpha + s)
-        + gammaln(beta + (k - s))
-        - gammaln(alpha + beta + k)
-    )
+    log_num = gammaln(alpha + s) + gammaln(beta + (k - s)) - gammaln(alpha + beta + k)
     log_den = gammaln(alpha) + gammaln(beta) - gammaln(alpha + beta)
     return log_comb + log_num - log_den
 
@@ -76,11 +69,13 @@ def log_beta_binomial_pmf(s: int, k: int, alpha: float, beta: float) -> float:
 # -------------------------------------------------------------------
 # 1) Direct Maximum Likelihood approach - Optimized
 # -------------------------------------------------------------------
-def direct_mixture_log_likelihood(params, counts, k, unique_counts=None, count_freq=None):
+def direct_mixture_log_likelihood(
+    params, counts, k, unique_counts=None, count_freq=None
+):
     """
     Computes the log-likelihood of the dataset under a 2-component Beta-Binomial mixture
     with parameters = (w, alpha1, beta1, alpha2, beta2).
-    
+
     This optimized version can work with frequency counts for better performance.
 
     Args:
@@ -89,14 +84,14 @@ def direct_mixture_log_likelihood(params, counts, k, unique_counts=None, count_f
         k: Number of trials
         unique_counts: Optional array of unique count values
         count_freq: Optional array of frequencies for unique_counts
-        
+
     Returns:
         float: Log-likelihood value
     """
     w, alpha1, beta1, alpha2, beta2 = params
     # clip w to avoid invalid probability
     w = np.clip(w, 1e-9, 1 - 1e-9)
-    
+
     # If unique counts and frequencies are provided, use them for efficiency
     if unique_counts is not None and count_freq is not None:
         ll = 0.0
@@ -108,7 +103,7 @@ def direct_mixture_log_likelihood(params, counts, k, unique_counts=None, count_f
             # add small offset to avoid log(0)
             ll += freq * np.log(mix_val + 1e-16)
         return ll
-    
+
     # Otherwise, process all counts individually
     ll = 0.0
     for s in counts:
@@ -121,7 +116,9 @@ def direct_mixture_log_likelihood(params, counts, k, unique_counts=None, count_f
     return ll
 
 
-def fit_mixture_direct(counts, k, max_iter=100, tol=1e-6, random_state=42, n_restarts=3):
+def fit_mixture_direct(
+    counts, k, max_iter=100, tol=1e-6, random_state=42, n_restarts=3
+):
     """
     Fit a two-component Beta-Binomial mixture by directly maximizing the overall
     mixture log-likelihood with multiple restarts for better convergence.
@@ -133,7 +130,7 @@ def fit_mixture_direct(counts, k, max_iter=100, tol=1e-6, random_state=42, n_res
         tol: Convergence tolerance
         random_state: Random seed for initialization
         n_restarts: Number of random restarts to try
-        
+
     Returns:
         dict: Fitted model parameters
     """
@@ -144,14 +141,14 @@ def fit_mixture_direct(counts, k, max_iter=100, tol=1e-6, random_state=42, n_res
     counts = counts[valid_mask]
     if len(counts) == 0:
         raise ValueError("No valid counts found for direct fitting.")
-    
+
     # Pre-compute unique counts and their frequencies for efficiency
     unique_counts, count_freq = np.unique(counts, return_counts=True)
 
     # Try multiple random initializations and pick the best
     best_result = None
     best_ll = float("-inf")
-    
+
     for restart in range(n_restarts):
         # Initial guess
         w0 = 0.5
@@ -169,21 +166,26 @@ def fit_mixture_direct(counts, k, max_iter=100, tol=1e-6, random_state=42, n_res
         ]
 
         def objective(param_vec):
-            return -direct_mixture_log_likelihood(param_vec, counts, k, unique_counts, count_freq)
+            return -direct_mixture_log_likelihood(
+                param_vec, counts, k, unique_counts, count_freq
+            )
 
         # We can use L-BFGS-B or any other method
         res = minimize(
-            objective, x0, method="L-BFGS-B", bounds=bnds, 
-            options=dict(maxiter=max_iter, gtol=tol)
+            objective,
+            x0,
+            method="L-BFGS-B",
+            bounds=bnds,
+            options=dict(maxiter=max_iter, gtol=tol),
         )
-        
+
         w, alpha1, beta1, alpha2, beta2 = res.x
         w = np.clip(w, 1e-9, 1 - 1e-9)
 
         final_ll = direct_mixture_log_likelihood(
             [w, alpha1, beta1, alpha2, beta2], counts, k, unique_counts, count_freq
         )
-        
+
         # Keep track of the best result
         if final_ll > best_ll:
             best_ll = final_ll
@@ -197,7 +199,7 @@ def fit_mixture_direct(counts, k, max_iter=100, tol=1e-6, random_state=42, n_res
                 "n_iter": res.nit,
                 "restart": restart,
             }
-    
+
     return best_result
 
 
@@ -210,7 +212,7 @@ def em_mixture_beta_binomial(
     max_iter: int = 100,
     tol: float = 1e-6,
     random_state: int = 42,
-    n_restarts: int = 2
+    n_restarts: int = 2,
 ):
     """
     Fit a two-component mixture of Beta-Binomial distributions with
@@ -239,13 +241,13 @@ def em_mixture_beta_binomial(
 
     if len(counts) == 0:
         raise ValueError("No valid counts found in input data")
-    
+
     # For efficiency, work with unique counts and their frequencies
     unique_counts, count_freq = np.unique(counts, return_counts=True)
-    
+
     best_result = None
     best_ll = float("-inf")
-    
+
     # Try multiple random initializations
     for restart in range(n_restarts):
         # 1) Initialization
@@ -277,10 +279,12 @@ def em_mixture_beta_binomial(
         for iteration in range(max_iter):
             # E-step: compute responsibilities
             # Using unique counts for efficiency
-            logp1 = np.array([log_beta_binomial_pmf(s, k, alpha1, beta1) 
-                             for s in unique_counts])
-            logp2 = np.array([log_beta_binomial_pmf(s, k, alpha2, beta2) 
-                             for s in unique_counts])
+            logp1 = np.array(
+                [log_beta_binomial_pmf(s, k, alpha1, beta1) for s in unique_counts]
+            )
+            logp2 = np.array(
+                [log_beta_binomial_pmf(s, k, alpha2, beta2) for s in unique_counts]
+            )
 
             logw1 = np.log(np.clip(w, 1e-9, 1 - 1e-9)) + logp1
             logw2 = np.log(np.clip(1 - w, 1e-9, 1 - 1e-9)) + logp2
@@ -302,8 +306,13 @@ def em_mixture_beta_binomial(
                 (1e-9, None),  # alpha2 > 0
                 (1e-9, None),  # beta2 > 0
             ]
-            res = minimize(neg_log_likelihood, x0, method="L-BFGS-B", bounds=bnds, 
-                         options={'maxiter': 20})  # Fewer iterations within EM
+            res = minimize(
+                neg_log_likelihood,
+                x0,
+                method="L-BFGS-B",
+                bounds=bnds,
+                options={"maxiter": 20},
+            )  # Fewer iterations within EM
             w, alpha1, beta1, alpha2, beta2 = res.x
             w = np.clip(w, 1e-9, 1 - 1e-9)
 
@@ -317,7 +326,7 @@ def em_mixture_beta_binomial(
                     "beta2": beta2,
                     "log_likelihood": new_ll,
                     "n_iter": iteration + 1,
-                    "restart": restart
+                    "restart": restart,
                 }
                 if new_ll > best_ll:
                     best_ll = new_ll
@@ -334,7 +343,7 @@ def em_mixture_beta_binomial(
             "beta2": beta2,
             "log_likelihood": old_ll,
             "n_iter": max_iter,
-            "restart": restart
+            "restart": restart,
         }
         if old_ll > best_ll:
             best_ll = old_ll
@@ -351,7 +360,7 @@ def fit_mixture_beta_binomial(
     tol: float = 1e-6,
     random_state: int = 42,
     n_restarts: int = 2,
-    parallel: bool = False
+    parallel: bool = False,
 ):
     """
     Wrapper that calls either the EM-based or direct-likelihood-based approach
@@ -366,7 +375,7 @@ def fit_mixture_beta_binomial(
         random_state: seed for random initialization
         n_restarts: number of random initializations to try
         parallel: whether to use parallel processing (if available)
-        
+
     Returns:
         dict: Fitted model parameters
     """
@@ -374,15 +383,18 @@ def fit_mixture_beta_binomial(
     if parallel:
         try:
             import joblib
+
             print("Using parallel processing for model fitting")
             # This would need additional code to implement parallel fitting
             # Not implemented in this example
         except ImportError:
             print("joblib not available, using serial processing")
             parallel = False
-    
+
     if fitting_method == "em":
-        return em_mixture_beta_binomial(counts, k, max_iter, tol, random_state, n_restarts)
+        return em_mixture_beta_binomial(
+            counts, k, max_iter, tol, random_state, n_restarts
+        )
     elif fitting_method == "direct":
         return fit_mixture_direct(counts, k, max_iter, tol, random_state, n_restarts)
     else:
