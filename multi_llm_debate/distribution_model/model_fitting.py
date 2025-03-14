@@ -219,7 +219,11 @@ if __name__ == "__main__":
     if aggregated_df.empty:
         print("No data available for analysis")
         sys.exit(1)
-
+        
+    # Print the aggregated DataFrame
+    print("Aggregated DataFrame:")
+    print(aggregated_df)
+    
     # Keep track of previous round results for delta calculation
     prev_fit_result = None
 
