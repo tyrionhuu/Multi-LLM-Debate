@@ -251,9 +251,11 @@ def visualize_parameter_trends(
 if __name__ == "__main__":
     import sys
 
-    DATA_PATH = Path("output/bool_q/processed_data.csv")
-    MODEL_DIR_PATH = Path("data/bool_q/llama3(11)")
+    # Define paths for input and output
+    ANSWERS_CSV = Path("output/bool_q/processed_data.csv")  # id -> answer file
+    DEBATES_CSV = Path("data/bool_q/llama3(11)/debate_rounds.csv")  # debate rounds data
     OUTPUT_DIR = Path("output/visualizations/bool_q")
+    MAX_ROUNDS = None  # or an int
 
     # Choose the fitting method: "em" or "direct"
     FIT_METHOD = "direct"  # Change to "direct" to use direct optimization approach
@@ -261,22 +263,39 @@ if __name__ == "__main__":
     # Create output directory if it doesn't exist
     OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
-    # Load data
+    # Load answers data
     try:
-        dataframe = pd.read_csv(DATA_PATH)
-        print(f"Loaded data from {DATA_PATH}")
+        df_answers = pd.read_csv(ANSWERS_CSV)
+        # Convert id to numeric and clean
+        df_answers["id"] = pd.to_numeric(df_answers["id"], errors="coerce")
+        df_answers.dropna(subset=["id"], inplace=True)
+        df_answers["id"] = df_answers["id"].astype(int)
+        print(f"Loaded answers data from {ANSWERS_CSV}")
     except Exception as e:
-        print(f"Error loading data: {e}")
+        print(f"Error loading answers data: {e}")
         sys.exit(1)
 
-    if not MODEL_DIR_PATH.exists() or not MODEL_DIR_PATH.is_dir():
-        print(f"Model directory does not exist: {MODEL_DIR_PATH}")
+    # Load debate rounds data
+    try:
+        df_debates = pd.read_csv(DEBATES_CSV)
+        # Convert task_id and round_number to numeric and clean
+        df_debates["task_id"] = pd.to_numeric(df_debates["task_id"], errors="coerce")
+        df_debates["round_number"] = pd.to_numeric(
+            df_debates["round_number"], errors="coerce"
+        )
+        df_debates.dropna(subset=["task_id", "round_number"], inplace=True)
+        df_debates["task_id"] = df_debates["task_id"].astype(int)
+        df_debates["round_number"] = df_debates["round_number"].astype(int)
+        print(f"Loaded debate rounds from {DEBATES_CSV}")
+    except Exception as e:
+        print(f"Error loading debate rounds data: {e}")
         sys.exit(1)
 
     # Get aggregated data for all rounds
     try:
+        print("Calculating correct rate distribution...")
         aggregated_df = calculate_correct_rate_distribution(
-            dataframe=dataframe, model_dir=MODEL_DIR_PATH
+            df_answers=df_answers, df_debates=df_debates, max_rounds=MAX_ROUNDS
         )
     except Exception as e:
         print(f"Error calculating correct rate distribution: {e}")
