@@ -129,7 +129,7 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
     """
     Ensure consistent ordering of mixture components to make comparison across
     rounds more reliable. This function:
-    
+
     1. Orders components so that component 1 has higher expected success rate
        (alpha1/(alpha1+beta1) > alpha2/(alpha2+beta2))
     2. For component 1 (higher success): Ensures alpha1 > beta1 when possible
@@ -162,7 +162,7 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
     else:
         # Components already in correct order
         result = params.copy()
-    
+
     # Step 2: Now ensure alpha and beta are ordered within each component
     # For component 1 (higher success rate): Prefer alpha1 > beta1
     if result["alpha1"] < result["beta1"]:
@@ -174,12 +174,12 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
         new_alpha1 = result["beta1"] * scale
         new_beta1 = result["alpha1"]
         new_exp1 = new_alpha1 / (new_alpha1 + new_beta1)
-        
+
         # Only swap if the change in expected value is small
         if abs(new_exp1 - exp1) < 0.01:
             result["alpha1"] = new_alpha1
             result["beta1"] = new_beta1
-    
+
     # For component 2 (lower success rate): Prefer alpha2 < beta2
     if result["alpha2"] > result["beta2"]:
         # Only swap if it doesn't change the expected value significantly
@@ -189,12 +189,12 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
         new_alpha2 = result["beta2"]
         new_beta2 = result["alpha2"] * scale
         new_exp2 = new_alpha2 / (new_alpha2 + new_beta2)
-        
+
         # Only swap if the change in expected value is small
         if abs(new_exp2 - exp2) < 0.01:
             result["alpha2"] = new_alpha2
             result["beta2"] = new_beta2
-    
+
     return result
 
 
