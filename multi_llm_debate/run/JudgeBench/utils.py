@@ -14,16 +14,30 @@ def load_judge_bench_dataset(
     Returns:
         pd.DataFrame: DataFrame containing the JudgeBench data.
     """
-    dataset = load_dataset(
+    dataset_1 = load_dataset(
         "ScalerLab/JudgeBench",
         split="gpt",
         cache_dir=dataset_path,
     )
-    if dataset is None:
+    if dataset_1 is None:
         raise ValueError("Failed to load the JudgeBench dataset.")
     # Convert to DataFrame
-    df = pd.DataFrame(dataset)
+    df_1 = pd.DataFrame(dataset_1)
 
+    dataset_2 = load_dataset(
+        "ScalerLab/JudgeBench",
+        split="claude",
+        cache_dir=dataset_path,
+    )
+    if dataset_2 is None:
+        raise ValueError("Failed to load the JudgeBench dataset.")
+    # Convert to DataFrame
+    df_2 = pd.DataFrame(dataset_2)
+    
+    # Concatenate the two DataFrames
+    df = pd.concat([df_1, df_2], ignore_index=True)
+    # Rename columns to match expected format
+    
     return df
 
 
