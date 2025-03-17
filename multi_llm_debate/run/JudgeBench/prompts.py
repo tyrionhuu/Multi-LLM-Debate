@@ -96,9 +96,10 @@ def build_judge_bench_round_zero_prompt(
     return prompt
 
 
-def build_bool_q_round_n_prompt(
+def build_judge_bench_round_n_prompt(
     question: str,
-    passage: str,
+    response_a: str,
+    response_b: str,
     responses: List[str | Dict],
     use_cot: bool = True,
     json_mode: bool = False,
@@ -107,36 +108,12 @@ def build_bool_q_round_n_prompt(
 
     Args:
         question: The question to be answered
-        passage: The passage to base the answer on
+        response_a: Response from Assistant A
+        response_b: Response from Assistant B
         responses: Previous responses from other models
         use_cot: Whether to use chain-of-thought prompting
         json_mode: Whether to return response in JSON format
-        **kwargs: Additional arguments that will be ignored
 
     Returns:
         str: The formatted prompt
     """
-    prompt = (
-        "Several other models have provided responses to a true or false question, below are their responses: "
-        + NEW_LINE
-    )
-
-    for i, response in enumerate(responses, 1):
-        prompt += f"Model {i}: {response}" + NEW_LINE
-
-    prompt += NEW_LINE
-    prompt += (
-        "Consider these responses when answering the following true or false question."
-        + NEW_LINE
-    )
-    if json_mode:
-        prompt += "Answer in the following JSON format:" + NEW_LINE
-        prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
-    else:
-        prompt += "Answer in the following format:" + NEW_LINE
-        prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
-    prompt += NEW_LINE
-    prompt += "Question: " + question + NEW_LINE
-    prompt += "Passage: " + passage
-
-    return prompt
