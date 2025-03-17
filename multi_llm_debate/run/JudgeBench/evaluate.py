@@ -33,6 +33,7 @@ def evaluate_judge_bench_responses(
         print(f"Error evaluating responses: {e}")
         return False
 
+
 def evaluate_all_judge_bench(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
@@ -57,5 +58,3 @@ def evaluate_all_judge_bench(
         evaluation_func=evaluate_judge_bench_responses,
         multiple_models=multiple_models,
     )
-    
-    
