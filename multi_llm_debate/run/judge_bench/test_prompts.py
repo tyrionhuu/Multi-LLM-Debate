@@ -4,7 +4,7 @@ from multi_llm_debate.run.bool_q.prompts import (
     build_bool_q_round_n_prompt,
     build_bool_q_round_zero_prompt,
 )
-from multi_llm_debate.run.JudgeBench.prompts import (
+from multi_llm_debate.run.judge_bench.prompts import (
     build_judge_bench_round_n_prompt,
     build_judge_bench_round_zero_prompt,
 )
