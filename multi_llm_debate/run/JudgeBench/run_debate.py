@@ -62,7 +62,7 @@ logger = setup_logging(__name__)
 #         if dataframe.empty:
 #             logger.error("DataFrame is empty")
 #             raise ValueError("DataFrame is empty. Please provide valid data.")
-        
+
 #         with progress.main_bar(
 #             total=len(dataframe), desc="Running debates", unit="debate"
 #         ) as pbar:
@@ -90,7 +90,7 @@ logger = setup_logging(__name__)
 #                         }
 #                     )
 #                     continue
-            
+
 #     except Exception as e:
 #         logger.error(f"Global execution error: {str(e)}", exc_info=True)
 #         raise RuntimeError(f"Global execution error: {str(e)}") from e
@@ -123,4 +123,3 @@ logger = setup_logging(__name__)
 #         "failed_entries": failed_entries,
 #         "success_rate": success_rate,
 #     }
-    
