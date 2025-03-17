@@ -9,7 +9,10 @@ from ...llm.prompt_builder import PromptBuilder
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
-from ..bool_q.prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
+from .prompts import (
+    build_judge_bench_round_n_prompt,
+    build_judge_bench_round_zero_prompt,
+)
 
 logger = setup_logging(__name__)
 
