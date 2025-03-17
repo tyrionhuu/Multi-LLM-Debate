@@ -6,10 +6,10 @@ import pandas as pd
 from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.debate import debate
 from ...llm.prompt_builder import PromptBuilder
-from .prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
+from .prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 
 logger = setup_logging(__name__)
 
