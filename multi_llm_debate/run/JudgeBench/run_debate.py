@@ -183,8 +183,7 @@ def run_judge_bench_single_entry(
         # Check if response already exists
         if output_dir.exists() and not overwrite:
             debate_files = [
-                output_dir / f"debate_round_{i}.json"
-                for i in range(1, max_rounds + 1)
+                output_dir / f"debate_round_{i}.json" for i in range(1, max_rounds + 1)
             ]
             debate_files_exist = any(f.exists() for f in debate_files)
             if debate_files_exist:
@@ -213,10 +212,9 @@ def run_judge_bench_single_entry(
             },
         )
         agents_ensemble = AgentsEnsemble(
-            config_list=model_configs, 
-            max_workers=max_workers
+            config_list=model_configs, max_workers=max_workers
         )
-        
+
         logger.info("Starting debate execution")
         debate(
             max_rounds=max_rounds,
@@ -227,5 +225,8 @@ def run_judge_bench_single_entry(
         logger.info("Debate completed successfully")
 
     except Exception as e:
-        logger.error(f"Debate execution failed for entry {entry.get('pair_id')}: {str(e)}", exc_info=True)
+        logger.error(
+            f"Debate execution failed for entry {entry.get('pair_id')}: {str(e)}",
+            exc_info=True,
+        )
         raise RuntimeError(f"Debate execution failed: {str(e)}") from e
