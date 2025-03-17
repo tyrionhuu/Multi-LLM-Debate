@@ -102,7 +102,7 @@ def check_convergence(responses: List[Dict]) -> bool:
 
 
 def main():
-    from ..llm.prompts import (
+    from ..run.bool_q.prompts import (
         build_bool_q_round_n_prompt,
         build_bool_q_round_zero_prompt,
     )
