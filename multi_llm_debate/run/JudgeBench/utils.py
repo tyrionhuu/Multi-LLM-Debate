@@ -16,7 +16,7 @@ def load_judge_bench_dataset(
     """
     dataset = load_dataset(
         dataset_path,
-        split="gpt",
+        split="train",
     )
     if dataset is None:
         raise ValueError("Failed to load the JudgeBench dataset.")
