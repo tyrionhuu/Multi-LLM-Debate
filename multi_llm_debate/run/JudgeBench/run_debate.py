@@ -230,4 +230,3 @@ def run_judge_bench_single_entry(
             exc_info=True,
         )
         raise RuntimeError(f"Debate execution failed: {str(e)}") from e
-
