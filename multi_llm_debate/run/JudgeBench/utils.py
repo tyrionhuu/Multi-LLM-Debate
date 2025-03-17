@@ -1,5 +1,8 @@
 import pandas as pd
+
 from datasets import load_dataset
+
+
 def load_judge_bench_dataset(
     dataset_path: str = "datasets/JudgeBench",
 ) -> pd.DataFrame:
@@ -13,14 +16,15 @@ def load_judge_bench_dataset(
     """
     dataset = load_dataset(
         dataset_path,
-        split="train",
+        split="gpt",
     )
     if dataset is None:
         raise ValueError("Failed to load the JudgeBench dataset.")
     # Convert to DataFrame
     df = pd.DataFrame(dataset)
-    
+
     return df
+
 
 def main() -> None:
     """Main function to load and display the JudgeBench dataset."""
