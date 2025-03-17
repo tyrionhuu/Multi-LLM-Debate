@@ -33,11 +33,11 @@ def load_judge_bench_dataset(
         raise ValueError("Failed to load the JudgeBench dataset.")
     # Convert to DataFrame
     df_2 = pd.DataFrame(dataset_2)
-    
+
     # Concatenate the two DataFrames
     df = pd.concat([df_1, df_2], ignore_index=True)
     # Rename columns to match expected format
-    
+
     return df
 
 
@@ -51,6 +51,7 @@ def main() -> None:
     print("Columns:", dataframe.columns.tolist())
     print("Sample entry:", dataframe.iloc[0].to_dict())
     return dataframe
+
 
 if __name__ == "__main__":
     # Run the main function to load and display the dataset
