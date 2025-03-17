@@ -8,7 +8,7 @@ if __name__ == "__main__":
     from .run_debate import run_bool_q
     from .utils import process_bool_q_df
 
-    args = Parser(description="Run boolean question evaluation").parse_args()
+    args = Parser(description="Run Bool Q evaluation").parse_args()
 
     # Load the dataset
     dataset_path = Path("datasets/boolq")
