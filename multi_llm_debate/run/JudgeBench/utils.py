@@ -36,3 +36,7 @@ def main() -> None:
     print("Columns:", dataframe.columns.tolist())
     print("Sample entry:", dataframe.iloc[0].to_dict())
     return dataframe
+
+if __name__ == "__main__":
+    # Run the main function to load and display the dataset
+    main()
