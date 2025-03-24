@@ -13,8 +13,8 @@ def main(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable[..., Any],
     evaluate_fn: Callable[..., Any],
-    process_df_fn: Callable[..., pd.DataFrame],
-    task_name: str,
+    process_df_fn: Optional[Callable[..., pd.DataFrame]] = None,
+    task_name: str = "",
     sample_size: Optional[int] = None,
     max_workers: Optional[int] = 4,
     config_path: Optional[Path] = None,
@@ -25,7 +25,8 @@ def main(
         dataframe: Input DataFrame containing the debate data
         run_debate_fn: Function to run debates
         evaluate_fn: Function to evaluate debate results
-        process_df_fn: Function to preprocess DataFrame
+        process_df_fn: Optional function to preprocess DataFrame. If None,
+            the dataframe will be used without preprocessing.
         task_name: Name of the debate task
         sample_size: Optional number of samples to process
         max_workers: Maximum number of concurrent workers
@@ -49,8 +50,11 @@ def main(
             )
             sample_size = None
 
-        # Process all configurations
-        processed_df = process_df_fn(dataframe)
+        # Process dataframe if process_df_fn is provided, otherwise use as is
+        if process_df_fn is not None:
+            processed_df = process_df_fn(dataframe)
+        else:
+            processed_df = dataframe
 
         # Create output directory if it doesn't exist
         output_dir = Path("output/bool_q")

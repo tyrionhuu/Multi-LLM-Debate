@@ -1,5 +1,5 @@
 from multi_llm_debate.llm.prompt_builder import PromptBuilder
-from multi_llm_debate.llm.prompts import (
+from multi_llm_debate.run.bool_q.prompts import (
     BOOL_JSON_FORMAT,
     BOOL_JSON_FORMAT_COT,
     BOOL_NON_JSON_FORMAT,

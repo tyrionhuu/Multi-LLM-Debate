@@ -248,8 +248,8 @@ def load_save_dataset_df(
 
 def main() -> None:
     df = load_save_dataset_df(
-        dataset_name="google/boolq",
-        dataset_path=Path("datasets/boolq"),
+        dataset_name="ScalerLab/JudgeBench",
+        dataset_path=Path("datasets/JudgeBench"),
         force_download=False,
         source="huggingface",
     )

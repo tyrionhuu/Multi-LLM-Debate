@@ -2,14 +2,14 @@ from typing import Dict, List
 
 NEW_LINE = "\n"
 
-BOOL_JSON_FORMAT = """
+JSON_FORMAT = """
 {
     "reasoning": "your reasoning based on the passage",
     "answer": "true/false"
 }
 """
 
-BOOL_JSON_FORMAT_COT = """
+JSON_FORMAT_COT = """
 {
     "reasoning": {
         "step_1": "first step of your reasoning",
@@ -21,12 +21,12 @@ BOOL_JSON_FORMAT_COT = """
 }
 """
 
-BOOL_NON_JSON_FORMAT = """
+NON_JSON_FORMAT = """
 Reasoning: your reasoning based on the passage
 Final Answer: true/false
 """
 
-BOOL_NON_JSON_FORMAT_COT = """
+NON_JSON_FORMAT_COT = """
 Reasoning:
 Step 1: first step of your reasoning
 Step 2: second step of your reasoning
@@ -57,10 +57,10 @@ def build_bool_q_round_zero_prompt(
     prompt = "You will be given a true or false question which is based on a passage. "
     if json_mode:
         prompt += "Answer in the following JSON format:" + NEW_LINE
-        prompt += BOOL_JSON_FORMAT_COT if use_cot else BOOL_JSON_FORMAT
+        prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
     else:
         prompt += "Answer in the following format:" + NEW_LINE
-        prompt += BOOL_NON_JSON_FORMAT_COT if use_cot else BOOL_NON_JSON_FORMAT
+        prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
     prompt += NEW_LINE
     prompt += "Question: " + question + NEW_LINE
     prompt += "Passage: " + passage
@@ -103,10 +103,10 @@ def build_bool_q_round_n_prompt(
     )
     if json_mode:
         prompt += "Answer in the following JSON format:" + NEW_LINE
-        prompt += BOOL_JSON_FORMAT_COT if use_cot else BOOL_JSON_FORMAT
+        prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
     else:
         prompt += "Answer in the following format:" + NEW_LINE
-        prompt += BOOL_NON_JSON_FORMAT_COT if use_cot else BOOL_NON_JSON_FORMAT
+        prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
     prompt += NEW_LINE
     prompt += "Question: " + question + NEW_LINE
     prompt += "Passage: " + passage

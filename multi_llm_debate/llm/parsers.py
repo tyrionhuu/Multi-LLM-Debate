@@ -25,3 +25,22 @@ def extract_bool_answer(response: str) -> Answer:
         raise ValueError("Answer not recognized")
 
     return "true" if last_true > last_false else "false"
+
+
+def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
+    """
+    Extract answer from the response string, using the last occurrence.
+
+    Args:
+        response: The response string from the LLM.
+
+    Returns:
+        Answer: "A" or "B". Uses the last occurrence of A/B.
+    """
+    last_a = response.rfind("A")
+    last_b = response.rfind("B")
+
+    if last_a == -1 and last_b == -1:
+        raise ValueError("Answer not recognized")
+
+    return "A" if last_a > last_b else "B"
