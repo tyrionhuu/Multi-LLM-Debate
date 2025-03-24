@@ -90,6 +90,12 @@ def build_judge_bench_round_zero_prompt(
     prompt += response_b + NEW_LINE
     prompt += "[The End of Assistant B's Answer]"
 
+    prompt += NEW_LINE  
+    prompt += "Which assistant provided the better response? A or B?"
+    
+    prompt += NEW_LINE
+    prompt += "Your answer:"
+    
     return prompt
 
 
@@ -158,5 +164,11 @@ def build_judge_bench_round_n_prompt(
     prompt += "[The Start of Assistant B's Answer]" + NEW_LINE
     prompt += response_b + NEW_LINE
     prompt += "[The End of Assistant B's Answer]"
-
+    
+    prompt += NEW_LINE  
+    prompt += "Which assistant provided the better response? A or B?"
+    
+    prompt += NEW_LINE
+    prompt += "Your answer:"
+    
     return prompt
