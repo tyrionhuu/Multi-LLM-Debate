@@ -1,8 +1,10 @@
-import pandas as pd
 from typing import Dict, Literal, Union
+
+import pandas as pd
 
 Answer = Literal["true", "false"]
 Reasoning = Union[str, Dict[str, str]]
+
 
 def process_bool_q_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Process the BoolQ DataFrame to ensure it has all required columns.
@@ -21,8 +23,6 @@ def process_bool_q_df(dataframe: pd.DataFrame) -> pd.DataFrame:
         processed_df["id"] = processed_df.index + 1
 
     return processed_df
-
-
 
 
 def extract_bool_answer(response: str) -> Answer:

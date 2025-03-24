@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Callable, Optional
+from typing import Callable, Dict, List, Optional
 
 from ..llm.prompt_builder import PromptBuilder
 from ..utils.logging_config import setup_logging
@@ -88,8 +88,7 @@ def debate(
 
 
 def check_convergence(
-    responses: List[Dict], 
-    process_answer: Optional[Callable] = None
+    responses: List[Dict], process_answer: Optional[Callable] = None
 ) -> bool:
     """Check if the responses from all agents have converged to the same answer.
 
@@ -104,7 +103,7 @@ def check_convergence(
     # If process_answer is None, use extract_bool_answer as default
     if process_answer is None:
         raise ValueError("process_answer function must be provided")
-        
+
     try:
         answers = [process_answer(response) for response in responses]
         return len(set(answers)) == 1
