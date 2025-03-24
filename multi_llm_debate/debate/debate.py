@@ -17,6 +17,7 @@ def debate(
     agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
     json_mode: bool = False,
+    process_answer=extract_bool_answer,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -28,6 +29,9 @@ def debate(
         prompt_builder: PromptBuilder instance to generate prompts for each round.
         agents_ensemble: Collection of LLM agents participating in the debate.
         output_dir: Directory path where debate responses will be saved.
+        json_mode: Whether to use JSON mode for responses.
+        process_answer: Function to process answers from responses. Defaults to
+            extract_bool_answer.
 
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
@@ -59,7 +63,7 @@ def debate(
                     response["response"] for response in all_responses[-1]
                 ]
                 try:
-                    if check_convergence(extracted_responses):
+                    if check_convergence(extracted_responses, process_answer):
                         # print("Convergence detected, ending debate")
                         break
                 except Exception as e:
@@ -84,17 +88,22 @@ def debate(
         raise
 
 
-def check_convergence(responses: List[Dict]) -> bool:
+def check_convergence(
+    responses: List[Dict], 
+    process_answer=extract_bool_answer
+) -> bool:
     """Check if the responses from all agents have converged to the same answer.
 
     Args:
         responses: List of agent responses from the most recent round of debate.
+        process_answer: Function to process answers from responses. Defaults to
+            extract_bool_answer.
 
     Returns:
         bool: True if all responses are the same, False otherwise.
     """
     try:
-        answers = [extract_bool_answer(response) for response in responses]
+        answers = [process_answer(response) for response in responses]
         return len(set(answers)) == 1
     except Exception as e:
         logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
