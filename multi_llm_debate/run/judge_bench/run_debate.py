@@ -221,9 +221,6 @@ def run_judge_bench_single_entry(
             config_list=model_configs, max_workers=max_workers
         )
 
-        # Log initial prompts in debug mode
-        logger.debug("Initial prompt: %s", prompt_builder.build_round_zero_prompt())
-
         logger.info("Starting debate execution")
         # Execute debate and capture the results for logging
         debate_results = debate(
