@@ -251,7 +251,7 @@ def main() -> None:
     )
     
     model_config = ModelConfig(
-        provider="api",
+        provider="ollama",
         name="llama3",
         quantity=3,
     )
