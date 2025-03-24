@@ -14,7 +14,7 @@ from .prompts import (
     build_judge_bench_round_n_prompt,
     build_judge_bench_round_zero_prompt,
 )
-
+from .utils import extract_caption_a_b_answer
 # Fix the setup_logging call by removing the level parameter
 logger = setup_logging(__name__)
 # Set debug level separately
@@ -228,6 +228,7 @@ def run_judge_bench_single_entry(
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
             output_dir=output_dir,
+            process_answer=extract_caption_a_b_answer,
         )
 
         # Log model outputs in debug mode
