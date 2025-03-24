@@ -61,6 +61,7 @@ def debate(
                 extracted_responses = [
                     response["response"] for response in all_responses[-1]
                 ]
+                logger.debug(f"Extracted responses for round {i}: {extracted_responses}")
                 try:
                     if check_convergence(extracted_responses, process_answer):
                         # print("Convergence detected, ending debate")
