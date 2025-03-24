@@ -11,6 +11,7 @@ from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
 from .prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from .utils import extract_bool_answer
+
 logger = setup_logging(__name__)
 
 
