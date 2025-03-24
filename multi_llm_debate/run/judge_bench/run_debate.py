@@ -211,12 +211,12 @@ def run_judge_bench_single_entry(
                 "use_cot": use_cot,
             },
         )
-        
+
         logger.debug("Model configurations: %s", model_configs)
         agents_ensemble = AgentsEnsemble(
             config_list=model_configs, max_workers=max_workers
         )
-        
+
         # Log initial prompts in debug mode
         logger.debug("Initial prompt: %s", prompt_builder.build_round_zero_prompt())
 
@@ -228,7 +228,7 @@ def run_judge_bench_single_entry(
             agents_ensemble=agents_ensemble,
             output_dir=output_dir,
         )
-        
+
         # Log model outputs in debug mode
         if debate_results:
             logger.debug("Debate results summary:")
@@ -239,7 +239,7 @@ def run_judge_bench_single_entry(
                         logger.debug(f"Agent {agent_id}: {response}")
                 else:
                     logger.debug(f"Round data: {str(round_data)}")
-        
+
         logger.info("Debate completed successfully")
 
     except Exception as e:
