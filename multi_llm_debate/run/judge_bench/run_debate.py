@@ -14,7 +14,7 @@ from .prompts import (
     build_judge_bench_round_zero_prompt,
 )
 
-logger = setup_logging(__name__)
+logger = setup_logging(__name__, level="DEBUG")
 
 
 def run_judge_bench(
