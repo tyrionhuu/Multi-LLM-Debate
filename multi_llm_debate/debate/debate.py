@@ -89,8 +89,7 @@ def debate(
 
 
 def check_convergence(
-    responses: List[Dict], 
-    process_answer=extract_bool_answer
+    responses: List[Dict], process_answer=extract_bool_answer
 ) -> bool:
     """Check if the responses from all agents have converged to the same answer.
 
