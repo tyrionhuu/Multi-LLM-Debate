@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import logging
 
 import pandas as pd
 
@@ -14,7 +15,10 @@ from .prompts import (
     build_judge_bench_round_zero_prompt,
 )
 
-logger = setup_logging(__name__, level="DEBUG")
+# Fix the setup_logging call by removing the level parameter
+logger = setup_logging(__name__)
+# Set debug level separately
+logger.setLevel(logging.DEBUG)
 
 
 def run_judge_bench(
