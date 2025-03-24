@@ -1,7 +1,6 @@
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Callable, Optional
 
-from ..llm.parsers import extract_bool_answer
 from ..llm.prompt_builder import PromptBuilder
 from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
@@ -17,7 +16,7 @@ def debate(
     agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
     json_mode: bool = False,
-    process_answer=extract_bool_answer,
+    process_answer: Optional[Callable] = None,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -31,7 +30,7 @@ def debate(
         output_dir: Directory path where debate responses will be saved.
         json_mode: Whether to use JSON mode for responses.
         process_answer: Function to process answers from responses. Defaults to
-            extract_bool_answer.
+            None, in which case extract_bool_answer will be used.
 
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
@@ -41,9 +40,9 @@ def debate(
         Exception: If any error occurs during the debate process.
             Original exception is logged and re-raised.
     """
-    # print("Starting debate")
-    # print(f"Maximum rounds: {max_rounds}")
-    # print(f"Output directory: {output_dir}")
+    # If process_answer is None, use extract_bool_answer as default
+    if process_answer is None:
+        raise ValueError("process_answer function must be provided")
 
     all_responses = []
 
@@ -89,18 +88,23 @@ def debate(
 
 
 def check_convergence(
-    responses: List[Dict], process_answer=extract_bool_answer
+    responses: List[Dict], 
+    process_answer: Optional[Callable] = None
 ) -> bool:
     """Check if the responses from all agents have converged to the same answer.
 
     Args:
         responses: List of agent responses from the most recent round of debate.
         process_answer: Function to process answers from responses. Defaults to
-            extract_bool_answer.
+            None, in which case extract_bool_answer will be used.
 
     Returns:
         bool: True if all responses are the same, False otherwise.
     """
+    # If process_answer is None, use extract_bool_answer as default
+    if process_answer is None:
+        raise ValueError("process_answer function must be provided")
+        
     try:
         answers = [process_answer(response) for response in responses]
         return len(set(answers)) == 1
