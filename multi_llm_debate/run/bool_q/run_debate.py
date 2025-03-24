@@ -10,7 +10,7 @@ from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
 from .prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
-
+from .utils import extract_bool_answer
 logger = setup_logging(__name__)
 
 
@@ -206,6 +206,7 @@ def run_bool_q_single_entry(
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
             output_dir=output_dir,
+            process_answer=extract_bool_answer,
         )
         logger.info("Debate completed successfully")
 
