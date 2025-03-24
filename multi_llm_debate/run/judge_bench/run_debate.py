@@ -211,17 +211,35 @@ def run_judge_bench_single_entry(
                 "use_cot": use_cot,
             },
         )
+        
+        logger.debug("Model configurations: %s", model_configs)
         agents_ensemble = AgentsEnsemble(
             config_list=model_configs, max_workers=max_workers
         )
+        
+        # Log initial prompts in debug mode
+        logger.debug("Initial prompt: %s", prompt_builder.build_round_zero_prompt())
 
         logger.info("Starting debate execution")
-        debate(
+        # Execute debate and capture the results for logging
+        debate_results = debate(
             max_rounds=max_rounds,
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
             output_dir=output_dir,
         )
+        
+        # Log model outputs in debug mode
+        if debate_results:
+            logger.debug("Debate results summary:")
+            for round_num, round_data in enumerate(debate_results):
+                logger.debug(f"Round {round_num} output:")
+                if isinstance(round_data, dict):
+                    for agent_id, response in round_data.items():
+                        logger.debug(f"Agent {agent_id}: {response}")
+                else:
+                    logger.debug(f"Round data: {str(round_data)}")
+        
         logger.info("Debate completed successfully")
 
     except Exception as e:
