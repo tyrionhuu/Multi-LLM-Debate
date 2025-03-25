@@ -8,8 +8,8 @@ from .utils import get_final_round, normalize_boolean_answer
 
 
 def analyze_task_accuracy(
-    model_dir: Path, 
-    dataframe: pd.DataFrame, 
+    model_dir: Path,
+    dataframe: pd.DataFrame,
     extract_fn: Callable[[str], Optional[bool]],
 ) -> pd.DataFrame:
     """
@@ -18,7 +18,7 @@ def analyze_task_accuracy(
     Args:
         model_dir (Path): The path to the model directory.
         dataframe (pd.DataFrame): The DataFrame containing task information.
-        extract_fn (Callable[[str], Optional[bool]], optional): Function to extract 
+        extract_fn (Callable[[str], Optional[bool]], optional): Function to extract
             boolean answers from response text. Defaults to extract_bool_answer.
 
     Returns:
@@ -54,8 +54,8 @@ def analyze_task_accuracy(
 
 
 def calculate_task_accuracy(
-    task_dir: Path, 
-    answer: str, 
+    task_dir: Path,
+    answer: str,
     extract_fn: Callable[[str], Optional[bool]],
     round_number: int = 0,
 ) -> float:
@@ -67,7 +67,7 @@ def calculate_task_accuracy(
         answer (str): The correct answer for the task ('yes'/'no' or 'true'/'false').
         round_number (int, optional): The debate round number to analyze. Defaults to 0.
             If this round is larger than the final round, the final round's data will be used.
-        extract_fn (Callable[[str], Optional[bool]], optional): Function to extract 
+        extract_fn (Callable[[str], Optional[bool]], optional): Function to extract
             boolean answers from response text. Defaults to extract_bool_answer.
 
     Returns:
