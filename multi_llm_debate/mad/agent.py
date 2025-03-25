@@ -1,8 +1,7 @@
 import json
 import backoff
 import time
-from typing import List, Dict, Any, Optional
-from .openai_utils import num_tokens_from_string, model2max_context
+from typing import List, Dict, Optional
 
 from ..llm.llm import call_model
 
@@ -140,15 +139,11 @@ class Agent:
         Returns:
             str: The model's response
         """
-        # Calculate token limits
-        num_context_token = sum([num_tokens_from_string(m["content"], self.model_name) 
-                               for m in self.memory_lst])
-        max_token = model2max_context[self.model_name] - num_context_token
         
         # Make the query
         return self.query(
             self.memory_lst, 
-            max_token, 
+            max_tokens=3200,
             temperature=temperature,
             json_mode=json_mode
         )
