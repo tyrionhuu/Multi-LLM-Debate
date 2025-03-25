@@ -2,25 +2,27 @@ import json
 import logging
 import traceback
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import pandas as pd
 from tqdm import tqdm
-
-from ..llm.parsers import extract_bool_answer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def process_debate_round(
-    round_file: Path, correct_answer: str
+    round_file: Path,
+    correct_answer: str,
+    extract_func: Callable,
 ) -> Tuple[Optional[Tuple[bool, float]], bool]:
     """Process a single debate round file and calculate both majority and absolute rates.
 
     Args:
         round_file: Path to the debate round JSON file
         correct_answer: The expected correct answer
+        extract_func: Function to extract and normalize responses, defaults to
+            extract_bool_answer
 
     Returns:
         Tuple containing:
@@ -33,7 +35,7 @@ def process_debate_round(
 
         try:
             normalized_responses = [
-                extract_bool_answer(response.get("response", ""))
+                extract_func(response.get("response", ""))
                 for response in responses
                 if response.get("response")
             ]
@@ -65,7 +67,10 @@ def process_debate_round(
 
 
 def process_debate_directory(
-    subdir: Path, dataframe: pd.DataFrame, max_round_number: int
+    subdir: Path,
+    dataframe: pd.DataFrame,
+    max_round_number: int,
+    extract_func: Callable,
 ) -> Tuple[Dict[int, Dict[str, int]], Dict[int, int]]:
     """Process a single debate directory and calculate correctness counts.
 
@@ -73,6 +78,8 @@ def process_debate_directory(
         subdir: Path to the debate directory
         dataframe: DataFrame containing correct answers
         max_round_number: Maximum number of rounds to process
+        extract_func: Function to extract and normalize responses, defaults to
+            extract_bool_answer
 
     Returns:
         Tuple of (correct_counts, total_counts) where correct_counts contains
@@ -122,7 +129,9 @@ def process_debate_directory(
                 correct_counts[round_num]["absolute"] += last_absolute
             continue
 
-        round_result, should_end = process_debate_round(round_file, correct_answer)
+        round_result, should_end = process_debate_round(
+            round_file, correct_answer, extract_func
+        )
         if should_end:
             debate_ended = True
             continue
@@ -139,20 +148,24 @@ def process_debate_directory(
 
 
 def count_absolute_correct_rate(
-    responses: List[dict], correct_answer: str
+    responses: List[dict],
+    correct_answer: str,
+    extract_func: Callable,
 ) -> Optional[float]:
     """Calculate the absolute correct rate from responses.
 
     Args:
         responses: List of response dictionaries
         correct_answer: The expected correct answer
+        extract_func: Function to extract and normalize responses, defaults to
+            extract_bool_answer
 
     Returns:
         Float indicating correct rate, or None if invalid
     """
     try:
         valid_responses = [
-            extract_bool_answer(response.get("response", ""))
+            extract_func(response.get("response", ""))
             for response in responses
             if response.get("response")
         ]
@@ -166,7 +179,10 @@ def count_absolute_correct_rate(
 
 
 def calculate_correct_rate_by_round(
-    dataframe: pd.DataFrame, model_dir: Path, max_round_number: int
+    dataframe: pd.DataFrame,
+    model_dir: Path,
+    max_round_number: int,
+    extract_func: Callable,
 ) -> pd.DataFrame:
     """Calculate both majority and absolute correct rates for each round.
 
@@ -174,6 +190,8 @@ def calculate_correct_rate_by_round(
         dataframe (pd.DataFrame): DataFrame containing 'id' and 'answer' columns.
         model_dir (Path): Path to the model directory containing debate results.
         max_round_number (int): Maximum number of debate rounds to analyze.
+        extract_func: Function to extract and normalize responses, defaults to
+            extract_bool_answer
 
     Returns:
         pd.DataFrame: A DataFrame with two rows (majority and absolute) containing
@@ -194,7 +212,7 @@ def calculate_correct_rate_by_round(
 
     for subdir in pbar:
         round_correct_counts, round_total_counts = process_debate_directory(
-            subdir, dataframe, max_round_number
+            subdir, dataframe, max_round_number, extract_func
         )
         for round_num in range(0, max_round_number + 1):
             if round_num in round_correct_counts:
@@ -223,12 +241,3 @@ def calculate_correct_rate_by_round(
         absolute_data[str(round_num)] = absolute_rate
 
     return pd.DataFrame([majority_data, absolute_data])
-
-
-if __name__ == "__main__":
-    model_dir = Path("data/bool_q/llama3(7)")
-    dataframe = pd.read_csv("output/bool_q/processed_data.csv", index_col=0)
-    max_round_number = 10
-
-    result_df = calculate_correct_rate_by_round(dataframe, model_dir, max_round_number)
-    print(result_df)
