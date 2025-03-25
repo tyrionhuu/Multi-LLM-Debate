@@ -1,10 +1,9 @@
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Callable
 
 import pandas as pd
 
-from ..llm.parsers import extract_bool_answer
 
 
 def compare_bool(value_a: Any, value_b: Any) -> bool:
@@ -115,6 +114,7 @@ def calculate_majority_vote_correct_rate_for_round_n(
     dataframe: pd.DataFrame,
     model_dir: Path,
     round_number: int = 0,
+    extract_func: Optional[Callable[[str]]] = None,
 ) -> float:
     """Calculate the majority vote correct rate for a given model directory.
 
@@ -126,6 +126,9 @@ def calculate_majority_vote_correct_rate_for_round_n(
     Returns:
         The fraction of debates where the majority vote was correct.
     """
+    if extract_func is None:
+        raise ValueError("An extraction function must be provided")
+    
     total_correct = 0
     total_count = 0
 
@@ -156,7 +159,7 @@ def calculate_majority_vote_correct_rate_for_round_n(
 
             try:
                 normalized_responses = [
-                    extract_bool_answer(response.get("response", ""))
+                    extract_func(response.get("response", ""))
                     for response in responses
                     if response.get("response")
                 ]
@@ -190,7 +193,6 @@ def draw_console_histogram(
     height: int = 15,
     show_percentages: bool = True,
     sort_by: Optional[str] = None,
-    bar_char: str = "█",
     scale: Optional[float] = None,
     fine_grained: bool = True,
 ) -> str:
