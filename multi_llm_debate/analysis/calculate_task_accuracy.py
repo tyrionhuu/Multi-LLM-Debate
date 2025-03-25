@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 import pandas as pd
 
@@ -10,7 +10,7 @@ from .utils import get_final_round, normalize_boolean_answer
 def analyze_task_accuracy(
     model_dir: Path,
     dataframe: pd.DataFrame,
-    extract_fn: Callable[[str], Optional[bool]],
+    extract_fn: Callable,
 ) -> pd.DataFrame:
     """
     Analyzes the task accuracy for tasks that exist in the model directory.
@@ -56,7 +56,7 @@ def analyze_task_accuracy(
 def calculate_task_accuracy(
     task_dir: Path,
     answer: str,
-    extract_fn: Callable[[str], Optional[bool]],
+    extract_fn: Callable,
     round_number: int = 0,
 ) -> float:
     """
