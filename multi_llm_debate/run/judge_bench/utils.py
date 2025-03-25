@@ -61,6 +61,7 @@ def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
 
     return "A" if last_a > last_b else "B"
 
+
 def extract_bigger_char(comparison: str) -> str:
     """
     Extract the bigger character from the comparison string.
@@ -74,13 +75,14 @@ def extract_bigger_char(comparison: str) -> str:
     char1 = comparison[0]
     operator = comparison[1]
     char2 = comparison[2]
-    
+
     if operator == ">":
         return char1 if char1 > char2 else char2
     elif operator == "<":
         return char1 if char1 < char2 else char2
     else:
         raise ValueError("Invalid operator in comparison string")
+
 
 def main() -> None:
     """Main function to load and display the JudgeBench dataset."""
