@@ -4,7 +4,7 @@ from typing import Dict, List
 import pandas as pd
 
 from ..shared.evaluate import EvaluationResults, evaluate_all
-from .utils import extract_caption_a_b_answer, extract_bigger_char
+from .utils import extract_bigger_char, extract_caption_a_b_answer
 
 
 def evaluate_judge_bench_responses(
