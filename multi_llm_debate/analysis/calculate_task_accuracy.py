@@ -31,7 +31,7 @@ def analyze_task_accuracy(
     # Check if 'id' column exists in the dataframe
     if "id" not in dataframe.columns:
         raise ValueError("DataFrame must contain an 'id' column")
-    
+
     # Convert id column to string type if it isn't already
     dataframe["id"] = dataframe["id"].astype(str)
 
