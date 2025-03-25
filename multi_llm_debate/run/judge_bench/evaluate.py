@@ -3,8 +3,8 @@ from typing import Dict, List, Union
 
 import pandas as pd
 
-from .utils import extract_caption_a_b_answer
 from ..shared.evaluate import EvaluationResults, evaluate_all
+from .utils import extract_caption_a_b_answer
 
 
 def evaluate_judge_bench_responses(
