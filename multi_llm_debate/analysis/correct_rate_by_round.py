@@ -2,7 +2,7 @@ import json
 import logging
 import traceback
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Callable
+from typing import Callable, Dict, List, Optional, Tuple
 
 import pandas as pd
 from tqdm import tqdm
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def process_debate_round(
-    round_file: Path, 
+    round_file: Path,
     correct_answer: str,
     extract_func: Callable,
 ) -> Tuple[Optional[Tuple[bool, float]], bool]:
@@ -67,8 +67,8 @@ def process_debate_round(
 
 
 def process_debate_directory(
-    subdir: Path, 
-    dataframe: pd.DataFrame, 
+    subdir: Path,
+    dataframe: pd.DataFrame,
     max_round_number: int,
     extract_func: Callable,
 ) -> Tuple[Dict[int, Dict[str, int]], Dict[int, int]]:
@@ -148,7 +148,7 @@ def process_debate_directory(
 
 
 def count_absolute_correct_rate(
-    responses: List[dict], 
+    responses: List[dict],
     correct_answer: str,
     extract_func: Callable,
 ) -> Optional[float]:
@@ -179,8 +179,8 @@ def count_absolute_correct_rate(
 
 
 def calculate_correct_rate_by_round(
-    dataframe: pd.DataFrame, 
-    model_dir: Path, 
+    dataframe: pd.DataFrame,
+    model_dir: Path,
     max_round_number: int,
     extract_func: Callable,
 ) -> pd.DataFrame:
