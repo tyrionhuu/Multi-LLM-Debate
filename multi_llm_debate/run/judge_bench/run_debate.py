@@ -187,17 +187,32 @@ def run_judge_bench_single_entry(
 
         # Check if response already exists
         if output_dir.exists() and not overwrite:
-            debate_files = [
+            # Check if the debate has completed by looking for all expected round files
+            # A debate is considered complete if any of the highest round files exist
+            # or if all expected files for rounds up to max_rounds exist
+            final_round_files = output_dir / f"debate_round_{max_rounds}.json",
+            
+            all_round_files = [
                 output_dir / f"debate_round_{i}.json" for i in range(1, max_rounds + 1)
             ]
-            debate_files_exist = any(f.exists() for f in debate_files)
-            if debate_files_exist:
-                logger.info(f"Debate files already exist for entry {pair_id}. ")
+            
+            final_round_exists = any(f.exists() for f in final_round_files)
+            all_rounds_exist = all(f.exists() for f in all_round_files)
+            
+            if final_round_exists or all_rounds_exist:
+                logger.info(f"Complete debate already exists for entry {pair_id}. Skipping.")
                 return
-            else:
-                logger.debug(
-                    f"Debate files do not exist for entry {pair_id}. Overwriting enabled."
-                )
+            
+            # Check if any rounds exist but debate is incomplete
+            any_round_exists = any(f.exists() for f in all_round_files)
+            if any_round_exists:
+                logger.info(f"Partial debate exists for entry {pair_id}. Skipping due to overwrite=False.")
+                return
+                
+        elif output_dir.exists() and overwrite:
+            logger.info(f"Overwrite enabled for entry {pair_id}. Will regenerate all debate files.")
+            # When overwrite is True, we continue execution and the existing files
+            # will be overwritten when debate() writes new results
 
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
