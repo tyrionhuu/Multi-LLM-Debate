@@ -4,7 +4,7 @@ from typing import Dict, List
 import pandas as pd
 
 from ..shared.evaluate import EvaluationResults, evaluate_all
-from .utils import extract_caption_a_b_answer
+from .utils import extract_caption_a_b_answer, extract_bigger_char
 
 
 def evaluate_judge_bench_responses(
@@ -25,9 +25,9 @@ def evaluate_judge_bench_responses(
         normalized_responses = [
             extract_caption_a_b_answer(response) for response in raw_responses
         ]
-
+        gold_answer = extract_bigger_char(answer)
         if len(set(normalized_responses)) == 1:
-            return normalized_responses[0] == answer.upper()
+            return normalized_responses[0] == gold_answer.upper()
         return False
     except Exception as e:
         print(f"Error evaluating responses: {e}")
