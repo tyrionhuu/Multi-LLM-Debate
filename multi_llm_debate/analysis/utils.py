@@ -113,7 +113,7 @@ def calculate_majority_vote_correct_rate_for_round_n(
     dataframe: pd.DataFrame,
     model_dir: Path,
     round_number: int = 0,
-    extract_func: Optional[Callable[[str]]] = None,
+    extract_func: Optional[Callable] = None,
 ) -> float:
     """Calculate the majority vote correct rate for a given model directory.
 
