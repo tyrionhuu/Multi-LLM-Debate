@@ -3,7 +3,7 @@ from typing import Dict, List, Union
 
 import pandas as pd
 
-from ...llm.parsers import extract_caption_a_b_answer
+from .utils import extract_caption_a_b_answer
 from ..shared.evaluate import EvaluationResults, evaluate_all
 
 
