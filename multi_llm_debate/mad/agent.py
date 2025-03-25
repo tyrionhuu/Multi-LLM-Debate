@@ -1,26 +1,25 @@
 import json
-import backoff
 import time
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
+
+import backoff
 
 from ..llm.llm import call_model
 
-support_models = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301', 'gpt-4', 'gpt-4-0314']
-
-
 class LLMConnectionError(Exception):
     """Raised when there is a connection error with the LLM service."""
+
     pass
 
 
 class Agent:
     def __init__(
-        self, 
-        model_name: str, 
-        name: str, 
-        temperature: float, 
+        self,
+        model_name: str,
+        name: str,
+        temperature: float,
         provider: str = "openai",
-        sleep_time: float = 0
+        sleep_time: float = 0,
     ) -> None:
         """Create an agent
 
@@ -41,11 +40,11 @@ class Agent:
 
     @backoff.on_exception(backoff.expo, (LLMConnectionError,), max_tries=20)
     def query(
-        self, 
-        messages: List[Dict[str, str]], 
+        self,
+        messages: List[Dict[str, str]],
         max_tokens: int,
         temperature: Optional[float] = None,
-        json_mode: bool = False
+        json_mode: bool = True,
     ) -> str:
         """Make a query to the language model.
 
@@ -64,43 +63,32 @@ class Agent:
             str: the response from the model
         """
         time.sleep(self.sleep_time)
-        assert self.model_name in support_models, f"Not support {self.model_name}. Choices: {support_models}"
-        
-        # Format messages into a prompt if the provider doesn't support chat format
-        if self.provider.lower() != "openai":
-            # Simple concatenation for non-OpenAI providers
-            prompt = ""
-            for message in messages:
-                role = message["role"]
-                content = message["content"]
-                prompt += f"{role.upper()}: {content}\n\n"
-        else:
-            # Use messages directly for OpenAI
-            prompt = messages
-            
+
         try:
             temp = temperature if temperature is not None else self.temperature
             response = call_model(
                 model_name=self.model_name,
                 provider=self.provider,
-                prompt=prompt,
+                prompt=messages,
                 json_mode=json_mode,
                 temperature=temp,
-                max_tokens=max_tokens
+                max_tokens=max_tokens,
             )
-            
+
             # Handle different response formats
-            if isinstance(response, dict) and 'content' in response:
-                return response['content']
+            if isinstance(response, dict) and "content" in response:
+                return response["content"]
             else:
                 try:
                     parsed_response = json.loads(response)
                     return parsed_response
                 except json.JSONDecodeError:
                     return response
-                
+
         except ConnectionError as e:
-            raise LLMConnectionError(f"Failed to connect to {self.provider} service: {str(e)}")
+            raise LLMConnectionError(
+                f"Failed to connect to {self.provider} service: {str(e)}"
+            )
         except Exception as e:
             raise e
 
@@ -139,11 +127,11 @@ class Agent:
         Returns:
             str: The model's response
         """
-        
+
         # Make the query
         return self.query(
-            self.memory_lst, 
+            self.memory_lst,
             max_tokens=3200,
             temperature=temperature,
-            json_mode=json_mode
+            json_mode=json_mode,
         )
