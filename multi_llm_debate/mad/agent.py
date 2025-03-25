@@ -6,6 +6,7 @@ import backoff
 
 from ..llm.llm import call_model
 
+
 class LLMConnectionError(Exception):
     """Raised when there is a connection error with the LLM service."""
 
