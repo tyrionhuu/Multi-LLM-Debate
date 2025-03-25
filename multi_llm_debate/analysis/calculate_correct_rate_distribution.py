@@ -1,10 +1,9 @@
 import logging
-from typing import Optional
+from typing import Optional, Callable
 
 import pandas as pd
 from tqdm import tqdm
 
-from ..llm.parsers import extract_bool_answer
 from .utils import compare_bool
 
 # Set up logging
@@ -23,6 +22,8 @@ def calculate_correct_rate_distribution_for_round_n(
     df_answers: pd.DataFrame,
     df_debates: pd.DataFrame,
     round_number: int,
+    extract_func: Callable = None,
+    compare_func: Callable = None,
 ) -> pd.DataFrame:
     """
     Compute correct-rate distribution for a *requested* round_number.
@@ -45,7 +46,11 @@ def calculate_correct_rate_distribution_for_round_n(
               the result still shows the *requested* round, but that
               row's data is actually from whichever round was used.
     """
-
+    if extract_func is None:
+        raise ValueError("extract_func is required")
+    if compare_func is None:
+        raise ValueError("compare_func is required")    
+    
     # We'll gather results per task
     merged_rows = []
 
@@ -82,7 +87,7 @@ def calculate_correct_rate_distribution_for_round_n(
         normalized_responses = []
         for _, row in df_use.iterrows():
             try:
-                extracted = extract_bool_answer(row["response"])
+                extracted = extract_func(row["response"])
                 if extracted is not None:
                     normalized_responses.append(extracted)
             except ValueError:
@@ -95,7 +100,7 @@ def calculate_correct_rate_distribution_for_round_n(
             num_agents = 0
         else:
             correct_count = sum(
-                compare_bool(r, correct_label) for r in normalized_responses
+                compare_func(r, correct_label) for r in normalized_responses
             )
             num_agents = len(normalized_responses)
 
