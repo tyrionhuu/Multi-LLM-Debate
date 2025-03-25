@@ -1,9 +1,8 @@
 import logging
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 import pandas as pd
 from tqdm import tqdm
-
 
 # Set up logging
 logging.basicConfig(
@@ -48,8 +47,8 @@ def calculate_correct_rate_distribution_for_round_n(
     if extract_func is None:
         raise ValueError("extract_func is required")
     if compare_func is None:
-        raise ValueError("compare_func is required")    
-    
+        raise ValueError("compare_func is required")
+
     # We'll gather results per task
     merged_rows = []
 
@@ -162,7 +161,7 @@ def calculate_correct_rate_distribution(
         raise ValueError("extract_func is required")
     if compare_func is None:
         raise ValueError("compare_func is required")
-    
+
     # 1) Identify all round_numbers in df_debates
     unique_rounds = sorted(df_debates["round_number"].unique())
     if max_rounds is not None:
@@ -205,8 +204,9 @@ def calculate_correct_rate_distribution(
 
 def main():
     import sys
-    from .utils import compare_bool
+
     from ..run.bool_q.utils import extract_bool_answer
+    from .utils import compare_bool
 
     # Hardcoded paths for this example
     answers_csv = "output/bool_q/processed_data.csv"  # your "id" -> "answer" file
