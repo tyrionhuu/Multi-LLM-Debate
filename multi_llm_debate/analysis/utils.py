@@ -1,9 +1,8 @@
 import json
 from pathlib import Path
-from typing import Any, Optional, Callable
+from typing import Any, Callable, Optional
 
 import pandas as pd
-
 
 
 def compare_bool(value_a: Any, value_b: Any) -> bool:
@@ -128,7 +127,7 @@ def calculate_majority_vote_correct_rate_for_round_n(
     """
     if extract_func is None:
         raise ValueError("An extraction function must be provided")
-    
+
     total_correct = 0
     total_count = 0
 
