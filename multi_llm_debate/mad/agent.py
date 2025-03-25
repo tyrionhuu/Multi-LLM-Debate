@@ -19,7 +19,7 @@ class Agent:
         model_name: str,
         name: str,
         temperature: float,
-        provider: str = "openai",
+        provider: str = "ollama",
         sleep_time: float = 0,
     ) -> None:
         """Create an agent
