@@ -247,7 +247,11 @@ def main():
         f"Calculating distribution from merged CSV with fallback, max_rounds={max_rounds} ..."
     )
     df_distribution = calculate_correct_rate_distribution(
-        df_answers, df_debates, max_rounds=max_rounds
+        df_answers=df_answers,
+        df_debates=df_debates,
+        max_rounds=max_rounds,
+        extract_func=extract_bool_answer,
+        compare_func=compare_bool,
     )
 
     if df_distribution.empty:
