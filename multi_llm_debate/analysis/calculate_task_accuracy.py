@@ -1,19 +1,25 @@
 import json
 from pathlib import Path
+from typing import Callable, Optional
 
 import pandas as pd
 
-from ..llm.parsers import extract_bool_answer
 from .utils import get_final_round, normalize_boolean_answer
 
 
-def analyze_task_accuracy(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFrame:
+def analyze_task_accuracy(
+    model_dir: Path, 
+    dataframe: pd.DataFrame, 
+    extract_fn: Callable[[str], Optional[bool]],
+) -> pd.DataFrame:
     """
     Analyzes the task accuracy for tasks that exist in the model directory.
 
     Args:
         model_dir (Path): The path to the model directory.
         dataframe (pd.DataFrame): The DataFrame containing task information.
+        extract_fn (Callable[[str], Optional[bool]], optional): Function to extract 
+            boolean answers from response text. Defaults to extract_bool_answer.
 
     Returns:
         pd.DataFrame: A DataFrame with an additional column 'accuracy' indicating
@@ -36,7 +42,7 @@ def analyze_task_accuracy(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFr
             continue
 
         answer = dataframe.loc[dataframe["id"] == task_id, "answer"].values[0]
-        accuracy = calculate_task_accuracy(task_dir, answer)
+        accuracy = calculate_task_accuracy(task_dir, answer, extract_fn=extract_fn)
         accuracy_dict[task_id] = accuracy
 
     # Add accuracy column to dataframe
@@ -48,7 +54,10 @@ def analyze_task_accuracy(model_dir: Path, dataframe: pd.DataFrame) -> pd.DataFr
 
 
 def calculate_task_accuracy(
-    task_dir: Path, answer: str, round_number: int = 0
+    task_dir: Path, 
+    answer: str, 
+    extract_fn: Callable[[str], Optional[bool]],
+    round_number: int = 0,
 ) -> float:
     """
     Calculates the accuracy for a task based on the responses in the task directory.
@@ -58,6 +67,8 @@ def calculate_task_accuracy(
         answer (str): The correct answer for the task ('yes'/'no' or 'true'/'false').
         round_number (int, optional): The debate round number to analyze. Defaults to 0.
             If this round is larger than the final round, the final round's data will be used.
+        extract_fn (Callable[[str], Optional[bool]], optional): Function to extract 
+            boolean answers from response text. Defaults to extract_bool_answer.
 
     Returns:
         float: The accuracy of the task, or -1.0 if an error occurred.
@@ -94,7 +105,7 @@ def calculate_task_accuracy(
         # Count correct responses in the specified round
         for response in responses:
             response_text = response["response"]
-            extracted_response = extract_bool_answer(response_text)
+            extracted_response = extract_fn(response_text)
 
             # Skip invalid responses
             if extracted_response is None:
@@ -113,27 +124,3 @@ def calculate_task_accuracy(
             f"Error processing task directory {task_dir} for round {round_number}: {e}"
         )
         return -1.0
-
-
-if __name__ == "__main__":
-    # Set up paths
-    model_dir = Path("data/bool_q/llama3(7)")
-    data_path = Path("output/bool_q/processed_data.csv")
-
-    # Load dataset
-    dataframe = pd.read_csv(data_path)
-
-    # Analyze task accuracy
-    result_df = analyze_task_accuracy(model_dir, dataframe)
-    print(result_df)
-
-    # Print summary statistics
-    print("\nAccuracy Statistics:")
-    print(result_df["accuracy"].describe())
-
-    # Print error cases (accuracy = -1)
-    error_cases = result_df[result_df["accuracy"] == -1.0]
-    if not error_cases.empty:
-        print("\nError cases:")
-
-        print(error_cases[["id", "question"]])
