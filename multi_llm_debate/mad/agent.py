@@ -118,7 +118,7 @@ class Agent:
         self.memory_lst.append({"role": "assistant", "content": f"{memory}"})
         print(f"----- {self.name} -----\n{memory}\n")
 
-    def ask(self, temperature: Optional[float] = None, json_mode: bool = False) -> str:
+    def ask(self, temperature: Optional[float] = None, json_mode: bool = True) -> str:
         """Query for answer based on memory
 
         Args:
