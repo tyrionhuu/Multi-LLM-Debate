@@ -7,6 +7,29 @@ from ..shared.evaluate import EvaluationResults, evaluate_all
 from .utils import extract_bigger_char, extract_caption_a_b_answer
 
 
+
+    
+
+def compare_judge_bench_responses(
+    responses: str,
+    answer: str,
+) -> bool:
+    """Compare the responses from the judge bench.
+
+    Args:
+        responses: The response string from the LLM.
+        answer: The correct answer to the question ("A"/"B").
+
+    Returns:
+        bool: True if the response matches the answer, False otherwise.
+    """
+    try:
+        normalized_response = extract_caption_a_b_answer(responses)
+        gold_answer = extract_bigger_char(answer)
+        return normalized_response == gold_answer.upper()
+    except Exception as e:
+        print(f"Error comparing responses: {e}")
+        return False
 def evaluate_judge_bench_responses(
     responses: List[Dict],
     answer: str,
@@ -20,22 +43,10 @@ def evaluate_judge_bench_responses(
     Returns:
         bool: True if all responses are the same and match the answer, False otherwise.
     """
-    try:
-        raw_responses = [response["response"] for response in responses]
-        normalized_responses = [
-            extract_caption_a_b_answer(response) for response in raw_responses
-        ]
-        gold_answer = extract_bigger_char(answer)
-        # print(f"Normalized answer: {normalized_responses}")
-        # print(f"Gold answer: {gold_answer}")
-        if len(set(normalized_responses)) == 1:
-            return normalized_responses[0] == gold_answer.upper()
-        return False
-    except Exception as e:
-        print(f"Error evaluating responses: {e}")
-        return False
-
-
+    return all(
+        compare_judge_bench_responses(response["response"], answer)
+        for response in responses
+    )
 def evaluate_all_judge_bench(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
