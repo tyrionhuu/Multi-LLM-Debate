@@ -9,7 +9,7 @@ from .utils import get_latest_round_file
 
 # Set up logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # Add type alias for the evaluation function
 EvaluationFunc = Callable[[List[Dict], Union[str, bool]], bool]
