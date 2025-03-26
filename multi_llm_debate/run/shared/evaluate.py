@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Callable, Dict, List, NamedTuple, Optional, Union
 
@@ -7,9 +8,22 @@ import pandas as pd
 
 from .utils import get_latest_round_file
 
-# Set up logger
+# Set up logger with proper configuration
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+log_level = os.environ.get("DEBATE_LOG_LEVEL", "INFO")
+logger.setLevel(getattr(logging, log_level))
+
+# Add handler if not already added
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+# Make sure we don't propagate to root logger to avoid duplicate logs
+logger.propagate = False
 
 # Add type alias for the evaluation function
 EvaluationFunc = Callable[[List[Dict], Union[str, bool]], bool]
