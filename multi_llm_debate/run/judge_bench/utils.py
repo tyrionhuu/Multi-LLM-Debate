@@ -2,7 +2,8 @@ from typing import Literal
 
 import pandas as pd
 
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
+import os
 
 
 def preprocess_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -30,32 +31,60 @@ def load_judge_bench_dataset(
     """Load the JudgeBench dataset.
 
     Args:
-        dataset_path: Path to the dataset directory.
+        dataset_path: Path to the dataset directory. If it exists locally,
+            it will be loaded from disk; otherwise, it will be downloaded.
         random_state: Random seed for shuffling. If None, the dataset will be
             randomized differently each time.
 
     Returns:
         pd.DataFrame: DataFrame containing the JudgeBench data with randomized order.
     """
-    dataset_1 = load_dataset(
-        "ScalerLab/JudgeBench",
-        split="gpt",
-        cache_dir=dataset_path,
-    )
-    if dataset_1 is None:
-        raise ValueError("Failed to load the JudgeBench dataset.")
-    # Convert to DataFrame
-    df_1 = pd.DataFrame(dataset_1)
-
-    dataset_2 = load_dataset(
-        "ScalerLab/JudgeBench",
-        split="claude",
-        cache_dir=dataset_path,
-    )
-    if dataset_2 is None:
-        raise ValueError("Failed to load the JudgeBench dataset.")
-    # Convert to DataFrame
-    df_2 = pd.DataFrame(dataset_2)
+    # Initialize empty DataFrames
+    df_1, df_2 = None, None
+    
+    # Try to load local datasets first
+    if os.path.exists(dataset_path):
+        try:
+            # Define paths for the two splits
+            gpt_path = os.path.join(dataset_path, "gpt")
+            claude_path = os.path.join(dataset_path, "claude")
+            
+            # Try to load from local disk
+            if os.path.exists(gpt_path):
+                dataset_1 = load_from_disk(gpt_path)
+                df_1 = pd.DataFrame(dataset_1)
+                print(f"Loaded GPT split from local path: {gpt_path}")
+            
+            if os.path.exists(claude_path):
+                dataset_2 = load_from_disk(claude_path)
+                df_2 = pd.DataFrame(dataset_2)
+                print(f"Loaded Claude split from local path: {claude_path}")
+        except Exception as e:
+            print(f"Error loading local dataset: {e}")
+            df_1, df_2 = None, None
+    
+    # Fall back to downloading if local loading failed
+    if df_1 is None:
+        print("Local GPT split not found, downloading from HuggingFace...")
+        dataset_1 = load_dataset(
+            "ScalerLab/JudgeBench",
+            split="gpt",
+            cache_dir=dataset_path,
+        )
+        if dataset_1 is None:
+            raise ValueError("Failed to load the JudgeBench GPT dataset.")
+        df_1 = pd.DataFrame(dataset_1)
+    
+    if df_2 is None:
+        print("Local Claude split not found, downloading from HuggingFace...")
+        dataset_2 = load_dataset(
+            "ScalerLab/JudgeBench",
+            split="claude",
+            cache_dir=dataset_path,
+        )
+        if dataset_2 is None:
+            raise ValueError("Failed to load the JudgeBench Claude dataset.")
+        df_2 = pd.DataFrame(dataset_2)
 
     # Concatenate the two DataFrames
     df = pd.concat([df_1, df_2], ignore_index=True)
