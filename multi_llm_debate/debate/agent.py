@@ -62,6 +62,7 @@ class Agent:
                 provider=self.provider,
                 prompt=prompt,
                 json_mode=json_mode,
+                max_tokens=6400,
             )
         except ConnectionError as e:
             raise LLMConnectionError(
