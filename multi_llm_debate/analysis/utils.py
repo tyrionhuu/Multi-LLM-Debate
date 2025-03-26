@@ -374,6 +374,10 @@ def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
         DataFrame with debate data or None if data cannot be found/loaded.
     """
     # First try the standard debate_rounds.csv file
+    if not model_dir.is_dir():
+        logger.error(f"Model directory not found: {model_dir}")
+        return None
+
     debates_path = model_dir / "debate_rounds.csv"
     if debates_path.exists():
         logger.info(f"Found debate_rounds.csv at {debates_path}")
