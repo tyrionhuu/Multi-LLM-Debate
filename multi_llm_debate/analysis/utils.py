@@ -3,8 +3,13 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 import pandas as pd
+import logging
 
-
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 def compare_bool(value_a: Any, value_b: Any) -> bool:
     """Compare two boolean values with robust type conversion.
 
@@ -351,3 +356,71 @@ def draw_console_histogram(
             result.append(current_line)
 
     return "\n".join(result)
+def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
+    """Loads debate data from model directory.
+    
+    This function attempts to find and load debate data, first looking for
+    a debate_rounds.csv file, then searching for debate data in directories
+    organized by rounds.
+    
+    Args:
+        model_dir: Directory containing model output data.
+        
+    Returns:
+        DataFrame with debate data or None if data cannot be found/loaded.
+    """
+    # First try the standard debate_rounds.csv file
+    debates_path = model_dir / "debate_rounds.csv"
+    if debates_path.exists():
+        logger.info(f"Found debate_rounds.csv at {debates_path}")
+        return pd.read_csv(debates_path)
+    
+    # If not found, try to construct data from directories
+    logger.info("No debate_rounds.csv found. Attempting to load from directories.")
+    
+    all_data = []
+    
+    # Check for round directories (round_0, round_1, etc.)
+    for item in model_dir.glob("*"):
+        if item.is_dir() and item.name.startswith("round_"):
+            try:
+                round_num = int(item.name.split("_")[1])
+                logger.info(f"Processing round directory: {item.name}")
+                
+                # Process all files in this round directory
+                for task_file in item.glob("*.json"):
+                    try:
+                        task_id = int(task_file.stem)  # Assumes filename is numeric task ID
+                        
+                        with open(task_file, "r") as f:
+                            task_data = json.load(f)
+                        
+                        # Extract agent responses from the JSON data
+                        # Structure may vary, so this might need adaptation
+                        if "responses" in task_data:
+                            for agent_idx, response in enumerate(task_data["responses"]):
+                                all_data.append({
+                                    "task_id": task_id,
+                                    "round_number": round_num,
+                                    "agent_index": agent_idx,
+                                    "agent_id": f"agent_{agent_idx}",
+                                    "model": task_data.get("model", "unknown"),
+                                    "response": response
+                                })
+                        else:
+                            logger.warning(f"Unexpected JSON structure in {task_file}")
+                    
+                    except Exception as e:
+                        logger.warning(f"Error processing file {task_file}: {e}")
+            
+            except ValueError:
+                logger.warning(f"Could not parse round number from directory: {item.name}")
+    
+    if not all_data:
+        logger.error("Could not find any debate data in directories.")
+        return None
+    
+    # Create DataFrame from collected data
+    df = pd.DataFrame(all_data)
+    logger.info(f"Constructed debate data from directories: {len(df)} rows")
+    return df
