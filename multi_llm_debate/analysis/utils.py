@@ -420,10 +420,7 @@ def load_debate_data(model_dir: Path, write_csv: bool = True) -> Optional[pd.Dat
                                         {
                                             "task_id": task_dir.name,
                                             "round_number": round_num,
-                                            "agent_index": agent_data.get(
-                                                "agent_id", "unknown"
-                                            ),
-                                            "agent_id": f"agent_{agent_data.get('agent_id', 'unknown')}",
+                                            "agent_id": agent_data["agent_id"],
                                             "model": agent_data.get("model", "unknown"),
                                             "response": agent_data.get("response", ""),
                                         }
@@ -448,11 +445,11 @@ def load_debate_data(model_dir: Path, write_csv: bool = True) -> Optional[pd.Dat
     logger.info(f"Constructed debate data from directories: {len(df)} rows")
 
     # Write the consolidated data to CSV for future use if requested
-    # if write_csv and len(df) > 0:
-    #     try:
-    #         df.to_csv(debates_path, index=False)
-    #         logger.info(f"Successfully wrote debate data to {debates_path}")
-    #     except Exception as e:
-    #         logger.warning(f"Failed to write debate_rounds.csv: {e}")
+    if write_csv and len(df) > 0:
+        try:
+            df.to_csv(debates_path, index=False)
+            logger.info(f"Successfully wrote debate data to {debates_path}")
+        except Exception as e:
+            logger.warning(f"Failed to write debate_rounds.csv: {e}")
 
     return df
