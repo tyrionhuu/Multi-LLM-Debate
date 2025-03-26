@@ -14,13 +14,14 @@ if __name__ == "__main__":
     dataframe = load_judge_bench_dataset(
         dataset_path=dataset_path,
     )
-    # dataframe = dataframe.sample(n=100, random_state=42)
+
     shared_main(
         dataframe=dataframe,
         run_debate_fn=run_judge_bench,
         evaluate_fn=evaluate_all_judge_bench,
-        task_name="judge_bench",
+        task_name="JudgeBench",
         sample_size=args.sample_size,
         max_workers=args.max_workers,
         config_path=args.config,
+        # run_debate=False,
     )
