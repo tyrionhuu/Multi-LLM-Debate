@@ -63,6 +63,24 @@ def evaluate_all_judge_bench(
 
 
 if __name__ == "__main__":
-    answer = "A>B"
-    responses = [{"response": "A"}]
-    print(evaluate_judge_bench_responses(responses, answer))
+    from pathlib import Path
+
+    from ..shared.utils import Parser
+    from .evaluate import evaluate_all_judge_bench
+    from .utils import load_judge_bench_dataset
+
+    args = Parser(description="Run JudgeBench evaluation").parse_args()
+
+    # Load the dataset
+    dataset_path = Path("datasets/JudgeBench")
+    dataframe = load_judge_bench_dataset(
+        dataset_path=dataset_path,
+    )
+
+    evaluate_all_judge_bench(
+        response_base_dir=Path("data/judge_bench/phi3"),
+        dataframe=dataframe,
+        extract_func=extract_caption_a_b_answer,
+        evaluation_func=evaluate_judge_bench_responses,
+        multiple_models=False,
+    )
