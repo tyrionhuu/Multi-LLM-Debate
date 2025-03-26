@@ -15,6 +15,7 @@ def process_debate_round(
     round_file: Path,
     correct_answer: str,
     extract_func: Callable,
+    compare_func: Callable[[str, str], bool] = lambda r, c: r == c,
 ) -> Tuple[Optional[Tuple[bool, float]], bool]:
     """Process a single debate round file and calculate both majority and absolute rates.
 
@@ -23,6 +24,8 @@ def process_debate_round(
         correct_answer: The expected correct answer
         extract_func: Function to extract and normalize responses, defaults to
             extract_bool_answer
+        compare_func: Function to compare normalized responses with the correct answer,
+            should take (response, correct_answer) and return a boolean
 
     Returns:
         Tuple containing:
@@ -49,12 +52,12 @@ def process_debate_round(
 
         # Calculate both metrics
         absolute_rate = sum(
-            1 for r in normalized_responses if r == correct_answer
+            1 for r in normalized_responses if compare_func(r, correct_answer)
         ) / len(normalized_responses)
 
         # Calculate majority vote
         majority_correct = (
-            sum(1 for r in normalized_responses if r == correct_answer)
+            sum(1 for r in normalized_responses if compare_func(r, correct_answer))
             > len(normalized_responses) / 2
         )
 
@@ -71,6 +74,7 @@ def process_debate_directory(
     dataframe: pd.DataFrame,
     max_round_number: int,
     extract_func: Callable,
+    compare_func: Callable[[str, str], bool] = lambda r, c: r == c,
 ) -> Tuple[Dict[int, Dict[str, int]], Dict[int, int]]:
     """Process a single debate directory and calculate correctness counts.
 
@@ -80,6 +84,8 @@ def process_debate_directory(
         max_round_number: Maximum number of rounds to process
         extract_func: Function to extract and normalize responses, defaults to
             extract_bool_answer
+        compare_func: Function to compare normalized responses with correct answer,
+            should take (response, correct_answer) and return a boolean
 
     Returns:
         Tuple of (correct_counts, total_counts) where correct_counts contains
@@ -130,7 +136,7 @@ def process_debate_directory(
             continue
 
         round_result, should_end = process_debate_round(
-            round_file, correct_answer, extract_func
+            round_file, correct_answer, extract_func, compare_func
         )
         if should_end:
             debate_ended = True
@@ -151,6 +157,7 @@ def count_absolute_correct_rate(
     responses: List[dict],
     correct_answer: str,
     extract_func: Callable,
+    compare_func: Callable[[str, str], bool] = lambda r, c: r == c,
 ) -> Optional[float]:
     """Calculate the absolute correct rate from responses.
 
@@ -159,6 +166,8 @@ def count_absolute_correct_rate(
         correct_answer: The expected correct answer
         extract_func: Function to extract and normalize responses, defaults to
             extract_bool_answer
+        compare_func: Function to compare normalized responses with correct answer,
+            should take (response, correct_answer) and return a boolean
 
     Returns:
         Float indicating correct rate, or None if invalid
@@ -175,7 +184,7 @@ def count_absolute_correct_rate(
     if not valid_responses:
         return None
 
-    return sum(1 for r in valid_responses if r == correct_answer) / len(valid_responses)
+    return sum(1 for r in valid_responses if compare_func(r, correct_answer)) / len(valid_responses)
 
 
 def calculate_correct_rate_by_round(
@@ -183,6 +192,7 @@ def calculate_correct_rate_by_round(
     model_dir: Path,
     max_round_number: int,
     extract_func: Callable,
+    compare_func: Callable[[str, str], bool] = lambda r, c: r == c,
 ) -> pd.DataFrame:
     """Calculate both majority and absolute correct rates for each round.
 
@@ -192,6 +202,8 @@ def calculate_correct_rate_by_round(
         max_round_number (int): Maximum number of debate rounds to analyze.
         extract_func: Function to extract and normalize responses, defaults to
             extract_bool_answer
+        compare_func: Function to compare normalized responses with correct answer,
+            should take (response, correct_answer) and return a boolean
 
     Returns:
         pd.DataFrame: A DataFrame with two rows (majority and absolute) containing
@@ -212,7 +224,7 @@ def calculate_correct_rate_by_round(
 
     for subdir in pbar:
         round_correct_counts, round_total_counts = process_debate_directory(
-            subdir, dataframe, max_round_number, extract_func
+            subdir, dataframe, max_round_number, extract_func, compare_func
         )
         for round_num in range(0, max_round_number + 1):
             if round_num in round_correct_counts:
@@ -221,7 +233,7 @@ def calculate_correct_rate_by_round(
                 ]["majority"]
                 correct_counts[round_num]["absolute"] += round_correct_counts[
                     round_num
-                ]["absolute"]
+                ]["absolute"] 
             total_counts[round_num] += round_total_counts.get(round_num, 0)
         if round_total_counts:
             total_debates += 1
