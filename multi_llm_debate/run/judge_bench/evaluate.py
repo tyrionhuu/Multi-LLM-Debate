@@ -76,7 +76,7 @@ if __name__ == "__main__":
     dataframe = load_judge_bench_dataset(
         dataset_path=dataset_path,
     )
-    print(dataframe.head())
+    print(dataframe.columns())
     evaluate_all_judge_bench(
         response_base_dir=Path("data/judge_bench/phi3"),
         dataframe=dataframe,
