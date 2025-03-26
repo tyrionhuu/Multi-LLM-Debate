@@ -1,7 +1,9 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Dict
+from collections import Counter
+import os
 
 import pandas as pd
 
@@ -453,3 +455,28 @@ def load_debate_data(model_dir: Path, write_csv: bool = True) -> Optional[pd.Dat
             logger.warning(f"Failed to write debate_rounds.csv: {e}")
 
     return df
+def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
+    """Counts how many directories contain each number of files.
+    
+    Args:
+        base_dir_path: Path to the base directory containing the data.
+        
+    Returns:
+        A dictionary mapping file counts to the number of directories with that count.
+    """
+    base_path = Path(base_dir_path)
+    file_counts = []
+    
+    # Check if the directory exists
+    if not base_path.exists():
+        print(f"Directory not found: {base_dir_path}")
+        return {}
+        
+    # Walk through all directories and count their files
+    for root, dirs, files in os.walk(base_path):
+        file_counts.append(len(files))
+    
+    # Count how many directories have each file count
+    distribution = Counter(file_counts)
+    
+    return dict(sorted(distribution.items()))
