@@ -62,5 +62,5 @@ def evaluate_all_judge_bench(
 
 if __name__ == "__main__":
     answer = "A>B"
-    response = {"response": "A"}
+    response = [{"response": "A"}]
     print(evaluate_judge_bench_responses([response], answer))
