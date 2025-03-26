@@ -370,7 +370,7 @@ def load_debate_data(model_dir: Path, write_csv: bool = True) -> Optional[pd.Dat
 
     Args:
         model_dir: Directory containing model output data.
-        write_csv: If True, writes a consolidated debate_rounds.csv file when 
+        write_csv: If True, writes a consolidated debate_rounds.csv file when
                    one doesn't already exist. Defaults to True.
 
     Returns:
@@ -446,7 +446,7 @@ def load_debate_data(model_dir: Path, write_csv: bool = True) -> Optional[pd.Dat
     # Create DataFrame from collected data
     df = pd.DataFrame(all_data)
     logger.info(f"Constructed debate data from directories: {len(df)} rows")
-    
+
     # Write the consolidated data to CSV for future use if requested
     if write_csv and len(df) > 0:
         try:
@@ -454,5 +454,5 @@ def load_debate_data(model_dir: Path, write_csv: bool = True) -> Optional[pd.Dat
             logger.info(f"Successfully wrote debate data to {debates_path}")
         except Exception as e:
             logger.warning(f"Failed to write debate_rounds.csv: {e}")
-    
+
     return df
