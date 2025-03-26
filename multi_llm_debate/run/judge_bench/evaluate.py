@@ -58,3 +58,10 @@ def evaluate_all_judge_bench(
         evaluation_func=evaluate_judge_bench_responses,
         multiple_models=multiple_models,
     )
+
+if __name__ == "__main__":
+    answer = "A>B"
+    response = {
+        "response": "A"
+    }
+    print(evaluate_judge_bench_responses([response], answer))
