@@ -192,7 +192,7 @@ def plot_all_rounds_multi_rows(
     logger.info(f"Saved {rows}-row subplot figure to {output_path}")
 
 
-def plot_main(
+def correct_rate_main(
     data_path: Path,
     model_dir: Path,
     output_dir: Path,
