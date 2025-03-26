@@ -7,22 +7,19 @@ from datasets import load_dataset
 
 def preprocess_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """Preprocess the JudgeBench dataframe by renaming and dropping columns.
-    
+
     Args:
         df: Raw dataframe loaded from the JudgeBench dataset.
-        
+
     Returns:
         pd.DataFrame: Processed dataframe with renamed and dropped columns.
     """
     # Rename columns
-    df = df.rename(columns={
-        'pair_id': 'id',
-        'label': 'answer'
-    })
-    
+    df = df.rename(columns={"pair_id": "id", "label": "answer"})
+
     # Drop unnecessary columns
-    df = df.drop(columns=['original_id', 'source'], errors='ignore')
-    
+    df = df.drop(columns=["original_id", "source"], errors="ignore")
+
     return df
 
 
@@ -59,8 +56,8 @@ def load_judge_bench_dataset(
 
     # Concatenate the two DataFrames
     df = pd.concat([df_1, df_2], ignore_index=True)
-    
-    # Preprocess the dataframe 
+
+    # Preprocess the dataframe
     df = preprocess_dataframe(df)
 
     return df
