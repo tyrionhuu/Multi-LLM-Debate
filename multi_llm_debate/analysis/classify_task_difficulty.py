@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..llm.parsers import extract_bool_answer
+from multi_llm_debate.run.bool_q.utils import extract_bool_answer
 
 
 def analyze_task_difficulty(

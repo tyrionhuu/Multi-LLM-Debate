@@ -23,5 +23,5 @@ if __name__ == "__main__":
         sample_size=args.sample_size,
         max_workers=args.max_workers,
         config_path=args.config,
-        run_debate=False,
+        # run_debate=False,
     )
