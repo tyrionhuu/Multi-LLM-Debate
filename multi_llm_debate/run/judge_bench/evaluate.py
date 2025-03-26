@@ -4,32 +4,13 @@ from typing import Dict, List
 import pandas as pd
 
 from ..shared.evaluate import EvaluationResults, evaluate_all
-from .utils import extract_bigger_char, extract_caption_a_b_answer
+from .utils import extract_caption_a_b_answer, compare_judge_bench_responses
 
 
 
     
 
-def compare_judge_bench_responses(
-    responses: str,
-    answer: str,
-) -> bool:
-    """Compare the responses from the judge bench.
 
-    Args:
-        responses: The response string from the LLM.
-        answer: The correct answer to the question ("A"/"B").
-
-    Returns:
-        bool: True if the response matches the answer, False otherwise.
-    """
-    try:
-        normalized_response = extract_caption_a_b_answer(responses)
-        gold_answer = extract_bigger_char(answer)
-        return normalized_response == gold_answer.upper()
-    except Exception as e:
-        print(f"Error comparing responses: {e}")
-        return False
 def evaluate_judge_bench_responses(
     responses: List[Dict],
     answer: str,
