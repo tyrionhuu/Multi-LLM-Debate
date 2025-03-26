@@ -360,15 +360,18 @@ def draw_console_histogram(
     return "\n".join(result)
 
 
-def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
+def load_debate_data(model_dir: Path, write_csv: bool = True) -> Optional[pd.DataFrame]:
     """Loads debate data from model directory.
 
     This function attempts to find and load debate data, first looking for
     a debate_rounds.csv file, then searching for debate data in directories
-    organized by task IDs and round files.
+    organized by task IDs and round files. If the CSV file doesn't exist and
+    write_csv is True, it will create the file for future use.
 
     Args:
         model_dir: Directory containing model output data.
+        write_csv: If True, writes a consolidated debate_rounds.csv file when 
+                   one doesn't already exist. Defaults to True.
 
     Returns:
         DataFrame with debate data or None if data cannot be found/loaded.
@@ -443,4 +446,13 @@ def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
     # Create DataFrame from collected data
     df = pd.DataFrame(all_data)
     logger.info(f"Constructed debate data from directories: {len(df)} rows")
+    
+    # Write the consolidated data to CSV for future use if requested
+    if write_csv and len(df) > 0:
+        try:
+            df.to_csv(debates_path, index=False)
+            logger.info(f"Successfully wrote debate data to {debates_path}")
+        except Exception as e:
+            logger.warning(f"Failed to write debate_rounds.csv: {e}")
+    
     return df
