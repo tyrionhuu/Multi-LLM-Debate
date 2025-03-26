@@ -57,11 +57,11 @@ def main(
             processed_df = dataframe
 
         # Create output directory if it doesn't exist
-        output_dir = Path("output/bool_q")
+        output_dir = Path(f"output/{task_name}")
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Save processed DataFrame to CSV
-        processed_df.to_csv("output/bool_q/processed_data.csv", index=False)
+        if config_path is None:
+            config_path = Path(f"multi_llm_debate/run/{task_name}/config.json")
 
         for model_configs in model_configs_list:
             run(
