@@ -80,7 +80,5 @@ if __name__ == "__main__":
     evaluate_all_judge_bench(
         response_base_dir=Path("data/judge_bench/phi3"),
         dataframe=dataframe,
-        extract_func=extract_caption_a_b_answer,
-        evaluation_func=evaluate_judge_bench_responses,
         multiple_models=False,
     )
