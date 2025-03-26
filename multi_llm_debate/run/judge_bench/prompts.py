@@ -71,25 +71,26 @@ def build_judge_bench_round_zero_prompt(
         "Do not favor certain names of the assistants. Be as objective as "
         "possible. " + NEW_LINE
     )
-    
+
     prompt += (
         "IMPORTANT: For your final answer, you MUST select either 'A' or 'B' "
-        "as the better assistant. No other answers are acceptable. "
-        + NEW_LINE
+        "as the better assistant. No other answers are acceptable. " + NEW_LINE
     )
 
     if json_mode:
         prompt += "Answer in the following JSON format:" + NEW_LINE
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
-            NEW_LINE + "Note that the 'answer' field MUST contain only 'A' or 'B'."
+            NEW_LINE
+            + "Note that the 'answer' field MUST contain only 'A' or 'B'."
             + NEW_LINE
         )
     else:
         prompt += "Answer in the following format:" + NEW_LINE
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
         prompt += (
-            NEW_LINE + "Note that the 'Final Answer' MUST be only 'A' or 'B'."
+            NEW_LINE
+            + "Note that the 'Final Answer' MUST be only 'A' or 'B'."
             + NEW_LINE
         )
 
@@ -106,7 +107,7 @@ def build_judge_bench_round_zero_prompt(
 
     prompt += NEW_LINE
     prompt += "Which assistant provided the better response? A or B?"
-    
+
     prompt += NEW_LINE
     prompt += "Remember: Your final answer must be EXACTLY 'A' or 'B'."
 
@@ -163,25 +164,26 @@ def build_judge_bench_round_n_prompt(
         "Do not favor certain names of the assistants. Be as objective as "
         "possible. " + NEW_LINE
     )
-    
+
     prompt += (
         "IMPORTANT: For your final answer, you MUST select either 'A' or 'B' "
-        "as the better assistant. No other answers are acceptable. "
-        + NEW_LINE
+        "as the better assistant. No other answers are acceptable. " + NEW_LINE
     )
 
     if json_mode:
         prompt += "Answer in the following JSON format:" + NEW_LINE
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
-            NEW_LINE + "Note that the 'answer' field MUST contain only 'A' or 'B'."
+            NEW_LINE
+            + "Note that the 'answer' field MUST contain only 'A' or 'B'."
             + NEW_LINE
         )
     else:
         prompt += "Answer in the following format:" + NEW_LINE
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
         prompt += (
-            NEW_LINE + "Note that the 'Final Answer' MUST be only 'A' or 'B'."
+            NEW_LINE
+            + "Note that the 'Final Answer' MUST be only 'A' or 'B'."
             + NEW_LINE
         )
 
@@ -198,7 +200,7 @@ def build_judge_bench_round_n_prompt(
 
     prompt += NEW_LINE
     prompt += "Which assistant provided the better response? A or B?"
-    
+
     prompt += NEW_LINE
     prompt += "Remember: Your final answer must be EXACTLY 'A' or 'B'."
 
