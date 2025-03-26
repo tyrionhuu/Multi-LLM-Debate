@@ -200,9 +200,7 @@ def run_judge_bench_single_entry(
             all_rounds_exist = all(f.exists() for f in all_round_files)
 
             if final_round_exists or all_rounds_exist:
-                logger.info(
-                    f"Complete debate already exists for entry {id}. Skipping."
-                )
+                logger.info(f"Complete debate already exists for entry {id}. Skipping.")
                 return
 
             # Check if any rounds exist but debate is incomplete
