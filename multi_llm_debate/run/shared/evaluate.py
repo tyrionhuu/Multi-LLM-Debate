@@ -17,7 +17,7 @@ logger.setLevel(getattr(logging, log_level))
 if not logger.handlers:
     handler = logging.StreamHandler()
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -61,17 +61,17 @@ def evaluate_debate_df(
 
     correct_count = 0
     valid_count = 0
-    
+
     logger.info(f"Starting debate evaluation on {len(dataframe)} entries...")
 
     for i, (_, entry) in enumerate(dataframe.iterrows()):
         if i % 10 == 0:
             logger.info(f"Processing entry {i}/{len(dataframe)}")
-            
+
         try:
             answer = entry["answer"]
             id_ = str(entry["id"])
-            
+
             logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
 
             # Load responses from the corresponding file
@@ -96,9 +96,13 @@ def evaluate_debate_df(
             valid_count += 1
             if is_correct:
                 correct_count += 1
-                logger.debug(f"Correct! Current accuracy: {correct_count}/{valid_count}")
+                logger.debug(
+                    f"Correct! Current accuracy: {correct_count}/{valid_count}"
+                )
             else:
-                logger.debug(f"Incorrect. Current accuracy: {correct_count}/{valid_count}")
+                logger.debug(
+                    f"Incorrect. Current accuracy: {correct_count}/{valid_count}"
+                )
 
         except Exception as e:
             logger.error(f"Error processing entry {id_}: {str(e)}")
@@ -133,17 +137,17 @@ def evaluate_single_llm_df(
 
     correct_count = 0
     valid_count = 0
-    
+
     logger.info(f"Starting single LLM evaluation on {len(dataframe)} entries...")
 
     for i, (_, entry) in enumerate(dataframe.iterrows()):
         if i % 10 == 0:
             logger.info(f"Processing entry {i}/{len(dataframe)}")
-            
+
         try:
             answer = entry["answer"]
             id_ = str(entry["id"])
-            
+
             logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
 
             # Load responses from the first debate round file
@@ -163,15 +167,19 @@ def evaluate_single_llm_df(
             # Only use the first response
             first_response = responses[0]
             logger.debug("Using first response for evaluation")
-            
+
             # Create a list with single response for consistent interface
             is_correct = evaluation_func([first_response], answer)
             valid_count += 1
             if is_correct:
                 correct_count += 1
-                logger.debug(f"Correct! Current accuracy: {correct_count}/{valid_count}")
+                logger.debug(
+                    f"Correct! Current accuracy: {correct_count}/{valid_count}"
+                )
             else:
-                logger.debug(f"Incorrect. Current accuracy: {correct_count}/{valid_count}")
+                logger.debug(
+                    f"Incorrect. Current accuracy: {correct_count}/{valid_count}"
+                )
 
         except Exception as e:
             logger.error(f"Error processing entry {id_}: {str(e)}")
@@ -240,17 +248,17 @@ def evaluate_ensemble_df(
     """
     correct_count = 0
     valid_count = 0
-    
+
     logger.info(f"Starting ensemble evaluation on {len(dataframe)} entries...")
 
     for i, (_, entry) in enumerate(dataframe.iterrows()):
         if i % 10 == 0:
             logger.info(f"Processing entry {i}/{len(dataframe)}")
-            
+
         try:
             answer = entry["answer"]
             id_ = str(entry["id"])
-            
+
             logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
 
             # Load responses from the first debate round file
@@ -272,7 +280,7 @@ def evaluate_ensemble_df(
             if majority_response is None:
                 logger.warning("No majority response found, skipping")
                 continue
-                
+
             logger.debug(f"Majority response: {majority_response}")
 
             # Compare with correct answer
@@ -280,9 +288,13 @@ def evaluate_ensemble_df(
             valid_count += 1
             if is_correct:
                 correct_count += 1
-                logger.debug(f"Correct! Current accuracy: {correct_count}/{valid_count}")
+                logger.debug(
+                    f"Correct! Current accuracy: {correct_count}/{valid_count}"
+                )
             else:
-                logger.debug(f"Incorrect. Current accuracy: {correct_count}/{valid_count}")
+                logger.debug(
+                    f"Incorrect. Current accuracy: {correct_count}/{valid_count}"
+                )
 
         except Exception as e:
             logger.error(f"Error processing entry {id_}: {str(e)}")
@@ -318,7 +330,7 @@ def evaluate_all(
     logger.info("Running debate evaluation...")
     logger.info(f"Processing data directory: {response_base_dir}")
     logger.info(f"Dataset contains {len(dataframe)} entries")
-    
+
     debate_acc = evaluate_debate_df(
         response_base_dir, dataframe, evaluation_func=evaluation_func
     )
