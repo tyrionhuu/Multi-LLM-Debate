@@ -50,7 +50,7 @@ def call_model(
     model_name: str = "llama3.2:11b",
     provider: Literal["api", "ollama", "openai", "anthropic"] = "ollama",
     prompt: str = "",
-    temperature: float = 0.7,
+    temperature: float = 1.0,
     max_tokens: int = 3200,
     json_mode: bool = True,
     timeout: Optional[int] = 30,
