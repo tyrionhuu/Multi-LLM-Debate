@@ -25,14 +25,16 @@ def preprocess_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 def load_judge_bench_dataset(
     dataset_path: str = "datasets/JudgeBench",
+    random_state: int = 42,
 ) -> pd.DataFrame:
     """Load the JudgeBench dataset.
 
     Args:
         dataset_path: Path to the dataset directory.
+        random_state: Random seed for shuffling. If None, uses numpy's default.
 
     Returns:
-        pd.DataFrame: DataFrame containing the JudgeBench data.
+        pd.DataFrame: DataFrame containing the JudgeBench data with randomized order.
     """
     dataset_1 = load_dataset(
         "ScalerLab/JudgeBench",
@@ -59,6 +61,9 @@ def load_judge_bench_dataset(
 
     # Preprocess the dataframe
     df = preprocess_dataframe(df)
+    
+    # Randomize the entries
+    df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
 
     return df
 
