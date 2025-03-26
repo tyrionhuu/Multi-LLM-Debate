@@ -14,7 +14,7 @@ if __name__ == "__main__":
     dataframe = load_judge_bench_dataset(
         dataset_path=dataset_path,
     )
-    dataframe = dataframe.sample(n=100, random_state=42)
+    # dataframe = dataframe.sample(n=100, random_state=42)
     shared_main(
         dataframe=dataframe,
         run_debate_fn=run_judge_bench,
