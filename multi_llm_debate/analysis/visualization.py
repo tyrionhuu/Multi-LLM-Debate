@@ -13,47 +13,50 @@ from .utils import load_debate_data
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
 def plot_file_count_distribution(distribution: Dict[int, int]) -> None:
     """Creates and displays a plot of file count distribution across directories.
-    
+
     Args:
         distribution: Dictionary mapping file counts to number of directories.
     """
     if not distribution:
         print("No directory data found to plot.")
         return
-    
+
     plt.figure(figsize=(12, 6))
-    
+
     # Prepare data
     file_counts = list(distribution.keys())
     dir_counts = list(distribution.values())
-    
+
     # Create bar chart
-    bars = plt.bar(file_counts, dir_counts, color='salmon', edgecolor='darkred')
-    
+    bars = plt.bar(file_counts, dir_counts, color="salmon", edgecolor="darkred")
+
     # Add value labels on top of bars
     for bar in bars:
         height = bar.get_height()
         plt.text(
-            bar.get_x() + bar.get_width()/2.,
+            bar.get_x() + bar.get_width() / 2.0,
             height + 0.1,
-            f'{int(height)}',
-            ha='center',
+            f"{int(height)}",
+            ha="center",
             fontsize=9,
         )
-    
+
     # Set chart attributes
-    plt.title('Distribution of File Counts Across Directories', fontsize=14)
-    plt.xlabel('Number of Files in Directory', fontsize=12)
-    plt.ylabel('Number of Directories', fontsize=12)
-    plt.grid(axis='y', alpha=0.3)
-    
+    plt.title("Distribution of File Counts Across Directories", fontsize=14)
+    plt.xlabel("Number of Files in Directory", fontsize=12)
+    plt.ylabel("Number of Directories", fontsize=12)
+    plt.grid(axis="y", alpha=0.3)
+
     # Adjust x-axis to show all integer values
-    plt.xticks(range(min(file_counts), max(file_counts)+1))
-    
+    plt.xticks(range(min(file_counts), max(file_counts) + 1))
+
     plt.tight_layout()
     plt.show()
+
 
 def process_distribution_data(
     result_df: pd.DataFrame,
