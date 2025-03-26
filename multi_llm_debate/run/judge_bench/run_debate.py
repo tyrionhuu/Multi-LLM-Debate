@@ -60,7 +60,7 @@ def run_judge_bench(
             logger.error("Invalid DataFrame type")
             raise ValueError("Dataframe must be a pandas DataFrame.")
 
-        required_columns = ["question", "response_A", "response_B", "pair_id"]
+        required_columns = ["question", "response_A", "response_B", "id"]
         missing_columns = [
             col for col in required_columns if col not in dataframe.columns
         ]
@@ -88,7 +88,7 @@ def run_judge_bench(
                     processed_count += 1
                     pbar.update(1)
                 except Exception as e:
-                    entry_id = entry.get("pair_id", "unknown")
+                    entry_id = entry.get("id", "unknown")
                     logger.error(f"Error processing entry {entry_id}: {str(e)}")
                     failed_entries.append(
                         {
@@ -145,7 +145,7 @@ def run_judge_bench_single_entry(
     """Run a single JudgeBench entry.
 
     Args:
-        entry: Pandas Series containing question, response_A, response_B and pair_id
+        entry: Pandas Series containing question, response_A, response_B and id
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
         use_cot: Whether to use chain-of-thought prompting (default: True)
@@ -158,13 +158,13 @@ def run_judge_bench_single_entry(
         ValueError: If entry format is invalid
     """
     try:
-        logger.info("Starting debate for entry ID: %s", entry.get("pair_id", "unknown"))
+        logger.info("Starting debate for entry ID: %s", entry.get("id", "unknown"))
 
         # Check if the entry is valid
         if not isinstance(entry, pd.Series):
             logger.error("Invalid entry type")
             raise ValueError("Entry must be a pandas Series.")
-        required_columns = ["question", "response_A", "response_B", "pair_id"]
+        required_columns = ["question", "response_A", "response_B", "id"]
 
         missing_columns = [
             col for col in required_columns if col not in entry or pd.isna(entry[col])
@@ -177,12 +177,12 @@ def run_judge_bench_single_entry(
         question = entry["question"]
         response_A = entry["response_A"]
         response_B = entry["response_B"]
-        pair_id = str(entry["pair_id"])
-        if not isinstance(pair_id, str):
-            logger.error("Invalid pair_id type")
-            raise ValueError("pair_id must be a string.")
+        id = str(entry["id"])
+        if not isinstance(id, str):
+            logger.error("Invalid id type")
+            raise ValueError("id must be a string.")
 
-        output_dir = base_dir / pair_id
+        output_dir = base_dir / id
         logger.info(f"Output directory: {output_dir}")
 
         # Check if response already exists
@@ -201,7 +201,7 @@ def run_judge_bench_single_entry(
 
             if final_round_exists or all_rounds_exist:
                 logger.info(
-                    f"Complete debate already exists for entry {pair_id}. Skipping."
+                    f"Complete debate already exists for entry {id}. Skipping."
                 )
                 return
 
@@ -209,13 +209,13 @@ def run_judge_bench_single_entry(
             any_round_exists = any(f.exists() for f in all_round_files)
             if any_round_exists:
                 logger.info(
-                    f"Partial debate exists for entry {pair_id}. Skipping due to overwrite=False."
+                    f"Partial debate exists for entry {id}. Skipping due to overwrite=False."
                 )
                 return
 
         elif output_dir.exists() and overwrite:
             logger.info(
-                f"Overwrite enabled for entry {pair_id}. Will regenerate all debate files."
+                f"Overwrite enabled for entry {id}. Will regenerate all debate files."
             )
             # When overwrite is True, we continue execution and the existing files
             # will be overwritten when debate() writes new results
@@ -268,7 +268,7 @@ def run_judge_bench_single_entry(
 
     except Exception as e:
         logger.error(
-            f"Debate execution failed for entry {entry.get('pair_id')}: {str(e)}",
+            f"Debate execution failed for entry {entry.get('id')}: {str(e)}",
             exc_info=True,
         )
         raise RuntimeError(f"Debate execution failed: {str(e)}") from e
@@ -278,7 +278,7 @@ def main() -> None:
     """Run the JudgeBench task."""
     from ...utils.model_config import ModelConfig
 
-    pair_id = "e302b0a0-28d5-5a3c-b1af-fedcf5543e72"
+    id = "e302b0a0-28d5-5a3c-b1af-fedcf5543e72"
     question = "A college student initiated a criminal case against his former roommate, claiming the former roommate snuck in and removed his state-of-the-art home theater equipment from his house. The college student took the complaint papers that were approved by the prosecution and filed them with a magistrate court. An ongoing police investigation later determined, however, that the college student was a vengeful person not averse to creating stories, and that he and the former roommate had been arguing over several related issues. They also determined that he never had any quality sound or video equipment. The police dropped the prosecution, and the criminal case was dismissed at the preliminary hearing. When the former roommate filed a civil case against the college student alleging the tort of malicious prosecution, will evidence of the student's reputation for dishonesty be admissible and why?\n(A) Yes, because the student's reputation for dishonesty directly relates to the tort of malicious prosecution.\n(B) No, because reputation evidence is considered too prejudicial to be admissible.\n(C) Yes, because dishonesty at any time in the past is always relevant to a malicious prosecution complaint.\n(D) Yes, because the student's dishonesty directly affects the credibility of his initial criminal complaint.\n(E) Yes, because reputation evidence, just like most character evidence, is virtually always admissible.\n(F) Yes, because even though character evidence is too collateral to be admitted for circumstantial evidence, it is admissible if it is directly at issue in the case.\n(G) No, because character evidence is only admissible if it is directly related to the act in question.\n(H) No, because the past reputation of a person is not considered as evidence in court.\n(I) Yes, because while most character evidence is not admissible, some is, and reputation evidence is always admissible.\n(J) No, because character evidence is never admissible in any case.\nIf you cannot determine the correct multiple-choice answer, take your best guess. Once you have your answer, please duplicate that letter five times in a single string. For example, if the answer is K, then write KKKKK.\nLet's think step by step."
     response_A = "To determine if evidence of the student's reputation for dishonesty is admissible in a claim of malicious prosecution, we need to consider several legal principles, especially those concerning character evidence and its relevance.\n\n1. **Relevance to Malicious Prosecution**:\n   - Malicious prosecution involves proving that the defendant initiated a legal action without probable cause and with malice. Evidence suggesting the initiator's dishonesty could help show the lack of probable cause and the element of malice.\n\n2. **General Rules on Character Evidence**:\n   - Generally, character evidence (reputation, opinion, or specific instances of conduct) is not admissible to prove conduct on a particular occasion (Federal Rules of Evidence 404(a)).\n   - There are exceptions where character evidence is admissible, typically in cases where character itself is an essential element of a claim or defense (e.g., defamation, negligent hiring, etc.).\n\n3. **Specific to Malicious Prosecution**:\n   - For malicious prosecution, the plaintiff would need to show that the college student acted with malice in initiating the criminal case.\n   - The student's reputation for dishonesty is relevant to understanding whether the student acted with malice or fabricated the entire situation.\n\nAnalyzing the options step-by-step:\n\n(A) Yes, because the student's reputation for dishonesty directly relates to the tort of malicious prosecution.\n   - This is a strong consideration since dishonesty could indicate malice and lack of probable cause.\n\n(B) No, because reputation evidence is considered too prejudicial to be admissible.\n   - While reputation evidence can be prejudicial, it is not an absolute bar, especially when the character is a pertinent element.\n\n(C) Yes, because dishonesty at any time in the past is always relevant to a malicious prosecution complaint.\n   - The phrase \"always relevant\" is too broad and may be misleading.\n\n(D) Yes, because the student's dishonesty directly affects the credibility of his initial criminal complaint.\n   - This is true, but it should focus on relevance to the malicious prosecution claim rather than just general credibility.\n\n(E) Yes, because reputation evidence, just like most character evidence, is virtually always admissible.\n   - Incorrect, as most character evidence rules say it is generally not admissible unless specific exceptions apply.\n\n(F) Yes, because even though character evidence is too collateral to be admitted for circumstantial evidence, it is admissible if it is directly at issue in the case.\n   - This correctly addresses that character is directly at issue in the case of malicious prosecution.\n\n(G) No, because character evidence is only admissible if it is directly related to the act in question.\n   - This is correct but incomplete in understanding how the student's character for dishonesty specifically relates to malice and the claim.\n\n(H) No, because the past reputation of a person is not considered as evidence in court.\n   - Incorrect, past reputation can be considered where it is directly related to the issues of the case.\n\n(I) Yes, because while most character evidence is not admissible, some is, and reputation evidence is always admissible.\n   - Incorrect, not always admissible.\n\n(J) No, because character evidence is never admissible in any case.\n   - Incorrect, as there are specific contexts in which it is admissible.\n\nThe best-balanced reasoning aligns with choice (F), as it clearly states that when character is directly at issue, such as in a malicious prosecution claim, it becomes admissible.\n\nHence my answer is:\nFFFFF"
     response_B = "To determine whether the former roommate can use evidence of the college student's reputation for dishonesty in his civil case for malicious prosecution, we need to consider rules of admissibility of character evidence, especially reputation evidence, in the context of a civil lawsuit.\n\n1. **Understand the nature of the civil lawsuit**:\n   - The case is about malicious prosecution, which involves proving that the defendant (college student) initiated an unjust legal proceeding with malice and without probable cause.\n\n2. **Evaluate the rules of evidence for character/reputation**:\n   - In legal proceedings, character evidence is generally inadmissible to prove that a person acted in accordance with that character on a specific occasion.\n   - However, character evidence can be admissible if it is directly related to proving an element of a claim, defense, or charge.\n\n3. **Relevance to malicious prosecution**:\n   - Malicious prosecution claims often focus on the intent and credibility of the defendant.\n   - The student's reputation for dishonesty might be directly relevant to showing that the initial complaint was maliciously false.\n\n4. **Admissibility based on relevance**:\n   - Federal Rules of Evidence (FRE) and many state rules allow the introduction of character evidence if the trait is pertinent to the issue at hand. In this case, dishonesty is a core aspect of the malicious prosecution claim.\n   - The character trait of dishonesty would be directly relevant because it pertains to the potential fabrication of the initial complaint.\n\nBased on these considerations, the best answer is:\n(A) Yes, because the student's reputation for dishonesty directly relates to the tort of malicious prosecution.\n\nSo, the correct and best-supported answer is:\nAAAAA"
@@ -288,7 +288,7 @@ def main() -> None:
             "question": [question],
             "response_A": [response_A],
             "response_B": [response_B],
-            "pair_id": [pair_id],
+            "id": [id],
         }
     )
 
