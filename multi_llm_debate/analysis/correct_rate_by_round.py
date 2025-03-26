@@ -184,7 +184,9 @@ def count_absolute_correct_rate(
     if not valid_responses:
         return None
 
-    return sum(1 for r in valid_responses if compare_func(r, correct_answer)) / len(valid_responses)
+    return sum(1 for r in valid_responses if compare_func(r, correct_answer)) / len(
+        valid_responses
+    )
 
 
 def calculate_correct_rate_by_round(
@@ -233,7 +235,7 @@ def calculate_correct_rate_by_round(
                 ]["majority"]
                 correct_counts[round_num]["absolute"] += round_correct_counts[
                     round_num
-                ]["absolute"] 
+                ]["absolute"]
             total_counts[round_num] += round_total_counts.get(round_num, 0)
         if round_total_counts:
             total_debates += 1

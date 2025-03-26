@@ -21,8 +21,8 @@ def analyze_task_accuracy(
         dataframe (pd.DataFrame): The DataFrame containing task information.
         extract_fn (Callable[[str], Optional[bool]], optional): Function to extract
             boolean answers from response text. Defaults to extract_bool_answer.
-        compare_func (Callable[[str, str], bool]): Function to compare normalized 
-            responses with correct answer, should take (response, correct_answer) 
+        compare_func (Callable[[str, str], bool]): Function to compare normalized
+            responses with correct answer, should take (response, correct_answer)
             and return a boolean.
 
     Returns:
@@ -80,8 +80,8 @@ def calculate_task_accuracy(
             If this round is larger than the final round, the final round's data will be used.
         extract_fn (Callable[[str], Optional[bool]], optional): Function to extract
             boolean answers from response text. Defaults to extract_bool_answer.
-        compare_func (Callable[[str, str], bool]): Function to compare normalized 
-            responses with correct answer, should take (response, correct_answer) 
+        compare_func (Callable[[str, str], bool]): Function to compare normalized
+            responses with correct answer, should take (response, correct_answer)
             and return a boolean.
 
     Returns:
