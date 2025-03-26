@@ -420,10 +420,7 @@ def load_debate_data(model_dir: Path, write_csv: bool = True) -> Optional[pd.Dat
                                         {
                                             "task_id": task_dir.name,
                                             "round_number": round_num,
-                                            "agent_index": agent_data.get(
-                                                "agent_id", "unknown"
-                                            ),
-                                            "agent_id": f"agent_{agent_data.get('agent_id', 'unknown')}",
+                                            "agent_id": agent_data["agent_id"],
                                             "model": agent_data.get("model", "unknown"),
                                             "response": agent_data.get("response", ""),
                                         }

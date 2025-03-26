@@ -51,10 +51,10 @@ def calculate_correct_rate_distribution_for_round_n(
 
     # We'll gather results per task
     merged_rows = []
-
+    # print(df_debates)
     # All unique tasks in df_debates
     all_task_ids = df_debates["task_id"].unique()
-
+    # print(f"Processing {len(all_task_ids)} tasks for round {round_number} ...")
     max_agents = 0
 
     # Process each task individually
@@ -114,6 +114,7 @@ def calculate_correct_rate_distribution_for_round_n(
         )
 
     if not merged_rows:
+        # print(f"No data found for round {round_number}")
         return pd.DataFrame()
 
     # Build DataFrame
