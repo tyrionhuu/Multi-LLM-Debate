@@ -108,6 +108,8 @@ def extract_bigger_char(comparison: str) -> str:
         return char2
     else:
         raise ValueError("Invalid comparison operator")
+
+
 def compare_judge_bench_responses(
     responses: str,
     answer: str,
@@ -128,6 +130,7 @@ def compare_judge_bench_responses(
     except Exception as e:
         print(f"Error comparing responses: {e}")
         return False
+
 
 def main() -> None:
     """Main function to load and display the JudgeBench dataset."""

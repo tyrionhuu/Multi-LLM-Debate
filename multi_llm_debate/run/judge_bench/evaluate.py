@@ -4,11 +4,7 @@ from typing import Dict, List
 import pandas as pd
 
 from ..shared.evaluate import EvaluationResults, evaluate_all
-from .utils import extract_caption_a_b_answer, compare_judge_bench_responses
-
-
-
-    
+from .utils import compare_judge_bench_responses, extract_caption_a_b_answer
 
 
 def evaluate_judge_bench_responses(
@@ -28,6 +24,8 @@ def evaluate_judge_bench_responses(
         compare_judge_bench_responses(response["response"], answer)
         for response in responses
     )
+
+
 def evaluate_all_judge_bench(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
