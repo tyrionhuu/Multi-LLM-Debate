@@ -386,7 +386,7 @@ def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
 
     # Check for round directories (round_0, round_1, etc.)
     for item in model_dir.glob("*"):
-        if item.is_dir() and item.name.startswith("round_"):
+        if item.is_dir() and item.name.startswith("debate_round_"):
             try:
                 round_num = int(item.name.split("_")[1])
                 logger.info(f"Processing round directory: {item.name}")
