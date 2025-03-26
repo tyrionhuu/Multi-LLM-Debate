@@ -78,7 +78,7 @@ if __name__ == "__main__":
     )
     print(dataframe.columns)
     evaluate_all_judge_bench(
-        response_base_dir=Path("data/JudgeBench/llama3(3)"),
+        response_base_dir=Path("data/JudgeBench/llama3(11)"),
         dataframe=dataframe,
         multiple_models=False,
     )
