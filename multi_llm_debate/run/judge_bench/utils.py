@@ -49,16 +49,17 @@ def load_judge_bench_dataset(
             gpt_path = os.path.join(dataset_path, "gpt")
             claude_path = os.path.join(dataset_path, "claude")
 
-            # Try to load from local disk
-            if os.path.exists(gpt_path):
+            # Check if both splits exist and are not empty
+            if os.path.exists(gpt_path) and os.path.exists(claude_path):
                 dataset_1 = load_from_disk(gpt_path)
-                df_1 = pd.DataFrame(dataset_1)
-                print(f"Loaded GPT split from local path: {gpt_path}")
-
-            if os.path.exists(claude_path):
                 dataset_2 = load_from_disk(claude_path)
+                df_1 = pd.DataFrame(dataset_1)
                 df_2 = pd.DataFrame(dataset_2)
-                print(f"Loaded Claude split from local path: {claude_path}")
+                print(f"Loaded GPT and Claude splits from local paths.")
+            else:
+                print("One or both of the splits are missing. Downloading datasets...")
+                df_1, df_2 = None, None
+
         except Exception as e:
             print(f"Error loading local dataset: {e}")
             df_1, df_2 = None, None
