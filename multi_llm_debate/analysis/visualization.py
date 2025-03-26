@@ -1,7 +1,10 @@
 import logging
 import math
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Callable
+from .visualization import process_distribution_data, plot_all_rounds_multi_rows
+from .calculate_correct_rate_distribution import calculate_correct_rate_distribution_for_round_n
+from .utils import load_debate_data
 
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -145,3 +148,77 @@ def plot_all_rounds_multi_rows(
         plt.show()
     plt.close()
     logger.info(f"Saved {rows}-row subplot figure to {output_path}")
+
+
+def plot_main(
+    data_path: Path,
+    model_dir: Path,
+    output_dir: Path,
+    extract_func: Callable,
+    compare_func: Callable,
+    max_rounds: int = 6,
+    show_plots: bool = False,
+) -> None:
+    """
+    Loads data, calculates correct-rate distributions for each round,
+    and plots them in two rows of subplots.
+
+    Args:
+        data_path: Path to the CSV file with task data (contains correct labels).
+        model_dir: Directory containing model output data.
+        output_dir: Directory where output plots should be saved.
+        extract_func: Function to extract answers from the debate data.
+        compare_func: Function to compare judge bench responses.
+        max_rounds: Maximum number of rounds to process.
+        show_plots: Whether to display plots interactively.
+    """
+    # Create output directory if it doesn't exist
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        # Load the "ground truth" answer data
+        df_answers = pd.read_csv(data_path)
+        logger.info(f"Loaded answer data from {data_path}")
+        
+        # Load the debate data
+        df_debates = load_debate_data(model_dir)
+        if df_debates is None:
+            logger.error("Could not load debate data. Aborting.")
+            return
+        
+        logger.info(f"Processed debate data: {len(df_debates)} records")
+
+    except Exception as e:
+        logger.error(f"Error loading data: {e}")
+        return
+    
+    all_distributions = []
+    
+    # Process each round from 0 up to max_rounds-1
+    for round_number in range(max_rounds):
+        logger.info(f"Processing round {round_number}...")
+        
+        try:
+            # Calculate distribution for this round
+            result_df = calculate_correct_rate_distribution_for_round_n(
+                df_answers=df_answers,
+                df_debates=df_debates,
+                round_number=round_number,
+                extract_func=extract_func,
+                compare_func=compare_func,
+            )
+            
+            # Convert that distribution to a simple dict for plotting
+            bin_percentages = process_distribution_data(result_df, round_number)
+            
+            if bin_percentages:
+                all_distributions.append((round_number, bin_percentages))
+                
+        except Exception as err:
+            logger.error(f"Error processing round {round_number}: {err}")
+    
+    # Create the single, combined plot in 2 rows if we have data
+    if all_distributions:
+        plot_all_rounds_multi_rows(all_distributions, output_dir, show_plot=show_plots)
+    
+    logger.info("Visualization complete!")
