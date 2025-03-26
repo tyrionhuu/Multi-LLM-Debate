@@ -402,19 +402,18 @@ def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
                         with open(debate_file, "r") as f:
                             task_data = json.load(f)
 
-                        # Extract agent responses from the JSON data
-                        if "responses" in task_data:
-                            for agent_idx, response in enumerate(task_data["responses"]):
-                                all_data.append(
-                                    {
-                                        "task_id": task_dir.name,  # Use task directory name as task ID
+                        # Handle JSON array of agent responses
+                        if isinstance(task_data, list):
+                            for agent_data in task_data:
+                                if "agent_id" in agent_data and "response" in agent_data:
+                                    all_data.append({
+                                        "task_id": task_dir.name,
                                         "round_number": round_num,
-                                        "agent_index": agent_idx,
-                                        "agent_id": f"agent_{agent_idx}",
-                                        "model": task_data.get("model", "unknown"),
-                                        "response": response,
-                                    }
-                                )
+                                        "agent_index": agent_data.get("agent_id", "unknown"),
+                                        "agent_id": f"agent_{agent_data.get('agent_id', 'unknown')}",
+                                        "model": agent_data.get("model", "unknown"),
+                                        "response": agent_data.get("response", "")
+                                    })
                         else:
                             logger.warning(f"Unexpected JSON structure in {debate_file}")
 
