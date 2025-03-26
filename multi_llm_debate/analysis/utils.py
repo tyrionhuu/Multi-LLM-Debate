@@ -395,8 +395,12 @@ def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
                 # Process all debate_round_*.json files in this task directory
                 for debate_file in task_dir.glob("debate_round_*.json"):
                     try:
-                        round_num = int(debate_file.stem.split("_")[2])  # Assumes format: debate_round_*
-                        logger.info(f"Processing file: {debate_file.name} (Round {round_num})")
+                        round_num = int(
+                            debate_file.stem.split("_")[2]
+                        )  # Assumes format: debate_round_*
+                        logger.info(
+                            f"Processing file: {debate_file.name} (Round {round_num})"
+                        )
 
                         # Open and read the JSON file
                         with open(debate_file, "r") as f:
@@ -405,17 +409,26 @@ def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
                         # Handle JSON array of agent responses
                         if isinstance(task_data, list):
                             for agent_data in task_data:
-                                if "agent_id" in agent_data and "response" in agent_data:
-                                    all_data.append({
-                                        "task_id": task_dir.name,
-                                        "round_number": round_num,
-                                        "agent_index": agent_data.get("agent_id", "unknown"),
-                                        "agent_id": f"agent_{agent_data.get('agent_id', 'unknown')}",
-                                        "model": agent_data.get("model", "unknown"),
-                                        "response": agent_data.get("response", "")
-                                    })
+                                if (
+                                    "agent_id" in agent_data
+                                    and "response" in agent_data
+                                ):
+                                    all_data.append(
+                                        {
+                                            "task_id": task_dir.name,
+                                            "round_number": round_num,
+                                            "agent_index": agent_data.get(
+                                                "agent_id", "unknown"
+                                            ),
+                                            "agent_id": f"agent_{agent_data.get('agent_id', 'unknown')}",
+                                            "model": agent_data.get("model", "unknown"),
+                                            "response": agent_data.get("response", ""),
+                                        }
+                                    )
                         else:
-                            logger.warning(f"Unexpected JSON structure in {debate_file}")
+                            logger.warning(
+                                f"Unexpected JSON structure in {debate_file}"
+                            )
 
                     except Exception as e:
                         logger.warning(f"Error processing file {debate_file}: {e}")
