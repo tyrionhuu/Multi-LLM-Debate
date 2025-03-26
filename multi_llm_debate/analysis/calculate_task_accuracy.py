@@ -11,6 +11,7 @@ def analyze_task_accuracy(
     model_dir: Path,
     dataframe: pd.DataFrame,
     extract_fn: Callable,
+    compare_func: Callable[[str, str], bool] = lambda r, c: r == c,
 ) -> pd.DataFrame:
     """
     Analyzes the task accuracy for tasks that exist in the model directory.
@@ -20,6 +21,9 @@ def analyze_task_accuracy(
         dataframe (pd.DataFrame): The DataFrame containing task information.
         extract_fn (Callable[[str], Optional[bool]], optional): Function to extract
             boolean answers from response text. Defaults to extract_bool_answer.
+        compare_func (Callable[[str, str], bool]): Function to compare normalized 
+            responses with correct answer, should take (response, correct_answer) 
+            and return a boolean.
 
     Returns:
         pd.DataFrame: A DataFrame with an additional column 'accuracy' indicating
@@ -46,7 +50,9 @@ def analyze_task_accuracy(
             continue
 
         answer = dataframe.loc[dataframe["id"] == task_id, "answer"].values[0]
-        accuracy = calculate_task_accuracy(task_dir, answer, extract_fn=extract_fn)
+        accuracy = calculate_task_accuracy(
+            task_dir, answer, extract_fn=extract_fn, compare_func=compare_func
+        )
         accuracy_dict[task_id] = accuracy
 
     # Add accuracy column to dataframe
@@ -61,6 +67,7 @@ def calculate_task_accuracy(
     task_dir: Path,
     answer: str,
     extract_fn: Callable,
+    compare_func: Callable[[str, str], bool] = lambda r, c: r == c,
     round_number: int = 0,
 ) -> float:
     """
@@ -73,6 +80,9 @@ def calculate_task_accuracy(
             If this round is larger than the final round, the final round's data will be used.
         extract_fn (Callable[[str], Optional[bool]], optional): Function to extract
             boolean answers from response text. Defaults to extract_bool_answer.
+        compare_func (Callable[[str, str], bool]): Function to compare normalized 
+            responses with correct answer, should take (response, correct_answer) 
+            and return a boolean.
 
     Returns:
         float: The accuracy of the task, or -1.0 if an error occurred.
@@ -116,8 +126,8 @@ def calculate_task_accuracy(
                 total_responses -= 1
                 continue
 
-            # Compare directly as booleans
-            if extracted_response == answer_bool:
+            # Compare using the compare_func instead of direct equality
+            if compare_func(extracted_response, answer_bool):
                 correct_count += 1
 
         # Calculate and return accuracy
