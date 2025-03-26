@@ -18,6 +18,7 @@ def main(
     sample_size: Optional[int] = None,
     max_workers: Optional[int] = 4,
     config_path: Optional[Path] = None,
+    run_debate: bool = True,
 ) -> None:
     """Run debate evaluation with configured models.
 
@@ -63,17 +64,18 @@ def main(
         if config_path is None:
             config_path = Path(f"multi_llm_debate/run/{task_name}/config.json")
 
-        for model_configs in model_configs_list:
-            run(
-                dataframe=processed_df,
-                run_debate_fn=run_debate_fn,
-                evaluate_fn=evaluate_fn,
-                task_name=task_name,
-                sample_size=sample_size,
-                report_path=Path(f"data/{task_name}"),
-                model_configs=model_configs,
-                max_workers=max_workers,
-            )
+        if run_debate:
+            for model_configs in model_configs_list:
+                run(
+                    dataframe=processed_df,
+                    run_debate_fn=run_debate_fn,
+                    evaluate_fn=evaluate_fn,
+                    task_name=task_name,
+                    sample_size=sample_size,
+                    report_path=Path(f"data/{task_name}"),
+                    model_configs=model_configs,
+                    max_workers=max_workers,
+                )
 
     except FileNotFoundError:
         raise FileNotFoundError(f"Configuration file not found at {config_path}")
