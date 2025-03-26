@@ -365,7 +365,7 @@ def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
 
     This function attempts to find and load debate data, first looking for
     a debate_rounds.csv file, then searching for debate data in directories
-    organized by rounds.
+    organized by task IDs and round files.
 
     Args:
         model_dir: Directory containing model output data.
@@ -384,32 +384,26 @@ def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
 
     all_data = []
 
-    # Check for round directories (round_0, round_1, etc.)
-    for item in model_dir.glob("*"):
-        if item.is_dir() and item.name.startswith("debate_round_"):
+    # Check for task directories (task_*)
+    for task_dir in model_dir.glob("*"):
+        if task_dir.is_dir():
             try:
-                round_num = int(item.name.split("_")[1])
-                logger.info(f"Processing round directory: {item.name}")
-
-                # Process all files in this round directory
-                for task_file in item.glob("*.json"):
+                # Process all debate_round_*.json files in this task directory
+                for debate_file in task_dir.glob("debate_round_*.json"):
                     try:
-                        task_id = int(
-                            task_file.stem
-                        )  # Assumes filename is numeric task ID
+                        round_num = int(debate_file.stem.split("_")[2])  # Assumes format: debate_round_*
+                        logger.info(f"Processing file: {debate_file.name} (Round {round_num})")
 
-                        with open(task_file, "r") as f:
+                        # Open and read the JSON file
+                        with open(debate_file, "r") as f:
                             task_data = json.load(f)
 
                         # Extract agent responses from the JSON data
-                        # Structure may vary, so this might need adaptation
                         if "responses" in task_data:
-                            for agent_idx, response in enumerate(
-                                task_data["responses"]
-                            ):
+                            for agent_idx, response in enumerate(task_data["responses"]):
                                 all_data.append(
                                     {
-                                        "task_id": task_id,
+                                        "task_id": task_dir.name,  # Use task directory name as task ID
                                         "round_number": round_num,
                                         "agent_index": agent_idx,
                                         "agent_id": f"agent_{agent_idx}",
@@ -418,15 +412,13 @@ def load_debate_data(model_dir: Path) -> Optional[pd.DataFrame]:
                                     }
                                 )
                         else:
-                            logger.warning(f"Unexpected JSON structure in {task_file}")
+                            logger.warning(f"Unexpected JSON structure in {debate_file}")
 
                     except Exception as e:
-                        logger.warning(f"Error processing file {task_file}: {e}")
+                        logger.warning(f"Error processing file {debate_file}: {e}")
 
             except ValueError:
-                logger.warning(
-                    f"Could not parse round number from directory: {item.name}"
-                )
+                logger.warning(f"Error processing task directory: {task_dir.name}")
 
     if not all_data:
         logger.error("Could not find any debate data in directories.")
