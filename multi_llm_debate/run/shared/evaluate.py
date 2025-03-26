@@ -1,10 +1,15 @@
 import json
+import logging
 from pathlib import Path
 from typing import Callable, Dict, List, NamedTuple, Optional, Union
 
 import pandas as pd
 
 from .utils import get_latest_round_file
+
+# Set up logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Add type alias for the evaluation function
 EvaluationFunc = Callable[[List[Dict], Union[str, bool]], bool]
@@ -42,23 +47,34 @@ def evaluate_debate_df(
 
     correct_count = 0
     valid_count = 0
+    
+    logger.info(f"Starting debate evaluation on {len(dataframe)} entries...")
 
-    for _, entry in dataframe.iterrows():
+    for i, (_, entry) in enumerate(dataframe.iterrows()):
+        if i % 10 == 0:
+            logger.info(f"Processing entry {i}/{len(dataframe)}")
+            
         try:
             answer = entry["answer"]
             id_ = str(entry["id"])
+            
+            logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
 
             # Load responses from the corresponding file
             responses_dir = response_base_dir / id_
+            logger.debug(f"Looking for responses in: {responses_dir}")
 
             # Get the final response file
             final_response_file = get_latest_round_file(responses_dir)
+            logger.debug(f"Using final response file: {final_response_file}")
 
             with open(final_response_file, "r") as f:
                 responses = json.load(f)
+                logger.debug(f"Loaded {len(responses)} responses")
 
             # Skip if no valid responses
             if not responses:
+                logger.warning("No valid responses found, skipping")
                 continue
 
             # Evaluate the responses
@@ -66,14 +82,18 @@ def evaluate_debate_df(
             valid_count += 1
             if is_correct:
                 correct_count += 1
+                logger.debug(f"Correct! Current accuracy: {correct_count}/{valid_count}")
+            else:
+                logger.debug(f"Incorrect. Current accuracy: {correct_count}/{valid_count}")
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error processing entry {id_}: {str(e)}")
             continue
 
     # Calculate and output accuracy using valid responses
     accuracy = correct_count / valid_count if valid_count > 0 else 0
-    print(f"\nOverall Accuracy: {accuracy:.2%}")
-    print(f"Valid responses: {valid_count}/{len(dataframe)}")
+    logger.info(f"Overall Accuracy: {accuracy:.2%}")
+    logger.info(f"Valid responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
 
@@ -99,38 +119,54 @@ def evaluate_single_llm_df(
 
     correct_count = 0
     valid_count = 0
+    
+    logger.info(f"Starting single LLM evaluation on {len(dataframe)} entries...")
 
-    for _, entry in dataframe.iterrows():
+    for i, (_, entry) in enumerate(dataframe.iterrows()):
+        if i % 10 == 0:
+            logger.info(f"Processing entry {i}/{len(dataframe)}")
+            
         try:
             answer = entry["answer"]
             id_ = str(entry["id"])
+            
+            logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
 
             # Load responses from the first debate round file
             responses_dir = response_base_dir / id_
             first_response_file = responses_dir / "debate_round_0.json"
+            logger.debug(f"Looking for first round response: {first_response_file}")
 
             with open(first_response_file, "r") as f:
                 responses = json.load(f)
+                logger.debug(f"Loaded {len(responses)} responses from first round")
 
             # Skip if no valid responses
             if not responses:
+                logger.warning("No valid responses found, skipping")
                 continue
 
             # Only use the first response
             first_response = responses[0]
+            logger.debug("Using first response for evaluation")
+            
             # Create a list with single response for consistent interface
             is_correct = evaluation_func([first_response], answer)
             valid_count += 1
             if is_correct:
                 correct_count += 1
+                logger.debug(f"Correct! Current accuracy: {correct_count}/{valid_count}")
+            else:
+                logger.debug(f"Incorrect. Current accuracy: {correct_count}/{valid_count}")
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error processing entry {id_}: {str(e)}")
             continue
 
     # Calculate and output accuracy using valid responses
     accuracy = correct_count / valid_count if valid_count > 0 else 0
-    print(f"\nSingle LLM Accuracy: {accuracy:.2%}")
-    print(f"Valid single LLM responses: {valid_count}/{len(dataframe)}")
+    logger.info(f"Single LLM Accuracy: {accuracy:.2%}")
+    logger.info(f"Valid single LLM responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
 
@@ -190,41 +226,58 @@ def evaluate_ensemble_df(
     """
     correct_count = 0
     valid_count = 0
+    
+    logger.info(f"Starting ensemble evaluation on {len(dataframe)} entries...")
 
-    for _, entry in dataframe.iterrows():
+    for i, (_, entry) in enumerate(dataframe.iterrows()):
+        if i % 10 == 0:
+            logger.info(f"Processing entry {i}/{len(dataframe)}")
+            
         try:
             answer = entry["answer"]
             id_ = str(entry["id"])
+            
+            logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
 
             # Load responses from the first debate round file
             responses_dir = response_base_dir / id_
             first_response_file = responses_dir / "debate_round_0.json"
+            logger.debug(f"Looking for first round responses: {first_response_file}")
 
             with open(first_response_file, "r") as f:
                 responses = json.load(f)
+                logger.debug(f"Loaded {len(responses)} responses from first round")
 
             # Skip if no valid responses
             if not responses:
+                logger.warning("No valid responses found, skipping")
                 continue
 
             # Get majority vote
             majority_response = get_majority_vote(responses, extract_func)
             if majority_response is None:
+                logger.warning("No majority response found, skipping")
                 continue
+                
+            logger.debug(f"Majority response: {majority_response}")
 
             # Compare with correct answer
             is_correct = evaluation_func([{"response": majority_response}], answer)
             valid_count += 1
             if is_correct:
                 correct_count += 1
+                logger.debug(f"Correct! Current accuracy: {correct_count}/{valid_count}")
+            else:
+                logger.debug(f"Incorrect. Current accuracy: {correct_count}/{valid_count}")
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error processing entry {id_}: {str(e)}")
             continue
 
     # Calculate and output accuracy using valid responses
     accuracy = correct_count / valid_count if valid_count > 0 else 0
-    print(f"\nEnsemble Accuracy (First Round Majority): {accuracy:.2%}")
-    print(f"Valid ensemble responses: {valid_count}/{len(dataframe)}")
+    logger.info(f"Ensemble Accuracy (First Round Majority): {accuracy:.2%}")
+    logger.info(f"Valid ensemble responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
 
@@ -248,7 +301,10 @@ def evaluate_all(
     Returns:
         EvaluationResults: Named tuple containing accuracies for all three methods.
     """
-    print("\nRunning debate evaluation...")
+    logger.info("Running debate evaluation...")
+    logger.info(f"Processing data directory: {response_base_dir}")
+    logger.info(f"Dataset contains {len(dataframe)} entries")
+    
     debate_acc = evaluate_debate_df(
         response_base_dir, dataframe, evaluation_func=evaluation_func
     )
@@ -256,12 +312,12 @@ def evaluate_all(
     # Only run single LLM evaluation for single model type
     single_acc = 0.0
     if not multiple_models:
-        print("\nRunning single LLM evaluation...")
+        logger.info("Running single LLM evaluation...")
         single_acc = evaluate_single_llm_df(
             response_base_dir, dataframe, evaluation_func=evaluation_func
         )
 
-    print("\nRunning ensemble evaluation...")
+    logger.info("Running ensemble evaluation...")
     ensemble_acc = evaluate_ensemble_df(
         response_base_dir,
         dataframe,
@@ -269,10 +325,10 @@ def evaluate_all(
         evaluation_func=evaluation_func,
     )
 
-    print("\nSummary of all evaluation methods:")
-    print(f"Debate accuracy:     {debate_acc:.2%}")
+    logger.info("Summary of all evaluation methods:")
+    logger.info(f"Debate accuracy:     {debate_acc:.2%}")
     if not multiple_models:
-        print(f"Single LLM accuracy: {single_acc:.2%}")
-    print(f"Ensemble accuracy:   {ensemble_acc:.2%}")
+        logger.info(f"Single LLM accuracy: {single_acc:.2%}")
+    logger.info(f"Ensemble accuracy:   {ensemble_acc:.2%}")
 
     return EvaluationResults(debate_acc, single_acc, ensemble_acc)
