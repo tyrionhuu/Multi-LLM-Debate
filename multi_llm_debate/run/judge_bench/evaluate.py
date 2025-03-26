@@ -26,8 +26,8 @@ def evaluate_judge_bench_responses(
             extract_caption_a_b_answer(response) for response in raw_responses
         ]
         gold_answer = extract_bigger_char(answer)
-        print(f"Normalized answer: {normalized_responses}")
-        print(f"Gold answer: {gold_answer}")
+        # print(f"Normalized answer: {normalized_responses}")
+        # print(f"Gold answer: {gold_answer}")
         if len(set(normalized_responses)) == 1:
             return normalized_responses[0] == gold_answer.upper()
         return False
