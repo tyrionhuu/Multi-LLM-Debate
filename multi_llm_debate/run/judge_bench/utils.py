@@ -1,9 +1,9 @@
+import os
 from typing import Literal
 
 import pandas as pd
 
 from datasets import load_dataset, load_from_disk
-import os
 
 
 def preprocess_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -41,20 +41,20 @@ def load_judge_bench_dataset(
     """
     # Initialize empty DataFrames
     df_1, df_2 = None, None
-    
+
     # Try to load local datasets first
     if os.path.exists(dataset_path):
         try:
             # Define paths for the two splits
             gpt_path = os.path.join(dataset_path, "gpt")
             claude_path = os.path.join(dataset_path, "claude")
-            
+
             # Try to load from local disk
             if os.path.exists(gpt_path):
                 dataset_1 = load_from_disk(gpt_path)
                 df_1 = pd.DataFrame(dataset_1)
                 print(f"Loaded GPT split from local path: {gpt_path}")
-            
+
             if os.path.exists(claude_path):
                 dataset_2 = load_from_disk(claude_path)
                 df_2 = pd.DataFrame(dataset_2)
@@ -62,7 +62,7 @@ def load_judge_bench_dataset(
         except Exception as e:
             print(f"Error loading local dataset: {e}")
             df_1, df_2 = None, None
-    
+
     # Fall back to downloading if local loading failed
     if df_1 is None:
         print("Local GPT split not found, downloading from HuggingFace...")
@@ -74,7 +74,7 @@ def load_judge_bench_dataset(
         if dataset_1 is None:
             raise ValueError("Failed to load the JudgeBench GPT dataset.")
         df_1 = pd.DataFrame(dataset_1)
-    
+
     if df_2 is None:
         print("Local Claude split not found, downloading from HuggingFace...")
         dataset_2 = load_dataset(
