@@ -19,7 +19,7 @@ if __name__ == "__main__":
         dataframe=dataframe,
         run_debate_fn=run_judge_bench,
         evaluate_fn=evaluate_all_judge_bench,
-        task_name="JudgeBench",
+        task_name="judge_bench",
         sample_size=args.sample_size,
         max_workers=args.max_workers,
         config_path=args.config,
