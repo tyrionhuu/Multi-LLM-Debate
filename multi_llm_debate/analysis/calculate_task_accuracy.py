@@ -68,6 +68,7 @@ def calculate_task_accuracy(
     answer: str,
     extract_fn: Callable,
     compare_func: Callable[[str, str], bool] = lambda r, c: r == c,
+    normalize_func: Callable[[str], str] = lambda x: x,
     round_number: int = 0,
 ) -> float:
     """
@@ -110,9 +111,9 @@ def calculate_task_accuracy(
         correct_count = 0
         total_responses = len(responses)
 
-        # Use normalize_boolean_answer instead of manual conversion
-        answer_bool = normalize_boolean_answer(answer)
-        if answer_bool is None:
+        # Normalize the answer
+        normalized_answer = normalize_func(answer)
+        if normalized_answer is None:
             print(f"Warning: Ambiguous answer format '{answer}' for task {task_dir}")
             return -1.0
 
@@ -127,7 +128,7 @@ def calculate_task_accuracy(
                 continue
 
             # Compare using the compare_func instead of direct equality
-            if compare_func(extracted_response, answer_bool):
+            if compare_func(extracted_response, normalized_answer):
                 correct_count += 1
 
         # Calculate and return accuracy
