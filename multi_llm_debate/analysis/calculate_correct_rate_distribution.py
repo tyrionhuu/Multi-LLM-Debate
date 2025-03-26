@@ -114,6 +114,7 @@ def calculate_correct_rate_distribution_for_round_n(
         )
 
     if not merged_rows:
+        # print(f"No data found for round {round_number}")
         return pd.DataFrame()
 
     # Build DataFrame
