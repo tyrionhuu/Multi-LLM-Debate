@@ -77,11 +77,11 @@ def extract_bigger_char(comparison: str) -> str:
     char2 = comparison[2]
 
     if operator == ">":
-        return char1 if char1 > char2 else char2
+        return char1
     elif operator == "<":
-        return char1 if char1 < char2 else char2
+        return char2
     else:
-        raise ValueError("Invalid operator in comparison string")
+        raise ValueError("Invalid comparison operator")
 
 
 def main() -> None:
