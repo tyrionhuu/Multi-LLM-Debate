@@ -190,3 +190,121 @@ def run(
             "error": str(e),
             "running_time": running_time,
         }
+
+
+def run_debate_task(
+    dataframe: pd.DataFrame,
+    process_entry_fn: Callable[[pd.Series, int, Path, bool, Optional[List[ModelConfig]], 
+                               bool, Optional[int]], None],
+    required_columns: List[str],
+    base_dir: Path,
+    max_rounds: int = 10,
+    use_cot: bool = True,
+    model_configs: Optional[List[ModelConfig]] = None,
+    overwrite: bool = False,
+    max_workers: Optional[int] = 4,
+    task_name: str = "debate task",
+) -> Dict[str, Any]:
+    """Run a debate task on all entries in a dataframe.
+
+    Args:
+        dataframe: Pandas DataFrame containing entries to process
+        process_entry_fn: Function to process a single entry
+        required_columns: List of column names required in the dataframe
+        base_dir: Base directory for output files
+        max_rounds: Maximum number of debate rounds
+        use_cot: Whether to use chain-of-thought prompting
+        model_configs: Optional list of model configurations
+        overwrite: Whether to overwrite existing debate results
+        max_workers: Maximum number of concurrent workers
+        task_name: Name of the task for logging purposes
+
+    Returns:
+        Dict containing summary of execution including failed entries
+
+    Raises:
+        ValueError: If DataFrame format is invalid
+    """
+    failed_entries = []
+    processed_count = 0
+
+    try:
+        logger.info(f"Starting debate for {task_name}")
+
+        # Check if the DataFrame is valid
+        if not isinstance(dataframe, pd.DataFrame):
+            logger.error("Invalid DataFrame type")
+            raise ValueError("Dataframe must be a pandas DataFrame.")
+
+        missing_columns = [
+            col for col in required_columns if col not in dataframe.columns
+        ]
+        if missing_columns:
+            logger.error(f"Missing required columns: {missing_columns}")
+            raise ValueError(f"Missing required columns: {missing_columns}")
+        
+        if dataframe.empty:
+            logger.error("DataFrame is empty")
+            raise ValueError("DataFrame is empty. Please provide valid data.")
+
+        # Using progress manager for the main progress bar
+        from ...utils.progress import progress
+        with progress.main_bar(
+            total=len(dataframe), desc=f"Running {task_name}", unit="debate"
+        ) as pbar:
+            for _, entry in dataframe.iterrows():
+                try:
+                    process_entry_fn(
+                        entry,
+                        max_rounds=max_rounds,
+                        base_dir=base_dir,
+                        use_cot=use_cot,
+                        model_configs=model_configs,
+                        overwrite=overwrite,
+                        max_workers=max_workers,
+                    )
+                    processed_count += 1
+                    pbar.update(1)
+                except Exception as e:
+                    entry_id = entry.get("id", "unknown")
+                    logger.error(f"Error processing entry {entry_id}: {str(e)}")
+                    failed_entries.append({
+                        "id": entry_id,
+                        "error": str(e),
+                        "question": entry.get("question", ""),
+                    })
+                    pbar.update(1)  # Update progress even for failures
+                    continue
+
+    except Exception as e:
+        logger.error(f"Global execution error: {str(e)}", exc_info=True)
+        raise RuntimeError(f"Global execution error: {str(e)}") from e
+
+    finally:
+        # Log summary
+        total_entries = len(dataframe)
+        failed_count = len(failed_entries)
+        success_rate = (
+            (processed_count / total_entries) * 100 if total_entries > 0 else 0
+        )
+
+        logger.info("Debate execution completed")
+        logger.info(f"Total entries processed: {total_entries}")
+        logger.info(f"Successful: {processed_count}")
+        logger.info(f"Failed: {failed_count}")
+        logger.info(f"Success rate: {success_rate:.2f}%")
+
+        if failed_entries:
+            logger.warning("Failed entries:")
+            for entry in failed_entries:
+                logger.warning(f"ID: {entry['id']}, Error: {entry['error']}")
+
+        if len(failed_entries) == total_entries and total_entries > 0:
+            logger.error(f"All {total_entries} entries failed. Check logs for details.")
+
+    return {
+        "total_entries": total_entries,
+        "processed_count": processed_count,
+        "failed_entries": failed_entries,
+        "success_rate": success_rate,
+    }
