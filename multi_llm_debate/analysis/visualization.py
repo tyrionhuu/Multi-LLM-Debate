@@ -194,6 +194,7 @@ def plot_all_rounds_multi_rows(
     plt.close()
     logger.info(f"Saved {rows}-row subplot figure to {output_path}")
 
+
 def create_heatmap(
     all_distributions: List[Tuple[int, Dict[str, float]]],
     output_dir: Path,
