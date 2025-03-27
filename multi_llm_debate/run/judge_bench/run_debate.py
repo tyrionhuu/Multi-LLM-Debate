@@ -117,12 +117,12 @@ def run_judge_bench(
         logger.info(f"Successful: {processed_count}")
         logger.info(f"Failed: {failed_count}")
         logger.info(f"Success rate: {success_rate:.2f}%")
-        
+
         if failed_entries:
             logger.warning("Failed entries:")
             for entry in failed_entries:
                 logger.warning(f"ID: {entry['id']}, Error: {entry['error']}")
-        
+
         if len(failed_entries) == total_entries and total_entries > 0:
             logger.error(f"All {total_entries} entries failed. Check logs for details.")
 

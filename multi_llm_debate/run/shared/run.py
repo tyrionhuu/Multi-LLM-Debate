@@ -55,7 +55,7 @@ def run(
     model_config_str = model_configs_to_string(model_configs)
     output_path = report_path / model_config_str.replace(" ", "_")
     logger.info(f"Starting {task_name} task with {model_config_str}")
-    
+
     # Process the DataFrame if needed
     if process_df_fn:
         logger.info("Preprocessing input dataframe")
@@ -64,7 +64,9 @@ def run(
         processed_dataframe = dataframe
 
     if sample_size and len(processed_dataframe) > sample_size:
-        logger.info(f"Sampling {sample_size} entries from dataset (random seed: {random_seed})")
+        logger.info(
+            f"Sampling {sample_size} entries from dataset (random seed: {random_seed})"
+        )
         processed_dataframe = processed_dataframe.sample(
             sample_size, random_state=random_seed
         )
@@ -124,8 +126,16 @@ def run(
         new_row = [
             current_config,
             "N/A" if multiple_models else f"{results.single_llm_accuracy:.4f}",
-            f"{results.ensemble_accuracy:.4f}" if hasattr(results, "ensemble_accuracy") else "N/A",
-            f"{results.debate_accuracy:.4f}" if hasattr(results, "debate_accuracy") else "N/A",
+            (
+                f"{results.ensemble_accuracy:.4f}"
+                if hasattr(results, "ensemble_accuracy")
+                else "N/A"
+            ),
+            (
+                f"{results.debate_accuracy:.4f}"
+                if hasattr(results, "debate_accuracy")
+                else "N/A"
+            ),
             csv_time,
         ]
 
@@ -135,7 +145,7 @@ def run(
                 [
                     "Model Configuration",
                     "Single LLM Accuracy",
-                    "Ensemble Accuracy", 
+                    "Ensemble Accuracy",
                     "Debate Accuracy",
                     "Running Time",
                 ]
@@ -160,20 +170,20 @@ def run(
         except Exception as e:
             logger.error(f"Error writing results to CSV: {str(e)}")
             print(f"\nFailed to save results: {str(e)}")
-            
+
         return {
             "execution_report": execution_report,
             "evaluation_results": results,
             "running_time": running_time,
         }
-            
+
     except Exception as e:
         logger.error(f"Evaluation failed: {str(e)}", exc_info=True)
         print(f"\nEvaluation failed: {str(e)}")
         running_time = time.time() - start_time
         display_time, _ = format_time(running_time)
         print(f"\nTotal running time: {display_time}")
-        
+
         return {
             "execution_report": execution_report,
             "evaluation_results": None,
