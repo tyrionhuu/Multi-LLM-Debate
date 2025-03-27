@@ -109,23 +109,35 @@ class AgentsEnsemble:
         """
         responses = []
         errors = []
-
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            futures = []
-
+        
+        # If max_workers is None or 1, use sequential processing instead of ThreadPoolExecutor
+        if self.max_workers is None or self.max_workers <= 1:
             for agent in self.agents:
-                if self.job_delay > 0:
-                    time.sleep(self.job_delay)
-                futures.append(
-                    executor.submit(agent.respond, prompt, json_mode=json_mode)
-                )
-
-            for future in as_completed(futures):
                 try:
-                    response = future.result()
+                    response = agent.respond(prompt, json_mode=json_mode)
                     responses.append(response)
                 except LLMConnectionError as e:
                     errors.append(str(e))
+
+                if self.job_delay > 0:
+                    time.sleep(self.job_delay)
+        else:
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = []
+
+                for agent in self.agents:
+                    if self.job_delay > 0:
+                        time.sleep(self.job_delay)
+                    futures.append(
+                        executor.submit(agent.respond, prompt, json_mode=json_mode)
+                    )
+
+                for future in as_completed(futures):
+                    try:
+                        response = future.result()
+                        responses.append(response)
+                    except LLMConnectionError as e:
+                        errors.append(str(e))
 
         if errors:
             raise LLMConnectionError(
