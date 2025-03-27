@@ -181,7 +181,6 @@ def visualize_parameter_trends(
     model_results: List[Dict[str, float]],
     output_dir: Optional[Path] = None,
     model_config: str = "",
-    row_number: int = 5,
 ) -> Figure:
     """Visualize how model parameters change across rounds.
 
@@ -189,7 +188,6 @@ def visualize_parameter_trends(
         model_results: List of dictionaries with fitted model parameters for each round
         output_dir: Optional directory to save the plot
         model_config: Optional model configuration identifier for file naming
-        row_number: Number of rows for the subplot grid (default: 5)
 
     Returns:
         The generated figure
@@ -220,97 +218,125 @@ def visualize_parameter_trends(
         beta2 / (alpha2 + beta2) for alpha2, beta2 in zip(alpha2_values, beta2_values)
     ]
 
-    # Create the figure with the specified number of rows
-    fig, axes = plt.subplots(nrows=row_number, ncols=1, figsize=(10, 4 * row_number))
-
-    # Make axes a list if it's a single subplot
-    if row_number == 1:
-        axes = [axes]
-
+    # Create the figure with 5 subplots
+    fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(10, 20))
     fig.suptitle(
         f"Model Parameter Evolution Across Debate Rounds {model_config}", fontsize=16
     )
     fig.subplots_adjust(top=0.95)  # Make room for the title
 
-    # Define plot configurations - each item contains data and styling info
-    plot_configs = [
-        # (data1, data2, title, ylabel, color1, color2, label1, label2)
-        (
-            w_values,
-            None,
-            "Component 1 Weight Evolution",
-            "Mixture Weight (w)",
-            "blue",
-            None,
-            "Mixture Weight (w)",
-            None,
-        ),
-        (
-            success_prob1_values,
-            success_prob2_values,
-            "Success Probability Evolution by Component",
-            "Expected Success Probability",
-            "green",
-            "purple",
-            "Component 1: α₁/(α₁+β₁)",
-            "Component 2: α₂/(α₂+β₂)",
-        ),
-        (
-            failure_prob1_values,
-            failure_prob2_values,
-            "Failure Probability Evolution by Component",
-            "Expected Failure Probability",
-            "green",
-            "purple",
-            "Component 1: β₁/(α₁+β₁)",
-            "Component 2: β₂/(α₂+β₂)",
-        ),
-        (
-            alpha1_values,
-            alpha2_values,
-            "Alpha Parameter Evolution (Success Parameter)",
-            "Alpha Value",
-            "green",
-            "purple",
-            "α₁ (Component 1)",
-            "α₂ (Component 2)",
-        ),
-        (
-            beta1_values,
-            beta2_values,
-            "Beta Parameter Evolution (Failure Parameter)",
-            "Beta Value",
-            "green",
-            "purple",
-            "β₁ (Component 1)",
-            "β₂ (Component 2)",
-        ),
-    ]
+    # Plot mixture weight
+    axes[0].plot(
+        rounds, w_values, marker="o", linestyle="-", label="Mixture Weight (w)"
+    )
+    axes[0].set_title("Component 1 Weight Evolution")
+    axes[0].set_xlabel("Debate Round")
+    axes[0].set_ylabel("Mixture Weight (w)")
+    axes[0].grid(alpha=0.3)
+    axes[0].set_xticks(rounds)
+    axes[0].set_xticklabels(round_labels)
 
-    # Create only as many plots as we have rows
-    for i in range(min(row_number, len(plot_configs))):
-        data1, data2, title, ylabel, color1, color2, label1, label2 = plot_configs[i]
+    # Plot expected success probabilities
+    axes[1].plot(
+        rounds,
+        success_prob1_values,
+        marker="o",
+        linestyle="-",
+        label="Component 1: α₁/(α₁+β₁)",
+        color="green",
+    )
+    axes[1].plot(
+        rounds,
+        success_prob2_values,
+        marker="s",
+        linestyle="-",
+        label="Component 2: α₂/(α₂+β₂)",
+        color="purple",
+    )
+    axes[1].set_title("Success Probability Evolution by Component")
+    axes[1].set_xlabel("Debate Round")
+    axes[1].set_ylabel("Expected Success Probability")
+    axes[1].legend()
+    axes[1].grid(alpha=0.3)
+    axes[1].set_xticks(rounds)
+    axes[1].set_xticklabels(round_labels)
+    axes[1].set_ylim(0, 1)  # Probabilities are between 0 and 1
 
-        axes[i].plot(
-            rounds, data1, marker="o", linestyle="-", label=label1, color=color1
-        )
+    # Plot expected failure probabilities
+    axes[2].plot(
+        rounds,
+        failure_prob1_values,
+        marker="o",
+        linestyle="-",
+        label="Component 1: β₁/(α₁+β₁)",
+        color="green",
+    )
+    axes[2].plot(
+        rounds,
+        failure_prob2_values,
+        marker="s",
+        linestyle="-",
+        label="Component 2: β₂/(α₂+β₂)",
+        color="purple",
+    )
+    axes[2].set_title("Failure Probability Evolution by Component")
+    axes[2].set_xlabel("Debate Round")
+    axes[2].set_ylabel("Expected Failure Probability")
+    axes[2].legend()
+    axes[2].grid(alpha=0.3)
+    axes[2].set_xticks(rounds)
+    axes[2].set_xticklabels(round_labels)
+    axes[2].set_ylim(0, 1)  # Probabilities are between 0 and 1
 
-        if data2 is not None:
-            axes[i].plot(
-                rounds, data2, marker="s", linestyle="-", label=label2, color=color2
-            )
-            axes[i].legend()
+    # Plot alpha parameters
+    axes[3].plot(
+        rounds,
+        alpha1_values,
+        marker="o",
+        linestyle="-",
+        label="α₁ (Component 1)",
+        color="green",
+    )
+    axes[3].plot(
+        rounds,
+        alpha2_values,
+        marker="s",
+        linestyle="-",
+        label="α₂ (Component 2)",
+        color="purple",
+    )
+    axes[3].set_title("Alpha Parameter Evolution (Success Parameter)")
+    axes[3].set_xlabel("Debate Round")
+    axes[3].set_ylabel("Alpha Value")
+    axes[3].legend()
+    axes[3].grid(alpha=0.3)
+    axes[3].set_xticks(rounds)
+    axes[3].set_xticklabels(round_labels)
 
-        axes[i].set_title(title)
-        axes[i].set_xlabel("Debate Round")
-        axes[i].set_ylabel(ylabel)
-        axes[i].grid(alpha=0.3)
-        axes[i].set_xticks(rounds)
-        axes[i].set_xticklabels(round_labels)
-
-        # Set y-axis limits for probability plots
-        if "Probability" in title:
-            axes[i].set_ylim(0, 1)
+    # Plot beta parameters
+    axes[4].plot(
+        rounds,
+        beta1_values,
+        marker="o",
+        linestyle="-",
+        label="β₁ (Component 1)",
+        color="green",
+    )
+    axes[4].plot(
+        rounds,
+        beta2_values,
+        marker="s",
+        linestyle="-",
+        label="β₂ (Component 2)",
+        color="purple",
+    )
+    axes[4].set_title("Beta Parameter Evolution (Failure Parameter)")
+    axes[4].set_xlabel("Debate Round")
+    axes[4].set_ylabel("Beta Value")
+    axes[4].legend()
+    axes[4].grid(alpha=0.3)
+    axes[4].set_xticks(rounds)
+    axes[4].set_xticklabels(round_labels)
 
     plt.tight_layout()
     fig.subplots_adjust(top=0.95)  # Make room for the title
@@ -423,7 +449,6 @@ def run_visualization(
         model_results,
         output_dir=output_dir,
         model_config=model_config,
-        row_number=3,
     )
     if verbose:
         print(f"Saved parameter trend plot to {output_dir}")
