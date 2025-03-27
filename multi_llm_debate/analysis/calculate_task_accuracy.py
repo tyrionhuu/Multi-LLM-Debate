@@ -4,7 +4,7 @@ from typing import Callable
 
 import pandas as pd
 
-from .utils import get_final_round, normalize_boolean_answer
+from .utils import get_final_round
 
 
 def analyze_task_accuracy(
