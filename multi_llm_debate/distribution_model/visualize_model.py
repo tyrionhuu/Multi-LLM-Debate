@@ -135,7 +135,7 @@ def plot_model_evolution(
     )
     axes = axes.flatten()
 
-    # Create individual plots and add to the combined figure
+    # Create combined plot
     colors = plt.cm.viridis(np.linspace(0, 1, len(model_results)))
 
     config_suffix = f"_{model_config}" if model_config else ""
@@ -151,28 +151,6 @@ def plot_model_evolution(
             ax=axes[i],
             color=colors[i],
         )
-
-        # Create individual figure
-        fig_ind = plt.figure(figsize=(10, 6))
-        ax_ind = fig_ind.add_subplot(111)
-
-        plot_mixture_model(
-            params,
-            k,
-            obs_data,
-            title=f"Agent Performance Distribution - Debate Round {i+1}",
-            ax=ax_ind,
-            color=colors[i],
-        )
-
-        figures.append(fig_ind)
-
-        # Optionally save each figure individually
-        if output_dir is not None:
-            output_dir.mkdir(exist_ok=True, parents=True)
-            fig_ind.savefig(
-                output_dir / f"mixture_model_round_{i+1}{config_suffix}.png", dpi=300
-            )
 
     # Adjust the combined figure layout
     plt.tight_layout()
