@@ -1,8 +1,8 @@
+import json
 from pathlib import Path
 from typing import Any, Callable, Optional
 
 import pandas as pd
-import json
 
 from .run import run
 from .utils import setup_logging
