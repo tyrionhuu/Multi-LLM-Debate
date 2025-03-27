@@ -470,9 +470,6 @@ if __name__ == "__main__":
         "data/judge_bench/llama3(11)/debate_rounds.csv"
     )  # debate rounds data
 
-    # Extract model configuration from the path
-    MODEL_CONFIG = os.path.basename(os.path.dirname(DEBATES_CSV))
-
     OUTPUT_DIR = Path("output/visualizations/judge_bench")
     MAX_ROUNDS = None  # or an int
 
@@ -494,11 +491,11 @@ if __name__ == "__main__":
             enforce_increasing_success=ENFORCE_INCREASING,
             extract_func=extract_caption_a_b_answer,
             compare_func=compare_judge_bench_responses,
-            model_config=MODEL_CONFIG,
+            model_config="llama3(11)",
         )
 
         print(
-            f"Visualization complete with {len(figures)} figures generated for model config: {MODEL_CONFIG}"
+            f"Visualization complete with {len(figures)} figures generated for model config: llama3(11)"
         )
     except Exception as e:
         print(f"Error in visualization: {e}")
