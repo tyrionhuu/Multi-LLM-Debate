@@ -6,6 +6,7 @@
 
 # Virtualenv
 venv/
+poetry.lock
 
 # Build
 build/
