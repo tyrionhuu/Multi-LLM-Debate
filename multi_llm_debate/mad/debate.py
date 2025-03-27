@@ -3,6 +3,7 @@ import os
 import random
 
 from .agent import Agent
+
 random.seed(0)
 
 NAME_LIST = [
