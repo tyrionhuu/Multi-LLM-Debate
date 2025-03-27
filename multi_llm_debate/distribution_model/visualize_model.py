@@ -456,21 +456,13 @@ def run_visualization(
 
 
 if __name__ == "__main__":
-    import os
-    import sys
-
     from multi_llm_debate.run.judge_bench.utils import (
         compare_judge_bench_responses,
         extract_caption_a_b_answer,
     )
 
-    # Define paths for input and output
-    ANSWERS_CSV = Path("output/judge_bench/processed_data.csv")  # id -> answer file
-    DEBATES_CSV = Path(
-        "data/judge_bench/llama3(11)/debate_rounds.csv"
-    )  # debate rounds data
 
-    OUTPUT_DIR = Path("output/visualizations/judge_bench")
+    OUTPUT_DIR = Path("output/judge_bench/visualization")
     MAX_ROUNDS = None  # or an int
 
     # Analysis settings
@@ -478,25 +470,35 @@ if __name__ == "__main__":
     N_RESTARTS = 2  # Number of random restarts for more stable fitting
     ENFORCE_INCREASING = False  # Enforce non-decreasing expected success probability
 
-    try:
-        # Call the visualization pipeline function
-        aggregated_df, model_results, figures = run_visualization(
-            answers_csv_path=ANSWERS_CSV,
-            debates_csv_path=DEBATES_CSV,
-            output_dir=OUTPUT_DIR,
-            max_rounds=MAX_ROUNDS,
-            fitting_method=FIT_METHOD,
-            n_restarts=N_RESTARTS,
-            verbose=True,
-            enforce_increasing_success=ENFORCE_INCREASING,
-            extract_func=extract_caption_a_b_answer,
-            compare_func=compare_judge_bench_responses,
-            model_config="llama3(11)",
-        )
-
-        print(
-            f"Visualization complete with {len(figures)} figures generated for model config: llama3(11)"
-        )
-    except Exception as e:
-        print(f"Error in visualization: {e}")
-        sys.exit(1)
+    # Call the visualization pipeline function
+    run_visualization(
+        answers_csv_path=Path("output/judge_bench/processed_data.csv"),
+        debates_csv_path=Path(
+        "data/judge_bench/llama3(11)/debate_rounds.csv"
+    ),
+        output_dir=OUTPUT_DIR,
+        max_rounds=MAX_ROUNDS,
+        fitting_method=FIT_METHOD,
+        n_restarts=N_RESTARTS,
+        verbose=True,
+        enforce_increasing_success=ENFORCE_INCREASING,
+        extract_func=extract_caption_a_b_answer,
+        compare_func=compare_judge_bench_responses,
+        model_config="llama3(11)",
+    )
+    
+    run_visualization(
+        answers_csv_path=Path("output/judge_bench/processed_data.csv"),
+        debates_csv_path=Path(
+        "data/judge_bench/gemma2:2b(11)/debate_rounds.csv"
+    ),
+        output_dir=OUTPUT_DIR,
+        max_rounds=MAX_ROUNDS,
+        fitting_method=FIT_METHOD,
+        n_restarts=N_RESTARTS,
+        verbose=True,
+        enforce_increasing_success=ENFORCE_INCREASING,
+        extract_func=extract_caption_a_b_answer,
+        compare_func=compare_judge_bench_responses,
+        model_config="gemma2:2b(11)",
+    )
