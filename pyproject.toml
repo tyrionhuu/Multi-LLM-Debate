@@ -32,6 +32,7 @@ nbstripout = "^0.8.1"
 # For use in Mainland China, you can use the following mirror source
 ipywidgets = "^8.1.5"
 backoff = "^2.2.1"
+black = {extras = ["jupyter"], version = "^25.1.0"}
 [[tool.poetry.source]]
 name = "mirrors"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
