@@ -14,7 +14,7 @@ from .evaluate import EvaluationResults
 from .utils import format_time, model_configs_to_string
 
 logger = setup_logging(__name__)
-
+logger.setLevel("INFO")
 
 def execute_debate_workflow(
     dataframe: pd.DataFrame,

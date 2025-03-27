@@ -3,7 +3,7 @@ import tempfile
 import uuid
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
-
+import logging
 from ..llm.prompt_builder import PromptBuilder
 from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
@@ -11,6 +11,7 @@ from .round_n import run_debate_round_n
 from .round_zero import run_debate_round_zero
 
 logger = setup_logging(__name__)
+logger.setLevel(logging.INFO)
 
 
 def debate(
