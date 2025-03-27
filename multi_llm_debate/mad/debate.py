@@ -106,7 +106,7 @@ class Debate:
         self.moderator.set_meta_prompt(self.config["moderator_meta_prompt"])
 
         # start: first round debate, state opinions
-        print(f"===== Debate Round-1 =====\n")
+        print("===== Debate Round-1 =====\n")
         self.affirmative.add_event(self.config["affirmative_prompt"])
         self.aff_ans = self.affirmative.ask()
         self.affirmative.add_memory(self.aff_ans)
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     while True:
         debate_topic = ""
         while debate_topic == "":
-            debate_topic = input(f"\nEnter your debate topic: ")
+            debate_topic = input("\nEnter your debate topic: ")
 
         config = json.load(open(f"{MAD_path}/code/utils/config4all.json", "r"))
         config["debate_topic"] = debate_topic
