@@ -64,7 +64,7 @@ def plot_mixture_model(
         linestyle="-",
         color=color,
         alpha=alpha,
-        label="Mixture Model",
+        label="Combined Mixture Model",
     )
 
     # Plot the individual components
@@ -74,7 +74,7 @@ def plot_mixture_model(
         linestyle="--",
         color=color,
         alpha=alpha * 0.7,
-        label="Component 1",
+        label=f"Component 1 (weight={w:.2f})",
     )
     ax.plot(
         x,
@@ -82,7 +82,7 @@ def plot_mixture_model(
         linestyle=":",
         color=color,
         alpha=alpha * 0.7,
-        label="Component 2",
+        label=f"Component 2 (weight={1-w:.2f})",
     )
 
     # Plot observed data if provided
@@ -95,12 +95,12 @@ def plot_mixture_model(
 
         # Plot as a bar chart
         obs_y = [observed_probs.get(i, 0) for i in range(k + 1)]
-        ax.bar(range(k + 1), obs_y, alpha=0.3, color="gray", label="Observed")
+        ax.bar(range(k + 1), obs_y, alpha=0.3, color="gray", label="Observed Data")
 
     # Configure the plot
     ax.set_title(title)
-    ax.set_xlabel("Number of Correct Agents")
-    ax.set_ylabel("Probability")
+    ax.set_xlabel("Number of Agents with Correct Response")
+    ax.set_ylabel("Probability Mass")
     ax.set_xticks(range(k + 1))
     ax.legend()
     ax.grid(alpha=0.3)
@@ -138,7 +138,7 @@ def plot_model_evolution(
 
     for i, (params, obs_data) in enumerate(zip(model_results, observed_data)):
         # Plot in the combined figure
-        title = f"Round {i}"
+        title = f"Debate Round {i+1}"
         plot_mixture_model(
             params,
             k,
@@ -156,7 +156,7 @@ def plot_model_evolution(
             params,
             k,
             obs_data,
-            title=f"Beta-Binomial Mixture Model - Round {i}",
+            title=f"Agent Performance Distribution - Debate Round {i+1}",
             ax=ax_ind,
             color=colors[i],
         )
@@ -170,11 +170,13 @@ def plot_model_evolution(
 
     # Adjust the combined figure layout
     plt.tight_layout()
+    fig.suptitle("Agent Performance Distribution Across All Debate Rounds", fontsize=16)
+    fig.subplots_adjust(top=0.93)  # Make room for the title
 
     # Save the combined figure if output directory is provided
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True, parents=True)
-        fig.savefig(output_dir / "mixture_models_all_rounds.png", dpi=300)
+        fig.savefig(output_dir / "agent_performance_all_rounds.png", dpi=300)
 
     figures.append(fig)
 
@@ -196,6 +198,7 @@ def visualize_parameter_trends(
     """
     # Extract parameters for each round
     rounds = list(range(len(model_results)))
+    round_labels = [f"Round {i+1}" for i in rounds]
     w_values = [r["w"] for r in model_results]
     alpha1_values = [r["alpha1"] for r in model_results]
     beta1_values = [r["beta1"] for r in model_results]
@@ -221,16 +224,19 @@ def visualize_parameter_trends(
 
     # Create the figure with 5 subplots
     fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(10, 20))
+    fig.suptitle("Model Parameter Evolution Across Debate Rounds", fontsize=16)
+    fig.subplots_adjust(top=0.95)  # Make room for the title
 
     # Plot mixture weight
     axes[0].plot(
         rounds, w_values, marker="o", linestyle="-", label="Mixture Weight (w)"
     )
-    axes[0].set_title("Mixture Weight Evolution")
-    axes[0].set_xlabel("Round")
-    axes[0].set_ylabel("Mixture Weight")
+    axes[0].set_title("Component 1 Weight Evolution")
+    axes[0].set_xlabel("Debate Round")
+    axes[0].set_ylabel("Mixture Weight (w)")
     axes[0].grid(alpha=0.3)
     axes[0].set_xticks(rounds)
+    axes[0].set_xticklabels(round_labels)
 
     # Plot expected success probabilities
     axes[1].plot(
@@ -238,7 +244,7 @@ def visualize_parameter_trends(
         success_prob1_values,
         marker="o",
         linestyle="-",
-        label="Comp 1: α₁/(α₁+β₁)",
+        label="Component 1: α₁/(α₁+β₁)",
         color="green",
     )
     axes[1].plot(
@@ -246,15 +252,16 @@ def visualize_parameter_trends(
         success_prob2_values,
         marker="s",
         linestyle="-",
-        label="Comp 2: α₂/(α₂+β₂)",
+        label="Component 2: α₂/(α₂+β₂)",
         color="purple",
     )
-    axes[1].set_title("Expected Success Probability Evolution")
-    axes[1].set_xlabel("Round")
-    axes[1].set_ylabel("Success Probability")
+    axes[1].set_title("Success Probability Evolution by Component")
+    axes[1].set_xlabel("Debate Round")
+    axes[1].set_ylabel("Expected Success Probability")
     axes[1].legend()
     axes[1].grid(alpha=0.3)
     axes[1].set_xticks(rounds)
+    axes[1].set_xticklabels(round_labels)
     axes[1].set_ylim(0, 1)  # Probabilities are between 0 and 1
 
     # Plot expected failure probabilities
@@ -263,7 +270,7 @@ def visualize_parameter_trends(
         failure_prob1_values,
         marker="o",
         linestyle="-",
-        label="Comp 1: β₁/(α₁+β₁)",
+        label="Component 1: β₁/(α₁+β₁)",
         color="green",
     )
     axes[2].plot(
@@ -271,43 +278,75 @@ def visualize_parameter_trends(
         failure_prob2_values,
         marker="s",
         linestyle="-",
-        label="Comp 2: β₂/(α₂+β₂)",
+        label="Component 2: β₂/(α₂+β₂)",
         color="purple",
     )
-    axes[2].set_title("Expected Failure Probability Evolution")
-    axes[2].set_xlabel("Round")
-    axes[2].set_ylabel("Failure Probability")
+    axes[2].set_title("Failure Probability Evolution by Component")
+    axes[2].set_xlabel("Debate Round")
+    axes[2].set_ylabel("Expected Failure Probability")
     axes[2].legend()
     axes[2].grid(alpha=0.3)
     axes[2].set_xticks(rounds)
+    axes[2].set_xticklabels(round_labels)
     axes[2].set_ylim(0, 1)  # Probabilities are between 0 and 1
 
     # Plot alpha parameters
-    axes[3].plot(rounds, alpha1_values, marker="o", linestyle="-", label="Alpha1")
-    axes[3].plot(rounds, alpha2_values, marker="s", linestyle="-", label="Alpha2")
-    axes[3].set_title("Alpha Parameters Evolution")
-    axes[3].set_xlabel("Round")
+    axes[3].plot(
+        rounds, 
+        alpha1_values, 
+        marker="o", 
+        linestyle="-", 
+        label="α₁ (Component 1)",
+        color="green"
+    )
+    axes[3].plot(
+        rounds, 
+        alpha2_values, 
+        marker="s", 
+        linestyle="-", 
+        label="α₂ (Component 2)",
+        color="purple"
+    )
+    axes[3].set_title("Alpha Parameter Evolution (Success Parameter)")
+    axes[3].set_xlabel("Debate Round")
     axes[3].set_ylabel("Alpha Value")
     axes[3].legend()
     axes[3].grid(alpha=0.3)
     axes[3].set_xticks(rounds)
+    axes[3].set_xticklabels(round_labels)
 
     # Plot beta parameters
-    axes[4].plot(rounds, beta1_values, marker="o", linestyle="-", label="Beta1")
-    axes[4].plot(rounds, beta2_values, marker="s", linestyle="-", label="Beta2")
-    axes[4].set_title("Beta Parameters Evolution")
-    axes[4].set_xlabel("Round")
+    axes[4].plot(
+        rounds, 
+        beta1_values, 
+        marker="o", 
+        linestyle="-", 
+        label="β₁ (Component 1)",
+        color="green"
+    )
+    axes[4].plot(
+        rounds, 
+        beta2_values, 
+        marker="s", 
+        linestyle="-", 
+        label="β₂ (Component 2)",
+        color="purple"
+    )
+    axes[4].set_title("Beta Parameter Evolution (Failure Parameter)")
+    axes[4].set_xlabel("Debate Round")
     axes[4].set_ylabel("Beta Value")
     axes[4].legend()
     axes[4].grid(alpha=0.3)
     axes[4].set_xticks(rounds)
+    axes[4].set_xticklabels(round_labels)
 
     plt.tight_layout()
+    fig.subplots_adjust(top=0.95)  # Make room for the title
 
     # Save if output directory is provided
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True, parents=True)
-        fig.savefig(output_dir / "parameter_evolution.png", dpi=300)
+        fig.savefig(output_dir / "model_parameter_evolution.png", dpi=300)
 
     return fig
 
