@@ -353,8 +353,12 @@ def process_single_debate_entry(
     output_dir = base_dir / entry_id
 
     # Check if directory exists and has content
-    directory_has_content = output_dir.exists() and any(output_dir.iterdir()) if output_dir.exists() else False
-    
+    directory_has_content = (
+        output_dir.exists() and any(output_dir.iterdir())
+        if output_dir.exists()
+        else False
+    )
+
     # Skip if directory has content and overwrite is False
     if directory_has_content and not overwrite:
         return
