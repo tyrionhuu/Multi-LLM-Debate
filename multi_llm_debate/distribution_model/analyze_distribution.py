@@ -47,12 +47,13 @@ def analyze_rounds_distribution(
     # Load answers data
     try:
         df_answers = pd.read_csv(answers_csv_path)
-        # Convert id to numeric and clean
+        
+        # Convert id to numeric and clean, but don't force to int
         df_answers["id"] = pd.to_numeric(df_answers["id"], errors="coerce")
         df_answers.dropna(subset=["id"], inplace=True)
-        df_answers["id"] = df_answers["id"].astype(int)
         if verbose:
             print(f"Loaded answers data from {answers_csv_path}")
+            print(df_answers.head())
     except Exception as e:
         raise ValueError(f"Failed to load answers data: {e}")
 
@@ -65,10 +66,10 @@ def analyze_rounds_distribution(
             df_debates["round_number"], errors="coerce"
         )
         df_debates.dropna(subset=["task_id", "round_number"], inplace=True)
-        df_debates["task_id"] = df_debates["task_id"].astype(int)
         df_debates["round_number"] = df_debates["round_number"].astype(int)
         if verbose:
             print(f"Loaded debate rounds from {debates_csv_path}")
+            print(df_debates.head())
     except Exception as e:
         raise ValueError(f"Error loading debate rounds data: {e}")
 

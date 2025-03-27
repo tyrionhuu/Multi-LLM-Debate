@@ -165,6 +165,7 @@ def calculate_correct_rate_distribution(
 
     # 1) Identify all round_numbers in df_debates
     unique_rounds = sorted(df_debates["round_number"].unique())
+    # print(f"Unique rounds found: {unique_rounds}")
     if max_rounds is not None:
         unique_rounds = [r for r in unique_rounds if r < max_rounds]
 
@@ -178,7 +179,9 @@ def calculate_correct_rate_distribution(
             extract_func=extract_func,
             compare_func=compare_func,
         )
+        # print(f"Round {rnum}: {len(df_round)} tasks")
         if df_round.empty:
+            # print(f"No data found for round {rnum}")
             continue
 
         # Identify bin columns
@@ -197,6 +200,7 @@ def calculate_correct_rate_distribution(
         aggregated_rows.append(aggregated_row)
 
     if not aggregated_rows:
+        # print("No data found for any round")
         return pd.DataFrame()
 
     df_combined = pd.DataFrame(aggregated_rows)
