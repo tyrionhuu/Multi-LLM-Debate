@@ -220,7 +220,7 @@ def visualize_parameter_trends(
 
     # Create the figure with 5 subplots
     fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(10, 20))
-    fig.suptitle("Model Parameter Evolution Across Debate Rounds", fontsize=16)
+    fig.suptitle(f"Model Parameter Evolution Across Debate Rounds {model_config}", fontsize=16)
     fig.subplots_adjust(top=0.95)  # Make room for the title
 
     # Plot mixture weight
