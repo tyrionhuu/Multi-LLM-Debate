@@ -316,7 +316,7 @@ def create_heatmap(
 
     # Create heatmap plot
     plt.figure(figsize=(12, 8))
-    ax = sns.heatmap(
+    sns.heatmap(
         pivot_df,
         annot=True,
         fmt=".1f",
