@@ -55,10 +55,6 @@ def main(
             )
             sample_size = None
 
-        # Create output directory if it doesn't exist
-        output_dir = Path(f"output/{task_name}")
-        # output_dir.mkdir(parents=True, exist_ok=True)
-
         if run_debate:
             for model_configs in model_configs_list:
                 execute_debate_workflow(
