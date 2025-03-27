@@ -50,11 +50,11 @@ def run_judge_bench(
         ValueError: If DataFrame format is invalid
     """
     required_columns = ["question", "response_A", "response_B", "id"]
-    
+
     return run_debate_task(
         dataframe=dataframe,
         process_entry_fn=run_judge_bench_single_entry,
-        required_columns=required_columns, 
+        required_columns=required_columns,
         base_dir=base_dir,
         max_rounds=max_rounds,
         use_cot=use_cot,

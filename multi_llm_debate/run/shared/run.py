@@ -194,8 +194,10 @@ def run(
 
 def run_debate_task(
     dataframe: pd.DataFrame,
-    process_entry_fn: Callable[[pd.Series, int, Path, bool, Optional[List[ModelConfig]], 
-                               bool, Optional[int]], None],
+    process_entry_fn: Callable[
+        [pd.Series, int, Path, bool, Optional[List[ModelConfig]], bool, Optional[int]],
+        None,
+    ],
     required_columns: List[str],
     base_dir: Path,
     max_rounds: int = 10,
@@ -242,13 +244,14 @@ def run_debate_task(
         if missing_columns:
             logger.error(f"Missing required columns: {missing_columns}")
             raise ValueError(f"Missing required columns: {missing_columns}")
-        
+
         if dataframe.empty:
             logger.error("DataFrame is empty")
             raise ValueError("DataFrame is empty. Please provide valid data.")
 
         # Using progress manager for the main progress bar
         from ...utils.progress import progress
+
         with progress.main_bar(
             total=len(dataframe), desc=f"Running {task_name}", unit="debate"
         ) as pbar:
@@ -268,11 +271,13 @@ def run_debate_task(
                 except Exception as e:
                     entry_id = entry.get("id", "unknown")
                     logger.error(f"Error processing entry {entry_id}: {str(e)}")
-                    failed_entries.append({
-                        "id": entry_id,
-                        "error": str(e),
-                        "question": entry.get("question", ""),
-                    })
+                    failed_entries.append(
+                        {
+                            "id": entry_id,
+                            "error": str(e),
+                            "question": entry.get("question", ""),
+                        }
+                    )
                     pbar.update(1)  # Update progress even for failures
                     continue
 

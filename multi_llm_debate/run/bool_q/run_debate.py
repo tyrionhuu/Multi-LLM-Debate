@@ -43,7 +43,7 @@ def run_bool_q(
         ValueError: If DataFrame format is invalid
     """
     required_columns = ["question", "answer", "passage", "id"]
-    
+
     return run_debate_task(
         dataframe=dataframe,
         process_entry_fn=run_bool_q_single_entry,
