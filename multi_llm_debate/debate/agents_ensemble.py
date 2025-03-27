@@ -109,7 +109,7 @@ class AgentsEnsemble:
         """
         responses = []
         errors = []
-        
+
         # If max_workers is None or 1, use sequential processing instead of ThreadPoolExecutor
         if self.max_workers is None or self.max_workers <= 1:
             for agent in self.agents:
