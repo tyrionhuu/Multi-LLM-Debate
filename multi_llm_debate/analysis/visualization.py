@@ -180,8 +180,7 @@ def plot_all_rounds_multi_rows(
         axs[j].axis("off")
 
     # Set overall figure title
-    layout_desc = f"{rows}-row layout" if rows > 1 else "single row"
-    fig.suptitle(f"{plot_title} ({layout_desc})", fontsize=14)
+    fig.suptitle(plot_title, fontsize=14)
 
     # Adjust layout
     plt.tight_layout(rect=[0, 0, 1, 0.95])
