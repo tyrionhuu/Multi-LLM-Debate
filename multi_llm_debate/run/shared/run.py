@@ -313,3 +313,65 @@ def run_debate_task(
         "failed_entries": failed_entries,
         "success_rate": success_rate,
     }
+
+import pandas as pd
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+from ...debate.debate import debate
+from ...debate.agents_ensemble import AgentsEnsemble
+from ...llm.prompt_builder import PromptBuilder
+
+def run_single_entry(
+    entry: pd.Series,
+    required_columns: List[str],
+    base_dir: Path,
+    max_rounds: int,
+    use_cot: bool,
+    model_configs: Optional[List[ModelConfig]],
+    overwrite: bool,
+    max_workers: Optional[int],
+    prompt_builder_fn: Callable[..., PromptBuilder],
+    prompt_params: Dict[str, Any],
+    process_answer_fn: Optional[Callable[..., Any]] = None,
+) -> None:
+    """Run a single entry's debate logic in a generic way.
+
+    Args:
+        entry: A single row from the dataframe.
+        required_columns: Columns required to run the debate.
+        base_dir: Base directory for output files.
+        max_rounds: Maximum debate rounds.
+        use_cot: Whether to use chain-of-thought prompting.
+        model_configs: List of model configs or None for defaults.
+        overwrite: Whether to overwrite existing files.
+        max_workers: Maximum number of concurrent workers.
+        prompt_builder_fn: Function returning a prompt builder.
+        prompt_params: Parameters used to build prompts.
+        process_answer_fn: Optional function for post-processing responses.
+
+    Raises:
+        ValueError: If required columns are missing.
+        RuntimeError: If debate execution fails.
+    """
+    missing_cols = [c for c in required_columns if c not in entry or pd.isna(entry[c])]
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
+
+    entry_id = str(entry.get("id", "unknown"))
+    output_dir = base_dir / entry_id
+
+    if output_dir.exists() and not overwrite:
+        return
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    prompt_builder = prompt_builder_fn(prompt_params=prompt_params)
+    agents_ensemble = AgentsEnsemble(config_list=model_configs, max_workers=max_workers)
+
+    debate(
+        max_rounds=max_rounds,
+        prompt_builder=prompt_builder,
+        agents_ensemble=agents_ensemble,
+        output_dir=output_dir,
+        process_answer=process_answer_fn,
+    )

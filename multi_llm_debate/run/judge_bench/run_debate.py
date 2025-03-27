@@ -4,12 +4,11 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from ...debate.agents_ensemble import AgentsEnsemble
-from ...debate.debate import debate
 from ...llm.prompt_builder import PromptBuilder
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ..shared.run import run_debate_task
+from ..shared.run import run_single_entry
 from .prompts import (
     build_judge_bench_round_n_prompt,
     build_judge_bench_round_zero_prompt,
@@ -74,118 +73,29 @@ def run_judge_bench_single_entry(
     overwrite: bool = False,
     max_workers: Optional[int] = 4,
 ) -> None:
-    """Run a single JudgeBench entry.
-
-    Args:
-        entry: Pandas Series containing question, response_A, response_B and id
-        max_rounds: Maximum number of debate rounds
-        base_dir: Base directory for output files
-        use_cot: Whether to use chain-of-thought prompting (default: True)
-        model_configs: Optional list of model configurations. If None,
-                    default configs will be used.
-        overwrite: Whether to overwrite existing debate results (default: False)
-        max_workers: Maximum number of concurrent workers (default: 4)
-
-    Raises:
-        ValueError: If entry format is invalid
-    """
-    try:
-        logger.info("Starting debate for entry ID: %s", entry.get("id", "unknown"))
-
-        # Check if the entry is valid
-        if not isinstance(entry, pd.Series):
-            logger.error("Invalid entry type")
-            raise ValueError("Entry must be a pandas Series.")
-        required_columns = ["question", "response_A", "response_B", "id"]
-
-        missing_columns = [
-            col for col in required_columns if col not in entry or pd.isna(entry[col])
-        ]
-        if missing_columns:
-            logger.error(f"Missing required columns: {missing_columns}")
-            raise ValueError(f"Missing required columns: {missing_columns}")
-
-        # Extract values from the entry
-        question = entry["question"]
-        response_A = entry["response_A"]
-        response_B = entry["response_B"]
-        id = str(entry["id"])
-        if not isinstance(id, str):
-            logger.error("Invalid id type")
-            raise ValueError("id must be a string.")
-
-        output_dir = base_dir / id
-        logger.info(f"Output directory: {output_dir}")
-
-        # Check if response already exists
-        if output_dir.exists() and not overwrite:
-            round_files = list(output_dir.glob("debate_round_*.json"))
-            if len(round_files) > 0:
-                logger.info(
-                    f"Partial or complete debate files found for entry {id}. "
-                    "Skipping due to overwrite=False."
-                )
-                return
-
-        elif output_dir.exists() and overwrite:
-            logger.info(
-                f"Overwrite enabled for entry {id}. Will regenerate all debate files."
-            )
-            # When overwrite is True, we continue execution and the existing files
-            # will be overwritten when debate() writes new results
-
-        try:
-            output_dir.mkdir(parents=True, exist_ok=True)
-        except Exception as e:
-            logger.error(f"Failed to create output directory: {e}")
-            raise RuntimeError(f"Failed to create output directory: {e}")
-
-        logger.debug("Initializing prompt builder and agents ensemble")
-        prompt_builder = PromptBuilder(
+    """Run a single JudgeBench entry."""
+    run_single_entry(
+        entry=entry,
+        required_columns=["question", "response_A", "response_B", "id"],
+        base_dir=base_dir,
+        max_rounds=max_rounds,
+        use_cot=use_cot,
+        model_configs=model_configs,
+        overwrite=overwrite,
+        max_workers=max_workers,
+        prompt_builder_fn=lambda prompt_params: PromptBuilder(
             round_zero_fn=build_judge_bench_round_zero_prompt,
             round_n_fn=build_judge_bench_round_n_prompt,
-            prompt_params={
-                "question": question,
-                "response_a": response_A,
-                "response_b": response_B,
-                "use_cot": use_cot,
-            },
-        )
-
-        logger.debug("Model configurations: %s", model_configs)
-        agents_ensemble = AgentsEnsemble(
-            config_list=model_configs, max_workers=max_workers
-        )
-
-        logger.info("Starting debate execution")
-        # Execute debate and capture the results for logging
-        debate_results = debate(
-            max_rounds=max_rounds,
-            prompt_builder=prompt_builder,
-            agents_ensemble=agents_ensemble,
-            output_dir=output_dir,
-            process_answer=extract_caption_a_b_answer,
-        )
-
-        # Log model outputs in debug mode
-        if debate_results:
-            logger.debug("Debate results summary:")
-            for round_num, round_data in enumerate(debate_results):
-                logger.debug(f"Round {round_num} output:")
-                if isinstance(round_data, dict):
-                    for agent_id, response in round_data.items():
-                        logger.debug(f"Agent {agent_id}: {response}")
-                else:
-                    logger.debug(f"Round data: {str(round_data)}")
-
-        logger.info("Debate completed successfully")
-
-    except Exception as e:
-        logger.error(
-            f"Debate execution failed for entry {entry.get('id')}: {str(e)}",
-            exc_info=True,
-        )
-        raise RuntimeError(f"Debate execution failed: {str(e)}") from e
+            prompt_params=prompt_params,
+        ),
+        prompt_params={
+            "question": entry["question"],
+            "response_a": entry["response_A"],
+            "response_b": entry["response_B"],
+            "use_cot": use_cot,
+        },
+        process_answer_fn=extract_caption_a_b_answer,
+    )
 
 
 def main() -> None:
