@@ -2,8 +2,8 @@ import json
 import os
 import random
 
-random.seed(0)
 from .agent import Agent
+random.seed(0)
 
 NAME_LIST = [
     "Affirmative side",
