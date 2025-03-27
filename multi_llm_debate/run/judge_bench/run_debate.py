@@ -7,8 +7,7 @@ import pandas as pd
 from ...llm.prompt_builder import PromptBuilder
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
-from ..shared.run import run_debate_task
-from ..shared.run import run_single_entry
+from ..shared.run import run_debate_task, run_single_entry
 from .prompts import (
     build_judge_bench_round_n_prompt,
     build_judge_bench_round_zero_prompt,
