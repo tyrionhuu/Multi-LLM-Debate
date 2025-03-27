@@ -53,7 +53,7 @@ def call_model(
     temperature: float = 1.0,
     max_tokens: int = 3200,
     json_mode: bool = True,
-    timeout: Optional[int] = 30,
+    timeout: Optional[int] = None,
     vision: bool = False,
     images: Union[
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
