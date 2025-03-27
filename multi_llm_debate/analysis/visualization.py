@@ -204,6 +204,7 @@ def correct_rate_main(
     compare_func: Callable,
     max_rounds: int = 6,
     show_plots: bool = False,
+    model_config: str = "",
 ) -> None:
     """
     Loads data, calculates correct-rate distributions for each round,
@@ -264,8 +265,16 @@ def correct_rate_main(
             logger.error(f"Error processing round {round_number}: {err}")
 
     # Create the single, combined plot in 2 rows if we have data
+    title = f"Correct Agent Distribution by Round ({model_config})"
     if all_distributions:
-        plot_all_rounds_multi_rows(all_distributions, output_dir, show_plot=show_plots)
+        plot_all_rounds_multi_rows(
+            all_distributions=all_distributions,
+            output_dir=output_dir,
+            rows=2,
+            show_plot=show_plots,
+            plot_title=title,
+            file_name="correct_agent_distribution_plot.png",
+        )
 
     logger.info("Visualization complete!")
 
