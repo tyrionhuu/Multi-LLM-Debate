@@ -6,14 +6,14 @@ import pandas as pd
 from ...llm.prompt_builder import PromptBuilder
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
-from ..shared.run import run_debate_task, run_single_entry
+from ..shared.run import process_debate_dataset, process_single_debate_entry
 from .prompts import build_bool_q_round_n_prompt, build_bool_q_round_zero_prompt
 from .utils import extract_bool_answer
 
 logger = setup_logging(__name__)
 
 
-def run_bool_q(
+def process_boolean_questions_dataset(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,
     base_dir: Path = Path("data") / "bool_q",
@@ -42,9 +42,9 @@ def run_bool_q(
     """
     required_columns = ["question", "answer", "passage", "id"]
 
-    return run_debate_task(
+    return process_debate_dataset(
         dataframe=dataframe,
-        process_entry_fn=run_bool_q_single_entry,
+        process_entry_fn=process_boolean_question_entry,
         required_columns=required_columns,
         base_dir=base_dir,
         max_rounds=max_rounds,
@@ -56,7 +56,7 @@ def run_bool_q(
     )
 
 
-def run_bool_q_single_entry(
+def process_boolean_question_entry(
     entry: pd.Series,
     max_rounds: int = 10,
     base_dir: Path = Path("data") / "bool_q",
@@ -65,8 +65,8 @@ def run_bool_q_single_entry(
     overwrite: bool = False,
     max_workers: Optional[int] = 4,
 ) -> None:
-    """Run a single entry for the Boolean Question task."""
-    run_single_entry(
+    """Process a single Boolean Question entry."""
+    process_single_debate_entry(
         entry=entry,
         required_columns=["question", "answer", "passage", "id"],
         base_dir=base_dir,

@@ -16,7 +16,7 @@ from .utils import format_time, model_configs_to_string
 logger = setup_logging(__name__)
 
 
-def run(
+def execute_debate_workflow(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable[[pd.DataFrame, Path, List[ModelConfig], Any], Dict],
     evaluate_fn: Callable[[Path, pd.DataFrame, bool], Any],
@@ -195,7 +195,7 @@ def run(
         }
 
 
-def run_debate_task(
+def process_debate_dataset(
     dataframe: pd.DataFrame,
     process_entry_fn: Callable[
         [pd.Series, int, Path, bool, Optional[List[ModelConfig]], bool, Optional[int]],
@@ -318,7 +318,7 @@ def run_debate_task(
     }
 
 
-def run_single_entry(
+def process_single_debate_entry(
     entry: pd.Series,
     required_columns: List[str],
     base_dir: Path,

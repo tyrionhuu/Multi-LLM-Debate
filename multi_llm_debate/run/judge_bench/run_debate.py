@@ -7,7 +7,7 @@ import pandas as pd
 from ...llm.prompt_builder import PromptBuilder
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
-from ..shared.run import run_debate_task, run_single_entry
+from ..shared.run import process_debate_dataset, process_single_debate_entry
 from .prompts import (
     build_judge_bench_round_n_prompt,
     build_judge_bench_round_zero_prompt,
@@ -20,7 +20,7 @@ logger = setup_logging(__name__)
 logger.setLevel(logging.INFO)
 
 
-def run_judge_bench(
+def process_judge_bench_dataset(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,
     base_dir: Path = Path("data") / "judge_bench",
@@ -49,9 +49,9 @@ def run_judge_bench(
     """
     required_columns = ["question", "response_A", "response_B", "id"]
 
-    return run_debate_task(
+    return process_debate_dataset(
         dataframe=dataframe,
-        process_entry_fn=run_judge_bench_single_entry,
+        process_entry_fn=process_judge_bench_entry,
         required_columns=required_columns,
         base_dir=base_dir,
         max_rounds=max_rounds,
@@ -63,7 +63,7 @@ def run_judge_bench(
     )
 
 
-def run_judge_bench_single_entry(
+def process_judge_bench_entry(
     entry: pd.Series,
     max_rounds: int = 10,
     base_dir: Path = Path("data") / "judge_bench",
@@ -72,8 +72,8 @@ def run_judge_bench_single_entry(
     overwrite: bool = False,
     max_workers: Optional[int] = 4,
 ) -> None:
-    """Run a single JudgeBench entry."""
-    run_single_entry(
+    """Process a single JudgeBench entry."""
+    process_single_debate_entry(
         entry=entry,
         required_columns=["question", "response_A", "response_B", "id"],
         base_dir=base_dir,
@@ -122,7 +122,7 @@ def main() -> None:
     )
     model_configs = [model_config]
 
-    run_judge_bench(
+    process_judge_bench_dataset(
         dataframe=dataframe,
         max_rounds=5,
         base_dir=Path("data") / "judge_bench",
