@@ -47,7 +47,7 @@ def analyze_rounds_distribution(
     # Load answers data
     try:
         df_answers = pd.read_csv(answers_csv_path)
-        
+
         # Only remove missing values, no numerical conversion
         df_answers.dropna(subset=["id"], inplace=True)
         if verbose:
@@ -59,7 +59,7 @@ def analyze_rounds_distribution(
     # Load debate rounds data
     try:
         df_debates = pd.read_csv(debates_csv_path)
-        
+
         # Don't convert task_id to numeric, only clean missing values
         # But keep round_number as numeric since it's needed for analysis
         df_debates["round_number"] = pd.to_numeric(
