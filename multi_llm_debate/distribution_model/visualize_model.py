@@ -133,9 +133,9 @@ def plot_model_evolution(
 
     # Create a figure for all rounds combined
     fig, axes = plt.subplots(
-        nrows=row_number,
-        ncols=math.ceil(len(model_results) / row_number),
-        figsize=(15, 5 * row_number),
+        nrows=row_number, 
+        ncols=math.ceil(len(model_results) / row_number), 
+        figsize=(15, 5 * row_number)
     )
     axes = axes.flatten()
 
@@ -220,9 +220,7 @@ def visualize_parameter_trends(
 
     # Create the figure with 5 subplots
     fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(10, 20))
-    fig.suptitle(
-        f"Model Parameter Evolution Across Debate Rounds {model_config}", fontsize=16
-    )
+    fig.suptitle(f"Model Parameter Evolution Across Debate Rounds {model_config}", fontsize=16)
     fig.subplots_adjust(top=0.95)  # Make room for the title
 
     # Plot mixture weight
@@ -463,7 +461,8 @@ if __name__ == "__main__":
         extract_caption_a_b_answer,
     )
 
-    OUTPUT_DIR = Path("output/judge_bench/visualizations")
+
+    OUTPUT_DIR = Path("output/judge_bench/visualization")
     MAX_ROUNDS = None  # or an int
 
     # Analysis settings
@@ -474,7 +473,9 @@ if __name__ == "__main__":
     # Call the visualization pipeline function
     run_visualization(
         answers_csv_path=Path("output/judge_bench/processed_data.csv"),
-        debates_csv_path=Path("data/judge_bench/llama3(11)/debate_rounds.csv"),
+        debates_csv_path=Path(
+        "data/judge_bench/llama3(11)/debate_rounds.csv"
+    ),
         output_dir=OUTPUT_DIR,
         max_rounds=MAX_ROUNDS,
         fitting_method=FIT_METHOD,
@@ -485,10 +486,12 @@ if __name__ == "__main__":
         compare_func=compare_judge_bench_responses,
         model_config="llama3(11)",
     )
-
+    
     run_visualization(
         answers_csv_path=Path("output/judge_bench/processed_data.csv"),
-        debates_csv_path=Path("data/judge_bench/gemma2:2b(11)/debate_rounds.csv"),
+        debates_csv_path=Path(
+        "data/judge_bench/gemma2:2b(11)/debate_rounds.csv"
+    ),
         output_dir=OUTPUT_DIR,
         max_rounds=MAX_ROUNDS,
         fitting_method=FIT_METHOD,
