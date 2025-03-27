@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
-
+from ...debate.debate import debate
+from ...debate.agents_ensemble import AgentsEnsemble
+from ...llm.prompt_builder import PromptBuilder
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from .evaluate import EvaluationResults
@@ -314,12 +316,7 @@ def run_debate_task(
         "success_rate": success_rate,
     }
 
-import pandas as pd
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-from ...debate.debate import debate
-from ...debate.agents_ensemble import AgentsEnsemble
-from ...llm.prompt_builder import PromptBuilder
+
 
 def run_single_entry(
     entry: pd.Series,
