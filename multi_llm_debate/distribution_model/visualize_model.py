@@ -113,6 +113,7 @@ def plot_model_evolution(
     k: int,
     observed_data: List[Dict[int, int]],
     output_dir: Optional[Path] = None,
+    model_config: str = "",
 ) -> List[Figure]:
     """Plot the evolution of the mixture model across rounds.
 
@@ -121,6 +122,7 @@ def plot_model_evolution(
         k: Number of trials
         observed_data: List of dictionaries mapping bin values to counts for each round
         output_dir: Optional directory to save the plots
+        model_config: Optional model configuration identifier for file naming
 
     Returns:
         List of generated figures
@@ -135,6 +137,8 @@ def plot_model_evolution(
 
     # Create individual plots and add to the combined figure
     colors = plt.cm.viridis(np.linspace(0, 1, len(model_results)))
+    
+    config_suffix = f"_{model_config}" if model_config else ""
 
     for i, (params, obs_data) in enumerate(zip(model_results, observed_data)):
         # Plot in the combined figure
@@ -164,9 +168,9 @@ def plot_model_evolution(
         figures.append(fig_ind)
 
         # Optionally save each figure individually
-        # if output_dir is not None:
-        #     output_dir.mkdir(exist_ok=True, parents=True)
-        #     fig_ind.savefig(output_dir / f"mixture_model_round_{i}.png", dpi=300)
+        if output_dir is not None:
+            output_dir.mkdir(exist_ok=True, parents=True)
+            fig_ind.savefig(output_dir / f"mixture_model_round_{i+1}{config_suffix}.png", dpi=300)
 
     # Adjust the combined figure layout
     plt.tight_layout()
@@ -176,7 +180,7 @@ def plot_model_evolution(
     # Save the combined figure if output directory is provided
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True, parents=True)
-        fig.savefig(output_dir / "agent_performance_all_rounds.png", dpi=300)
+        fig.savefig(output_dir / f"agent_performance_all_rounds{config_suffix}.png", dpi=300)
 
     figures.append(fig)
 
@@ -186,12 +190,14 @@ def plot_model_evolution(
 def visualize_parameter_trends(
     model_results: List[Dict[str, float]],
     output_dir: Optional[Path] = None,
+    model_config: str = "",
 ) -> Figure:
     """Visualize how model parameters change across rounds.
 
     Args:
         model_results: List of dictionaries with fitted model parameters for each round
         output_dir: Optional directory to save the plot
+        model_config: Optional model configuration identifier for file naming
 
     Returns:
         The generated figure
@@ -346,7 +352,8 @@ def visualize_parameter_trends(
     # Save if output directory is provided
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True, parents=True)
-        fig.savefig(output_dir / "model_parameter_evolution.png", dpi=300)
+        config_suffix = f"_{model_config}" if model_config else ""
+        fig.savefig(output_dir / f"model_parameter_evolution{config_suffix}.png", dpi=300)
 
     return fig
 
@@ -362,6 +369,7 @@ def run_visualization(
     enforce_increasing_success: bool = False,
     extract_func: Callable = None,
     compare_func: Callable = None,
+    model_config: str = "",
 ) -> tuple[pd.DataFrame, list[dict], List[Figure]]:
     """Run the complete visualization pipeline from data loading to generating plots.
 
@@ -375,6 +383,9 @@ def run_visualization(
         verbose: Whether to print progress information
         enforce_increasing_success: Whether to ensure expected success probability
                                     doesn't decrease
+        extract_func: Function to extract answers from responses
+        compare_func: Function to compare extracted answers with ground truth
+        model_config: Model configuration identifier for file naming
 
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
@@ -426,14 +437,22 @@ def run_visualization(
 
     # 1) Plot evolution of each round in subplots and individual figures
     evolution_figs = plot_model_evolution(
-        model_results, k, observed_data, output_dir=output_dir
+        model_results, 
+        k, 
+        observed_data, 
+        output_dir=output_dir,
+        model_config=model_config,
     )
     if verbose:
         print(f"Saved model evolution plots to {output_dir}")
     figures.extend(evolution_figs)
 
     # 2) Plot parameter trends across rounds
-    param_fig = visualize_parameter_trends(model_results, output_dir=output_dir)
+    param_fig = visualize_parameter_trends(
+        model_results, 
+        output_dir=output_dir,
+        model_config=model_config,
+    )
     if verbose:
         print(f"Saved parameter trend plot to {output_dir}")
     figures.append(param_fig)
@@ -443,6 +462,7 @@ def run_visualization(
 
 if __name__ == "__main__":
     import sys
+    import os
 
     from multi_llm_debate.run.judge_bench.utils import (
         compare_judge_bench_responses,
@@ -454,6 +474,10 @@ if __name__ == "__main__":
     DEBATES_CSV = Path(
         "data/judge_bench/llama3(11)/debate_rounds.csv"
     )  # debate rounds data
+    
+    # Extract model configuration from the path
+    MODEL_CONFIG = os.path.basename(os.path.dirname(DEBATES_CSV))
+    
     OUTPUT_DIR = Path("output/visualizations/judge_bench")
     MAX_ROUNDS = None  # or an int
 
@@ -475,9 +499,10 @@ if __name__ == "__main__":
             enforce_increasing_success=ENFORCE_INCREASING,
             extract_func=extract_caption_a_b_answer,
             compare_func=compare_judge_bench_responses,
+            model_config=MODEL_CONFIG,
         )
 
-        print(f"Visualization complete with {len(figures)} figures generated")
+        print(f"Visualization complete with {len(figures)} figures generated for model config: {MODEL_CONFIG}")
     except Exception as e:
         print(f"Error in visualization: {e}")
         sys.exit(1)
