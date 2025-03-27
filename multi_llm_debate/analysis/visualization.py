@@ -194,6 +194,66 @@ def plot_all_rounds_multi_rows(
     plt.close()
     logger.info(f"Saved {rows}-row subplot figure to {output_path}")
 
+def create_heatmap(
+    all_distributions: List[Tuple[int, Dict[str, float]]],
+    output_dir: Path,
+    show_plot: bool = False,
+    model_config: str = "",
+) -> None:
+    """Create a heatmap showing the evolution of distributions across rounds.
+
+    Args:
+        all_distributions: List of (round_number, bin_percentages) tuples.
+        output_dir: Directory where the plot should be saved.
+        show_plot: Whether to display the plot interactively.
+    """
+    if not all_distributions:
+        logger.warning("No data to create heatmap")
+        return
+
+    # Create a DataFrame from the collected data
+    data = []
+    for round_num, bin_percentages in all_distributions:
+        for bin_label, percentage in bin_percentages.items():
+            data.append(
+                {
+                    "Round": round_num,
+                    "Correct Agents": int(bin_label),
+                    "Percentage": percentage,
+                }
+            )
+
+    df = pd.DataFrame(data)
+
+    # Create pivot table for heatmap
+    pivot_df = df.pivot(
+        index="Round", columns="Correct Agents", values="Percentage"
+    ).fillna(0)
+
+    # Create heatmap plot
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(
+        pivot_df,
+        annot=True,
+        fmt=".1f",
+        cmap="YlGnBu",
+        linewidths=0.5,
+        cbar_kws={"label": "Percentage of Tasks (%)"},
+    )
+
+    plt.title("Evolution of Correct Agent Distribution Across Rounds", fontsize=16)
+    plt.tight_layout()
+
+    # Save the heatmap
+    output_path = output_dir / f"correct_agent_heatmap_{model_config}.png"
+    plt.savefig(output_path, dpi=300)
+
+    if show_plot:
+        plt.show()
+    plt.close()
+
+    logger.info(f"Saved heatmap to {output_path}")
+
 
 def correct_rate_main(
     data_path: Path,
@@ -277,63 +337,10 @@ def correct_rate_main(
 
     logger.info("Visualization complete!")
 
-
-def create_heatmap(
-    all_distributions: List[Tuple[int, Dict[str, float]]],
-    output_dir: Path,
-    show_plot: bool = False,
-    model_config: str = "",
-) -> None:
-    """Create a heatmap showing the evolution of distributions across rounds.
-
-    Args:
-        all_distributions: List of (round_number, bin_percentages) tuples.
-        output_dir: Directory where the plot should be saved.
-        show_plot: Whether to display the plot interactively.
-    """
-    if not all_distributions:
-        logger.warning("No data to create heatmap")
-        return
-
-    # Create a DataFrame from the collected data
-    data = []
-    for round_num, bin_percentages in all_distributions:
-        for bin_label, percentage in bin_percentages.items():
-            data.append(
-                {
-                    "Round": round_num,
-                    "Correct Agents": int(bin_label),
-                    "Percentage": percentage,
-                }
-            )
-
-    df = pd.DataFrame(data)
-
-    # Create pivot table for heatmap
-    pivot_df = df.pivot(
-        index="Round", columns="Correct Agents", values="Percentage"
-    ).fillna(0)
-
-    # Create heatmap plot
-    plt.figure(figsize=(12, 8))
-    sns.heatmap(
-        pivot_df,
-        annot=True,
-        fmt=".1f",
-        cmap="YlGnBu",
-        linewidths=0.5,
-        cbar_kws={"label": "Percentage of Tasks (%)"},
+    # Create heatmap
+    create_heatmap(
+        all_distributions=all_distributions,
+        output_dir=output_dir,
+        show_plot=show_plots,
+        model_config=model_config,
     )
-
-    plt.title("Evolution of Correct Agent Distribution Across Rounds", fontsize=16)
-    plt.tight_layout()
-
-    # Save the heatmap
-    output_path = output_dir / f"correct_agent_heatmap_{model_config}.png"
-    plt.savefig(output_path, dpi=300)
-
-    if show_plot:
-        plt.show()
-    plt.close()
-
-    logger.info(f"Saved heatmap to {output_path}")
