@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 import pandas as pd
+import json
 
 from .run import run
 from .utils import setup_logging
@@ -33,7 +34,6 @@ def main(
         max_workers: Maximum number of concurrent workers
         config_path: Path to JSON config file
     """
-    import json
 
     try:
         # Use provided config path or default to config.json in task directory

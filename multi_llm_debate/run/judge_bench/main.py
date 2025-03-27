@@ -4,7 +4,7 @@ if __name__ == "__main__":
     from ..shared.main import main as shared_main
     from ..shared.utils import Parser
     from .evaluate import evaluate_all_judge_bench
-    from .run_debate import run_judge_bench
+    from .run_debate import process_judge_bench_dataset
     from .utils import load_judge_bench_dataset
 
     args = Parser(description="Run JudgeBench evaluation").parse_args()
@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     shared_main(
         dataframe=dataframe,
-        run_debate_fn=run_judge_bench,
+        run_debate_fn=process_judge_bench_dataset,
         evaluate_fn=evaluate_all_judge_bench,
         task_name="judge_bench",
         sample_size=args.sample_size,
