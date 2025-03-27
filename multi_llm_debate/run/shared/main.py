@@ -10,6 +10,7 @@ from .utils import setup_logging
 logger = setup_logging(__name__)
 logger.setLevel("INFO")
 
+
 def main(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable[..., Dict],

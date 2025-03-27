@@ -16,6 +16,7 @@ from .utils import format_time, model_configs_to_string
 logger = setup_logging(__name__)
 logger.setLevel("INFO")
 
+
 def execute_debate_workflow(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable[[pd.DataFrame, Path, List[ModelConfig], Any], Dict],

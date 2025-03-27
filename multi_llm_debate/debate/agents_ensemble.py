@@ -1,5 +1,5 @@
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
+from concurrent.futures import ThreadPoolExecutor, TimeoutError, as_completed
 from typing import Any, Dict, List, Optional
 
 from ..utils.config_manager import get_models
@@ -130,7 +130,7 @@ class AgentsEnsemble:
                 errors.append(f"Attempt {attempt+1}: {str(e)}")
                 if attempt < self.max_retries:
                     time.sleep(self.retry_delay)
-        
+
         raise LLMConnectionError(
             f"Failed after {self.max_retries + 1} attempts: {'; '.join(errors)}"
         )
@@ -178,11 +178,15 @@ class AgentsEnsemble:
 
                 for future in as_completed(futures, timeout=self.timeout):
                     try:
-                        response = future.result(timeout=1)  # Short timeout to check completion
+                        response = future.result(
+                            timeout=1
+                        )  # Short timeout to check completion
                         responses.append(response)
                     except TimeoutError:
                         agent_id = futures[future]
-                        errors.append(f"Agent {agent_id} timed out after {self.timeout} seconds")
+                        errors.append(
+                            f"Agent {agent_id} timed out after {self.timeout} seconds"
+                        )
                     except LLMConnectionError as e:
                         errors.append(str(e))
 

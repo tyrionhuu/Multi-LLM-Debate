@@ -1,9 +1,10 @@
+import logging
 import shutil
 import tempfile
 import uuid
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
-import logging
+
 from ..llm.prompt_builder import PromptBuilder
 from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
@@ -53,7 +54,7 @@ def debate(
 
     logger.info(f"Starting debate with max_rounds={max_rounds}, json_mode={json_mode}")
     logger.info(f"Using agents ensemble: {agents_ensemble}")
-    
+
     # Create a temporary directory for intermediate files
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -81,18 +82,22 @@ def debate(
                 extracted_responses = [
                     response["response"] for response in all_responses[-1]
                 ]
-                logger.info(f"Running debate round {i} with {len(extracted_responses)} previous responses")
+                logger.info(
+                    f"Running debate round {i} with {len(extracted_responses)} previous responses"
+                )
                 logger.debug(
                     f"Extracted responses for round {i}: {extracted_responses}"
                 )
                 try:
                     if check_convergence(extracted_responses, process_answer):
-                        logger.info(f"Convergence detected after round {i-1}, ending debate early")
+                        logger.info(
+                            f"Convergence detected after round {i-1}, ending debate early"
+                        )
                         break
                 except Exception as e:
                     logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
                     raise
-                
+
                 prompt = prompt_builder.build_round_n(extracted_responses)
                 logger.debug(f"Round {i} prompt built: {prompt[:100]}...")
                 round_responses = run_debate_round_n(
@@ -103,12 +108,16 @@ def debate(
                     json_mode=json_mode,
                 )
             all_responses.append(round_responses)
-            logger.info(f"Completed debate round {i} with {len(round_responses)} agent responses")
+            logger.info(
+                f"Completed debate round {i} with {len(round_responses)} agent responses"
+            )
 
         # Debate completed successfully, move files from temp_dir to output_dir
         file_count = len(list(temp_dir.glob("*")))
-        logger.info(f"Debate completed successfully after {len(all_responses)} rounds, saving {file_count} files")
-        
+        logger.info(
+            f"Debate completed successfully after {len(all_responses)} rounds, saving {file_count} files"
+        )
+
         for file_path in temp_dir.glob("*"):
             target_path = output_dir / file_path.name
             shutil.copy2(file_path, target_path)
