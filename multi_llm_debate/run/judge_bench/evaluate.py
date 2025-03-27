@@ -56,7 +56,6 @@ if __name__ == "__main__":
     from pathlib import Path
 
     from ..shared.utils import Parser
-    from .evaluate import evaluate_all_judge_bench
     from .utils import load_judge_bench_dataset
 
     args = Parser(description="Run JudgeBench evaluation").parse_args()
