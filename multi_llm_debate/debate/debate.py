@@ -1,8 +1,8 @@
+import shutil
+import tempfile
+import uuid
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
-import tempfile
-import shutil
-import uuid
 
 from ..llm.prompt_builder import PromptBuilder
 from ..utils.logging_config import setup_logging
@@ -52,9 +52,10 @@ def debate(
     # Create a temporary directory for intermediate files
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    temp_dir = Path(tempfile.mkdtemp(prefix=f"debate_temp_{uuid.uuid4().hex}_", 
-                                      dir=output_dir))
-    
+    temp_dir = Path(
+        tempfile.mkdtemp(prefix=f"debate_temp_{uuid.uuid4().hex}_", dir=output_dir)
+    )
+
     all_responses = []
 
     try:
@@ -93,12 +94,12 @@ def debate(
                 )
             all_responses.append(round_responses)
             # print(f"Completed debate round {i}")
-        
+
         # Debate completed successfully, move files from temp_dir to output_dir
-        for file_path in temp_dir.glob('*'):
+        for file_path in temp_dir.glob("*"):
             target_path = output_dir / file_path.name
             shutil.copy2(file_path, target_path)
-        
+
         # print("Debate completed successfully")
         return all_responses
     except Exception as e:
