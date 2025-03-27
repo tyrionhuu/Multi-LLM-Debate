@@ -1,5 +1,5 @@
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
 from typing import Any, Dict, List, Optional
 
 from ..utils.config_manager import get_models
@@ -18,6 +18,9 @@ class AgentsEnsemble:
         concurrent (bool): Whether to use concurrent execution for responses.
         max_workers (int): Maximum number of concurrent workers when concurrent is True.
         job_delay (float): Delay in seconds between consecutive agent calls.
+        timeout (float): Maximum time in seconds to wait for agent responses.
+        max_retries (int): Maximum number of retry attempts for failed requests.
+        retry_delay (float): Delay in seconds between retry attempts.
     """
 
     def __init__(
@@ -26,6 +29,9 @@ class AgentsEnsemble:
         concurrent: bool = True,
         max_workers: Optional[int] = 4,
         job_delay: float = 0.5,
+        timeout: float = 120.0,  # 2 minute timeout
+        max_retries: int = 2,
+        retry_delay: float = 1.0,
     ) -> None:
         """Initialize an AgentsEnsemble instance.
 
@@ -35,6 +41,11 @@ class AgentsEnsemble:
             concurrent (bool, optional): Whether to use concurrent execution. Defaults to True.
             max_workers (int, optional): Maximum number of concurrent workers. Defaults to 4.
             job_delay (float, optional): Delay in seconds between agent calls. Defaults to 0.5.
+            timeout (float, optional): Maximum time in seconds to wait for agent responses.
+                Defaults to 120.0 (2 minutes).
+            max_retries (int, optional): Maximum number of retry attempts. Defaults to 2.
+            retry_delay (float, optional): Delay in seconds between retry attempts.
+                Defaults to 1.0.
 
         Raises:
             ValueError: If initialization fails.
@@ -42,6 +53,9 @@ class AgentsEnsemble:
         self.concurrent = concurrent
         self.max_workers = max_workers
         self.job_delay = job_delay
+        self.timeout = timeout
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
         self.agents = []
 
         if config_list is not None:
@@ -92,6 +106,35 @@ class AgentsEnsemble:
         """
         self.agents.append(agent)
 
+    def _get_response_with_retry(
+        self, agent: Agent, prompt: str, json_mode: bool
+    ) -> Dict[str, Any]:
+        """Attempt to get a response from an agent with retry logic.
+
+        Args:
+            agent (Agent): The agent to get a response from.
+            prompt (str): The input prompt to send to the agent.
+            json_mode (bool): Whether to expect JSON response.
+
+        Returns:
+            Dict[str, Any]: Response from the agent.
+
+        Raises:
+            LLMConnectionError: If all retry attempts fail.
+        """
+        errors = []
+        for attempt in range(self.max_retries + 1):
+            try:
+                return agent.respond(prompt, json_mode=json_mode)
+            except LLMConnectionError as e:
+                errors.append(f"Attempt {attempt+1}: {str(e)}")
+                if attempt < self.max_retries:
+                    time.sleep(self.retry_delay)
+        
+        raise LLMConnectionError(
+            f"Failed after {self.max_retries + 1} attempts: {'; '.join(errors)}"
+        )
+
     def _get_response_concurrent(
         self, prompt: str, json_mode: bool = False
     ) -> List[Dict[str, Any]]:
@@ -114,7 +157,7 @@ class AgentsEnsemble:
         if self.max_workers is None or self.max_workers <= 1:
             for agent in self.agents:
                 try:
-                    response = agent.respond(prompt, json_mode=json_mode)
+                    response = self._get_response_with_retry(agent, prompt, json_mode)
                     responses.append(response)
                 except LLMConnectionError as e:
                     errors.append(str(e))
@@ -123,19 +166,23 @@ class AgentsEnsemble:
                     time.sleep(self.job_delay)
         else:
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                futures = []
+                futures = {}
 
                 for agent in self.agents:
                     if self.job_delay > 0:
                         time.sleep(self.job_delay)
-                    futures.append(
-                        executor.submit(agent.respond, prompt, json_mode=json_mode)
+                    future = executor.submit(
+                        self._get_response_with_retry, agent, prompt, json_mode
                     )
+                    futures[future] = agent.agent_id
 
-                for future in as_completed(futures):
+                for future in as_completed(futures, timeout=self.timeout):
                     try:
-                        response = future.result()
+                        response = future.result(timeout=1)  # Short timeout to check completion
                         responses.append(response)
+                    except TimeoutError:
+                        agent_id = futures[future]
+                        errors.append(f"Agent {agent_id} timed out after {self.timeout} seconds")
                     except LLMConnectionError as e:
                         errors.append(str(e))
 
@@ -169,7 +216,7 @@ class AgentsEnsemble:
 
         for agent in self.agents:
             try:
-                response = agent.respond(prompt, json_mode=json_mode)
+                response = self._get_response_with_retry(agent, prompt, json_mode)
                 responses.append(response)
             except LLMConnectionError as e:
                 errors.append(str(e))
