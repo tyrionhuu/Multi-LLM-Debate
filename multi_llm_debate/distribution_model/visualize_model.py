@@ -114,6 +114,7 @@ def plot_model_evolution(
     observed_data: List[Dict[int, int]],
     output_dir: Optional[Path] = None,
     model_config: str = "",
+    row_number: int = 2,
 ) -> List[Figure]:
     """Plot the evolution of the mixture model across rounds.
 
@@ -123,6 +124,7 @@ def plot_model_evolution(
         observed_data: List of dictionaries mapping bin values to counts for each round
         output_dir: Optional directory to save the plots
         model_config: Optional model configuration identifier for file naming
+        row_number: Number of rows for the subplot grid (default: 2)
 
     Returns:
         List of generated figures
@@ -131,7 +133,9 @@ def plot_model_evolution(
 
     # Create a figure for all rounds combined
     fig, axes = plt.subplots(
-        nrows=2, ncols=math.ceil(len(model_results) / 2), figsize=(15, 10)
+        nrows=row_number, 
+        ncols=math.ceil(len(model_results) / row_number), 
+        figsize=(15, 5 * row_number)
     )
     axes = axes.flatten()
 
@@ -151,6 +155,10 @@ def plot_model_evolution(
             ax=axes[i],
             color=colors[i],
         )
+
+    # Hide any unused subplots
+    for j in range(len(model_results), len(axes)):
+        axes[j].set_visible(False)
 
     # Adjust the combined figure layout
     plt.tight_layout()
@@ -354,6 +362,7 @@ def run_visualization(
     extract_func: Callable = None,
     compare_func: Callable = None,
     model_config: str = "",
+    row_number: int = 2,
 ) -> tuple[pd.DataFrame, list[dict], List[Figure]]:
     """Run the complete visualization pipeline from data loading to generating plots.
 
@@ -370,6 +379,7 @@ def run_visualization(
         extract_func: Function to extract answers from responses
         compare_func: Function to compare extracted answers with ground truth
         model_config: Model configuration identifier for file naming
+        row_number: Number of rows for the model evolution subplot grid (default: 2)
 
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
@@ -426,6 +436,7 @@ def run_visualization(
         observed_data,
         output_dir=output_dir,
         model_config=model_config,
+        row_number=row_number,
     )
     if verbose:
         print(f"Saved model evolution plots to {output_dir}")
