@@ -19,9 +19,8 @@ def main(
     sample_size: Optional[int] = None,
     max_workers: Optional[int] = 4,
     config_path: Optional[Path] = None,
-    random_seed: int = 42,
+    random_seed: Optional[int] = None,
     run_debate: bool = True,
-    **debate_kwargs: Any,
 ) -> None:
     """Run debate evaluation with configured models.
 
@@ -73,7 +72,6 @@ def main(
                     model_configs=model_configs,
                     random_seed=random_seed,
                     max_workers=max_workers,
-                    **debate_kwargs,
                 )
 
     except FileNotFoundError:

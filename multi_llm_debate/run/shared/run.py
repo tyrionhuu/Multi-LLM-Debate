@@ -33,7 +33,6 @@ def execute_debate_workflow(
     ],
     random_seed: int = 42,
     max_workers: Optional[int] = 4,
-    **debate_kwargs: Any,
 ) -> Dict[str, Any]:
     """Execute debate evaluation with the given configuration.
 
@@ -81,7 +80,6 @@ def execute_debate_workflow(
         base_dir=output_path,
         model_configs=model_configs,
         max_workers=max_workers,
-        **debate_kwargs,
     )
 
     # Print execution summary

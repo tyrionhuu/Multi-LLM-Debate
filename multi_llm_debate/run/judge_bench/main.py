@@ -23,6 +23,4 @@ if __name__ == "__main__":
         sample_size=args.sample_size,
         max_workers=args.max_workers,
         config_path=args.config,
-        random_seed=args.random_seed,
-        run_debate=args.run_debate,
     )
