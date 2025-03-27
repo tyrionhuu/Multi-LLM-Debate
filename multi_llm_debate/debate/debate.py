@@ -48,22 +48,29 @@ def debate(
     """
     # If process_answer is None, use extract_bool_answer as default
     if process_answer is None:
+        logger.error("No process_answer function provided")
         raise ValueError("process_answer function must be provided")
 
+    logger.info(f"Starting debate with max_rounds={max_rounds}, json_mode={json_mode}")
+    logger.info(f"Using agents ensemble: {agents_ensemble}")
+    
     # Create a temporary directory for intermediate files
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     temp_dir = Path(
         tempfile.mkdtemp(prefix=f"debate_temp_{uuid.uuid4().hex}_", dir=output_dir)
     )
+    logger.debug(f"Created temporary directory for debate: {temp_dir}")
 
     all_responses = []
 
     try:
         for i in range(max_rounds):
+            logger.info(f"Starting debate round {i}")
             if i == 0:
-                # print("Running round 0")
+                logger.info("Running round 0 (initial statements)")
                 prompt = prompt_builder.build_round_zero()
+                logger.debug(f"Round 0 prompt built: {prompt[:100]}...")
                 round_responses = run_debate_round_zero(
                     prompt=prompt,
                     agents_ensemble=agents_ensemble,
@@ -74,18 +81,20 @@ def debate(
                 extracted_responses = [
                     response["response"] for response in all_responses[-1]
                 ]
+                logger.info(f"Running debate round {i} with {len(extracted_responses)} previous responses")
                 logger.debug(
                     f"Extracted responses for round {i}: {extracted_responses}"
                 )
                 try:
                     if check_convergence(extracted_responses, process_answer):
-                        # print("Convergence detected, ending debate")
+                        logger.info(f"Convergence detected after round {i-1}, ending debate early")
                         break
                 except Exception as e:
                     logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
                     raise
-                # print(f"Running debate round {i}")
+                
                 prompt = prompt_builder.build_round_n(extracted_responses)
+                logger.debug(f"Round {i} prompt built: {prompt[:100]}...")
                 round_responses = run_debate_round_n(
                     prompt=prompt,
                     agents_ensemble=agents_ensemble,
@@ -94,14 +103,17 @@ def debate(
                     json_mode=json_mode,
                 )
             all_responses.append(round_responses)
-            # print(f"Completed debate round {i}")
+            logger.info(f"Completed debate round {i} with {len(round_responses)} agent responses")
 
         # Debate completed successfully, move files from temp_dir to output_dir
+        file_count = len(list(temp_dir.glob("*")))
+        logger.info(f"Debate completed successfully after {len(all_responses)} rounds, saving {file_count} files")
+        
         for file_path in temp_dir.glob("*"):
             target_path = output_dir / file_path.name
             shutil.copy2(file_path, target_path)
+            logger.debug(f"Saved debate artifact: {target_path}")
 
-        # print("Debate completed successfully")
         return all_responses
     except Exception as e:
         logger.error(f"Error during debate: {str(e)}", exc_info=True)
@@ -109,6 +121,7 @@ def debate(
     finally:
         # Clean up the temporary directory and its contents
         if temp_dir.exists():
+            logger.debug(f"Cleaning up temporary directory: {temp_dir}")
             shutil.rmtree(temp_dir)
 
 
@@ -127,11 +140,16 @@ def check_convergence(
     """
     # If process_answer is None, use extract_bool_answer as default
     if process_answer is None:
+        logger.error("No process_answer function provided for convergence check")
         raise ValueError("process_answer function must be provided")
 
     try:
         answers = [process_answer(response) for response in responses]
-        return len(set(answers)) == 1
+        logger.debug(f"Processed answers for convergence check: {answers}")
+        is_converged = len(set(answers)) == 1
+        if is_converged:
+            logger.info(f"Debate has converged on answer: {list(set(answers))[0]}")
+        return is_converged
     except Exception as e:
         logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
         raise
