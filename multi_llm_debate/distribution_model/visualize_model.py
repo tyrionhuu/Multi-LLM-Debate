@@ -222,58 +222,92 @@ def visualize_parameter_trends(
 
     # Create the figure with the specified number of rows
     fig, axes = plt.subplots(nrows=row_number, ncols=1, figsize=(10, 4 * row_number))
-    
+
     # Make axes a list if it's a single subplot
     if row_number == 1:
         axes = [axes]
-        
+
     fig.suptitle(
         f"Model Parameter Evolution Across Debate Rounds {model_config}", fontsize=16
     )
     fig.subplots_adjust(top=0.95)  # Make room for the title
-    
+
     # Define plot configurations - each item contains data and styling info
     plot_configs = [
         # (data1, data2, title, ylabel, color1, color2, label1, label2)
-        (w_values, None, "Component 1 Weight Evolution", "Mixture Weight (w)", 
-         "blue", None, "Mixture Weight (w)", None),
-        
-        (success_prob1_values, success_prob2_values, 
-         "Success Probability Evolution by Component", "Expected Success Probability", 
-         "green", "purple", "Component 1: α₁/(α₁+β₁)", "Component 2: α₂/(α₂+β₂)"),
-        
-        (failure_prob1_values, failure_prob2_values, 
-         "Failure Probability Evolution by Component", "Expected Failure Probability", 
-         "green", "purple", "Component 1: β₁/(α₁+β₁)", "Component 2: β₂/(α₂+β₂)"),
-        
-        (alpha1_values, alpha2_values, "Alpha Parameter Evolution (Success Parameter)", 
-         "Alpha Value", "green", "purple", "α₁ (Component 1)", "α₂ (Component 2)"),
-        
-        (beta1_values, beta2_values, "Beta Parameter Evolution (Failure Parameter)", 
-         "Beta Value", "green", "purple", "β₁ (Component 1)", "β₂ (Component 2)"),
+        (
+            w_values,
+            None,
+            "Component 1 Weight Evolution",
+            "Mixture Weight (w)",
+            "blue",
+            None,
+            "Mixture Weight (w)",
+            None,
+        ),
+        (
+            success_prob1_values,
+            success_prob2_values,
+            "Success Probability Evolution by Component",
+            "Expected Success Probability",
+            "green",
+            "purple",
+            "Component 1: α₁/(α₁+β₁)",
+            "Component 2: α₂/(α₂+β₂)",
+        ),
+        (
+            failure_prob1_values,
+            failure_prob2_values,
+            "Failure Probability Evolution by Component",
+            "Expected Failure Probability",
+            "green",
+            "purple",
+            "Component 1: β₁/(α₁+β₁)",
+            "Component 2: β₂/(α₂+β₂)",
+        ),
+        (
+            alpha1_values,
+            alpha2_values,
+            "Alpha Parameter Evolution (Success Parameter)",
+            "Alpha Value",
+            "green",
+            "purple",
+            "α₁ (Component 1)",
+            "α₂ (Component 2)",
+        ),
+        (
+            beta1_values,
+            beta2_values,
+            "Beta Parameter Evolution (Failure Parameter)",
+            "Beta Value",
+            "green",
+            "purple",
+            "β₁ (Component 1)",
+            "β₂ (Component 2)",
+        ),
     ]
-    
+
     # Create only as many plots as we have rows
     for i in range(min(row_number, len(plot_configs))):
         data1, data2, title, ylabel, color1, color2, label1, label2 = plot_configs[i]
-        
+
         axes[i].plot(
             rounds, data1, marker="o", linestyle="-", label=label1, color=color1
         )
-        
+
         if data2 is not None:
             axes[i].plot(
                 rounds, data2, marker="s", linestyle="-", label=label2, color=color2
             )
             axes[i].legend()
-            
+
         axes[i].set_title(title)
         axes[i].set_xlabel("Debate Round")
         axes[i].set_ylabel(ylabel)
         axes[i].grid(alpha=0.3)
         axes[i].set_xticks(rounds)
         axes[i].set_xticklabels(round_labels)
-        
+
         # Set y-axis limits for probability plots
         if "Probability" in title:
             axes[i].set_ylim(0, 1)
