@@ -1,5 +1,8 @@
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
+import tempfile
+import shutil
+import uuid
 
 from ..llm.prompt_builder import PromptBuilder
 from ..utils.logging_config import setup_logging
@@ -22,6 +25,8 @@ def debate(
 
     Coordinates multiple rounds of debate between agents, starting with round zero
     and continuing through subsequent rounds. Logs progress and saves results.
+    Files are only saved if the debate completes successfully. If interrupted,
+    all generated files from this debate are deleted.
 
     Args:
         max_rounds: Maximum number of debate rounds to run.
@@ -44,6 +49,12 @@ def debate(
     if process_answer is None:
         raise ValueError("process_answer function must be provided")
 
+    # Create a temporary directory for intermediate files
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    temp_dir = Path(tempfile.mkdtemp(prefix=f"debate_temp_{uuid.uuid4().hex}_", 
+                                      dir=output_dir))
+    
     all_responses = []
 
     try:
@@ -54,7 +65,7 @@ def debate(
                 round_responses = run_debate_round_zero(
                     prompt=prompt,
                     agents_ensemble=agents_ensemble,
-                    output_dir=output_dir,
+                    output_dir=temp_dir,
                     json_mode=json_mode,
                 )
             else:
@@ -76,18 +87,27 @@ def debate(
                 round_responses = run_debate_round_n(
                     prompt=prompt,
                     agents_ensemble=agents_ensemble,
-                    output_dir=output_dir,
+                    output_dir=temp_dir,
                     round_num=i,
                     json_mode=json_mode,
                 )
             all_responses.append(round_responses)
             # print(f"Completed debate round {i}")
-
+        
+        # Debate completed successfully, move files from temp_dir to output_dir
+        for file_path in temp_dir.glob('*'):
+            target_path = output_dir / file_path.name
+            shutil.copy2(file_path, target_path)
+        
         # print("Debate completed successfully")
         return all_responses
     except Exception as e:
         logger.error(f"Error during debate: {str(e)}", exc_info=True)
         raise
+    finally:
+        # Clean up the temporary directory and its contents
+        if temp_dir.exists():
+            shutil.rmtree(temp_dir)
 
 
 def check_convergence(
