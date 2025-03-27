@@ -55,7 +55,7 @@ def load_judge_bench_dataset(
                 dataset_2 = load_from_disk(claude_path)
                 df_1 = pd.DataFrame(dataset_1)
                 df_2 = pd.DataFrame(dataset_2)
-                print(f"Loaded GPT and Claude splits from local paths.")
+                print("Loaded GPT and Claude splits from local paths.")
             else:
                 print("One or both of the splits are missing. Downloading datasets...")
                 df_1, df_2 = None, None
