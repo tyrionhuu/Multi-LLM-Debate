@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Callable
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,8 @@ def analyze_rounds_distribution(
     n_restarts: int = 2,
     verbose: bool = True,
     enforce_increasing_success: bool = False,
+    extract_func: Callable = None,
+    compare_func: Callable = None,
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
     Analyze the correct rate distribution across debate rounds and fit
@@ -75,7 +77,11 @@ def analyze_rounds_distribution(
         if verbose:
             print("Calculating correct rate distribution...")
         aggregated_df = calculate_correct_rate_distribution(
-            df_answers=df_answers, df_debates=df_debates, max_rounds=max_rounds
+            df_answers=df_answers, 
+            df_debates=df_debates, 
+            max_rounds=max_rounds,
+            extract_func=extract_func,
+            compare_func=compare_func,
         )
     except Exception as e:
         raise ValueError(f"Error calculating correct rate distribution: {e}")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import math
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -321,6 +321,8 @@ def run_visualization(
     n_restarts: int = 2,
     verbose: bool = True,
     enforce_increasing_success: bool = False,
+    extract_func: Callable = None,
+    compare_func: Callable = None,
 ) -> tuple[pd.DataFrame, list[dict], List[Figure]]:
     """Run the complete visualization pipeline from data loading to generating plots.
 
@@ -354,6 +356,8 @@ def run_visualization(
         n_restarts=n_restarts,
         verbose=verbose,
         enforce_increasing_success=enforce_increasing_success,
+        extract_func=extract_func,
+        compare_func=compare_func,
     )
 
     if aggregated_df.empty:
@@ -400,11 +404,14 @@ def run_visualization(
 
 if __name__ == "__main__":
     import sys
-
+    from multi_llm_debate.run.judge_bench.utils import (
+        extract_caption_a_b_answer,
+        compare_judge_bench_responses,
+    )
     # Define paths for input and output
-    ANSWERS_CSV = Path("output/bool_q/processed_data.csv")  # id -> answer file
-    DEBATES_CSV = Path("data/bool_q/llama3(11)/debate_rounds.csv")  # debate rounds data
-    OUTPUT_DIR = Path("output/visualizations/bool_q")
+    ANSWERS_CSV = Path("output/judge_bench/processed_data.csv")  # id -> answer file
+    DEBATES_CSV = Path("data/judge_bench/llama3(11)/debate_rounds.csv")  # debate rounds data
+    OUTPUT_DIR = Path("output/visualizations/judge_bench")
     MAX_ROUNDS = None  # or an int
 
     # Analysis settings
@@ -423,6 +430,8 @@ if __name__ == "__main__":
             n_restarts=N_RESTARTS,
             verbose=True,
             enforce_increasing_success=ENFORCE_INCREASING,
+            extract_func=extract_caption_a_b_answer,
+            compare_func=compare_judge_bench_responses,
         )
 
         print(f"Visualization complete with {len(figures)} figures generated")
