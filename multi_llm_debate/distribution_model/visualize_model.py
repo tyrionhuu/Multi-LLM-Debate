@@ -137,7 +137,7 @@ def plot_model_evolution(
 
     # Create individual plots and add to the combined figure
     colors = plt.cm.viridis(np.linspace(0, 1, len(model_results)))
-    
+
     config_suffix = f"_{model_config}" if model_config else ""
 
     for i, (params, obs_data) in enumerate(zip(model_results, observed_data)):
@@ -170,7 +170,9 @@ def plot_model_evolution(
         # Optionally save each figure individually
         if output_dir is not None:
             output_dir.mkdir(exist_ok=True, parents=True)
-            fig_ind.savefig(output_dir / f"mixture_model_round_{i+1}{config_suffix}.png", dpi=300)
+            fig_ind.savefig(
+                output_dir / f"mixture_model_round_{i+1}{config_suffix}.png", dpi=300
+            )
 
     # Adjust the combined figure layout
     plt.tight_layout()
@@ -180,7 +182,9 @@ def plot_model_evolution(
     # Save the combined figure if output directory is provided
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True, parents=True)
-        fig.savefig(output_dir / f"agent_performance_all_rounds{config_suffix}.png", dpi=300)
+        fig.savefig(
+            output_dir / f"agent_performance_all_rounds{config_suffix}.png", dpi=300
+        )
 
     figures.append(fig)
 
@@ -298,20 +302,20 @@ def visualize_parameter_trends(
 
     # Plot alpha parameters
     axes[3].plot(
-        rounds, 
-        alpha1_values, 
-        marker="o", 
-        linestyle="-", 
+        rounds,
+        alpha1_values,
+        marker="o",
+        linestyle="-",
         label="α₁ (Component 1)",
-        color="green"
+        color="green",
     )
     axes[3].plot(
-        rounds, 
-        alpha2_values, 
-        marker="s", 
-        linestyle="-", 
+        rounds,
+        alpha2_values,
+        marker="s",
+        linestyle="-",
         label="α₂ (Component 2)",
-        color="purple"
+        color="purple",
     )
     axes[3].set_title("Alpha Parameter Evolution (Success Parameter)")
     axes[3].set_xlabel("Debate Round")
@@ -323,20 +327,20 @@ def visualize_parameter_trends(
 
     # Plot beta parameters
     axes[4].plot(
-        rounds, 
-        beta1_values, 
-        marker="o", 
-        linestyle="-", 
+        rounds,
+        beta1_values,
+        marker="o",
+        linestyle="-",
         label="β₁ (Component 1)",
-        color="green"
+        color="green",
     )
     axes[4].plot(
-        rounds, 
-        beta2_values, 
-        marker="s", 
-        linestyle="-", 
+        rounds,
+        beta2_values,
+        marker="s",
+        linestyle="-",
         label="β₂ (Component 2)",
-        color="purple"
+        color="purple",
     )
     axes[4].set_title("Beta Parameter Evolution (Failure Parameter)")
     axes[4].set_xlabel("Debate Round")
@@ -353,7 +357,9 @@ def visualize_parameter_trends(
     if output_dir is not None:
         output_dir.mkdir(exist_ok=True, parents=True)
         config_suffix = f"_{model_config}" if model_config else ""
-        fig.savefig(output_dir / f"model_parameter_evolution{config_suffix}.png", dpi=300)
+        fig.savefig(
+            output_dir / f"model_parameter_evolution{config_suffix}.png", dpi=300
+        )
 
     return fig
 
@@ -437,9 +443,9 @@ def run_visualization(
 
     # 1) Plot evolution of each round in subplots and individual figures
     evolution_figs = plot_model_evolution(
-        model_results, 
-        k, 
-        observed_data, 
+        model_results,
+        k,
+        observed_data,
         output_dir=output_dir,
         model_config=model_config,
     )
@@ -449,7 +455,7 @@ def run_visualization(
 
     # 2) Plot parameter trends across rounds
     param_fig = visualize_parameter_trends(
-        model_results, 
+        model_results,
         output_dir=output_dir,
         model_config=model_config,
     )
@@ -461,8 +467,8 @@ def run_visualization(
 
 
 if __name__ == "__main__":
-    import sys
     import os
+    import sys
 
     from multi_llm_debate.run.judge_bench.utils import (
         compare_judge_bench_responses,
@@ -474,10 +480,10 @@ if __name__ == "__main__":
     DEBATES_CSV = Path(
         "data/judge_bench/llama3(11)/debate_rounds.csv"
     )  # debate rounds data
-    
+
     # Extract model configuration from the path
     MODEL_CONFIG = os.path.basename(os.path.dirname(DEBATES_CSV))
-    
+
     OUTPUT_DIR = Path("output/visualizations/judge_bench")
     MAX_ROUNDS = None  # or an int
 
@@ -502,7 +508,9 @@ if __name__ == "__main__":
             model_config=MODEL_CONFIG,
         )
 
-        print(f"Visualization complete with {len(figures)} figures generated for model config: {MODEL_CONFIG}")
+        print(
+            f"Visualization complete with {len(figures)} figures generated for model config: {MODEL_CONFIG}"
+        )
     except Exception as e:
         print(f"Error in visualization: {e}")
         sys.exit(1)
