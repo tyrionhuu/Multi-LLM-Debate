@@ -97,6 +97,7 @@ def run_judge_bench(
                             "question": entry.get("question", ""),
                         }
                     )
+                    pbar.update(1)  # Update progress even for failures
                     continue
 
     except Exception as e:
@@ -106,25 +107,26 @@ def run_judge_bench(
     finally:
         # Log summary
         total_entries = len(dataframe)
-        logger.info(
-            f"Processed {processed_count}/{total_entries} entries. Failed: {len(failed_entries)}"
-        )
-        if failed_entries:
-            logger.error("Failed entries: " + str(failed_entries))
+        failed_count = len(failed_entries)
         success_rate = (
             (processed_count / total_entries) * 100 if total_entries > 0 else 0
         )
+
+        logger.info("Debate execution completed")
+        logger.info(f"Total entries processed: {total_entries}")
+        logger.info(f"Successful: {processed_count}")
+        logger.info(f"Failed: {failed_count}")
         logger.info(f"Success rate: {success_rate:.2f}%")
+        
         if failed_entries:
             logger.warning("Failed entries:")
             for entry in failed_entries:
                 logger.warning(f"ID: {entry['id']}, Error: {entry['error']}")
-        if len(failed_entries) == total_entries:
-            raise RuntimeError(
-                f"All {total_entries} entries failed. Check logs for details."
-            )
-    # End of try block
-    # Return summary
+        
+        if len(failed_entries) == total_entries and total_entries > 0:
+            logger.error(f"All {total_entries} entries failed. Check logs for details.")
+
+    # Return summary with consistent format
     return {
         "total_entries": total_entries,
         "processed_count": processed_count,

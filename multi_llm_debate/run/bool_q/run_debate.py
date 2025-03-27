@@ -62,6 +62,10 @@ def run_bool_q(
             raise ValueError(
                 "DataFrame must contain 'question', 'answer', 'passage', and 'id' columns."
             )
+            
+        if dataframe.empty:
+            logger.error("DataFrame is empty")
+            raise ValueError("DataFrame is empty. Please provide valid data.")
 
         # Use the progress manager for the main progress bar
         with progress.main_bar(
@@ -83,7 +87,12 @@ def run_bool_q(
                 except Exception as e:
                     entry_id = entry.get("id", "unknown")
                     logger.error(f"Failed to process entry {entry_id}: {str(e)}")
-                    failed_entries.append({"id": entry_id, "error": str(e)})
+                    failed_entries.append({
+                        "id": entry_id, 
+                        "error": str(e),
+                        "question": entry.get("question", "")
+                    })
+                    pbar.update(1)
                     continue
 
     except Exception as e:
@@ -108,6 +117,9 @@ def run_bool_q(
             logger.warning("Failed entries:")
             for entry in failed_entries:
                 logger.warning(f"ID: {entry['id']}, Error: {entry['error']}")
+        
+        if len(failed_entries) == total_entries and total_entries > 0:
+            logger.error(f"All {total_entries} entries failed. Check logs for details.")
 
     return {
         "total_entries": total_entries,
