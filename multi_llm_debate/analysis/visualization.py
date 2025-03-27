@@ -272,7 +272,7 @@ def correct_rate_main(
             rows=2,
             show_plot=show_plots,
             plot_title=title,
-            file_name="correct_agent_distribution_plot.png",
+            file_name=f"correct_agent_distribution_{model_config}.png",
         )
 
     logger.info("Visualization complete!")
@@ -282,6 +282,7 @@ def create_heatmap(
     all_distributions: List[Tuple[int, Dict[str, float]]],
     output_dir: Path,
     show_plot: bool = False,
+    model_config: str = "",
 ) -> None:
     """Create a heatmap showing the evolution of distributions across rounds.
 
@@ -328,7 +329,7 @@ def create_heatmap(
     plt.tight_layout()
 
     # Save the heatmap
-    output_path = output_dir / "correct_agent_distribution_heatmap.png"
+    output_path = output_dir / f"correct_agent_heatmap_{model_config}.png"
     plt.savefig(output_path, dpi=300)
 
     if show_plot:
