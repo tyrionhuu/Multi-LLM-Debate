@@ -4,13 +4,14 @@ from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
 import pandas as pd
+import seaborn as sns
 from matplotlib import pyplot as plt
 
 from .calculate_correct_rate_distribution import (
     calculate_correct_rate_distribution_for_round_n,
 )
 from .utils import load_debate_data
-import seaborn as sns
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -268,13 +269,14 @@ def correct_rate_main(
 
     logger.info("Visualization complete!")
 
+
 def create_heatmap(
     all_distributions: List[Tuple[int, Dict[str, float]]],
     output_dir: Path,
     show_plot: bool = False,
 ) -> None:
     """Create a heatmap showing the evolution of distributions across rounds.
-    
+
     Args:
         all_distributions: List of (round_number, bin_percentages) tuples.
         output_dir: Directory where the plot should be saved.
@@ -283,26 +285,26 @@ def create_heatmap(
     if not all_distributions:
         logger.warning("No data to create heatmap")
         return
-    
+
     # Create a DataFrame from the collected data
     data = []
     for round_num, bin_percentages in all_distributions:
         for bin_label, percentage in bin_percentages.items():
-            data.append({
-                'Round': round_num,
-                'Correct Agents': int(bin_label),
-                'Percentage': percentage
-            })
-    
+            data.append(
+                {
+                    "Round": round_num,
+                    "Correct Agents": int(bin_label),
+                    "Percentage": percentage,
+                }
+            )
+
     df = pd.DataFrame(data)
-    
+
     # Create pivot table for heatmap
     pivot_df = df.pivot(
-        index='Round', 
-        columns='Correct Agents', 
-        values='Percentage'
+        index="Round", columns="Correct Agents", values="Percentage"
     ).fillna(0)
-    
+
     # Create heatmap plot
     plt.figure(figsize=(12, 8))
     ax = sns.heatmap(
@@ -311,19 +313,18 @@ def create_heatmap(
         fmt=".1f",
         cmap="YlGnBu",
         linewidths=0.5,
-        cbar_kws={'label': 'Percentage of Tasks (%)'}
+        cbar_kws={"label": "Percentage of Tasks (%)"},
     )
-    
-    plt.title('Evolution of Correct Agent Distribution Across Rounds', 
-             fontsize=16)
+
+    plt.title("Evolution of Correct Agent Distribution Across Rounds", fontsize=16)
     plt.tight_layout()
-    
+
     # Save the heatmap
     output_path = output_dir / "correct_agent_distribution_heatmap.png"
     plt.savefig(output_path, dpi=300)
-    
+
     if show_plot:
         plt.show()
     plt.close()
-    
+
     logger.info(f"Saved heatmap to {output_path}")
