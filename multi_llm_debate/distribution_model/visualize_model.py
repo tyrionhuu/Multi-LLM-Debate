@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import math
 from pathlib import Path
-from typing import Dict, List, Optional, Callable
+from typing import Callable, Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -404,13 +404,17 @@ def run_visualization(
 
 if __name__ == "__main__":
     import sys
+
     from multi_llm_debate.run.judge_bench.utils import (
-        extract_caption_a_b_answer,
         compare_judge_bench_responses,
+        extract_caption_a_b_answer,
     )
+
     # Define paths for input and output
     ANSWERS_CSV = Path("output/judge_bench/processed_data.csv")  # id -> answer file
-    DEBATES_CSV = Path("data/judge_bench/llama3(11)/debate_rounds.csv")  # debate rounds data
+    DEBATES_CSV = Path(
+        "data/judge_bench/llama3(11)/debate_rounds.csv"
+    )  # debate rounds data
     OUTPUT_DIR = Path("output/visualizations/judge_bench")
     MAX_ROUNDS = None  # or an int
 

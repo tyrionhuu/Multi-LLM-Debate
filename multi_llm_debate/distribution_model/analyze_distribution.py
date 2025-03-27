@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -77,8 +77,8 @@ def analyze_rounds_distribution(
         if verbose:
             print("Calculating correct rate distribution...")
         aggregated_df = calculate_correct_rate_distribution(
-            df_answers=df_answers, 
-            df_debates=df_debates, 
+            df_answers=df_answers,
+            df_debates=df_debates,
             max_rounds=max_rounds,
             extract_func=extract_func,
             compare_func=compare_func,
