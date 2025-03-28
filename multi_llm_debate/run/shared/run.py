@@ -12,6 +12,7 @@ from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from .evaluate import EvaluationResults
 from .utils import format_time, model_configs_to_string
+from ...utils.progress import progress
 
 logger = setup_logging(__name__)
 logger.setLevel("INFO")
@@ -251,7 +252,6 @@ def process_debate_dataset(
             raise ValueError("DataFrame is empty. Please provide valid data.")
 
         # Using progress manager for the main progress bar
-        from ...utils.progress import progress
 
         with progress.main_bar(
             total=len(dataframe), desc=f"Running {task_name}", unit="debate"
