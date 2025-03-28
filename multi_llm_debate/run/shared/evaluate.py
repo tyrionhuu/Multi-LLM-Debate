@@ -25,13 +25,6 @@ if not logger.handlers:
 # Make sure we don't propagate to root logger to avoid duplicate logs
 logger.propagate = False
 
-# Add type alias for the evaluation function
-EvaluationFunc = Callable[[List[Dict], Union[str, bool]], bool]
-
-# Add type alias for extract functions
-ExtractFunc = Callable[[str], Optional[str]]
-
-
 class EvaluationResults(NamedTuple):
     """Container for evaluation results from all methods."""
 
@@ -43,7 +36,7 @@ class EvaluationResults(NamedTuple):
 def evaluate_debate_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    evaluation_func: Optional[EvaluationFunc] = None,
+    evaluation_func: Optional[Callable] = None,
 ) -> float:
     """Evaluate the Boolean Question task on a DataFrame.
 
@@ -119,7 +112,7 @@ def evaluate_debate_df(
 def evaluate_single_llm_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    evaluation_func: Optional[EvaluationFunc] = None,
+    evaluation_func: Optional[Callable] = None,
 ) -> float:
     """Evaluate the Boolean Question task using first answer as single LLM response.
 
@@ -195,7 +188,7 @@ def evaluate_single_llm_df(
 
 def get_majority_vote(
     responses: List[Dict],
-    extract_func: ExtractFunc,
+    extract_func: Callable,
 ) -> Optional[str]:
     """Get the majority vote from a list of responses.
 
@@ -232,8 +225,8 @@ def get_majority_vote(
 def evaluate_ensemble_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    extract_func: ExtractFunc,
-    evaluation_func: EvaluationFunc,
+    extract_func: Callable,
+    evaluation_func: Callable,
 ) -> float:
     """Evaluate using majority vote from first round responses.
 
@@ -311,8 +304,8 @@ def evaluate_ensemble_df(
 def evaluate_all(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    extract_func: ExtractFunc,
-    evaluation_func: EvaluationFunc,
+    extract_func: Callable,
+    evaluation_func: Callable,
     multiple_models: bool = False,
 ) -> EvaluationResults:
     """Run all evaluation methods and return their results.
