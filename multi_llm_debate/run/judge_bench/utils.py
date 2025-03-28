@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Literal
 
 import pandas as pd
@@ -101,14 +102,23 @@ def load_judge_bench_dataset(
 
 def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
     """
-    Extract answer from the response string, using the last occurrence.
+    Extract answer from the response string.
+    
+    First tries to find "Final Answer: A" or "Final Answer: B" pattern.
+    If not found, falls back to finding the last occurrence of A or B.
 
     Args:
         response: The response string from the LLM.
 
     Returns:
-        Answer: "A" or "B". Uses the last occurrence of A/B.
+        Literal["A", "B"]: Answer "A" or "B".
     """
+    # Try to find "Final Answer: X" pattern
+    match = re.search(r"Final Answer:\s*([AB])", response)
+    if match:
+        return match.group(1)
+    
+    # Fall back to original method if pattern not found
     last_a = response.rfind("A")
     last_b = response.rfind("B")
 
