@@ -160,7 +160,7 @@ def check_convergence(
             logger.info(f"Debate has converged on answer: {list(set(answers))[0]}")
         return is_converged
     except Exception as e:
-        logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
+        logger.error(f"Error checking convergence: {str(e)}", exc_info=False)
         raise
 
 
