@@ -312,7 +312,8 @@ def generate_with_ollama(
                 )
                 # Sleep with exponential backoff before retrying
                 import time
-                time.sleep(2 ** eof_retry)
+
+                time.sleep(2**eof_retry)
                 continue
             elif "EOF" in error_msg:
                 logging.error(f"Persistent EOF error with Ollama: {error_msg}")
