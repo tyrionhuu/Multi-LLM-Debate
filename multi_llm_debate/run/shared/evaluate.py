@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Callable, Dict, List, NamedTuple, Optional, Union
+from typing import Callable, Dict, List, NamedTuple, Optional
 
 import pandas as pd
 
@@ -24,6 +24,7 @@ if not logger.handlers:
 
 # Make sure we don't propagate to root logger to avoid duplicate logs
 logger.propagate = False
+
 
 class EvaluationResults(NamedTuple):
     """Container for evaluation results from all methods."""
