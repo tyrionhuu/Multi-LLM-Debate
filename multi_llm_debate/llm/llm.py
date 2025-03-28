@@ -269,42 +269,62 @@ def generate_with_ollama(
     Returns:
         str: The generated response from the model.
     """
-    try:
-        options = Options(
-            temperature=temperature,
-            num_ctx=max_tokens,
-            request_timeout=timeout,
-        )
-
-        if json_mode:
-            return retry_json_generation(
-                model_name=model_name,
-                prompt=prompt,
-                options=options,
-                images=images,
+    max_eof_retries = 3
+    for eof_retry in range(max_eof_retries):
+        try:
+            options = Options(
+                temperature=temperature,
+                num_ctx=max_tokens,
+                request_timeout=timeout,
             )
 
-        kwargs = {
-            "model": model_name,
-            "prompt": prompt,
-            "options": options,
-            "format": "",
-        }
+            if json_mode:
+                return retry_json_generation(
+                    model_name=model_name,
+                    prompt=prompt,
+                    options=options,
+                    images=images,
+                )
 
-        if images:  # Only include images if list is not None and not empty
-            kwargs["images"] = images
+            kwargs = {
+                "model": model_name,
+                "prompt": prompt,
+                "options": options,
+                "format": "",
+            }
 
-        return ollama.generate(**kwargs)["response"]
+            if images:  # Only include images if list is not None and not empty
+                kwargs["images"] = images
 
-    except requests.exceptions.Timeout:
-        raise TimeoutError(f"Request timed out after {timeout} seconds")
-    except ConnectionError:
-        raise ConnectionError(
-            "Failed to connect to Ollama server. Please check if Ollama is running."
-        )
-    except Exception as e:
-        logging.error(f"Error in generate_with_image_ollama: {str(e)}")
-        raise
+            return ollama.generate(**kwargs)["response"]
+
+        except requests.exceptions.Timeout:
+            raise TimeoutError(f"Request timed out after {timeout} seconds")
+        except ConnectionError:
+            raise ConnectionError(
+                "Failed to connect to Ollama server. Please check if Ollama is running."
+            )
+        except Exception as e:
+            error_msg = str(e)
+            if "EOF" in error_msg and eof_retry < max_eof_retries - 1:
+                logging.warning(
+                    f"Ollama EOF error encountered, retrying ({eof_retry+1}/{max_eof_retries}): {error_msg}"
+                )
+                # Sleep with exponential backoff before retrying
+                import time
+                time.sleep(2 ** eof_retry)
+                continue
+            elif "EOF" in error_msg:
+                logging.error(f"Persistent EOF error with Ollama: {error_msg}")
+                raise ValueError(
+                    "Ollama server disconnected unexpectedly (EOF error). "
+                    "This usually happens when the Ollama server crashes or restarts. "
+                    "Please check if Ollama is running properly, restart it if needed, "
+                    "and try again."
+                )
+            else:
+                logging.error(f"Error in generate_with_ollama: {error_msg}")
+                raise
 
 
 @retry_with_timeout(
