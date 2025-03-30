@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from ..llm.llm import call_model
 
@@ -40,12 +40,14 @@ class Agent:
     def __repr__(self):
         return str(self)
 
-    def respond(self, prompt: str, json_mode: bool = False) -> Dict[str, Any]:
+    def respond(self, prompt: str, json_mode: bool = False, timeout: Optional[int] = None) -> Dict[str, Any]:
         """Generate a response to the given prompt.
 
         Args:
             prompt (str): The input prompt to send to the language model.
             json_mode (bool, optional): Whether to expect JSON response. Defaults to False.
+            timeout (Optional[int], optional): Maximum time to wait for response in seconds.
+                Defaults to None, which uses the API's default timeout.
 
         Returns:
             Dict[str, Any]: A dictionary containing:
@@ -63,6 +65,7 @@ class Agent:
                 prompt=prompt,
                 json_mode=json_mode,
                 max_tokens=6400,
+                timeout=timeout,
             )
         except ConnectionError as e:
             raise LLMConnectionError(
