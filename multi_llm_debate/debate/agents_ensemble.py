@@ -125,7 +125,9 @@ class AgentsEnsemble:
         errors = []
         for attempt in range(self.max_retries + 1):
             try:
-                return agent.respond(prompt, json_mode=json_mode, timeout=int(self.timeout))
+                return agent.respond(
+                    prompt, json_mode=json_mode, timeout=int(self.timeout)
+                )
             except LLMConnectionError as e:
                 errors.append(f"Attempt {attempt+1}: {str(e)}")
                 if attempt < self.max_retries:

@@ -40,7 +40,9 @@ class Agent:
     def __repr__(self):
         return str(self)
 
-    def respond(self, prompt: str, json_mode: bool = False, timeout: Optional[int] = None) -> Dict[str, Any]:
+    def respond(
+        self, prompt: str, json_mode: bool = False, timeout: Optional[int] = None
+    ) -> Dict[str, Any]:
         """Generate a response to the given prompt.
 
         Args:
