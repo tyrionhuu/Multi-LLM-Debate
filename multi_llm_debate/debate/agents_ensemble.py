@@ -29,7 +29,7 @@ class AgentsEnsemble:
         concurrent: bool = True,
         max_workers: Optional[int] = 4,
         job_delay: float = 0.5,
-        timeout: float = 120.0,  # 2 minute timeout
+        timeout: float = 180.0,  # 3 minute timeout
         max_retries: int = 2,
         retry_delay: float = 1.0,
     ) -> None:
@@ -42,7 +42,7 @@ class AgentsEnsemble:
             max_workers (int, optional): Maximum number of concurrent workers. Defaults to 4.
             job_delay (float, optional): Delay in seconds between agent calls. Defaults to 0.5.
             timeout (float, optional): Maximum time in seconds to wait for agent responses.
-                Defaults to 120.0 (2 minutes).
+                Defaults to 180.0 (3 minutes).
             max_retries (int, optional): Maximum number of retry attempts. Defaults to 2.
             retry_delay (float, optional): Delay in seconds between retry attempts.
                 Defaults to 1.0.

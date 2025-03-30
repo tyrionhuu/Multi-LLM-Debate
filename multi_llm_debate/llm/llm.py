@@ -53,7 +53,7 @@ def call_model(
     temperature: float = 1.0,
     max_tokens: int = 3200,
     json_mode: bool = True,
-    timeout: Optional[int] = None,
+    timeout: Optional[int] = 30,
     vision: bool = False,
     images: Union[
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
@@ -70,7 +70,7 @@ def call_model(
         temperature (float): Sampling temperature for the model.
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
-        timeout (Optional[int]): Timeout for the HTTP request.
+        timeout (Optional[int]): Timeout in seconds for the request. Defaults to 30.
         vision (bool): Whether to use vision models.
         images (Union[str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None]):
             Image inputs when using vision models.
@@ -126,7 +126,7 @@ def call_vision_model(
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
     ] = None,
     json_mode: bool = False,
-    timeout: Optional[int] = None,
+    timeout: Optional[int] = 30,
 ) -> str:
     """
     Routes the call to the appropriate vision model provider and returns the response.
@@ -140,7 +140,7 @@ def call_vision_model(
         images (Union[str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None]):
             Image file paths, bytes, PIL Images, or lists of any of these. If None, runs in text-only mode.
         json_mode (bool): Whether the response should be in JSON format.
-        timeout (Optional[int], optional): Timeout for the HTTP request. Defaults to None.
+        timeout (Optional[int]): Timeout in seconds for the request. Defaults to 30.
 
     Returns:
         str: The generated response from the vision model.
@@ -352,7 +352,7 @@ def generate_with_api(
         images (Optional[list[str | bytes]]): Paths to image files or image data.
             If None, runs in text-only mode.
         json_mode (bool): Whether the response should be in JSON format.
-        timeout (int): Maximum time to wait for the response.
+        timeout (int): Maximum time in seconds to wait for the response.
 
     Returns:
         str: The generated response from the API.
@@ -362,6 +362,7 @@ def generate_with_api(
         client = OpenAI(
             base_url=BASE_URL,
             api_key=KEY,
+            timeout=timeout,  # Set the timeout for the client
         )
         messages = generate_api_messages(images=images, prompt=prompt)
 
@@ -373,7 +374,6 @@ def generate_with_api(
                 temperature=temperature,
                 response_format={"type": "json_object"} if json_mode else None,
                 seed=42,
-                timeout=timeout,
             )
             response_str = response.choices[0].message.content
 
