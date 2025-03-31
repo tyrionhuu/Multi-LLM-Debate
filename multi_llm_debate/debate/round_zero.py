@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from pathlib import Path
 from typing import List
 
@@ -36,24 +37,49 @@ def run_debate_round_zero(
         OSError: If unable to create output directory or save results file.
         json.JSONDecodeError: If unable to serialize responses to JSON.
     """
+    logger.info(f"Starting debate round zero with {len(agents_ensemble.agents)} agents")
+    logger.debug(f"Initial prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
+    
+    start_time = time.time()
+    
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
+    logger.debug(f"Output directory created/verified: {output_dir}")
 
     try:
+        logger.info("Requesting responses from all agents...")
+        response_start_time = time.time()
         responses = agents_ensemble.get_responses(
             prompt=prompt,
             json_mode=json_mode,
         )
+        response_time = time.time() - response_start_time
+        logger.info(f"All agent responses received in {response_time:.2f} seconds")
     except LLMConnectionError as e:
-        logger.error(f"Connection error in round zero: {str(e)}")
+        logger.error(f"Connection error in round zero: {str(e)}", exc_info=True)
+        logger.error(f"Failed prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}")
         raise
 
-    for response in responses:
-        logger.info(f"Agent {response['agent_id']} responded")
+    for i, response in enumerate(responses):
+        agent_id = response['agent_id']
+        response_text = response.get('response', '')
+        logger.info(f"Agent {agent_id} responded (#{i+1}/{len(responses)})")
+        logger.debug(f"Agent {agent_id} response length: {len(response_text)} chars")
+        
+        # Log a preview of each response
+        if response_text:
+            preview = response_text[:100] + ('...' if len(response_text) > 100 else '')
+            logger.debug(f"Agent {agent_id} response preview: {preview}")
 
     output_file = output_dir / "debate_round_0.json"
-    with open(output_file, "w") as f:
-        json.dump(responses, f, indent=2)
+    try:
+        with open(output_file, "w") as f:
+            json.dump(responses, f, indent=2)
+        logger.info(f"Round zero responses saved to {output_file}")
+    except (OSError, json.JSONDecodeError) as e:
+        logger.error(f"Failed to save responses to {output_file}: {str(e)}", exc_info=True)
+        raise
 
-    logger.info(f"Round zero responses saved to {output_file}")
+    total_time = time.time() - start_time
+    logger.info(f"Round zero completed in {total_time:.2f} seconds")
     return responses
