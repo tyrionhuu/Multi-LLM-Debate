@@ -1,4 +1,5 @@
 import logging
+import threading
 import time
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, TimeoutError, wait
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -354,6 +355,21 @@ class AgentsEnsemble:
         batch_start_time = time.time()
 
         logger.info(f"Starting batch processing of {len(agents)} agents")
+        
+        # Define a thread-safe flag to track executor shutdown status
+        shutdown_flag = threading.Event()
+        
+        # Define a safer way to handle future results with proper timeout
+        def get_future_result(future, timeout=0.5):
+            """Get future result with strict timeout to avoid hanging."""
+            try:
+                return future.result(timeout=timeout)
+            except TimeoutError:
+                logger.warning(f"Timed out getting result from future")
+                return None
+            except Exception as e:
+                logger.warning(f"Error getting future result: {str(e)}")
+                return None
 
         with ThreadPoolExecutor(max_workers=len(agents)) as executor:
             futures = {}
@@ -365,6 +381,7 @@ class AgentsEnsemble:
                     time.sleep(delay_between_agents)
 
                 submission_time = time.time()
+                # Use a wrapper function that enforces a timeout for each agent
                 future = executor.submit(
                     self._get_response_with_retry, agent, prompt, json_mode
                 )
@@ -391,91 +408,161 @@ class AgentsEnsemble:
             # For heartbeat logging
             last_heartbeat = time.time()
             heartbeat_interval = 15  # Log waiting status every 15 seconds
+            
+            # Create a safety timer for hard termination
+            safety_timeout = min(batch_timeout * 1.2, batch_timeout + 60)  # 20% more time or +60s
+            safety_deadline = time.time() + safety_timeout
+            
+            logger.info(f"Safety timeout set to {safety_timeout:.2f}s to prevent hanging")
 
             # Process futures as they complete
-            while active_futures and time.time() < end_time:
-                # Generate heartbeat log to show we're still waiting
-                current_time = time.time()
-                if current_time - last_heartbeat > heartbeat_interval:
-                    waiting_time = current_time - batch_start_time
-                    remaining_count = len(active_futures)
-                    logger.info(
-                        f"Still waiting for {remaining_count}/{len(agents)} responses after "
-                        f"{waiting_time:.2f}s"
+            try:
+                while active_futures and time.time() < end_time:
+                    # Check for safety timeout - this is a hard limit to prevent complete hanging
+                    if time.time() > safety_deadline:
+                        logger.critical(
+                            f"SAFETY TIMEOUT TRIGGERED after {time.time() - batch_start_time:.2f}s - "
+                            f"forcing termination of {len(active_futures)} hanging tasks"
+                        )
+                        # Force cancellation of all remaining futures
+                        for future in active_futures:
+                            future.cancel()
+                        break
+                    
+                    # Generate heartbeat log to show we're still waiting
+                    current_time = time.time()
+                    if current_time - last_heartbeat > heartbeat_interval:
+                        waiting_time = current_time - batch_start_time
+                        remaining_count = len(active_futures)
+                        logger.info(
+                            f"Still waiting for {remaining_count}/{len(agents)} responses after "
+                            f"{waiting_time:.2f}s (timeout in {end_time - current_time:.1f}s)"
+                        )
+
+                        # List still-waiting agents
+                        waiting_agents = [
+                            f"{futures[f][0].agent_id}({futures[f][0].provider}, waiting {current_time - futures[f][1]:.1f}s)"
+                            for f in active_futures
+                        ]
+                        logger.info(f"Waiting for agents: {', '.join(waiting_agents)}")
+                        
+                        # Check if any futures are done but not removed from active set
+                        for future in list(active_futures):
+                            if future.done():
+                                logger.warning(
+                                    f"Future for agent {futures[future][0].agent_id} is done "
+                                    f"but not processed - forcing processing now"
+                                )
+                                active_futures.remove(future)
+                                # Add to completed set for processing below
+                                completed = {future}
+                                break
+                                
+                        last_heartbeat = current_time
+
+                    # Wait for the next future to complete with a short timeout
+                    # Using a shorter timeout for more responsive handling
+                    timeout_remaining = min(2.0, max(0.1, end_time - time.time()))
+                    completed, active_futures = wait(
+                        active_futures,
+                        timeout=timeout_remaining,
+                        return_when=FIRST_COMPLETED,
                     )
 
-                    # List still-waiting agents
-                    waiting_agents = [
-                        f"{futures[f][0].agent_id}({futures[f][0].provider}, waiting {current_time - futures[f][1]:.1f}s)"
-                        for f in active_futures
-                    ]
-                    logger.info(f"Waiting for agents: {', '.join(waiting_agents)}")
+                    # Process completed futures immediately
+                    if completed:
+                        for future in completed:
+                            agent, submit_time = futures[future]
+                            completion_time = time.time()
+                            response_time = completion_time - submit_time
 
-                    last_heartbeat = current_time
+                            try:
+                                # Use our safer result getter with a strict timeout
+                                response = get_future_result(future, timeout=1.0)
+                                if response is not None:
+                                    responses.append(response)
+                                    logger.info(
+                                        f"Received response from {agent.provider} agent {agent.agent_id} "
+                                        f"in {response_time:.2f}s"
+                                    )
+                                else:
+                                    timeout_errors.append(
+                                        f"Agent {agent.agent_id} ({agent.model}) timed out during result retrieval"
+                                    )
+                                    logger.warning(
+                                        f"Timeout retrieving result from agent {agent.agent_id} "
+                                        f"after {response_time:.2f}s"
+                                    )
+                            except Exception as e:
+                                error_msg = (
+                                    f"Agent {agent.agent_id} ({agent.model}) error: {str(e)}"
+                                )
+                                errors.append(error_msg)
+                                logger.warning(
+                                    f"Connection error from agent {agent.agent_id} "
+                                    f"after {response_time:.2f}s: {str(e)}"
+                                )
 
-                # Wait for the next future to complete with a short timeout
-                timeout_remaining = min(5.0, max(0.1, end_time - time.time()))
-                completed, active_futures = wait(
-                    active_futures,
-                    timeout=timeout_remaining,
-                    return_when=FIRST_COMPLETED,
-                )
-
-                # Process completed futures
-                for future in completed:
-                    agent, submit_time = futures[future]
-                    completion_time = time.time()
-                    response_time = completion_time - submit_time
-
-                    try:
-                        response = future.result(
-                            timeout=0.1
-                        )  # Short timeout as it should be done
-                        responses.append(response)
-                        logger.info(
-                            f"Received response from {agent.provider} agent {agent.agent_id} "
-                            f"in {response_time:.2f}s"
-                        )
-                    except TimeoutError:
-                        timeout_errors.append(
-                            f"Agent {agent.agent_id} ({agent.model}) timed out during result retrieval"
-                        )
-                        logger.warning(
-                            f"Timeout retrieving result from agent {agent.agent_id} "
-                            f"after {response_time:.2f}s"
-                        )
-                    except LLMConnectionError as e:
-                        error_msg = (
-                            f"Agent {agent.agent_id} ({agent.model}) error: {str(e)}"
-                        )
-                        errors.append(error_msg)
-                        logger.warning(
-                            f"Connection error from agent {agent.agent_id} after {response_time:.2f}s: {str(e)}"
-                        )
+            except Exception as e:
+                logger.critical(f"Exception during batch processing: {str(e)}", exc_info=True)
+                # Signal shutdown for a clean exit
+                shutdown_flag.set()
+                # Try to cancel any remaining futures
+                for future in active_futures:
+                    future.cancel()
 
             # For any remaining active futures, record them as timeouts
             if active_futures:
                 current_time = time.time()
+                logger.warning(
+                    f"{len(active_futures)}/{len(agents)} agents still active after timeout - "
+                    f"attempting to cancel and clean up"
+                )
+                
+                # Collect diagnostic info for all hanging agents
                 for future in active_futures:
                     agent, submit_time = futures[future]
                     wait_time = current_time - submit_time
-                    timeout_errors.append(
-                        f"Agent {agent.agent_id} ({agent.model}, {agent.provider}) timed out "
-                        f"after {wait_time:.2f} seconds"
+                    
+                    # Add detailed diagnostics to the error message
+                    diagnostic_info = (
+                        f"Agent {agent.agent_id} ({agent.model}, {agent.provider}) "
+                        f"timed out after {wait_time:.2f}s - "
+                        f"future state: done={future.done()}, cancelled={future.cancelled()}, "
+                        f"running={future.running()}"
                     )
-                    # Cancel any remaining futures
-                    future.cancel()
-
-                logger.warning(
+                    
+                    timeout_errors.append(diagnostic_info)
+                    logger.error(diagnostic_info)
+                    
+                    # Attempt to cancel the future
+                    try:
+                        cancel_result = future.cancel()
+                        logger.info(f"Cancel attempt for agent {agent.agent_id}: {cancel_result}")
+                    except Exception as e:
+                        logger.error(f"Error cancelling future for agent {agent.agent_id}: {str(e)}")
+                
+                # Log a critical warning about the hanging threads
+                logger.critical(
                     f"{len(active_futures)}/{len(agents)} agents timed out in batch "
-                    f"after {current_time - batch_start_time:.2f}s"
+                    f"after {current_time - batch_start_time:.2f}s - THIS MAY CAUSE HANGING THREADS"
                 )
 
+        # After exiting the executor context, log completion
         batch_time = time.time() - batch_start_time
         logger.info(
             f"Batch processing completed in {batch_time:.2f}s: "
             f"{len(responses)} successes, {len(errors)} errors, {len(timeout_errors)} timeouts"
         )
+        
+        # Final check for hanging threads - this is just diagnostic
+        thread_count = threading.active_count()
+        if thread_count > 10:  # Arbitrary threshold to detect potential issues
+            logger.warning(
+                f"High thread count detected: {thread_count} threads still active "
+                f"after batch completion. This might indicate hanging threads."
+            )
+            
         return responses, errors, timeout_errors
 
     def get_responses(

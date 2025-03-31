@@ -3,6 +3,8 @@ import io
 import json
 import logging
 import os
+import signal
+import time
 from typing import Any, Dict, List, Literal, Optional, Union
 
 import ollama
@@ -14,6 +16,10 @@ from requests.exceptions import ConnectionError
 
 from ..utils.config_manager import get_api_key, get_base_url
 from ..utils.retry import retry_with_timeout
+from ..utils.logging_config import setup_logging
+
+# Set up logger
+logger = setup_logging(__name__)
 
 KEY = get_api_key()
 BASE_URL = get_base_url()
@@ -42,10 +48,41 @@ def encode_image(image_path: str) -> str:
     return encoded
 
 
-@retry_with_timeout(
-    max_retries=3,
-    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException),
-)
+class TimeoutHandler:
+    """Context manager for handling timeouts in API calls."""
+
+    def __init__(self, timeout: Optional[int] = None, operation_name: str = "API call"):
+        """Initialize timeout handler.
+
+        Args:
+            timeout: Maximum time in seconds before timing out
+            operation_name: Name of the operation for logging
+        """
+        self.timeout = timeout
+        self.operation_name = operation_name
+        self.original_handler = None
+        self.timed_out = False
+
+    def handle_timeout(self, signum, frame):
+        """Signal handler for SIGALRM."""
+        self.timed_out = True
+        logger.error(f"Timeout ({self.timeout}s) exceeded for {self.operation_name}")
+        raise ConnectionError(f"Timeout of {self.timeout} seconds exceeded")
+
+    def __enter__(self):
+        """Set up timeout alarm if timeout is specified."""
+        if self.timeout:
+            self.original_handler = signal.signal(signal.SIGALRM, self.handle_timeout)
+            signal.alarm(self.timeout)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Cancel alarm and restore original handler."""
+        if self.timeout:
+            signal.alarm(0)  # Cancel the alarm
+            signal.signal(signal.SIGALRM, self.original_handler)
+
+
 def call_model(
     model_name: str = "llama3.2:11b",
     provider: Literal["api", "ollama", "openai", "anthropic"] = "ollama",
@@ -78,42 +115,59 @@ def call_model(
     Returns:
         str: The generated response from the model.
     """
-    if vision:
-        return call_vision_model(
-            model_name=model_name,
-            provider=provider,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            images=images,
-            json_mode=json_mode,
-            timeout=timeout,
-        )
+    start_time = time.time()
+    logger.info(f"Calling {provider}/{model_name} (timeout={timeout}s, json={json_mode})")
 
-    if provider == "ollama":
-        return generate_with_ollama(
-            model_name=model_name,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            json_mode=json_mode,
-            timeout=timeout,
-        )
-    elif provider == "api":
-        return generate_with_api(
-            model_name=model_name,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            json_mode=json_mode,
-            timeout=timeout,
-        )
-    elif provider == "openai":
-        raise NotImplementedError("OpenAI API integration is not implemented yet.")
-    elif provider == "anthropic":
-        raise NotImplementedError("Anthropic API integration is not implemented yet.")
-    else:
-        raise ValueError(f"Unsupported provider: {provider}")
+    with TimeoutHandler(timeout, f"{provider}/{model_name} call"):
+        if vision:
+            return call_vision_model(
+                model_name=model_name,
+                provider=provider,
+                prompt=prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                images=images,
+                json_mode=json_mode,
+                timeout=timeout,
+            )
+
+        try:
+            if provider == "ollama":
+                result = generate_with_ollama(
+                    model_name=model_name,
+                    prompt=prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    json_mode=json_mode,
+                    timeout=timeout,
+                )
+            elif provider == "api":
+                result = generate_with_api(
+                    model_name=model_name,
+                    prompt=prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    json_mode=json_mode,
+                    timeout=timeout,
+                )
+            elif provider == "openai":
+                raise NotImplementedError("OpenAI API integration is not implemented yet.")
+            elif provider == "anthropic":
+                raise NotImplementedError("Anthropic API integration is not implemented yet.")
+            else:
+                raise ValueError(f"Unsupported provider: {provider}")
+
+            elapsed = time.time() - start_time
+            logger.info(f"Call to {provider}/{model_name} completed in {elapsed:.2f}s")
+            return result
+
+        except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error(
+                f"Error calling {provider}/{model_name} after {elapsed:.2f}s: {str(e)}",
+                exc_info=True,
+            )
+            raise ConnectionError(f"Error with {provider} service: {str(e)}")
 
 
 def call_vision_model(
