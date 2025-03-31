@@ -43,9 +43,9 @@ class Agent:
         return str(self)
 
     def respond(
-        self, 
-        prompt: str, 
-        json_mode: bool = False, 
+        self,
+        prompt: str,
+        json_mode: bool = False,
         timeout: Optional[int] = None,
         max_retries: int = 0,
     ) -> Dict[str, Any]:
@@ -53,11 +53,11 @@ class Agent:
 
         Args:
             prompt (str): The input prompt to send to the language model.
-            json_mode (bool, optional): Whether to expect JSON response. 
+            json_mode (bool, optional): Whether to expect JSON response.
                 Defaults to False.
-            timeout (Optional[int], optional): Maximum time to wait for response 
+            timeout (Optional[int], optional): Maximum time to wait for response
                 in seconds. Defaults to None, which uses the API's default timeout.
-            max_retries (int, optional): Maximum number of retry attempts if the 
+            max_retries (int, optional): Maximum number of retry attempts if the
                 request fails. Defaults to 0 (no retries).
 
         Returns:
@@ -83,7 +83,7 @@ class Agent:
 
         errors = []
         retry_delay = 1.0  # Default retry delay in seconds
-        
+
         # Try up to max_retries + 1 times (original attempt + retries)
         for attempt in range(max_retries + 1):
             try:
@@ -95,7 +95,7 @@ class Agent:
                     current_delay = retry_delay * (2 ** (attempt - 1))
                     logger.info(f"Waiting {current_delay:.2f}s before retry")
                     time.sleep(current_delay)
-                
+
                 # Make the actual API call
                 api_start = time.time()
                 logger.info(
@@ -117,7 +117,9 @@ class Agent:
 
                 # If it's already a dictionary, use it directly
                 if isinstance(raw_response, dict):
-                    logger.debug(f"Agent {self.agent_id} response was already a dictionary")
+                    logger.debug(
+                        f"Agent {self.agent_id} response was already a dictionary"
+                    )
                     parsed_response = raw_response
                 else:
                     # Try to parse as JSON, but keep as string if parsing fails
@@ -166,8 +168,10 @@ class Agent:
                 )
                 # If this was the last attempt, re-raise the exception
                 if attempt == max_retries:
-                    raise ConnectionError(f"Failed after {max_retries+1} attempts: {'; '.join(errors)}")
-                
+                    raise ConnectionError(
+                        f"Failed after {max_retries+1} attempts: {'; '.join(errors)}"
+                    )
+
             except Exception as e:
                 # Record the error and retry if we have retries left
                 elapsed = time.time() - start_time
@@ -180,4 +184,6 @@ class Agent:
                 )
                 # If this was the last attempt, re-raise the exception
                 if attempt == max_retries:
-                    raise Exception(f"Failed after {max_retries+1} attempts: {'; '.join(errors)}")
+                    raise Exception(
+                        f"Failed after {max_retries+1} attempts: {'; '.join(errors)}"
+                    )

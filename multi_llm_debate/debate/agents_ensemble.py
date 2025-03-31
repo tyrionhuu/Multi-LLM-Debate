@@ -104,7 +104,11 @@ class AgentsEnsemble:
         self.agents.append(agent)
 
     def _get_response_with_retry(
-        self, agent: Agent, prompt: str, json_mode: bool, max_retries: Optional[int] = None
+        self,
+        agent: Agent,
+        prompt: str,
+        json_mode: bool,
+        max_retries: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Attempt to get a response from an agent with retry logic.
 
@@ -124,7 +128,7 @@ class AgentsEnsemble:
         """
         # Use ensemble's default if max_retries not specified
         retries = self.max_retries if max_retries is None else max_retries
-        
+
         if retries <= 0:
             # No retries, call agent.respond directly
             logger.debug(
@@ -133,16 +137,13 @@ class AgentsEnsemble:
             return agent.respond(
                 prompt, json_mode=json_mode, timeout=int(self.timeout), max_retries=0
             )
-            
+
         # Use the agent's built-in retry mechanism
         logger.debug(
             f"Using {retries} retries for agent {agent.agent_id} ({agent.model}, {agent.provider})"
         )
         return agent.respond(
-            prompt, 
-            json_mode=json_mode, 
-            timeout=int(self.timeout),
-            max_retries=retries
+            prompt, json_mode=json_mode, timeout=int(self.timeout), max_retries=retries
         )
 
     def get_responses(
@@ -152,7 +153,7 @@ class AgentsEnsemble:
 
         Args:
             prompt (str): The input prompt to send to all agents.
-            json_mode (bool, optional): Whether to expect JSON response. 
+            json_mode (bool, optional): Whether to expect JSON response.
                 Defaults to False.
             max_retries (Optional[int], optional): Maximum number of retry attempts.
                 If None, use the ensemble's default max_retries. Defaults to None.
@@ -165,7 +166,9 @@ class AgentsEnsemble:
         """
         retries = self.max_retries if max_retries is None else max_retries
         retry_msg = f"{retries} retries" if retries > 0 else "no retries"
-        logger.info(f"Getting responses from {len(self.agents)} agents sequentially with {retry_msg}")
+        logger.info(
+            f"Getting responses from {len(self.agents)} agents sequentially with {retry_msg}"
+        )
         start_time = time.time()
 
         responses = []
