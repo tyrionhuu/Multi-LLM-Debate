@@ -173,10 +173,7 @@ class AgentsEnsemble:
     def _get_response_concurrent(
         self, prompt: str, json_mode: bool = False
     ) -> List[Dict[str, Any]]:
-        """Get responses from all agents concurrently with improved resource management.
-
-        Uses a controlled batch approach to prevent overwhelming Ollama and better
-        manage resources, especially when running with local LLMs.
+        """Get responses from all agents concurrently without batching.
 
         Args:
             prompt (str): The input prompt to send to all agents.
@@ -217,91 +214,22 @@ class AgentsEnsemble:
                 f"Sequential processing completed in {time.time() - start_time:.2f}s"
             )
         else:
-            # Determine optimal batch size based on max_workers
-            # For Ollama, smaller batches often work better
-            batch_size = min(3, self.max_workers)
-
-            # Calculate per-agent timeout with margin
-            # Give each agent slightly less than the total timeout to allow for scheduling
-            per_agent_timeout = max(30, self.timeout * 0.9)
-
-            # Group agents by provider to optimize scheduling
-            agents_by_provider = {}
-            for agent in self.agents:
-                provider = agent.provider.lower()
-                if provider not in agents_by_provider:
-                    agents_by_provider[provider] = []
-                agents_by_provider[provider].append(agent)
-
-            logger.info(
-                f"Agent distribution by provider: {', '.join([f'{k}: {len(v)}' for k, v in agents_by_provider.items()])}"
+            # Process all agents concurrently in a single operation without batching
+            logger.info(f"Processing all {len(self.agents)} agents concurrently")
+            
+            # Use all agents directly, without grouping by provider or batching
+            all_results = self._process_all_agents(
+                self.agents, 
+                prompt, 
+                json_mode, 
+                self.timeout, 
+                self.job_delay
             )
-
-            # Process each provider's agents separately with appropriate batching
-            provider_count = 0
-            total_providers = len(agents_by_provider)
-
-            for provider, provider_agents in agents_by_provider.items():
-                provider_count += 1
-                provider_start_time = time.time()
-
-                # For Ollama, use smaller batches and add delays
-                provider_batch_size = batch_size
-                provider_delay = self.job_delay
-                if provider == "ollama":
-                    provider_batch_size = min(2, batch_size)
-                    provider_delay = max(
-                        1.0, self.job_delay
-                    )  # Ensure at least 1 second delay for Ollama
-
-                logger.info(
-                    f"Processing provider {provider_count}/{total_providers}: "
-                    f"{len(provider_agents)} {provider} agents with batch size {provider_batch_size}"
-                )
-
-                # Process this provider's agents in batches
-                batch_count = 0
-                total_batches = (
-                    len(provider_agents) + provider_batch_size - 1
-                ) // provider_batch_size
-
-                for i in range(0, len(provider_agents), provider_batch_size):
-                    batch_count += 1
-                    batch_start_time = time.time()
-
-                    batch = provider_agents[i : i + provider_batch_size]
-                    logger.info(
-                        f"Starting batch {batch_count}/{total_batches} with "
-                        f"{len(batch)} {provider} agents"
-                    )
-
-                    batch_results = self._process_agent_batch(
-                        batch, prompt, json_mode, per_agent_timeout, provider_delay
-                    )
-
-                    batch_responses, batch_errors, batch_timeouts = batch_results
-                    responses.extend(batch_responses)
-                    errors.extend(batch_errors)
-                    timeout_errors.extend(batch_timeouts)
-
-                    batch_time = time.time() - batch_start_time
-                    logger.info(
-                        f"Completed batch {batch_count}/{total_batches} in {batch_time:.2f}s "
-                        f"with {len(batch_responses)}/{len(batch)} successful responses"
-                    )
-
-                    # Add a delay between batches to prevent overwhelming Ollama
-                    if provider == "ollama" and i + provider_batch_size < len(
-                        provider_agents
-                    ):
-                        delay_time = max(2.0, provider_delay * 2)
-                        logger.info(
-                            f"Adding {delay_time:.2f}s delay between Ollama batches"
-                        )
-                        time.sleep(delay_time)
-
-                provider_time = time.time() - provider_start_time
-                logger.info(f"Completed all {provider} agents in {provider_time:.2f}s")
+            
+            batch_responses, batch_errors, batch_timeouts = all_results
+            responses.extend(batch_responses)
+            errors.extend(batch_errors)
+            timeout_errors.extend(batch_timeouts)
 
         total_errors = len(errors) + len(timeout_errors)
         total_time = time.time() - start_time
@@ -329,7 +257,7 @@ class AgentsEnsemble:
 
         return responses
 
-    def _process_agent_batch(
+    def _process_all_agents(
         self,
         agents: List[Agent],
         prompt: str,
@@ -337,7 +265,7 @@ class AgentsEnsemble:
         timeout_per_agent: float,
         delay_between_agents: float,
     ) -> Tuple[List[Dict[str, Any]], List[str], List[str]]:
-        """Process a batch of agents with controlled concurrency.
+        """Process all agents concurrently without batching.
 
         Args:
             agents: List of agents to process
@@ -354,10 +282,11 @@ class AgentsEnsemble:
         timeout_errors = []
         batch_start_time = time.time()
 
-        logger.info(f"Starting batch processing of {len(agents)} agents")
+        logger.info(f"Starting concurrent processing of {len(agents)} agents")
 
-        # Define a thread-safe flag to track executor shutdown status
-        shutdown_flag = threading.Event()
+        # Configure max workers based on configuration, but ensure it's reasonable
+        max_workers = min(len(agents), self.max_workers if self.max_workers else 8)
+        logger.info(f"Using ThreadPoolExecutor with {max_workers} workers")
 
         # Define a safer way to handle future results with proper timeout
         def get_future_result(future, timeout=0.5):
@@ -371,17 +300,17 @@ class AgentsEnsemble:
                 logger.warning(f"Error getting future result: {str(e)}")
                 return None
 
-        with ThreadPoolExecutor(max_workers=len(agents)) as executor:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {}
             active_futures: Set = set()
 
-            # Submit all jobs for this batch
+            # Submit all jobs with appropriate delays
             for agent in agents:
-                if delay_between_agents > 0:
+                if delay_between_agents > 0 and len(futures) > 0:
+                    logger.debug(f"Waiting {delay_between_agents}s before submitting next agent")
                     time.sleep(delay_between_agents)
 
                 submission_time = time.time()
-                # Use a wrapper function that enforces a timeout for each agent
                 future = executor.submit(
                     self._get_response_with_retry, agent, prompt, json_mode
                 )
@@ -393,15 +322,13 @@ class AgentsEnsemble:
                     f"Submitted request to {agent.provider} agent {agent.agent_id} ({agent.model})"
                 )
 
-            # Set the end time for our batch timeout
-            batch_timeout = (
-                timeout_per_agent + (len(agents) * delay_between_agents) + 10
-            )  # Add margin
-            end_time = time.time() + batch_timeout
+            # Set the end time for our timeout
+            total_timeout = timeout_per_agent + (len(agents) * delay_between_agents) + 30  # Add margin
+            end_time = time.time() + total_timeout
 
             # Log the expected completion time
             logger.info(
-                f"Batch timeout set to {batch_timeout:.2f}s, expected completion by "
+                f"Total timeout set to {total_timeout:.2f}s, expected completion by "
                 f"{time.strftime('%H:%M:%S', time.localtime(end_time))}"
             )
 
@@ -411,7 +338,7 @@ class AgentsEnsemble:
 
             # Create a safety timer for hard termination
             safety_timeout = min(
-                batch_timeout * 1.2, batch_timeout + 60
+                total_timeout * 1.2, total_timeout + 60
             )  # 20% more time or +60s
             safety_deadline = time.time() + safety_timeout
 
@@ -507,10 +434,8 @@ class AgentsEnsemble:
 
             except Exception as e:
                 logger.critical(
-                    f"Exception during batch processing: {str(e)}", exc_info=True
+                    f"Exception during concurrent processing: {str(e)}", exc_info=True
                 )
-                # Signal shutdown for a clean exit
-                shutdown_flag.set()
                 # Try to cancel any remaining futures
                 for future in active_futures:
                     future.cancel()
@@ -552,14 +477,14 @@ class AgentsEnsemble:
 
                 # Log a critical warning about the hanging threads
                 logger.critical(
-                    f"{len(active_futures)}/{len(agents)} agents timed out in batch "
+                    f"{len(active_futures)}/{len(agents)} agents timed out "
                     f"after {current_time - batch_start_time:.2f}s - THIS MAY CAUSE HANGING THREADS"
                 )
 
         # After exiting the executor context, log completion
         batch_time = time.time() - batch_start_time
         logger.info(
-            f"Batch processing completed in {batch_time:.2f}s: "
+            f"Concurrent processing completed in {batch_time:.2f}s: "
             f"{len(responses)} successes, {len(errors)} errors, {len(timeout_errors)} timeouts"
         )
 
@@ -568,7 +493,7 @@ class AgentsEnsemble:
         if thread_count > 10:  # Arbitrary threshold to detect potential issues
             logger.warning(
                 f"High thread count detected: {thread_count} threads still active "
-                f"after batch completion. This might indicate hanging threads."
+                f"after completion. This might indicate hanging threads."
             )
 
         return responses, errors, timeout_errors
