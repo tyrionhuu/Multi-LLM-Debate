@@ -287,7 +287,9 @@ def generate_with_vllm(
         logger.error(f"ValueError in vLLM inference: {str(e)}")
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in generate_with_vllm: {str(e)}", exc_info=False)
+        logger.error(
+            f"Unexpected error in generate_with_vllm: {str(e)}", exc_info=False
+        )
         raise ValueError(f"vLLM error: {str(e)}")
 
 
