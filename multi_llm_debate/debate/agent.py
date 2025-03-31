@@ -1,7 +1,14 @@
 import json
+import logging
+import time
 from typing import Any, Dict, Optional
 
 from ..llm.llm import call_model
+from ..utils.logging_config import setup_logging
+
+# Set up logger
+logger = setup_logging(__name__)
+logger.setLevel(logging.INFO)
 
 
 class LLMConnectionError(Exception):
@@ -33,6 +40,7 @@ class Agent:
         self.agent_id = agent_id
         self.model = model
         self.provider = provider.lower()
+        logger.debug(f"Initialized Agent {agent_id} with {provider} model {model}")
 
     def __str__(self):
         return f"Agent {self.agent_id} ({self.model})"
@@ -60,7 +68,21 @@ class Agent:
         Raises:
             LLMConnectionError: If there is a connection error with the LLM service.
         """
+        start_time = time.time()
+        logger.debug(
+            f"Agent {self.agent_id} ({self.provider}/{self.model}) starting request "
+            f"(timeout: {timeout}s, json_mode: {json_mode})"
+        )
+        
+        # Truncate prompt for logging
+        prompt_preview = prompt[:100] + ("..." if len(prompt) > 100 else "")
+        logger.debug(f"Agent {self.agent_id} prompt: {prompt_preview}")
+        
         try:
+            logger.info(
+                f"Agent {self.agent_id} ({self.provider}/{self.model}) sending request"
+            )
+            api_start = time.time()
             raw_response = call_model(
                 model_name=self.model,
                 provider=self.provider,
@@ -69,23 +91,61 @@ class Agent:
                 max_tokens=6400,
                 timeout=timeout,
             )
-        except ConnectionError as e:
-            raise LLMConnectionError(
-                f"Failed to connect to {self.provider} service: {str(e)}"
+            api_time = time.time() - api_start
+            logger.info(
+                f"Agent {self.agent_id} ({self.provider}/{self.model}) "
+                f"received raw response in {api_time:.2f}s"
             )
+            
+        except ConnectionError as e:
+            elapsed = time.time() - start_time
+            error_msg = f"Failed to connect to {self.provider} service: {str(e)}"
+            logger.error(
+                f"Agent {self.agent_id} ({self.provider}/{self.model}) connection error "
+                f"after {elapsed:.2f}s: {str(e)}"
+            )
+            raise LLMConnectionError(error_msg)
+        except Exception as e:
+            elapsed = time.time() - start_time
+            error_msg = f"Unexpected error with {self.provider} service: {str(e)}"
+            logger.error(
+                f"Agent {self.agent_id} ({self.provider}/{self.model}) unexpected error "
+                f"after {elapsed:.2f}s: {str(e)}", exc_info=True
+            )
+            raise LLMConnectionError(error_msg)
 
         # If it's already a dictionary, use it directly
         if isinstance(raw_response, dict):
+            logger.debug(f"Agent {self.agent_id} response was already a dictionary")
             parsed_response = raw_response
         else:
             # Try to parse as JSON, but keep as string if parsing fails
             try:
+                logger.debug(f"Agent {self.agent_id} attempting to parse JSON response")
                 parsed_response = json.loads(raw_response)
+                logger.debug(f"Agent {self.agent_id} successfully parsed JSON response")
             except (json.JSONDecodeError, TypeError):
+                logger.debug(
+                    f"Agent {self.agent_id} response is not valid JSON, using as string"
+                )
                 parsed_response = str(raw_response)
 
-        return {
+        response = {
             "agent_id": self.agent_id,
             "model": self.model,
             "response": parsed_response,
         }
+        
+        # Log response size and time
+        if isinstance(parsed_response, str):
+            response_length = len(parsed_response)
+        else:
+            response_length = len(json.dumps(parsed_response))
+            
+        total_time = time.time() - start_time
+        logger.info(
+            f"Agent {self.agent_id} ({self.provider}/{self.model}) completed in "
+            f"{total_time:.2f}s with {response_length} chars"
+        )
+        
+        return response
