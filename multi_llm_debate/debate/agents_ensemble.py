@@ -6,6 +6,7 @@ from ..utils.config_manager import get_models
 from ..utils.logging_config import setup_logging
 from ..utils.model_config import ModelConfig
 from .agent import Agent
+from tqdm import tqdm
 
 # Use setup_logging to ensure consistent logging
 logger = setup_logging(__name__)
@@ -164,7 +165,9 @@ class AgentsEnsemble:
         responses = []
         errors = []
 
-        for i, agent in enumerate(self.agents):
+        for i, agent in enumerate(tqdm(self.agents,
+                                        desc="Processing Agents",
+                                        unit="agent")):
             logger.info(
                 f"Requesting response from agent {i+1}/{len(self.agents)}: {agent.agent_id}"
             )
