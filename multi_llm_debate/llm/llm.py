@@ -115,6 +115,94 @@ class ThreadSafeTimeout:
                 raise self.exception
 
 
+class AbortableOllamaRequest:
+    """An abortable wrapper for Ollama requests.
+
+    This class allows for aborting Ollama requests that are taking too long,
+    similar to the AbortController in JavaScript.
+    """
+
+    def __init__(self):
+        """Initialize an abortable Ollama request wrapper."""
+        self._abort_event = threading.Event()
+        self.response = None
+        self.error = None
+        self.completed = False
+
+    def abort(self):
+        """Signal abort to the running request thread."""
+        logger.warning("Aborting Ollama request")
+        self._abort_event.set()
+
+    def is_aborted(self) -> bool:
+        """Check if the request has been aborted.
+
+        Returns:
+            bool: True if aborted, False otherwise
+        """
+        return self._abort_event.is_set()
+
+    def run_with_timeout(
+        self,
+        func: callable,
+        args: tuple = None,
+        kwargs: dict = None,
+        timeout: int = 30,
+    ):
+        """Run a function with a timeout and abort capability.
+
+        Args:
+            func: The function to run
+            args: Positional arguments for the function
+            kwargs: Keyword arguments for the function
+            timeout: Timeout in seconds
+
+        Returns:
+            Any: The result of the function if successful
+
+        Raises:
+            TimeoutError: If the operation times out
+            ValueError: If the operation is aborted
+            Exception: Any exception raised by the function
+        """
+        if args is None:
+            args = ()
+        if kwargs is None:
+            kwargs = {}
+
+        def _target():
+            try:
+                self.response = func(*args, **kwargs)
+                self.completed = True
+            except Exception as e:
+                self.error = e
+
+        thread = threading.Thread(target=_target)
+        thread.daemon = True
+        thread.start()
+
+        # Wait for completion, timeout, or abort
+        timeout_time = time.time() + timeout
+        check_interval = 0.1  # Check abort status every 100ms
+
+        while thread.is_alive() and time.time() < timeout_time:
+            if self.is_aborted():
+                logger.warning("Detected abort signal during execution")
+                raise ValueError("Request aborted")
+            thread.join(timeout=check_interval)
+
+        if thread.is_alive():
+            # Timeout occurred
+            self.abort()  # Set abort flag even though we can't truly abort
+            logger.error(f"Timeout after {timeout}s")
+            raise TimeoutError(f"Operation timed out after {timeout} seconds")
+
+        if self.error:
+            raise self.error
+
+        return self.response
+
+
 def call_model(
     model_name: str = "llama3.2:11b",
     provider: Literal["api", "ollama", "openai", "anthropic"] = "ollama",
@@ -356,8 +444,9 @@ def generate_with_ollama(
     json_mode: bool = False,
     timeout: int = 30,  # Default 30 seconds
 ) -> str:
-    """
-    Generates a response using the Ollama model with optional images.
+    """Generates a response using the Ollama model with optional images.
+
+    This function uses an abortable approach to handle timeouts properly.
 
     Args:
         model_name (str): The name of the model to use.
@@ -371,39 +460,84 @@ def generate_with_ollama(
 
     Returns:
         str: The generated response from the model.
+
+    Raises:
+        TimeoutError: If the request times out
+        ConnectionError: If there's an issue connecting to Ollama
+        ValueError: If the request is aborted or other validation fails
     """
     max_eof_retries = 3
     for eof_retry in range(max_eof_retries):
         try:
+            logger.info(f"Sending request to Ollama model {model_name} (attempt {eof_retry+1}/{max_eof_retries})")
+
             options = Options(
                 temperature=temperature,
                 num_ctx=max_tokens,
-                request_timeout=timeout,
             )
 
             if json_mode:
-                return retry_json_generation(
-                    model_name=model_name,
-                    prompt=prompt,
-                    options=options,
-                    images=images,
-                )
+                request = AbortableOllamaRequest()
+                try:
+                    kwargs = {
+                        "model": model_name,
+                        "prompt": "You must respond with valid JSON. " + prompt,
+                        "options": options,
+                        "format": "json",
+                    }
 
-            kwargs = {
-                "model": model_name,
-                "prompt": prompt,
-                "options": options,
-                "format": "",
-            }
+                    if images:
+                        kwargs["images"] = images
 
-            if images:  # Only include images if list is not None and not empty
-                kwargs["images"] = images
+                    result = request.run_with_timeout(
+                        func=ollama.generate,
+                        kwargs=kwargs,
+                        timeout=timeout
+                    )
 
-            return ollama.generate(**kwargs)["response"]
+                    return json.dumps(json.loads(result["response"]))
+                except TimeoutError:
+                    logger.error(f"JSON request to {model_name} timed out after {timeout}s")
+                    raise TimeoutError(f"Request timed out after {timeout} seconds")
+                except ValueError as e:
+                    if "Request aborted" in str(e):
+                        logger.error(f"JSON request to {model_name} was aborted")
+                        raise TimeoutError("Request was aborted due to timeout")
+                    raise
+            else:
+                request = AbortableOllamaRequest()
+                try:
+                    kwargs = {
+                        "model": model_name,
+                        "prompt": prompt,
+                        "options": options,
+                        "format": "",
+                    }
+
+                    if images:
+                        kwargs["images"] = images
+
+                    result = request.run_with_timeout(
+                        func=ollama.generate,
+                        kwargs=kwargs,
+                        timeout=timeout
+                    )
+
+                    return result["response"]
+                except TimeoutError:
+                    logger.error(f"Request to {model_name} timed out after {timeout}s")
+                    raise TimeoutError(f"Request timed out after {timeout} seconds")
+                except ValueError as e:
+                    if "Request aborted" in str(e):
+                        logger.error(f"Request to {model_name} was aborted")
+                        raise TimeoutError("Request was aborted due to timeout")
+                    raise
 
         except requests.exceptions.Timeout:
+            logger.error(f"Request to {model_name} timed out")
             raise TimeoutError(f"Request timed out after {timeout} seconds")
-        except ConnectionError:
+        except ConnectionError as e:
+            logger.error(f"Connection error with Ollama: {str(e)}")
             raise ConnectionError(
                 "Failed to connect to Ollama server. Please check if Ollama is running."
             )
@@ -413,9 +547,6 @@ def generate_with_ollama(
                 logging.warning(
                     f"Ollama EOF error encountered, retrying ({eof_retry+1}/{max_eof_retries}): {error_msg}"
                 )
-                # Sleep with exponential backoff before retrying
-                import time
-
                 time.sleep(2**eof_retry)
                 continue
             elif "EOF" in error_msg:
