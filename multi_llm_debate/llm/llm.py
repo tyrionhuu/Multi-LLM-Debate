@@ -167,7 +167,7 @@ def call_model(
             elapsed = time.time() - start_time
             logger.error(
                 f"Error calling {provider}/{model_name} after {elapsed:.2f}s: {str(e)}",
-                exc_info=True,
+                exc_info=False,
             )
             raise ConnectionError(f"Error with {provider} service: {str(e)}")
 
@@ -287,7 +287,7 @@ def generate_with_vllm(
         logger.error(f"ValueError in vLLM inference: {str(e)}")
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in generate_with_vllm: {str(e)}", exc_info=True)
+        logger.error(f"Unexpected error in generate_with_vllm: {str(e)}", exc_info=False)
         raise ValueError(f"vLLM error: {str(e)}")
 
 
