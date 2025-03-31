@@ -1,5 +1,5 @@
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError, wait, FIRST_COMPLETED
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, TimeoutError, wait
 from typing import Any, Dict, List, Optional
 
 from ..utils.config_manager import get_models
@@ -181,24 +181,26 @@ class AgentsEnsemble:
                     )
                     futures[future] = agent.agent_id
                     active_futures.add(future)
-                
+
                 # Set the end time for our timeout
                 end_time = time.time() + self.timeout
-                
+
                 # Process futures as they complete
                 while active_futures and time.time() < end_time:
                     # Wait for the next future to complete with a short timeout
                     timeout_remaining = max(0.1, end_time - time.time())
                     completed, active_futures = wait(
-                        active_futures, 
+                        active_futures,
                         timeout=timeout_remaining,
-                        return_when=FIRST_COMPLETED
+                        return_when=FIRST_COMPLETED,
                     )
-                    
+
                     # Process completed futures
                     for future in completed:
                         try:
-                            response = future.result(timeout=0.1)  # Short timeout as it should be done
+                            response = future.result(
+                                timeout=0.1
+                            )  # Short timeout as it should be done
                             responses.append(response)
                         except TimeoutError:
                             agent_id = futures[future]
@@ -207,7 +209,7 @@ class AgentsEnsemble:
                             )
                         except LLMConnectionError as e:
                             errors.append(str(e))
-                
+
                 # For any remaining active futures, record them as timeouts
                 if active_futures:
                     for future in active_futures:
@@ -218,7 +220,7 @@ class AgentsEnsemble:
                     # Cancel any remaining futures
                     for future in active_futures:
                         future.cancel()
-            
+
         # Only raise an error if we got no responses at all
         if not responses:
             error_messages = []
@@ -227,15 +229,16 @@ class AgentsEnsemble:
             if timeout_errors:
                 error_messages.append(f"Timeout errors: {'; '.join(timeout_errors)}")
             raise LLMConnectionError("; ".join(error_messages))
-        
+
         # Log warnings about partial errors if we got some responses
         if errors or timeout_errors:
             import logging
+
             if errors:
                 logging.warning(f"Some agents encountered errors: {'; '.join(errors)}")
             if timeout_errors:
                 logging.warning(f"Some agents timed out: {'; '.join(timeout_errors)}")
-        
+
         return responses
 
     def get_responses(
