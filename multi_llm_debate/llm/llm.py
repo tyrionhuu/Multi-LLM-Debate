@@ -450,7 +450,8 @@ def generate_with_ollama(
     for eof_retry in range(max_eof_retries):
         try:
             logger.info(
-                f"Sending request to Ollama model {model_name} (attempt {eof_retry+1}/{max_eof_retries})"
+                f"Sending request to Ollama model {model_name} (attempt "
+                f"{eof_retry+1}/{max_eof_retries})"
             )
 
             options = Options(
@@ -525,9 +526,9 @@ def generate_with_ollama(
             error_msg = str(e)
             if "EOF" in error_msg and eof_retry < max_eof_retries - 1:
                 logging.warning(
-                    f"Ollama EOF error encountered, retrying ({eof_retry+1}/{max_eof_retries}): {error_msg}"
+                    f"Ollama EOF error encountered, retrying "
+                    f"({eof_retry+1}/{max_eof_retries}): {error_msg}"
                 )
-                time.sleep(2**eof_retry)
                 continue
             elif "EOF" in error_msg:
                 logging.error(f"Persistent EOF error with Ollama: {error_msg}")
