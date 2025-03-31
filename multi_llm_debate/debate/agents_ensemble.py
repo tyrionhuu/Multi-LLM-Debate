@@ -36,7 +36,7 @@ class AgentsEnsemble:
         concurrent: bool = True,
         max_workers: Optional[int] = 4,
         job_delay: float = 0.5,
-        timeout: float = 180.0,  # 3 minute timeout
+        timeout: float = 120.0,  # 3 minute timeout
         max_retries: int = 2,
         retry_delay: float = 1.0,
     ) -> None:
