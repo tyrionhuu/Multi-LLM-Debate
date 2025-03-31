@@ -46,7 +46,7 @@ def run_debate_round_zero(
     logger.debug(f"Output directory created/verified: {output_dir}")
 
     try:
-        logger.info("Requesting responses from all agents...")
+        logger.debug("Requesting responses from all agents...")
         response_start_time = time.time()
         responses = agents_ensemble.get_responses(
             prompt=prompt,
@@ -64,7 +64,7 @@ def run_debate_round_zero(
     for i, response in enumerate(responses):
         agent_id = response["agent_id"]
         response_text = response.get("response", "")
-        logger.info(f"Agent {agent_id} responded (#{i+1}/{len(responses)})")
+        logger.debug(f"Agent {agent_id} responded (#{i+1}/{len(responses)})")
         logger.debug(f"Agent {agent_id} response length: {len(response_text)} chars")
 
         # Log a preview of each response
