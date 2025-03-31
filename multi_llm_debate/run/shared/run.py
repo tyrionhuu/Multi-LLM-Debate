@@ -367,7 +367,7 @@ def process_single_debate_entry(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     prompt_builder = prompt_builder_fn(prompt_params=prompt_params)
-    agents_ensemble = AgentsEnsemble(config_list=model_configs, max_workers=max_workers)
+    agents_ensemble = AgentsEnsemble(config_list=model_configs)
 
     debate(
         max_rounds=max_rounds,
