@@ -10,7 +10,7 @@ from .agent import Agent, LLMConnectionError
 
 # Use setup_logging to ensure consistent logging
 logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 class AgentsEnsemble:
