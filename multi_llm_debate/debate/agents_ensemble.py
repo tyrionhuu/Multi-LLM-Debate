@@ -154,7 +154,7 @@ class AgentsEnsemble:
             List[Dict[str, Any]]: List of responses from all agents.
 
         Raises:
-            RuntimeError: If no responses could be collected at all.
+            RuntimeError: If an agent fails all retries.
         """
         retries = self.max_retries if max_retries is None else max_retries
         retry_msg = f"{retries} retries" if retries > 0 else "no retries"
@@ -164,7 +164,6 @@ class AgentsEnsemble:
         start_time = time.time()
 
         responses = []
-        errors = []
 
         for i, agent in enumerate(
             tqdm(self.agents, desc="Processing Agents", unit="agent")
@@ -176,11 +175,13 @@ class AgentsEnsemble:
                 response = self._get_response_with_retry(
                     agent, prompt, json_mode, max_retries=max_retries
                 )
-                responses.append(response)
             except (ConnectionError, Exception) as e:
-                error_msg = f"Agent {agent.agent_id}: {str(e)}"
-                errors.append(error_msg)
-                logger.error(error_msg)
+                logger.error(
+                    f"All retries failed for agent {agent.agent_id}, aborting."
+                )
+                raise RuntimeError(str(e)) from e
+
+            responses.append(response)
 
             if self.job_delay > 0 and i < len(self.agents) - 1:
                 logger.debug(f"Waiting {self.job_delay}s before next agent")
@@ -188,12 +189,6 @@ class AgentsEnsemble:
 
         elapsed = time.time() - start_time
         logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
-
-        if errors:
-            error_msg = f"Errors occurred with {len(errors)}/{len(self.agents)} agents"
-            logger.error(error_msg)
-            if not responses:
-                raise RuntimeError(f"{error_msg}: {'; '.join(errors)}")
 
         return responses
 
