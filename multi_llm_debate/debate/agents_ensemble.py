@@ -11,7 +11,7 @@ from .agent import Agent
 
 # Use setup_logging to ensure consistent logging
 logger = setup_logging(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 class AgentsEnsemble:
