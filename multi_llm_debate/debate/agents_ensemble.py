@@ -176,7 +176,9 @@ class AgentsEnsemble:
                     agent, prompt, json_mode, max_retries=max_retries
                 )
             except (ConnectionError, Exception) as e:
-                logger.error(f"All retries failed for agent {agent.agent_id}, aborting.")
+                logger.error(
+                    f"All retries failed for agent {agent.agent_id}, aborting."
+                )
                 raise RuntimeError(str(e)) from e
 
             responses.append(response)
