@@ -73,11 +73,11 @@ class Agent:
             f"Agent {self.agent_id} ({self.provider}/{self.model}) starting request "
             f"(timeout: {timeout}s, json_mode: {json_mode})"
         )
-        
+
         # Truncate prompt for logging
         prompt_preview = prompt[:100] + ("..." if len(prompt) > 100 else "")
         logger.debug(f"Agent {self.agent_id} prompt: {prompt_preview}")
-        
+
         try:
             logger.info(
                 f"Agent {self.agent_id} ({self.provider}/{self.model}) sending request"
@@ -96,7 +96,7 @@ class Agent:
                 f"Agent {self.agent_id} ({self.provider}/{self.model}) "
                 f"received raw response in {api_time:.2f}s"
             )
-            
+
         except ConnectionError as e:
             elapsed = time.time() - start_time
             error_msg = f"Failed to connect to {self.provider} service: {str(e)}"
@@ -110,7 +110,8 @@ class Agent:
             error_msg = f"Unexpected error with {self.provider} service: {str(e)}"
             logger.error(
                 f"Agent {self.agent_id} ({self.provider}/{self.model}) unexpected error "
-                f"after {elapsed:.2f}s: {str(e)}", exc_info=True
+                f"after {elapsed:.2f}s: {str(e)}",
+                exc_info=True,
             )
             raise LLMConnectionError(error_msg)
 
@@ -135,17 +136,17 @@ class Agent:
             "model": self.model,
             "response": parsed_response,
         }
-        
+
         # Log response size and time
         if isinstance(parsed_response, str):
             response_length = len(parsed_response)
         else:
             response_length = len(json.dumps(parsed_response))
-            
+
         total_time = time.time() - start_time
         logger.info(
             f"Agent {self.agent_id} ({self.provider}/{self.model}) completed in "
             f"{total_time:.2f}s with {response_length} chars"
         )
-        
+
         return response
