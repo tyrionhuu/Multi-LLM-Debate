@@ -7,12 +7,6 @@ import backoff
 from ..llm.llm import call_model
 
 
-class LLMConnectionError(Exception):
-    """Raised when there is a connection error with the LLM service."""
-
-    pass
-
-
 class Agent:
     def __init__(
         self,
@@ -39,7 +33,7 @@ class Agent:
         self.memory_lst = []
         self.sleep_time = sleep_time
 
-    @backoff.on_exception(backoff.expo, (LLMConnectionError,), max_tries=20)
+    @backoff.on_exception(backoff.expo, ConnectionError, max_tries=20)
     def query(
         self,
         messages: List[Dict[str, str]],
@@ -50,18 +44,17 @@ class Agent:
         """Make a query to the language model.
 
         Args:
-            messages (List[Dict[str, str]]): chat history in message format
-            max_tokens (int): max token in api call
-            temperature (Optional[float]): sampling temperature, uses default if None
-            json_mode (bool): whether to expect JSON response
+            messages (List[Dict[str, str]]): Chat history in message format.
+            max_tokens (int): Maximum tokens in API call.
+            temperature (Optional[float]): Sampling temperature, uses default if None.
+            json_mode (bool): Whether to expect JSON response.
 
         Raises:
-            LLMConnectionError: If there is a connection error with the LLM service
-            OutOfQuotaException: the apikey has out of quota
-            AccessTerminatedException: the apikey has been banned
+            ConnectionError: If there is a connection error with the LLM service.
+            Exception: For other exceptions raised by the model call.
 
         Returns:
-            str: the response from the model
+            str: The response from the model.
         """
         time.sleep(self.sleep_time)
 
@@ -87,7 +80,7 @@ class Agent:
                     return response
 
         except ConnectionError as e:
-            raise LLMConnectionError(
+            raise ConnectionError(
                 f"Failed to connect to {self.provider} service: {str(e)}"
             )
         except Exception as e:

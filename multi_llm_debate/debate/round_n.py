@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List
 
 from ..utils.logging_config import setup_logging
-from .agent import LLMConnectionError
 from .agents_ensemble import AgentsEnsemble
 
 logger = setup_logging(__name__)
@@ -22,19 +21,20 @@ def run_debate_round_n(
     """Run a subsequent round of debate with the given prompt and agents.
 
     Args:
-        prompt (str): The debate prompt including previous context
-        agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in the debate
-        output_dir (str | Path): Directory path where debate responses will be saved
-        round_num (int): Current round number
-        json_mode (bool): Whether to expect JSON responses from agents
+        prompt (str): The debate prompt including previous context.
+        agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in 
+            the debate.
+        output_dir (str | Path): Directory path where debate responses will be saved.
+        round_num (int): Current round number.
+        json_mode (bool): Whether to expect JSON responses from agents.
 
     Returns:
-        List[dict]: List of agent responses, where each response is a dictionary
+        List[dict]: List of agent responses, where each response is a dictionary.
 
     Raises:
-        LLMConnectionError: If there are connection issues with the LLM services
-        OSError: If unable to create output directory or save results
-        json.JSONDecodeError: If unable to serialize responses to JSON
+        OSError: If unable to create output directory or save results.
+        json.JSONDecodeError: If unable to serialize responses to JSON.
+        Exception: If any error occurs when requesting agent responses.
     """
     logger.info(
         f"Starting debate round {round_num} with "
@@ -60,10 +60,10 @@ def run_debate_round_n(
             f"All agent responses for round {round_num} received "
             f"in {response_time:.2f} seconds"
         )
-    except LLMConnectionError as e:
-        logger.error(f"Connection error in round {round_num}: {str(e)}", exc_info=True)
+    except Exception as e:
+        logger.error(f"Error in round {round_num}: {str(e)}", exc_info=True)
         logger.error(
-            f"Failed prompt: " f"{prompt[:200]}{'...' if len(prompt) > 200 else ''}"
+            f"Failed prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}"
         )
         raise
 

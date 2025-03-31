@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List
 
 from ..utils.logging_config import setup_logging
-from .agent import LLMConnectionError
 from .agents_ensemble import AgentsEnsemble
 
 logger = setup_logging(__name__)
@@ -33,9 +32,9 @@ def run_debate_round_zero(
         List[dict]: List of agent responses, where each response is a dictionary.
 
     Raises:
-        LLMConnectionError: If there are connection issues with the LLM services.
         OSError: If unable to create output directory or save results file.
         json.JSONDecodeError: If unable to serialize responses to JSON.
+        Exception: If any error occurs when requesting agent responses.
     """
     logger.info(f"Starting debate round zero with {len(agents_ensemble.agents)} agents")
     logger.debug(f"Initial prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
@@ -55,8 +54,8 @@ def run_debate_round_zero(
         )
         response_time = time.time() - response_start_time
         logger.info(f"All agent responses received in {response_time:.2f} seconds")
-    except LLMConnectionError as e:
-        logger.error(f"Connection error in round zero: {str(e)}", exc_info=True)
+    except Exception as e:
+        logger.error(f"Error in round zero: {str(e)}", exc_info=True)
         logger.error(
             f"Failed prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}"
         )
