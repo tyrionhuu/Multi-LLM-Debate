@@ -15,9 +15,7 @@ from ollama import Options
 from openai import OpenAI
 from PIL import Image
 from requests.exceptions import ConnectionError, Timeout
-
 from vllm import LLM, SamplingParams
-
 
 from ..utils.config_manager import get_api_key, get_base_url, get_vllm_model_path
 from ..utils.logging_config import setup_logging
