@@ -1,13 +1,14 @@
+import logging
 import threading
 import time
 from typing import Optional
-import logging
-
-
 
 from requests.exceptions import ConnectionError
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
 class ThreadSafeTimeout:
     """A thread-safe timeout handler that uses threading.Timer instead of signals.
 

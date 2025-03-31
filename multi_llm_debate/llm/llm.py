@@ -19,11 +19,8 @@ from vllm import LLM, SamplingParams
 from ..utils.config_manager import get_api_key, get_base_url, get_vllm_model_path
 from ..utils.logging_config import setup_logging
 from ..utils.retry import retry_with_timeout
-from .utils import (
-    ThreadSafeTimeout,
-    AbortableOllamaRequest,
-    AbortableVLLMInference,
-)
+from .utils import AbortableOllamaRequest, AbortableVLLMInference, ThreadSafeTimeout
+
 # Set up logger
 logger = setup_logging(__name__)
 
@@ -56,9 +53,6 @@ def encode_image(image_path: str) -> str:
     with open(image_path, "rb") as image_file:
         encoded = base64.b64encode(image_file.read()).decode("utf-8")
     return encoded
-
-
-
 
 
 def call_model(
