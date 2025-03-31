@@ -159,7 +159,7 @@ class AgentsEnsemble:
         responses = []
         errors = []
         timeout_errors = []
-        
+
         # Log the start of the process
         logging.info(f"Starting concurrent requests for {len(self.agents)} agents")
 
@@ -178,11 +178,11 @@ class AgentsEnsemble:
             # Determine optimal batch size based on max_workers
             # For Ollama, smaller batches often work better
             batch_size = min(3, self.max_workers)
-            
+
             # Calculate per-agent timeout with margin
             # Give each agent slightly less than the total timeout to allow for scheduling
             per_agent_timeout = max(30, self.timeout * 0.9)
-            
+
             # Group agents by provider to optimize scheduling
             agents_by_provider = {}
             for agent in self.agents:
@@ -190,46 +190,54 @@ class AgentsEnsemble:
                 if provider not in agents_by_provider:
                     agents_by_provider[provider] = []
                 agents_by_provider[provider].append(agent)
-                
-            logging.info(f"Agent distribution by provider: {', '.join([f'{k}: {len(v)}' for k, v in agents_by_provider.items()])}")
-                
+
+            logging.info(
+                f"Agent distribution by provider: {', '.join([f'{k}: {len(v)}' for k, v in agents_by_provider.items()])}"
+            )
+
             # Process each provider's agents separately with appropriate batching
             for provider, provider_agents in agents_by_provider.items():
                 # For Ollama, use smaller batches and add delays
                 provider_batch_size = batch_size
                 provider_delay = self.job_delay
-                if provider == 'ollama':
+                if provider == "ollama":
                     provider_batch_size = min(2, batch_size)
-                    provider_delay = max(1.0, self.job_delay)  # Ensure at least 1 second delay for Ollama
-                
-                logging.info(f"Processing {len(provider_agents)} {provider} agents with batch size {provider_batch_size}")
-                
+                    provider_delay = max(
+                        1.0, self.job_delay
+                    )  # Ensure at least 1 second delay for Ollama
+
+                logging.info(
+                    f"Processing {len(provider_agents)} {provider} agents with batch size {provider_batch_size}"
+                )
+
                 # Process this provider's agents in batches
                 for i in range(0, len(provider_agents), provider_batch_size):
-                    batch = provider_agents[i:i + provider_batch_size]
+                    batch = provider_agents[i : i + provider_batch_size]
                     batch_results = self._process_agent_batch(
-                        batch, 
-                        prompt, 
-                        json_mode, 
-                        per_agent_timeout,
-                        provider_delay
+                        batch, prompt, json_mode, per_agent_timeout, provider_delay
                     )
-                    
+
                     batch_responses, batch_errors, batch_timeouts = batch_results
                     responses.extend(batch_responses)
                     errors.extend(batch_errors)
                     timeout_errors.extend(batch_timeouts)
-                    
+
                     # Add a delay between batches to prevent overwhelming Ollama
-                    if provider == 'ollama' and i + provider_batch_size < len(provider_agents):
+                    if provider == "ollama" and i + provider_batch_size < len(
+                        provider_agents
+                    ):
                         delay_time = max(2.0, provider_delay * 2)
-                        logging.info(f"Adding {delay_time}s delay between Ollama batches")
+                        logging.info(
+                            f"Adding {delay_time}s delay between Ollama batches"
+                        )
                         time.sleep(delay_time)
 
         total_errors = len(errors) + len(timeout_errors)
         if responses:
-            logging.info(f"Completed with {len(responses)} responses and {total_errors} errors")
-        
+            logging.info(
+                f"Completed with {len(responses)} responses and {total_errors} errors"
+            )
+
         # Only raise an error if we got no responses at all
         if not responses:
             error_messages = []
@@ -247,31 +255,31 @@ class AgentsEnsemble:
                 logging.warning(f"Some agents timed out: {'; '.join(timeout_errors)}")
 
         return responses
-        
+
     def _process_agent_batch(
-        self, 
-        agents: List[Agent], 
-        prompt: str, 
+        self,
+        agents: List[Agent],
+        prompt: str,
         json_mode: bool,
         timeout_per_agent: float,
-        delay_between_agents: float
+        delay_between_agents: float,
     ) -> Tuple[List[Dict[str, Any]], List[str], List[str]]:
         """Process a batch of agents with controlled concurrency.
-        
+
         Args:
             agents: List of agents to process
             prompt: The prompt to send to each agent
             json_mode: Whether to use JSON mode
             timeout_per_agent: Timeout for each individual agent
             delay_between_agents: Delay between submitting agent tasks
-            
+
         Returns:
             Tuple containing (responses, errors, timeout_errors)
         """
         responses = []
         errors = []
         timeout_errors = []
-        
+
         with ThreadPoolExecutor(max_workers=len(agents)) as executor:
             futures = {}
             active_futures: Set = set()
@@ -285,13 +293,17 @@ class AgentsEnsemble:
                 )
                 futures[future] = agent
                 active_futures.add(future)
-                
+
                 # Log submission
-                logging.debug(f"Submitted request to {agent.provider} agent {agent.agent_id} ({agent.model})")
+                logging.debug(
+                    f"Submitted request to {agent.provider} agent {agent.agent_id} ({agent.model})"
+                )
 
             # Set the end time for our batch timeout
-            end_time = time.time() + timeout_per_agent + (len(agents) * delay_between_agents)
-            
+            end_time = (
+                time.time() + timeout_per_agent + (len(agents) * delay_between_agents)
+            )
+
             # Process futures as they complete
             while active_futures and time.time() < end_time:
                 # Wait for the next future to complete with a short timeout
@@ -306,18 +318,28 @@ class AgentsEnsemble:
                 for future in completed:
                     agent = futures[future]
                     try:
-                        response = future.result(timeout=0.1)  # Short timeout as it should be done
+                        response = future.result(
+                            timeout=0.1
+                        )  # Short timeout as it should be done
                         responses.append(response)
-                        logging.info(f"Received response from {agent.provider} agent {agent.agent_id}")
+                        logging.info(
+                            f"Received response from {agent.provider} agent {agent.agent_id}"
+                        )
                     except TimeoutError:
                         timeout_errors.append(
                             f"Agent {agent.agent_id} ({agent.model}) timed out during result retrieval"
                         )
-                        logging.warning(f"Timeout retrieving result from agent {agent.agent_id}")
+                        logging.warning(
+                            f"Timeout retrieving result from agent {agent.agent_id}"
+                        )
                     except LLMConnectionError as e:
-                        error_msg = f"Agent {agent.agent_id} ({agent.model}) error: {str(e)}"
+                        error_msg = (
+                            f"Agent {agent.agent_id} ({agent.model}) error: {str(e)}"
+                        )
                         errors.append(error_msg)
-                        logging.warning(f"Connection error from agent {agent.agent_id}: {str(e)}")
+                        logging.warning(
+                            f"Connection error from agent {agent.agent_id}: {str(e)}"
+                        )
 
             # For any remaining active futures, record them as timeouts
             if active_futures:
