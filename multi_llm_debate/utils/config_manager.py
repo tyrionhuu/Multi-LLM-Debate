@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 CONFIG_DIR = PROJECT_ROOT / "configs"
@@ -81,7 +81,7 @@ def save_vllm_url(url: str) -> None:
 
 def get_vllm_model_path() -> Dict[str, str]:
     """Get the vLLM model paths from the configuration.
-    
+
     This function returns a dictionary mapping model names to their local paths.
 
     Returns:

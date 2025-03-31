@@ -19,10 +19,13 @@ from requests.exceptions import ConnectionError, Timeout
 # Add vLLM imports
 try:
     from vllm import LLM, SamplingParams
+
     VLLM_AVAILABLE = True
 except ImportError:
     VLLM_AVAILABLE = False
-    logging.warning("vLLM library not found. Install with 'pip install vllm' to use vLLM provider.")
+    logging.warning(
+        "vLLM library not found. Install with 'pip install vllm' to use vLLM provider."
+    )
 
 from ..utils.config_manager import get_api_key, get_base_url, get_vllm_model_path
 from ..utils.logging_config import setup_logging
@@ -359,7 +362,9 @@ def call_model(
                     timeout=timeout,
                 )
             elif vision and provider == "vllm":
-                logger.warning("vLLM provider does not support vision models, falling back to text-only")
+                logger.warning(
+                    "vLLM provider does not support vision models, falling back to text-only"
+                )
 
             if provider == "ollama":
                 result = generate_with_ollama(
@@ -521,10 +526,7 @@ def generate_with_vllm(
             return outputs[0].outputs[0].text
 
         # Run with timeout
-        response_text = inference.run_with_timeout(
-            func=run_inference,
-            timeout=timeout
-        )
+        response_text = inference.run_with_timeout(func=run_inference, timeout=timeout)
 
         # Process JSON if needed
         if json_mode:
@@ -533,7 +535,9 @@ def generate_with_vllm(
                 parsed_json = json.loads(response_text)
                 return json.dumps(parsed_json)
             except json.JSONDecodeError as e:
-                logger.warning(f"vLLM returned invalid JSON despite json_mode=True: {e}")
+                logger.warning(
+                    f"vLLM returned invalid JSON despite json_mode=True: {e}"
+                )
                 return response_text
 
         return response_text
