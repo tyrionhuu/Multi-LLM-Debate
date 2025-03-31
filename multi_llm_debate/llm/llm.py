@@ -3,8 +3,9 @@ import io
 import json
 import logging
 import os
-import signal
+import threading
 import time
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from typing import Any, Dict, List, Literal, Optional, Union
 
 import ollama
@@ -12,7 +13,7 @@ import requests.exceptions
 from ollama import Options
 from openai import OpenAI
 from PIL import Image
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, Timeout
 
 from ..utils.config_manager import get_api_key, get_base_url
 from ..utils.logging_config import setup_logging
@@ -48,39 +49,66 @@ def encode_image(image_path: str) -> str:
     return encoded
 
 
-class TimeoutHandler:
-    """Context manager for handling timeouts in API calls."""
-
-    def __init__(self, timeout: Optional[int] = None, operation_name: str = "API call"):
-        """Initialize timeout handler.
-
+class ThreadSafeTimeout:
+    """A thread-safe timeout handler that uses threading.Timer instead of signals.
+    
+    This class provides a thread-safe alternative to signal-based timeouts
+    by using threading.Timer, which works in any thread.
+    """
+    
+    def __init__(self, timeout: Optional[float], operation_name: str = "API call"):
+        """Initialize a thread-safe timeout handler.
+        
         Args:
             timeout: Maximum time in seconds before timing out
             operation_name: Name of the operation for logging
         """
         self.timeout = timeout
         self.operation_name = operation_name
-        self.original_handler = None
+        self.timer = None
         self.timed_out = False
-
-    def handle_timeout(self, signum, frame):
-        """Signal handler for SIGALRM."""
-        self.timed_out = True
-        logger.error(f"Timeout ({self.timeout}s) exceeded for {self.operation_name}")
-        raise ConnectionError(f"Timeout of {self.timeout} seconds exceeded")
+        self.exception = None
+        self._lock = threading.Lock()
+        
+    def _timeout_callback(self):
+        """Called when the timer expires."""
+        with self._lock:
+            if not self.timed_out:
+                self.timed_out = True
+                self.exception = ConnectionError(
+                    f"Operation '{self.operation_name}' timed out after {self.timeout} seconds"
+                )
+                logger.error(f"Timeout ({self.timeout}s) exceeded for {self.operation_name}")
 
     def __enter__(self):
-        """Set up timeout alarm if timeout is specified."""
-        if self.timeout:
-            self.original_handler = signal.signal(signal.SIGALRM, self.handle_timeout)
-            signal.alarm(self.timeout)
+        """Start the timeout timer if a timeout is specified."""
+        if self.timeout and self.timeout > 0:
+            self.timer = threading.Timer(self.timeout, self._timeout_callback)
+            self.timer.daemon = True  # Allow the program to exit if only the timer is left
+            self.timer.start()
         return self
-
+    
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Cancel alarm and restore original handler."""
-        if self.timeout:
-            signal.alarm(0)  # Cancel the alarm
-            signal.signal(signal.SIGALRM, self.original_handler)
+        """Cancel the timer when exiting the context."""
+        if self.timer:
+            self.timer.cancel()
+            
+        # If we timed out and there's no other exception, raise our timeout exception
+        if self.timed_out and exc_type is None:
+            raise self.exception
+        
+        # Return False to propagate any other exception
+        return False
+    
+    def check_timeout(self):
+        """Check if timeout has occurred and raise the exception if so.
+        
+        Raises:
+            ConnectionError: If the operation has timed out.
+        """
+        with self._lock:
+            if self.timed_out and self.exception:
+                raise self.exception
 
 
 def call_model(
@@ -96,8 +124,8 @@ def call_model(
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
     ] = None,
 ) -> str:
-    """
-    Routes the call to the appropriate model provider and returns the response.
+    """Routes the call to the appropriate model provider and returns the response.
+    
     Can handle both text-only and vision models based on the vision parameter.
 
     Args:
@@ -114,26 +142,30 @@ def call_model(
 
     Returns:
         str: The generated response from the model.
+        
+    Raises:
+        ConnectionError: If there's a timeout or connection issue
+        ValueError: If the provider is not supported
     """
     start_time = time.time()
     logger.info(
         f"Calling {provider}/{model_name} (timeout={timeout}s, json={json_mode})"
     )
 
-    with TimeoutHandler(timeout, f"{provider}/{model_name} call"):
-        if vision:
-            return call_vision_model(
-                model_name=model_name,
-                provider=provider,
-                prompt=prompt,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                images=images,
-                json_mode=json_mode,
-                timeout=timeout,
-            )
-
+    with ThreadSafeTimeout(timeout, f"{provider}/{model_name} call") as timeout_handler:
         try:
+            if vision:
+                return call_vision_model(
+                    model_name=model_name,
+                    provider=provider,
+                    prompt=prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    images=images,
+                    json_mode=json_mode,
+                    timeout=timeout,
+                )
+
             if provider == "ollama":
                 result = generate_with_ollama(
                     model_name=model_name,
@@ -167,6 +199,13 @@ def call_model(
             logger.info(f"Call to {provider}/{model_name} completed in {elapsed:.2f}s")
             return result
 
+        except (ConnectionError, Timeout, FutureTimeoutError) as e:
+            elapsed = time.time() - start_time
+            logger.error(
+                f"Timeout or connection error calling {provider}/{model_name} "
+                f"after {elapsed:.2f}s: {str(e)}"
+            )
+            raise ConnectionError(f"Error with {provider} service: {str(e)}")
         except Exception as e:
             elapsed = time.time() - start_time
             logger.error(
