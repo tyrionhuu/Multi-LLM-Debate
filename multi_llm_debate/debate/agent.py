@@ -11,12 +11,6 @@ logger = setup_logging(__name__)
 logger.setLevel(logging.INFO)
 
 
-class LLMConnectionError(Exception):
-    """Raised when there is a connection error with the LLM service."""
-
-    pass
-
-
 class Agent:
     """A class representing an individual LLM agent.
 
@@ -64,9 +58,11 @@ class Agent:
                 - agent_id: The ID of the responding agent
                 - model: The model name
                 - response: The model's response (can be dict or str)
+                - error: If an error occurred, contains the error message (optional)
 
-        Raises:
-            LLMConnectionError: If there is a connection error with the LLM service.
+        Note:
+            If an error occurs during the call to the language model, the response
+            dictionary will include an 'error' key with a description of the error.
         """
         start_time = time.time()
         logger.debug(
@@ -97,6 +93,42 @@ class Agent:
                 f"received raw response in {api_time:.2f}s"
             )
 
+            # If it's already a dictionary, use it directly
+            if isinstance(raw_response, dict):
+                logger.debug(f"Agent {self.agent_id} response was already a dictionary")
+                parsed_response = raw_response
+            else:
+                # Try to parse as JSON, but keep as string if parsing fails
+                try:
+                    logger.debug(f"Agent {self.agent_id} attempting to parse JSON response")
+                    parsed_response = json.loads(raw_response)
+                    logger.debug(f"Agent {self.agent_id} successfully parsed JSON response")
+                except (json.JSONDecodeError, TypeError):
+                    logger.debug(
+                        f"Agent {self.agent_id} response is not valid JSON, using as string"
+                    )
+                    parsed_response = str(raw_response)
+
+            response = {
+                "agent_id": self.agent_id,
+                "model": self.model,
+                "response": parsed_response,
+            }
+
+            # Log response size and time
+            if isinstance(parsed_response, str):
+                response_length = len(parsed_response)
+            else:
+                response_length = len(json.dumps(parsed_response))
+
+            total_time = time.time() - start_time
+            logger.info(
+                f"Agent {self.agent_id} ({self.provider}/{self.model}) completed in "
+                f"{total_time:.2f}s with {response_length} chars"
+            )
+
+            return response
+
         except ConnectionError as e:
             elapsed = time.time() - start_time
             error_msg = f"Failed to connect to {self.provider} service: {str(e)}"
@@ -104,7 +136,12 @@ class Agent:
                 f"Agent {self.agent_id} ({self.provider}/{self.model}) connection error "
                 f"after {elapsed:.2f}s: {str(e)}"
             )
-            raise LLMConnectionError(error_msg)
+            return {
+                "agent_id": self.agent_id,
+                "model": self.model,
+                "error": error_msg,
+                "response": f"Error: {error_msg}"
+            }
         except Exception as e:
             elapsed = time.time() - start_time
             error_msg = f"Unexpected error with {self.provider} service: {str(e)}"
@@ -113,40 +150,9 @@ class Agent:
                 f"after {elapsed:.2f}s: {str(e)}",
                 exc_info=True,
             )
-            raise LLMConnectionError(error_msg)
-
-        # If it's already a dictionary, use it directly
-        if isinstance(raw_response, dict):
-            logger.debug(f"Agent {self.agent_id} response was already a dictionary")
-            parsed_response = raw_response
-        else:
-            # Try to parse as JSON, but keep as string if parsing fails
-            try:
-                logger.debug(f"Agent {self.agent_id} attempting to parse JSON response")
-                parsed_response = json.loads(raw_response)
-                logger.debug(f"Agent {self.agent_id} successfully parsed JSON response")
-            except (json.JSONDecodeError, TypeError):
-                logger.debug(
-                    f"Agent {self.agent_id} response is not valid JSON, using as string"
-                )
-                parsed_response = str(raw_response)
-
-        response = {
-            "agent_id": self.agent_id,
-            "model": self.model,
-            "response": parsed_response,
-        }
-
-        # Log response size and time
-        if isinstance(parsed_response, str):
-            response_length = len(parsed_response)
-        else:
-            response_length = len(json.dumps(parsed_response))
-
-        total_time = time.time() - start_time
-        logger.info(
-            f"Agent {self.agent_id} ({self.provider}/{self.model}) completed in "
-            f"{total_time:.2f}s with {response_length} chars"
-        )
-
-        return response
+            return {
+                "agent_id": self.agent_id,
+                "model": self.model,
+                "error": error_msg,
+                "response": f"Error: {error_msg}"
+            }

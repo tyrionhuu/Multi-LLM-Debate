@@ -431,7 +431,7 @@ def generate_with_ollama(
     max_tokens: int,
     images: Optional[List[str | bytes]] = None,
     json_mode: bool = False,
-    timeout: int = 30,  # Default 30 seconds
+    timeout: int = 60,
 ) -> str:
     """Generates a response using the Ollama model with optional images.
 
