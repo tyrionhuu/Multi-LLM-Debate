@@ -22,7 +22,7 @@ def run_debate_round_n(
 
     Args:
         prompt (str): The debate prompt including previous context.
-        agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in
+        agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in 
             the debate.
         output_dir (str | Path): Directory path where debate responses will be saved.
         round_num (int): Current round number.
@@ -52,7 +52,7 @@ def run_debate_round_n(
     logger.debug(f"Output directory created/verified: {output_dir}")
 
     try:
-        logger.info(f"Requesting responses from all agents for round {round_num}...")
+        logger.debug(f"Requesting responses from all agents for round {round_num}...")
         response_start_time = time.time()
         responses = agents_ensemble.get_responses(prompt=prompt, json_mode=json_mode)
         response_time = time.time() - response_start_time
@@ -70,7 +70,7 @@ def run_debate_round_n(
     for i, response in enumerate(responses):
         agent_id = response.get("agent_id", f"Unknown-{i}")
         response_text = response.get("response", "")
-        logger.info(
+        logger.debug(
             f"Agent {agent_id} responded (#{i+1}/{len(responses)}) "
             f"in round {round_num}"
         )
