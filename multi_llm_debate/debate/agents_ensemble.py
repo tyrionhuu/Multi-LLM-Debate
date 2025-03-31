@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from ..utils.config_manager import get_models
 from ..utils.logging_config import setup_logging
 from ..utils.model_config import ModelConfig
-from .agent import Agent, LLMConnectionError
+from .agent import Agent
 
 # Use setup_logging to ensure consistent logging
 logger = setup_logging(__name__)
@@ -117,7 +117,8 @@ class AgentsEnsemble:
             Dict[str, Any]: Response from the agent.
 
         Raises:
-            LLMConnectionError: If all retry attempts fail.
+            ConnectionError: If there's a network or timeout issue after all retries.
+            Exception: If some other error occurs after all retries.
         """
         errors = []
         logger.debug(
@@ -141,7 +142,18 @@ class AgentsEnsemble:
                 )
                 return response
 
-            except LLMConnectionError as e:
+            except ConnectionError as e:
+                errors.append(f"Attempt {attempt+1}: {str(e)}")
+                logger.warning(
+                    f"Agent {agent.agent_id} ({agent.model}, {agent.provider}) attempt {attempt+1} "
+                    f"failed after {time.time() - start_time:.2f}s: {str(e)}"
+                )
+                if attempt < self.max_retries:
+                    logger.info(
+                        f"Waiting {self.retry_delay}s before retry #{attempt+2}"
+                    )
+                    time.sleep(self.retry_delay)
+            except Exception as e:
                 errors.append(f"Attempt {attempt+1}: {str(e)}")
                 logger.warning(
                     f"Agent {agent.agent_id} ({agent.model}, {agent.provider}) attempt {attempt+1} "
@@ -158,7 +170,12 @@ class AgentsEnsemble:
         logger.error(
             f"Agent {agent.agent_id} ({agent.model}, {agent.provider}): {error_msg}"
         )
-        raise LLMConnectionError(error_msg)
+        
+        # Raise the appropriate exception based on the last error
+        if "connection" in errors[-1].lower() or "timeout" in errors[-1].lower():
+            raise ConnectionError(error_msg)
+        else:
+            raise Exception(error_msg)
 
     def get_responses(
         self, prompt: str, json_mode: bool = False
@@ -173,7 +190,7 @@ class AgentsEnsemble:
             List[Dict[str, Any]]: List of responses from all agents.
 
         Raises:
-            LLMConnectionError: If no responses could be collected at all.
+            RuntimeError: If no responses could be collected at all.
         """
         logger.info(f"Getting responses from {len(self.agents)} agents sequentially")
         start_time = time.time()
@@ -188,7 +205,7 @@ class AgentsEnsemble:
             try:
                 response = self._get_response_with_retry(agent, prompt, json_mode)
                 responses.append(response)
-            except LLMConnectionError as e:
+            except (ConnectionError, Exception) as e:
                 error_msg = f"Agent {agent.agent_id}: {str(e)}"
                 errors.append(error_msg)
                 logger.error(error_msg)
@@ -201,10 +218,10 @@ class AgentsEnsemble:
         logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
 
         if errors:
-            error_msg = f"Connection errors occurred with {len(errors)}/{len(self.agents)} agents"
+            error_msg = f"Errors occurred with {len(errors)}/{len(self.agents)} agents"
             logger.error(error_msg)
             if not responses:
-                raise LLMConnectionError(f"{error_msg}: {'; '.join(errors)}")
+                raise RuntimeError(f"{error_msg}: {'; '.join(errors)}")
 
         return responses
 

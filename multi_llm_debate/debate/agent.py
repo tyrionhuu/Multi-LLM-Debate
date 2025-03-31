@@ -60,9 +60,9 @@ class Agent:
                 - response: The model's response (can be dict or str)
                 - error: If an error occurred, contains the error message (optional)
 
-        Note:
-            If an error occurs during the call to the language model, the response
-            dictionary will include an 'error' key with a description of the error.
+        Raises:
+            ConnectionError: If there's a network or timeout issue.
+            Exception: If some other error occurs during processing.
         """
         start_time = time.time()
         logger.debug(
@@ -134,29 +134,20 @@ class Agent:
             return response
 
         except ConnectionError as e:
+            # Let the ConnectionError propagate upward for proper handling
             elapsed = time.time() - start_time
-            error_msg = f"Failed to connect to {self.provider} service: {str(e)}"
             logger.error(
                 f"Agent {self.agent_id} ({self.provider}/{self.model}) connection error "
                 f"after {elapsed:.2f}s: {str(e)}"
             )
-            return {
-                "agent_id": self.agent_id,
-                "model": self.model,
-                "error": error_msg,
-                "response": f"Error: {error_msg}",
-            }
+            raise
+            
         except Exception as e:
+            # Let any other exceptions propagate upward
             elapsed = time.time() - start_time
-            error_msg = f"Unexpected error with {self.provider} service: {str(e)}"
             logger.error(
                 f"Agent {self.agent_id} ({self.provider}/{self.model}) unexpected error "
                 f"after {elapsed:.2f}s: {str(e)}",
                 exc_info=True,
             )
-            return {
-                "agent_id": self.agent_id,
-                "model": self.model,
-                "error": error_msg,
-                "response": f"Error: {error_msg}",
-            }
+            raise
