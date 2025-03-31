@@ -51,14 +51,14 @@ def encode_image(image_path: str) -> str:
 
 class ThreadSafeTimeout:
     """A thread-safe timeout handler that uses threading.Timer instead of signals.
-    
+
     This class provides a thread-safe alternative to signal-based timeouts
     by using threading.Timer, which works in any thread.
     """
-    
+
     def __init__(self, timeout: Optional[float], operation_name: str = "API call"):
         """Initialize a thread-safe timeout handler.
-        
+
         Args:
             timeout: Maximum time in seconds before timing out
             operation_name: Name of the operation for logging
@@ -69,7 +69,7 @@ class ThreadSafeTimeout:
         self.timed_out = False
         self.exception = None
         self._lock = threading.Lock()
-        
+
     def _timeout_callback(self):
         """Called when the timer expires."""
         with self._lock:
@@ -78,31 +78,35 @@ class ThreadSafeTimeout:
                 self.exception = ConnectionError(
                     f"Operation '{self.operation_name}' timed out after {self.timeout} seconds"
                 )
-                logger.error(f"Timeout ({self.timeout}s) exceeded for {self.operation_name}")
+                logger.error(
+                    f"Timeout ({self.timeout}s) exceeded for {self.operation_name}"
+                )
 
     def __enter__(self):
         """Start the timeout timer if a timeout is specified."""
         if self.timeout and self.timeout > 0:
             self.timer = threading.Timer(self.timeout, self._timeout_callback)
-            self.timer.daemon = True  # Allow the program to exit if only the timer is left
+            self.timer.daemon = (
+                True  # Allow the program to exit if only the timer is left
+            )
             self.timer.start()
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Cancel the timer when exiting the context."""
         if self.timer:
             self.timer.cancel()
-            
+
         # If we timed out and there's no other exception, raise our timeout exception
         if self.timed_out and exc_type is None:
             raise self.exception
-        
+
         # Return False to propagate any other exception
         return False
-    
+
     def check_timeout(self):
         """Check if timeout has occurred and raise the exception if so.
-        
+
         Raises:
             ConnectionError: If the operation has timed out.
         """
@@ -125,7 +129,7 @@ def call_model(
     ] = None,
 ) -> str:
     """Routes the call to the appropriate model provider and returns the response.
-    
+
     Can handle both text-only and vision models based on the vision parameter.
 
     Args:
@@ -142,7 +146,7 @@ def call_model(
 
     Returns:
         str: The generated response from the model.
-        
+
     Raises:
         ConnectionError: If there's a timeout or connection issue
         ValueError: If the provider is not supported
