@@ -1,7 +1,8 @@
 import json
+import logging
 from pathlib import Path
 from typing import List
-import logging
+
 from ..utils.logging_config import setup_logging
 from .agent import LLMConnectionError
 from .agents_ensemble import AgentsEnsemble
@@ -12,6 +13,7 @@ logger.setLevel(
     # during the debate process.
     logging.INFO
 )
+
 
 def run_debate_round_zero(
     prompt: str,
