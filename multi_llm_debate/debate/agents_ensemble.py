@@ -170,7 +170,7 @@ class AgentsEnsemble:
         logger.error(
             f"Agent {agent.agent_id} ({agent.model}, {agent.provider}): {error_msg}"
         )
-        
+
         # Raise the appropriate exception based on the last error
         if "connection" in errors[-1].lower() or "timeout" in errors[-1].lower():
             raise ConnectionError(error_msg)

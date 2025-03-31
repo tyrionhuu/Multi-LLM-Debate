@@ -141,7 +141,7 @@ class Agent:
                 f"after {elapsed:.2f}s: {str(e)}"
             )
             raise
-            
+
         except Exception as e:
             # Let any other exceptions propagate upward
             elapsed = time.time() - start_time
