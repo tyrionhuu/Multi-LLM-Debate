@@ -129,21 +129,27 @@ class AgentsEnsemble:
             LLMConnectionError: If all retry attempts fail.
         """
         errors = []
-        logger.debug(f"Sending request to agent {agent.agent_id} ({agent.model}, {agent.provider})")
+        logger.debug(
+            f"Sending request to agent {agent.agent_id} ({agent.model}, {agent.provider})"
+        )
         start_time = time.time()
-        
+
         for attempt in range(self.max_retries + 1):
             try:
                 if attempt > 0:
-                    logger.info(f"Retry #{attempt} for agent {agent.agent_id} ({agent.provider})")
-                
+                    logger.info(
+                        f"Retry #{attempt} for agent {agent.agent_id} ({agent.provider})"
+                    )
+
                 response = agent.respond(
                     prompt, json_mode=json_mode, timeout=int(self.timeout)
                 )
                 elapsed = time.time() - start_time
-                logger.info(f"Agent {agent.agent_id} ({agent.provider}) responded in {elapsed:.2f}s")
+                logger.info(
+                    f"Agent {agent.agent_id} ({agent.provider}) responded in {elapsed:.2f}s"
+                )
                 return response
-                
+
             except LLMConnectionError as e:
                 errors.append(f"Attempt {attempt+1}: {str(e)}")
                 logger.warning(
@@ -151,12 +157,16 @@ class AgentsEnsemble:
                     f"failed after {time.time() - start_time:.2f}s: {str(e)}"
                 )
                 if attempt < self.max_retries:
-                    logger.info(f"Waiting {self.retry_delay}s before retry #{attempt+2}")
+                    logger.info(
+                        f"Waiting {self.retry_delay}s before retry #{attempt+2}"
+                    )
                     time.sleep(self.retry_delay)
 
         total_time = time.time() - start_time
         error_msg = f"Failed after {self.max_retries + 1} attempts in {total_time:.2f}s: {'; '.join(errors)}"
-        logger.error(f"Agent {agent.agent_id} ({agent.model}, {agent.provider}): {error_msg}")
+        logger.error(
+            f"Agent {agent.agent_id} ({agent.model}, {agent.provider}): {error_msg}"
+        )
         raise LLMConnectionError(error_msg)
 
     def _get_response_concurrent(
@@ -189,7 +199,9 @@ class AgentsEnsemble:
         if self.max_workers is None or self.max_workers <= 1:
             logger.info("Using sequential processing mode")
             for idx, agent in enumerate(self.agents):
-                logger.info(f"Processing agent {idx+1}/{len(self.agents)}: {agent.agent_id} ({agent.provider})")
+                logger.info(
+                    f"Processing agent {idx+1}/{len(self.agents)}: {agent.agent_id} ({agent.provider})"
+                )
                 try:
                     response = self._get_response_with_retry(agent, prompt, json_mode)
                     responses.append(response)
@@ -200,7 +212,9 @@ class AgentsEnsemble:
                     logger.debug(f"Sleeping for {self.job_delay}s before next agent")
                     time.sleep(self.job_delay)
 
-            logger.info(f"Sequential processing completed in {time.time() - start_time:.2f}s")
+            logger.info(
+                f"Sequential processing completed in {time.time() - start_time:.2f}s"
+            )
         else:
             # Determine optimal batch size based on max_workers
             # For Ollama, smaller batches often work better
@@ -225,11 +239,11 @@ class AgentsEnsemble:
             # Process each provider's agents separately with appropriate batching
             provider_count = 0
             total_providers = len(agents_by_provider)
-            
+
             for provider, provider_agents in agents_by_provider.items():
                 provider_count += 1
                 provider_start_time = time.time()
-                
+
                 # For Ollama, use smaller batches and add delays
                 provider_batch_size = batch_size
                 provider_delay = self.job_delay
@@ -246,18 +260,20 @@ class AgentsEnsemble:
 
                 # Process this provider's agents in batches
                 batch_count = 0
-                total_batches = (len(provider_agents) + provider_batch_size - 1) // provider_batch_size
-                
+                total_batches = (
+                    len(provider_agents) + provider_batch_size - 1
+                ) // provider_batch_size
+
                 for i in range(0, len(provider_agents), provider_batch_size):
                     batch_count += 1
                     batch_start_time = time.time()
-                    
+
                     batch = provider_agents[i : i + provider_batch_size]
                     logger.info(
                         f"Starting batch {batch_count}/{total_batches} with "
                         f"{len(batch)} {provider} agents"
                     )
-                    
+
                     batch_results = self._process_agent_batch(
                         batch, prompt, json_mode, per_agent_timeout, provider_delay
                     )
@@ -266,7 +282,7 @@ class AgentsEnsemble:
                     responses.extend(batch_responses)
                     errors.extend(batch_errors)
                     timeout_errors.extend(batch_timeouts)
-                    
+
                     batch_time = time.time() - batch_start_time
                     logger.info(
                         f"Completed batch {batch_count}/{total_batches} in {batch_time:.2f}s "
@@ -274,11 +290,15 @@ class AgentsEnsemble:
                     )
 
                     # Add a delay between batches to prevent overwhelming Ollama
-                    if provider == "ollama" and i + provider_batch_size < len(provider_agents):
+                    if provider == "ollama" and i + provider_batch_size < len(
+                        provider_agents
+                    ):
                         delay_time = max(2.0, provider_delay * 2)
-                        logger.info(f"Adding {delay_time:.2f}s delay between Ollama batches")
+                        logger.info(
+                            f"Adding {delay_time:.2f}s delay between Ollama batches"
+                        )
                         time.sleep(delay_time)
-                
+
                 provider_time = time.time() - provider_start_time
                 logger.info(f"Completed all {provider} agents in {provider_time:.2f}s")
 
@@ -334,7 +354,7 @@ class AgentsEnsemble:
         batch_start_time = time.time()
 
         logger.info(f"Starting batch processing of {len(agents)} agents")
-        
+
         with ThreadPoolExecutor(max_workers=len(agents)) as executor:
             futures = {}
             active_futures: Set = set()
@@ -343,7 +363,7 @@ class AgentsEnsemble:
             for agent in agents:
                 if delay_between_agents > 0:
                     time.sleep(delay_between_agents)
-                
+
                 submission_time = time.time()
                 future = executor.submit(
                     self._get_response_with_retry, agent, prompt, json_mode
@@ -357,9 +377,11 @@ class AgentsEnsemble:
                 )
 
             # Set the end time for our batch timeout
-            batch_timeout = timeout_per_agent + (len(agents) * delay_between_agents) + 10  # Add margin
+            batch_timeout = (
+                timeout_per_agent + (len(agents) * delay_between_agents) + 10
+            )  # Add margin
             end_time = time.time() + batch_timeout
-            
+
             # Log the expected completion time
             logger.info(
                 f"Batch timeout set to {batch_timeout:.2f}s, expected completion by "
@@ -369,7 +391,7 @@ class AgentsEnsemble:
             # For heartbeat logging
             last_heartbeat = time.time()
             heartbeat_interval = 15  # Log waiting status every 15 seconds
-            
+
             # Process futures as they complete
             while active_futures and time.time() < end_time:
                 # Generate heartbeat log to show we're still waiting
@@ -381,14 +403,14 @@ class AgentsEnsemble:
                         f"Still waiting for {remaining_count}/{len(agents)} responses after "
                         f"{waiting_time:.2f}s"
                     )
-                    
+
                     # List still-waiting agents
                     waiting_agents = [
                         f"{futures[f][0].agent_id}({futures[f][0].provider}, waiting {current_time - futures[f][1]:.1f}s)"
                         for f in active_futures
                     ]
                     logger.info(f"Waiting for agents: {', '.join(waiting_agents)}")
-                    
+
                     last_heartbeat = current_time
 
                 # Wait for the next future to complete with a short timeout
@@ -404,9 +426,11 @@ class AgentsEnsemble:
                     agent, submit_time = futures[future]
                     completion_time = time.time()
                     response_time = completion_time - submit_time
-                    
+
                     try:
-                        response = future.result(timeout=0.1)  # Short timeout as it should be done
+                        response = future.result(
+                            timeout=0.1
+                        )  # Short timeout as it should be done
                         responses.append(response)
                         logger.info(
                             f"Received response from {agent.provider} agent {agent.agent_id} "
@@ -421,7 +445,9 @@ class AgentsEnsemble:
                             f"after {response_time:.2f}s"
                         )
                     except LLMConnectionError as e:
-                        error_msg = f"Agent {agent.agent_id} ({agent.model}) error: {str(e)}"
+                        error_msg = (
+                            f"Agent {agent.agent_id} ({agent.model}) error: {str(e)}"
+                        )
                         errors.append(error_msg)
                         logger.warning(
                             f"Connection error from agent {agent.agent_id} after {response_time:.2f}s: {str(e)}"
@@ -439,7 +465,7 @@ class AgentsEnsemble:
                     )
                     # Cancel any remaining futures
                     future.cancel()
-                
+
                 logger.warning(
                     f"{len(active_futures)}/{len(agents)} agents timed out in batch "
                     f"after {current_time - batch_start_time:.2f}s"
@@ -467,9 +493,11 @@ class AgentsEnsemble:
         Raises:
             LLMConnectionError: If any agent encounters a connection error.
         """
-        logger.info(f"Getting responses from {len(self.agents)} agents (concurrent={self.concurrent})")
+        logger.info(
+            f"Getting responses from {len(self.agents)} agents (concurrent={self.concurrent})"
+        )
         start_time = time.time()
-        
+
         if self.concurrent:
             responses = self._get_response_concurrent(prompt, json_mode=json_mode)
         else:
@@ -477,7 +505,9 @@ class AgentsEnsemble:
             errors = []
 
             for i, agent in enumerate(self.agents):
-                logger.info(f"Requesting response from agent {i+1}/{len(self.agents)}: {agent.agent_id}")
+                logger.info(
+                    f"Requesting response from agent {i+1}/{len(self.agents)}: {agent.agent_id}"
+                )
                 try:
                     response = self._get_response_with_retry(agent, prompt, json_mode)
                     responses.append(response)
@@ -495,7 +525,7 @@ class AgentsEnsemble:
                 logger.error(error_msg)
                 if not responses:
                     raise LLMConnectionError(f"{error_msg}: {'; '.join(errors)}")
-        
+
         elapsed = time.time() - start_time
         logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
         return responses
