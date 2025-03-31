@@ -100,9 +100,13 @@ class Agent:
             else:
                 # Try to parse as JSON, but keep as string if parsing fails
                 try:
-                    logger.debug(f"Agent {self.agent_id} attempting to parse JSON response")
+                    logger.debug(
+                        f"Agent {self.agent_id} attempting to parse JSON response"
+                    )
                     parsed_response = json.loads(raw_response)
-                    logger.debug(f"Agent {self.agent_id} successfully parsed JSON response")
+                    logger.debug(
+                        f"Agent {self.agent_id} successfully parsed JSON response"
+                    )
                 except (json.JSONDecodeError, TypeError):
                     logger.debug(
                         f"Agent {self.agent_id} response is not valid JSON, using as string"
@@ -140,7 +144,7 @@ class Agent:
                 "agent_id": self.agent_id,
                 "model": self.model,
                 "error": error_msg,
-                "response": f"Error: {error_msg}"
+                "response": f"Error: {error_msg}",
             }
         except Exception as e:
             elapsed = time.time() - start_time
@@ -154,5 +158,5 @@ class Agent:
                 "agent_id": self.agent_id,
                 "model": self.model,
                 "error": error_msg,
-                "response": f"Error: {error_msg}"
+                "response": f"Error: {error_msg}",
             }

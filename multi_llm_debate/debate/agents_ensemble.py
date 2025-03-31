@@ -177,7 +177,7 @@ class AgentsEnsemble:
         """
         logger.info(f"Getting responses from {len(self.agents)} agents sequentially")
         start_time = time.time()
-        
+
         responses = []
         errors = []
 
@@ -199,7 +199,7 @@ class AgentsEnsemble:
 
         elapsed = time.time() - start_time
         logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
-        
+
         if errors:
             error_msg = f"Connection errors occurred with {len(errors)}/{len(self.agents)} agents"
             logger.error(error_msg)
