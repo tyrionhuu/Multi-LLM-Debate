@@ -689,3 +689,25 @@ def generate_api_messages(
             }
         ]
     return messages
+
+def main():
+    # Example usage of the generate_with_api function
+    question = "Is the sky blue?"
+    prompt = f"{question} Please provide a detailed explanation."
+    model_name = "llama3"  # Example model name, adjust as needed
+    provider = "vllm"
+    result = call_model(
+        model_name=model_name,
+        provider=provider,
+        prompt=prompt,
+        temperature=0.7,
+        max_tokens=100,
+        json_mode=True,
+        timeout=30
+    )
+    print("Generated response:", result)
+    
+if __name__ == "__main__":
+    main()
+    # This will run the main function to demonstrate the call_model function.
+    # You can replace the parameters with actual values as per your requirements.
