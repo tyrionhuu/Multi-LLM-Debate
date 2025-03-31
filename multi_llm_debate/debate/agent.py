@@ -179,7 +179,7 @@ class Agent:
                 logger.error(
                     f"Agent {self.agent_id} ({self.provider}/{self.model}) unexpected error "
                     f"after {elapsed:.2f}s: {str(e)}",
-                    exc_info=True,
+                    exc_info=False,
                 )
                 # If this was the last attempt, re-raise the exception
                 if attempt == max_retries:
