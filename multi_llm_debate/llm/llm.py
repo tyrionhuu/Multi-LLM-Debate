@@ -207,49 +207,45 @@ class AbortableOllamaRequest:
 
 class AbortableVLLMRequest:
     """An abortable wrapper for vLLM requests.
-    
+
     This class allows for aborting vLLM requests that are taking too long,
     with proper cleanup of resources.
     """
-    
+
     def __init__(self):
         """Initialize an abortable vLLM request wrapper."""
         self._abort_event = threading.Event()
         self.response = None
         self.error = None
         self.completed = False
-    
+
     def abort(self):
         """Signal abort to the running request thread."""
         logger.warning("Aborting vLLM request")
         self._abort_event.set()
-    
+
     def is_aborted(self) -> bool:
         """Check if the request has been aborted.
-        
+
         Returns:
             bool: True if aborted, False otherwise
         """
         return self._abort_event.is_set()
-    
+
     def run_with_timeout(
-        self, 
-        func: callable, 
-        args: tuple = None,
-        kwargs: dict = None, 
-        timeout: int = 30
+        self, func: callable, args: tuple = None, kwargs: dict = None, timeout: int = 30
     ):
         """Run a function with a timeout and abort capability.
-        
+
         Args:
             func: The function to run
             args: Positional arguments for the function
             kwargs: Keyword arguments for the function
             timeout: Timeout in seconds
-            
+
         Returns:
             Any: The result of the function if successful
-            
+
         Raises:
             TimeoutError: If the operation times out
             ValueError: If the operation is aborted
@@ -259,37 +255,37 @@ class AbortableVLLMRequest:
             args = ()
         if kwargs is None:
             kwargs = {}
-            
+
         def _target():
             try:
                 self.response = func(*args, **kwargs)
                 self.completed = True
             except Exception as e:
                 self.error = e
-        
+
         thread = threading.Thread(target=_target)
         thread.daemon = True
         thread.start()
-        
+
         # Wait for completion, timeout, or abort
         timeout_time = time.time() + timeout
         check_interval = 0.1  # Check abort status every 100ms
-        
+
         while thread.is_alive() and time.time() < timeout_time:
             if self.is_aborted():
                 logger.warning("Detected abort signal during vLLM execution")
                 raise ValueError("Request aborted")
             thread.join(timeout=check_interval)
-            
+
         if thread.is_alive():
             # Timeout occurred
             self.abort()
             logger.error(f"vLLM request timeout after {timeout}s")
             raise TimeoutError(f"Operation timed out after {timeout} seconds")
-            
+
         if self.error:
             raise self.error
-            
+
         return self.response
 
 
@@ -782,17 +778,13 @@ def generate_with_vllm(
         payload["response_format"] = {"type": "json_object"}
 
     endpoint = f"{VLLM_URL.rstrip('/')}/v1/completions"
-    
+
     # Use our abortable request wrapper
     request = AbortableVLLMRequest()
-    
+
     def make_request():
         try:
-            response = requests.post(
-                endpoint,
-                json=payload,
-                timeout=timeout
-            )
+            response = requests.post(endpoint, json=payload, timeout=timeout)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -800,20 +792,17 @@ def generate_with_vllm(
             if isinstance(e, requests.exceptions.Timeout):
                 raise TimeoutError(f"vLLM request timed out after {timeout} seconds")
             raise ConnectionError(f"Failed to connect to vLLM server: {str(e)}")
-    
+
     try:
-        result = request.run_with_timeout(
-            func=make_request,
-            timeout=timeout
-        )
-        
+        result = request.run_with_timeout(func=make_request, timeout=timeout)
+
         # Extract the response text from the vLLM response
         if "choices" in result and len(result["choices"]) > 0:
             response_text = result["choices"][0].get("text", "")
         else:
             logger.warning("Unexpected vLLM response format")
             response_text = str(result)
-            
+
         # Process JSON if needed
         if json_mode:
             try:
@@ -823,9 +812,9 @@ def generate_with_vllm(
             except json.JSONDecodeError:
                 logger.warning("vLLM returned invalid JSON despite json_mode=True")
                 return response_text
-                
+
         return response_text
-        
+
     except TimeoutError:
         logger.error(f"vLLM request timed out after {timeout}s")
         raise TimeoutError(f"Request timed out after {timeout} seconds")
