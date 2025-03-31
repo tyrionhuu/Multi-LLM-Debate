@@ -16,16 +16,8 @@ from openai import OpenAI
 from PIL import Image
 from requests.exceptions import ConnectionError, Timeout
 
-# Add vLLM imports
-try:
-    from vllm import LLM, SamplingParams
+from vllm import LLM, SamplingParams
 
-    VLLM_AVAILABLE = True
-except ImportError:
-    VLLM_AVAILABLE = False
-    logging.warning(
-        "vLLM library not found. Install with 'pip install vllm' to use vLLM provider."
-    )
 
 from ..utils.config_manager import get_api_key, get_base_url, get_vllm_model_path
 from ..utils.logging_config import setup_logging
@@ -385,10 +377,6 @@ def call_model(
                     timeout=timeout,
                 )
             elif provider == "vllm":
-                if not VLLM_AVAILABLE:
-                    raise ImportError(
-                        "vLLM library not installed. Please install with 'pip install vllm'"
-                    )
                 result = generate_with_vllm(
                     model_name=model_name,
                     prompt=prompt,
@@ -494,11 +482,6 @@ def generate_with_vllm(
         ValueError: If there's an issue with the model or parameters
         ImportError: If vLLM is not installed
     """
-    if not VLLM_AVAILABLE:
-        raise ImportError(
-            "vLLM library is not installed. Please install with 'pip install vllm'"
-        )
-
     logger.info(f"Generating with vLLM library using model: {model_name}")
 
     try:
