@@ -96,7 +96,7 @@ def call_model(
         f"Calling {provider}/{model_name} (timeout={timeout}s, json={json_mode})"
     )
 
-    with ThreadSafeTimeout(timeout, f"{provider}/{model_name} call") as timeout_handler:
+    with ThreadSafeTimeout(timeout, f"{provider}/{model_name} call"):
         try:
             # vLLM doesn't support vision features yet
             if vision and provider != "vllm":
