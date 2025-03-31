@@ -23,7 +23,6 @@ class AgentsEnsemble:
         job_delay (float): Delay in seconds between consecutive agent calls.
         timeout (float): Maximum time in seconds to wait for agent responses.
         max_retries (int): Maximum number of retry attempts for failed requests.
-        retry_delay (float): Delay in seconds between retry attempts.
     """
 
     def __init__(
@@ -32,27 +31,18 @@ class AgentsEnsemble:
         job_delay: float = 0.5,
         timeout: float = 120.0,
         max_retries: int = 3,
-        retry_delay: float = 1.0,
     ) -> None:
         """Initialize an AgentsEnsemble instance.
 
         Args:
             config_list (Optional[List[ModelConfig]]): List of model configurations.
-                If None, default configs will be loaded.
-            job_delay (float, optional): Delay in seconds between agent calls. Defaults to 0.5.
+            job_delay (float, optional): Delay in seconds between agent calls.
             timeout (float, optional): Maximum time in seconds to wait for agent responses.
-                Defaults to 120.0 (2 minutes).
             max_retries (int, optional): Maximum number of retry attempts. Defaults to 2.
-            retry_delay (float, optional): Delay in seconds between retry attempts.
-                Defaults to 1.0.
-
-        Raises:
-            ValueError: If initialization fails.
         """
         self.job_delay = job_delay
         self.timeout = timeout
         self.max_retries = max_retries
-        self.retry_delay = retry_delay
         self.agents: List[Agent] = []  # List to hold Agent instances
 
         if config_list is not None:
