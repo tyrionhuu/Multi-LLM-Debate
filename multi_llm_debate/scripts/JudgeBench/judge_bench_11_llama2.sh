@@ -4,4 +4,4 @@
 python -m multi_llm_debate.run.judge_bench.main \
     --config ./multi_llm_debate/configs/11_llama2.json \
     --sample-size 2000 \
-    --max-workers 4
+    --max-workers 1
