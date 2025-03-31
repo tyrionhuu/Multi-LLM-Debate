@@ -18,7 +18,6 @@ from vllm import LLM, SamplingParams
 
 from ..utils.config_manager import get_api_key, get_base_url, get_vllm_model_path
 from ..utils.logging_config import setup_logging
-from ..utils.retry import retry_with_timeout
 from .utils import AbortableOllamaRequest, AbortableVLLMInference, ThreadSafeTimeout
 
 # Set up logger
@@ -207,10 +206,6 @@ def get_or_create_vllm_model(model_name: str) -> LLM:
         raise ValueError(f"Failed to load vLLM model: {str(e)}")
 
 
-@retry_with_timeout(
-    max_retries=2,
-    exceptions=(TimeoutError, ValueError, RuntimeError),
-)
 def generate_with_vllm(
     model_name: str,
     prompt: str,
@@ -420,10 +415,6 @@ def retry_json_generation(
             continue
 
 
-@retry_with_timeout(
-    max_retries=3,
-    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException),
-)
 def generate_with_ollama(
     model_name: str,
     prompt: str,
@@ -551,10 +542,6 @@ def generate_with_ollama(
                 raise
 
 
-@retry_with_timeout(
-    max_retries=3,
-    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException),
-)
 def generate_with_api(
     model_name: str,
     prompt: str,
