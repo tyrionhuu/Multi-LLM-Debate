@@ -16,7 +16,6 @@ from .utils import extract_caption_a_b_answer
 
 # Fix the setup_logging call by removing the level parameter
 logger = setup_logging(__name__)
-# Set debug level separately
 logger.setLevel(logging.INFO)
 
 
