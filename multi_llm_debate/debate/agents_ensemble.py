@@ -30,7 +30,7 @@ class AgentsEnsemble:
         self,
         config_list: Optional[List[ModelConfig]] = None,
         job_delay: float = 0.5,
-        timeout: float = 120.0, 
+        timeout: float = 120.0,
         max_retries: int = 3,
         retry_delay: float = 1.0,
     ) -> None:
