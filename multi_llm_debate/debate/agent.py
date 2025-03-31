@@ -8,7 +8,6 @@ from ..utils.logging_config import setup_logging
 
 # Set up logger
 logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)
 
 
 class Agent:
