@@ -690,6 +690,7 @@ def generate_api_messages(
         ]
     return messages
 
+
 def main():
     # Example usage of the generate_with_api function
     question = "Is the sky blue?"
@@ -703,10 +704,11 @@ def main():
         temperature=0.7,
         max_tokens=100,
         json_mode=True,
-        timeout=30
+        timeout=30,
     )
     print("Generated response:", result)
-    
+
+
 if __name__ == "__main__":
     main()
     # This will run the main function to demonstrate the call_model function.
