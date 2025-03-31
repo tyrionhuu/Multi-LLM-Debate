@@ -104,7 +104,7 @@ class AgentsEnsemble:
         self.agents.append(agent)
 
     def _get_response_with_retry(
-        self, agent: Agent, prompt: str, json_mode: bool
+        self, agent: Agent, prompt: str, json_mode: bool, max_retries: Optional[int] = None
     ) -> Dict[str, Any]:
         """Attempt to get a response from an agent with retry logic.
 
@@ -112,6 +112,8 @@ class AgentsEnsemble:
             agent (Agent): The agent to get a response from.
             prompt (str): The input prompt to send to the agent.
             json_mode (bool): Whether to expect JSON response.
+            max_retries (Optional[int], optional): Maximum number of retry attempts.
+                If None, use the ensemble's default max_retries. Defaults to None.
 
         Returns:
             Dict[str, Any]: Response from the agent.
@@ -120,71 +122,40 @@ class AgentsEnsemble:
             ConnectionError: If there's a network or timeout issue after all retries.
             Exception: If some other error occurs after all retries.
         """
-        errors = []
+        # Use ensemble's default if max_retries not specified
+        retries = self.max_retries if max_retries is None else max_retries
+        
+        if retries <= 0:
+            # No retries, call agent.respond directly
+            logger.debug(
+                f"No retries set for agent {agent.agent_id} ({agent.model}, {agent.provider})"
+            )
+            return agent.respond(
+                prompt, json_mode=json_mode, timeout=int(self.timeout), max_retries=0
+            )
+            
+        # Use the agent's built-in retry mechanism
         logger.debug(
-            f"Sending request to agent {agent.agent_id} ({agent.model}, {agent.provider})"
+            f"Using {retries} retries for agent {agent.agent_id} ({agent.model}, {agent.provider})"
         )
-        start_time = time.time()
-
-        for attempt in range(self.max_retries + 1):
-            try:
-                if attempt > 0:
-                    logger.info(
-                        f"Retry #{attempt} for agent {agent.agent_id} ({agent.provider})"
-                    )
-
-                response = agent.respond(
-                    prompt, json_mode=json_mode, timeout=int(self.timeout)
-                )
-                elapsed = time.time() - start_time
-                logger.info(
-                    f"Agent {agent.agent_id} ({agent.provider}) responded in {elapsed:.2f}s"
-                )
-                return response
-
-            except ConnectionError as e:
-                errors.append(f"Attempt {attempt+1}: {str(e)}")
-                logger.warning(
-                    f"Agent {agent.agent_id} ({agent.model}, {agent.provider}) attempt {attempt+1} "
-                    f"failed after {time.time() - start_time:.2f}s: {str(e)}"
-                )
-                if attempt < self.max_retries:
-                    logger.info(
-                        f"Waiting {self.retry_delay}s before retry #{attempt+2}"
-                    )
-                    time.sleep(self.retry_delay)
-            except Exception as e:
-                errors.append(f"Attempt {attempt+1}: {str(e)}")
-                logger.warning(
-                    f"Agent {agent.agent_id} ({agent.model}, {agent.provider}) attempt {attempt+1} "
-                    f"failed after {time.time() - start_time:.2f}s: {str(e)}"
-                )
-                if attempt < self.max_retries:
-                    logger.info(
-                        f"Waiting {self.retry_delay}s before retry #{attempt+2}"
-                    )
-                    time.sleep(self.retry_delay)
-
-        total_time = time.time() - start_time
-        error_msg = f"Failed after {self.max_retries + 1} attempts in {total_time:.2f}s: {'; '.join(errors)}"
-        logger.error(
-            f"Agent {agent.agent_id} ({agent.model}, {agent.provider}): {error_msg}"
+        return agent.respond(
+            prompt, 
+            json_mode=json_mode, 
+            timeout=int(self.timeout),
+            max_retries=retries
         )
-
-        # Raise the appropriate exception based on the last error
-        if "connection" in errors[-1].lower() or "timeout" in errors[-1].lower():
-            raise ConnectionError(error_msg)
-        else:
-            raise Exception(error_msg)
 
     def get_responses(
-        self, prompt: str, json_mode: bool = False
+        self, prompt: str, json_mode: bool = False, max_retries: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt.
 
         Args:
             prompt (str): The input prompt to send to all agents.
-            json_mode (bool, optional): Whether to expect JSON response. Defaults to False.
+            json_mode (bool, optional): Whether to expect JSON response. 
+                Defaults to False.
+            max_retries (Optional[int], optional): Maximum number of retry attempts.
+                If None, use the ensemble's default max_retries. Defaults to None.
 
         Returns:
             List[Dict[str, Any]]: List of responses from all agents.
@@ -192,7 +163,9 @@ class AgentsEnsemble:
         Raises:
             RuntimeError: If no responses could be collected at all.
         """
-        logger.info(f"Getting responses from {len(self.agents)} agents sequentially")
+        retries = self.max_retries if max_retries is None else max_retries
+        retry_msg = f"{retries} retries" if retries > 0 else "no retries"
+        logger.info(f"Getting responses from {len(self.agents)} agents sequentially with {retry_msg}")
         start_time = time.time()
 
         responses = []
@@ -203,7 +176,9 @@ class AgentsEnsemble:
                 f"Requesting response from agent {i+1}/{len(self.agents)}: {agent.agent_id}"
             )
             try:
-                response = self._get_response_with_retry(agent, prompt, json_mode)
+                response = self._get_response_with_retry(
+                    agent, prompt, json_mode, max_retries=max_retries
+                )
                 responses.append(response)
             except (ConnectionError, Exception) as e:
                 error_msg = f"Agent {agent.agent_id}: {str(e)}"
