@@ -9,8 +9,6 @@ from .agents_ensemble import AgentsEnsemble
 
 logger = setup_logging(__name__)
 logger.setLevel(
-    # Set the logger to INFO level to capture important events
-    # during the debate process.
     logging.INFO
 )
 
