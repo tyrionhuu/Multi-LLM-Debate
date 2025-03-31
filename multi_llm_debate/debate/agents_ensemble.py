@@ -7,6 +7,8 @@ from ..utils.config_manager import get_models
 from ..utils.model_config import ModelConfig
 from .agent import Agent, LLMConnectionError
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class AgentsEnsemble:
     """A collection of LLM agents that can be used together.
