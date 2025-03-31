@@ -355,10 +355,10 @@ class AgentsEnsemble:
         batch_start_time = time.time()
 
         logger.info(f"Starting batch processing of {len(agents)} agents")
-        
+
         # Define a thread-safe flag to track executor shutdown status
         shutdown_flag = threading.Event()
-        
+
         # Define a safer way to handle future results with proper timeout
         def get_future_result(future, timeout=0.5):
             """Get future result with strict timeout to avoid hanging."""
@@ -408,12 +408,16 @@ class AgentsEnsemble:
             # For heartbeat logging
             last_heartbeat = time.time()
             heartbeat_interval = 15  # Log waiting status every 15 seconds
-            
+
             # Create a safety timer for hard termination
-            safety_timeout = min(batch_timeout * 1.2, batch_timeout + 60)  # 20% more time or +60s
+            safety_timeout = min(
+                batch_timeout * 1.2, batch_timeout + 60
+            )  # 20% more time or +60s
             safety_deadline = time.time() + safety_timeout
-            
-            logger.info(f"Safety timeout set to {safety_timeout:.2f}s to prevent hanging")
+
+            logger.info(
+                f"Safety timeout set to {safety_timeout:.2f}s to prevent hanging"
+            )
 
             # Process futures as they complete
             try:
@@ -428,7 +432,7 @@ class AgentsEnsemble:
                         for future in active_futures:
                             future.cancel()
                         break
-                    
+
                     # Generate heartbeat log to show we're still waiting
                     current_time = time.time()
                     if current_time - last_heartbeat > heartbeat_interval:
@@ -445,7 +449,7 @@ class AgentsEnsemble:
                             for f in active_futures
                         ]
                         logger.info(f"Waiting for agents: {', '.join(waiting_agents)}")
-                        
+
                         # Check if any futures are done but not removed from active set
                         for future in list(active_futures):
                             if future.done():
@@ -457,7 +461,7 @@ class AgentsEnsemble:
                                 # Add to completed set for processing below
                                 completed = {future}
                                 break
-                                
+
                         last_heartbeat = current_time
 
                     # Wait for the next future to complete with a short timeout
@@ -494,9 +498,7 @@ class AgentsEnsemble:
                                         f"after {response_time:.2f}s"
                                     )
                             except Exception as e:
-                                error_msg = (
-                                    f"Agent {agent.agent_id} ({agent.model}) error: {str(e)}"
-                                )
+                                error_msg = f"Agent {agent.agent_id} ({agent.model}) error: {str(e)}"
                                 errors.append(error_msg)
                                 logger.warning(
                                     f"Connection error from agent {agent.agent_id} "
@@ -504,7 +506,9 @@ class AgentsEnsemble:
                                 )
 
             except Exception as e:
-                logger.critical(f"Exception during batch processing: {str(e)}", exc_info=True)
+                logger.critical(
+                    f"Exception during batch processing: {str(e)}", exc_info=True
+                )
                 # Signal shutdown for a clean exit
                 shutdown_flag.set()
                 # Try to cancel any remaining futures
@@ -518,12 +522,12 @@ class AgentsEnsemble:
                     f"{len(active_futures)}/{len(agents)} agents still active after timeout - "
                     f"attempting to cancel and clean up"
                 )
-                
+
                 # Collect diagnostic info for all hanging agents
                 for future in active_futures:
                     agent, submit_time = futures[future]
                     wait_time = current_time - submit_time
-                    
+
                     # Add detailed diagnostics to the error message
                     diagnostic_info = (
                         f"Agent {agent.agent_id} ({agent.model}, {agent.provider}) "
@@ -531,17 +535,21 @@ class AgentsEnsemble:
                         f"future state: done={future.done()}, cancelled={future.cancelled()}, "
                         f"running={future.running()}"
                     )
-                    
+
                     timeout_errors.append(diagnostic_info)
                     logger.error(diagnostic_info)
-                    
+
                     # Attempt to cancel the future
                     try:
                         cancel_result = future.cancel()
-                        logger.info(f"Cancel attempt for agent {agent.agent_id}: {cancel_result}")
+                        logger.info(
+                            f"Cancel attempt for agent {agent.agent_id}: {cancel_result}"
+                        )
                     except Exception as e:
-                        logger.error(f"Error cancelling future for agent {agent.agent_id}: {str(e)}")
-                
+                        logger.error(
+                            f"Error cancelling future for agent {agent.agent_id}: {str(e)}"
+                        )
+
                 # Log a critical warning about the hanging threads
                 logger.critical(
                     f"{len(active_futures)}/{len(agents)} agents timed out in batch "
@@ -554,7 +562,7 @@ class AgentsEnsemble:
             f"Batch processing completed in {batch_time:.2f}s: "
             f"{len(responses)} successes, {len(errors)} errors, {len(timeout_errors)} timeouts"
         )
-        
+
         # Final check for hanging threads - this is just diagnostic
         thread_count = threading.active_count()
         if thread_count > 10:  # Arbitrary threshold to detect potential issues
@@ -562,7 +570,7 @@ class AgentsEnsemble:
                 f"High thread count detected: {thread_count} threads still active "
                 f"after batch completion. This might indicate hanging threads."
             )
-            
+
         return responses, errors, timeout_errors
 
     def get_responses(

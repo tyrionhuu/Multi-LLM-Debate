@@ -15,8 +15,8 @@ from PIL import Image
 from requests.exceptions import ConnectionError
 
 from ..utils.config_manager import get_api_key, get_base_url
-from ..utils.retry import retry_with_timeout
 from ..utils.logging_config import setup_logging
+from ..utils.retry import retry_with_timeout
 
 # Set up logger
 logger = setup_logging(__name__)
@@ -116,7 +116,9 @@ def call_model(
         str: The generated response from the model.
     """
     start_time = time.time()
-    logger.info(f"Calling {provider}/{model_name} (timeout={timeout}s, json={json_mode})")
+    logger.info(
+        f"Calling {provider}/{model_name} (timeout={timeout}s, json={json_mode})"
+    )
 
     with TimeoutHandler(timeout, f"{provider}/{model_name} call"):
         if vision:
@@ -151,9 +153,13 @@ def call_model(
                     timeout=timeout,
                 )
             elif provider == "openai":
-                raise NotImplementedError("OpenAI API integration is not implemented yet.")
+                raise NotImplementedError(
+                    "OpenAI API integration is not implemented yet."
+                )
             elif provider == "anthropic":
-                raise NotImplementedError("Anthropic API integration is not implemented yet.")
+                raise NotImplementedError(
+                    "Anthropic API integration is not implemented yet."
+                )
             else:
                 raise ValueError(f"Unsupported provider: {provider}")
 
