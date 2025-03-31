@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 CONFIG_DIR = PROJECT_ROOT / "configs"
@@ -76,4 +76,36 @@ def save_vllm_url(url: str) -> None:
     """
     config = load_config()
     config["vllm_url"] = url
+    save_config(config)
+
+
+def get_vllm_model_path() -> Dict[str, str]:
+    """Get the vLLM model paths from the configuration.
+    
+    This function returns a dictionary mapping model names to their local paths.
+
+    Returns:
+        Dict[str, str]: Dictionary of model name to local path mappings.
+                       Default includes common open models.
+    """
+    config = load_config()
+    default_paths = {
+        "llama3": "/path/to/llama3",
+        "mistral": "/path/to/mistral",
+        # Add other default model paths as needed
+    }
+    return config.get("vllm_model_paths", default_paths)
+
+
+def save_vllm_model_path(model_name: str, model_path: str) -> None:
+    """Save a vLLM model path to the configuration.
+
+    Args:
+        model_name: The name to reference the model by
+        model_path: The local path to the model files
+    """
+    config = load_config()
+    if "vllm_model_paths" not in config:
+        config["vllm_model_paths"] = {}
+    config["vllm_model_paths"][model_name] = model_path
     save_config(config)

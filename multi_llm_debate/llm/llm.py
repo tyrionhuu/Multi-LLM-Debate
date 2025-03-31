@@ -16,7 +16,15 @@ from openai import OpenAI
 from PIL import Image
 from requests.exceptions import ConnectionError, Timeout
 
-from ..utils.config_manager import get_api_key, get_base_url, get_vllm_url
+# Add vLLM imports
+try:
+    from vllm import LLM, SamplingParams
+    VLLM_AVAILABLE = True
+except ImportError:
+    VLLM_AVAILABLE = False
+    logging.warning("vLLM library not found. Install with 'pip install vllm' to use vLLM provider.")
+
+from ..utils.config_manager import get_api_key, get_base_url, get_vllm_model_path
 from ..utils.logging_config import setup_logging
 from ..utils.retry import retry_with_timeout
 
@@ -25,7 +33,10 @@ logger = setup_logging(__name__)
 
 KEY = get_api_key()
 BASE_URL = get_base_url()
-VLLM_URL = get_vllm_url()  # Add vLLM URL configuration
+VLLM_MODEL_PATH = get_vllm_model_path()
+
+# Global vLLM model cache to avoid reloading
+_vllm_models = {}
 
 if KEY.strip() == "":
     KEY = input("Please enter your API key: ")
@@ -205,27 +216,26 @@ class AbortableOllamaRequest:
         return self.response
 
 
-class AbortableVLLMRequest:
-    """An abortable wrapper for vLLM requests.
+class AbortableVLLMInference:
+    """A thread-safe abortable wrapper for vLLM inference.
 
-    This class allows for aborting vLLM requests that are taking too long,
-    with proper cleanup of resources.
+    This class allows direct use of vLLM library with timeout capability.
     """
 
     def __init__(self):
-        """Initialize an abortable vLLM request wrapper."""
+        """Initialize an abortable vLLM inference wrapper."""
         self._abort_event = threading.Event()
         self.response = None
         self.error = None
         self.completed = False
 
     def abort(self):
-        """Signal abort to the running request thread."""
-        logger.warning("Aborting vLLM request")
+        """Signal abort to the running inference thread."""
+        logger.warning("Aborting vLLM inference")
         self._abort_event.set()
 
     def is_aborted(self) -> bool:
-        """Check if the request has been aborted.
+        """Check if the inference has been aborted.
 
         Returns:
             bool: True if aborted, False otherwise
@@ -233,7 +243,11 @@ class AbortableVLLMRequest:
         return self._abort_event.is_set()
 
     def run_with_timeout(
-        self, func: callable, args: tuple = None, kwargs: dict = None, timeout: int = 30
+        self,
+        func: callable,
+        args: tuple = None,
+        kwargs: dict = None,
+        timeout: int = 30,
     ):
         """Run a function with a timeout and abort capability.
 
@@ -273,14 +287,14 @@ class AbortableVLLMRequest:
 
         while thread.is_alive() and time.time() < timeout_time:
             if self.is_aborted():
-                logger.warning("Detected abort signal during vLLM execution")
-                raise ValueError("Request aborted")
+                logger.warning("Detected abort signal during vLLM inference")
+                raise ValueError("Inference aborted")
             thread.join(timeout=check_interval)
 
         if thread.is_alive():
             # Timeout occurred
             self.abort()
-            logger.error(f"vLLM request timeout after {timeout}s")
+            logger.error(f"vLLM inference timeout after {timeout}s")
             raise TimeoutError(f"Operation timed out after {timeout} seconds")
 
         if self.error:
@@ -332,7 +346,8 @@ def call_model(
 
     with ThreadSafeTimeout(timeout, f"{provider}/{model_name} call") as timeout_handler:
         try:
-            if vision and provider != "vllm":  # vLLM doesn't support vision yet
+            # vLLM doesn't support vision features yet
+            if vision and provider != "vllm":
                 return call_vision_model(
                     model_name=model_name,
                     provider=provider,
@@ -343,6 +358,8 @@ def call_model(
                     json_mode=json_mode,
                     timeout=timeout,
                 )
+            elif vision and provider == "vllm":
+                logger.warning("vLLM provider does not support vision models, falling back to text-only")
 
             if provider == "ollama":
                 result = generate_with_ollama(
@@ -363,6 +380,10 @@ def call_model(
                     timeout=timeout,
                 )
             elif provider == "vllm":
+                if not VLLM_AVAILABLE:
+                    raise ImportError(
+                        "vLLM library not installed. Please install with 'pip install vllm'"
+                    )
                 result = generate_with_vllm(
                     model_name=model_name,
                     prompt=prompt,
@@ -400,6 +421,135 @@ def call_model(
                 exc_info=True,
             )
             raise ConnectionError(f"Error with {provider} service: {str(e)}")
+
+
+def get_or_create_vllm_model(model_name: str) -> LLM:
+    """Get or create a vLLM model instance.
+
+    This function caches vLLM models to avoid reloading them for each request.
+
+    Args:
+        model_name: The name or path of the model to load
+
+    Returns:
+        LLM: A vLLM model instance
+
+    Raises:
+        ValueError: If the model cannot be loaded
+    """
+    global _vllm_models
+
+    if model_name in _vllm_models:
+        logger.debug(f"Using cached vLLM model: {model_name}")
+        return _vllm_models[model_name]
+
+    # Determine the actual model path
+    model_path = VLLM_MODEL_PATH.get(model_name, model_name)
+
+    logger.info(f"Loading vLLM model: {model_path}")
+    try:
+        # Load the model with vLLM
+        model = LLM(model=model_path)
+        _vllm_models[model_name] = model
+        return model
+    except Exception as e:
+        logger.error(f"Failed to load vLLM model {model_path}: {str(e)}")
+        raise ValueError(f"Failed to load vLLM model: {str(e)}")
+
+
+@retry_with_timeout(
+    max_retries=2,
+    exceptions=(TimeoutError, ValueError, RuntimeError),
+)
+def generate_with_vllm(
+    model_name: str,
+    prompt: str,
+    temperature: float,
+    max_tokens: int,
+    json_mode: bool = False,
+    timeout: int = 30,
+) -> str:
+    """Generates a response using the vLLM library.
+
+    This function uses vLLM's Python API directly instead of HTTP requests.
+
+    Args:
+        model_name (str): The name or path of the model to use
+        prompt (str): The text prompt for the model
+        temperature (float): Sampling temperature for the model
+        max_tokens (int): Maximum number of tokens in the response
+        json_mode (bool): Whether the response should be in JSON format
+        timeout (int): Maximum time to wait for the response
+
+    Returns:
+        str: The generated response from the model
+
+    Raises:
+        TimeoutError: If the inference times out
+        ValueError: If there's an issue with the model or parameters
+        ImportError: If vLLM is not installed
+    """
+    if not VLLM_AVAILABLE:
+        raise ImportError(
+            "vLLM library is not installed. Please install with 'pip install vllm'"
+        )
+
+    logger.info(f"Generating with vLLM library using model: {model_name}")
+
+    try:
+        # Enhance the prompt for JSON mode if needed
+        if json_mode:
+            prompt = "You must respond with valid JSON. " + prompt
+
+        # Set up sampling parameters
+        sampling_params = SamplingParams(
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stop=None,  # Can be customized if needed
+        )
+
+        # Create an abortable inference wrapper
+        inference = AbortableVLLMInference()
+
+        # Define the inference function
+        def run_inference():
+            # Get or create the model
+            model = get_or_create_vllm_model(model_name)
+
+            # Run inference
+            outputs = model.generate(prompt, sampling_params)
+            return outputs[0].outputs[0].text
+
+        # Run with timeout
+        response_text = inference.run_with_timeout(
+            func=run_inference,
+            timeout=timeout
+        )
+
+        # Process JSON if needed
+        if json_mode:
+            try:
+                # Ensure it's valid JSON
+                parsed_json = json.loads(response_text)
+                return json.dumps(parsed_json)
+            except json.JSONDecodeError as e:
+                logger.warning(f"vLLM returned invalid JSON despite json_mode=True: {e}")
+                return response_text
+
+        return response_text
+
+    except TimeoutError:
+        logger.error(f"vLLM inference timed out after {timeout}s")
+        raise TimeoutError(f"Inference timed out after {timeout} seconds")
+    except ValueError as e:
+        if "aborted" in str(e).lower():
+            logger.error("vLLM inference was aborted")
+            raise TimeoutError("Inference was aborted due to timeout")
+        logger.error(f"ValueError in vLLM inference: {str(e)}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in generate_with_vllm: {str(e)}", exc_info=True)
+        raise ValueError(f"vLLM error: {str(e)}")
 
 
 def call_vision_model(
@@ -722,109 +872,6 @@ def generate_with_api(
         )
     except Exception as e:
         logging.error(f"Error in generate_with_api: {str(e)}")
-        raise
-
-
-@retry_with_timeout(
-    max_retries=3,
-    exceptions=(TimeoutError, ConnectionError, requests.exceptions.RequestException),
-)
-def generate_with_vllm(
-    model_name: str,
-    prompt: str,
-    temperature: float,
-    max_tokens: int,
-    json_mode: bool = False,
-    timeout: int = 30,
-) -> str:
-    """Generates a response using a vLLM server.
-
-    Args:
-        model_name (str): The name of the model to use.
-        prompt (str): The text prompt for the model.
-        temperature (float): Sampling temperature for the model.
-        max_tokens (int): Maximum number of tokens in the response.
-        json_mode (bool): Whether the response should be in JSON format.
-        timeout (int): Maximum time to wait for the response.
-
-    Returns:
-        str: The generated response from the model.
-
-    Raises:
-        TimeoutError: If the request times out
-        ConnectionError: If there's an issue connecting to vLLM
-        ValueError: If there's an issue with the request parameters
-    """
-    if not VLLM_URL:
-        raise ValueError(
-            "vLLM URL is not configured. Please set it in the configuration."
-        )
-
-    logger.info(f"Sending request to vLLM server for model {model_name}")
-
-    # Construct the request payload
-    payload = {
-        "model": model_name,
-        "prompt": prompt,
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-        "stream": False,
-    }
-
-    # Add JSON mode instructions if required
-    if json_mode:
-        payload["prompt"] = "You must respond with valid JSON. " + prompt
-        # Some vLLM servers support a response_format parameter similar to OpenAI
-        payload["response_format"] = {"type": "json_object"}
-
-    endpoint = f"{VLLM_URL.rstrip('/')}/v1/completions"
-
-    # Use our abortable request wrapper
-    request = AbortableVLLMRequest()
-
-    def make_request():
-        try:
-            response = requests.post(endpoint, json=payload, timeout=timeout)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error during vLLM request: {str(e)}")
-            if isinstance(e, requests.exceptions.Timeout):
-                raise TimeoutError(f"vLLM request timed out after {timeout} seconds")
-            raise ConnectionError(f"Failed to connect to vLLM server: {str(e)}")
-
-    try:
-        result = request.run_with_timeout(func=make_request, timeout=timeout)
-
-        # Extract the response text from the vLLM response
-        if "choices" in result and len(result["choices"]) > 0:
-            response_text = result["choices"][0].get("text", "")
-        else:
-            logger.warning("Unexpected vLLM response format")
-            response_text = str(result)
-
-        # Process JSON if needed
-        if json_mode:
-            try:
-                # Ensure it's valid JSON
-                parsed_json = json.loads(response_text)
-                return json.dumps(parsed_json)
-            except json.JSONDecodeError:
-                logger.warning("vLLM returned invalid JSON despite json_mode=True")
-                return response_text
-
-        return response_text
-
-    except TimeoutError:
-        logger.error(f"vLLM request timed out after {timeout}s")
-        raise TimeoutError(f"Request timed out after {timeout} seconds")
-    except ValueError as e:
-        if "Request aborted" in str(e):
-            logger.error("vLLM request was aborted")
-            raise TimeoutError("Request was aborted due to timeout")
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in generate_with_vllm: {str(e)}")
         raise
 
 
