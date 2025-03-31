@@ -216,16 +216,12 @@ class AgentsEnsemble:
         else:
             # Process all agents concurrently in a single operation without batching
             logger.info(f"Processing all {len(self.agents)} agents concurrently")
-            
+
             # Use all agents directly, without grouping by provider or batching
             all_results = self._process_all_agents(
-                self.agents, 
-                prompt, 
-                json_mode, 
-                self.timeout, 
-                self.job_delay
+                self.agents, prompt, json_mode, self.timeout, self.job_delay
             )
-            
+
             batch_responses, batch_errors, batch_timeouts = all_results
             responses.extend(batch_responses)
             errors.extend(batch_errors)
@@ -307,7 +303,9 @@ class AgentsEnsemble:
             # Submit all jobs with appropriate delays
             for agent in agents:
                 if delay_between_agents > 0 and len(futures) > 0:
-                    logger.debug(f"Waiting {delay_between_agents}s before submitting next agent")
+                    logger.debug(
+                        f"Waiting {delay_between_agents}s before submitting next agent"
+                    )
                     time.sleep(delay_between_agents)
 
                 submission_time = time.time()
@@ -323,7 +321,9 @@ class AgentsEnsemble:
                 )
 
             # Set the end time for our timeout
-            total_timeout = timeout_per_agent + (len(agents) * delay_between_agents) + 30  # Add margin
+            total_timeout = (
+                timeout_per_agent + (len(agents) * delay_between_agents) + 30
+            )  # Add margin
             end_time = time.time() + total_timeout
 
             # Log the expected completion time

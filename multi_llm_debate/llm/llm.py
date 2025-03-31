@@ -469,7 +469,9 @@ def generate_with_ollama(
     max_eof_retries = 3
     for eof_retry in range(max_eof_retries):
         try:
-            logger.info(f"Sending request to Ollama model {model_name} (attempt {eof_retry+1}/{max_eof_retries})")
+            logger.info(
+                f"Sending request to Ollama model {model_name} (attempt {eof_retry+1}/{max_eof_retries})"
+            )
 
             options = Options(
                 temperature=temperature,
@@ -490,14 +492,14 @@ def generate_with_ollama(
                         kwargs["images"] = images
 
                     result = request.run_with_timeout(
-                        func=ollama.generate,
-                        kwargs=kwargs,
-                        timeout=timeout
+                        func=ollama.generate, kwargs=kwargs, timeout=timeout
                     )
 
                     return json.dumps(json.loads(result["response"]))
                 except TimeoutError:
-                    logger.error(f"JSON request to {model_name} timed out after {timeout}s")
+                    logger.error(
+                        f"JSON request to {model_name} timed out after {timeout}s"
+                    )
                     raise TimeoutError(f"Request timed out after {timeout} seconds")
                 except ValueError as e:
                     if "Request aborted" in str(e):
@@ -518,9 +520,7 @@ def generate_with_ollama(
                         kwargs["images"] = images
 
                     result = request.run_with_timeout(
-                        func=ollama.generate,
-                        kwargs=kwargs,
-                        timeout=timeout
+                        func=ollama.generate, kwargs=kwargs, timeout=timeout
                     )
 
                     return result["response"]
