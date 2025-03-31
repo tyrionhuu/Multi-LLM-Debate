@@ -39,9 +39,9 @@ def run_debate_round_zero(
     """
     logger.info(f"Starting debate round zero with {len(agents_ensemble.agents)} agents")
     logger.debug(f"Initial prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
-    
+
     start_time = time.time()
-    
+
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
     logger.debug(f"Output directory created/verified: {output_dir}")
@@ -57,18 +57,20 @@ def run_debate_round_zero(
         logger.info(f"All agent responses received in {response_time:.2f} seconds")
     except LLMConnectionError as e:
         logger.error(f"Connection error in round zero: {str(e)}", exc_info=True)
-        logger.error(f"Failed prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}")
+        logger.error(
+            f"Failed prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}"
+        )
         raise
 
     for i, response in enumerate(responses):
-        agent_id = response['agent_id']
-        response_text = response.get('response', '')
+        agent_id = response["agent_id"]
+        response_text = response.get("response", "")
         logger.info(f"Agent {agent_id} responded (#{i+1}/{len(responses)})")
         logger.debug(f"Agent {agent_id} response length: {len(response_text)} chars")
-        
+
         # Log a preview of each response
         if response_text:
-            preview = response_text[:100] + ('...' if len(response_text) > 100 else '')
+            preview = response_text[:100] + ("..." if len(response_text) > 100 else "")
             logger.debug(f"Agent {agent_id} response preview: {preview}")
 
     output_file = output_dir / "debate_round_0.json"
@@ -77,7 +79,9 @@ def run_debate_round_zero(
             json.dump(responses, f, indent=2)
         logger.info(f"Round zero responses saved to {output_file}")
     except (OSError, json.JSONDecodeError) as e:
-        logger.error(f"Failed to save responses to {output_file}: {str(e)}", exc_info=True)
+        logger.error(
+            f"Failed to save responses to {output_file}: {str(e)}", exc_info=True
+        )
         raise
 
     total_time = time.time() - start_time
