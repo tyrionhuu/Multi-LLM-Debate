@@ -31,7 +31,7 @@ class AgentsEnsemble:
         self,
         config_list: Optional[List[ModelConfig]] = None,
         job_delay: float = 0.5,
-        timeout: float = 120.0,
+        timeout: float = 180.0,
         max_retries: int = 3,
     ) -> None:
         """Initialize an AgentsEnsemble instance.
