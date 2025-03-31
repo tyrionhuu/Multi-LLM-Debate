@@ -56,3 +56,24 @@ def save_api_key(key: str) -> None:
     config = load_config()
     config["api_key"] = key
     save_config(config)
+
+
+def get_vllm_url() -> str:
+    """Get the vLLM server URL from the configuration.
+
+    Returns:
+        str: The URL of the vLLM server. Default is http://localhost:8000.
+    """
+    config = load_config()
+    return config.get("vllm_url", "http://localhost:8000")
+
+
+def save_vllm_url(url: str) -> None:
+    """Save the vLLM server URL to the configuration.
+
+    Args:
+        url: The URL of the vLLM server.
+    """
+    config = load_config()
+    config["vllm_url"] = url
+    save_config(config)
