@@ -22,7 +22,7 @@ def run_debate_round_n(
 
     Args:
         prompt (str): The debate prompt including previous context.
-        agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in 
+        agents_ensemble (AgentsEnsemble): Collection of LLM agents participating in
             the debate.
         output_dir (str | Path): Directory path where debate responses will be saved.
         round_num (int): Current round number.
