@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import time
+import atexit
 from concurrent.futures import TimeoutError as FutureTimeoutError
 from typing import Any, Dict, List, Literal, Optional, Union
 
@@ -15,6 +16,7 @@ from openai import OpenAI
 from PIL import Image
 from requests.exceptions import ConnectionError, Timeout
 from vllm import LLM, SamplingParams
+import torch.distributed
 
 from ..utils.config_manager import get_api_key, get_base_url, get_vllm_model_path
 from ..utils.logging_config import setup_logging
@@ -204,6 +206,43 @@ def get_or_create_vllm_model(model_name: str) -> LLM:
     except Exception as e:
         logger.error(f"Failed to load vLLM model {model_path}: {str(e)}")
         raise ValueError(f"Failed to load vLLM model: {str(e)}")
+
+
+def shutdown_vllm_models() -> None:
+    """Properly shutdown all loaded vLLM models and cleanup process groups.
+    
+    This function ensures all distributed resources are properly released,
+    preventing resource leaks and warnings about destroy_process_group().
+    """
+    global _vllm_models
+    
+    if not _vllm_models:
+        return
+    
+    logger.info(f"Shutting down {len(_vllm_models)} vLLM models")
+    
+    # Delete model instances to free GPU memory
+    for model_name, model in _vllm_models.items():
+        try:
+            logger.debug(f"Shutting down vLLM model: {model_name}")
+            del model
+        except Exception as e:
+            logger.warning(f"Error shutting down model {model_name}: {str(e)}")
+    
+    # Clear the models dictionary
+    _vllm_models.clear()
+    
+    # Cleanup process groups if initialized
+    if torch.distributed.is_initialized():
+        try:
+            logger.debug("Destroying PyTorch distributed process groups")
+            torch.distributed.destroy_process_group()
+        except Exception as e:
+            logger.warning(f"Error destroying process groups: {str(e)}")
+
+
+# Register shutdown handler to run when the program exits
+atexit.register(shutdown_vllm_models)
 
 
 def generate_with_vllm(
@@ -689,16 +728,20 @@ def main():
     prompt = f"{question} Please provide a detailed explanation."
     model_name = "/data/share_weight/Meta-Llama-3-8B"
     provider = "vllm"
-    result = call_model(
-        model_name=model_name,
-        provider=provider,
-        prompt=prompt,
-        temperature=0.7,
-        max_tokens=100,
-        json_mode=True,
-        timeout=180,
-    )
-    print("Generated response:", result)
+    try:
+        result = call_model(
+            model_name=model_name,
+            provider=provider,
+            prompt=prompt,
+            temperature=0.7,
+            max_tokens=100,
+            json_mode=True,
+            timeout=180,
+        )
+        print("Generated response:", result)
+    finally:
+        # Ensure cleanup happens when main() finishes
+        shutdown_vllm_models()
 
 
 if __name__ == "__main__":
