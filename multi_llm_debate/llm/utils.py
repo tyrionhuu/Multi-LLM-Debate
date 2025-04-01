@@ -2,6 +2,8 @@ import logging
 import threading
 import time
 from typing import Optional
+import torch.distributed
+import atexit
 
 from requests.exceptions import ConnectionError
 
@@ -248,3 +250,38 @@ class AbortableVLLMInference:
             raise self.error
 
         return self.response
+def shutdown_vllm_models() -> None:
+    """Properly shutdown all loaded vLLM models and cleanup process groups.
+
+    This function ensures all distributed resources are properly released,
+    preventing resource leaks and warnings about destroy_process_group().
+    """
+    global _vllm_models
+
+    if not _vllm_models:
+        return
+
+    logger.info(f"Shutting down {len(_vllm_models)} vLLM models")
+
+    # Delete model instances to free GPU memory
+    for model_name, model in _vllm_models.items():
+        try:
+            logger.debug(f"Shutting down vLLM model: {model_name}")
+            del model
+        except Exception as e:
+            logger.warning(f"Error shutting down model {model_name}: {str(e)}")
+
+    # Clear the models dictionary
+    _vllm_models.clear()
+
+    # Cleanup process groups if initialized
+    if torch.distributed.is_initialized():
+        try:
+            logger.debug("Destroying PyTorch distributed process groups")
+            torch.distributed.destroy_process_group()
+        except Exception as e:
+            logger.warning(f"Error destroying process groups: {str(e)}")
+
+
+# Register shutdown handler to run when the program exits
+atexit.register(shutdown_vllm_models)

@@ -1,4 +1,3 @@
-import atexit
 import base64
 import io
 import json
@@ -11,7 +10,6 @@ from typing import Any, Dict, List, Literal, Optional, Union
 import ollama
 import requests
 import requests.exceptions
-import torch.distributed
 from ollama import Options
 from openai import OpenAI
 from PIL import Image
@@ -208,41 +206,7 @@ def get_or_create_vllm_model(model_name: str) -> LLM:
         raise ValueError(f"Failed to load vLLM model: {str(e)}")
 
 
-def shutdown_vllm_models() -> None:
-    """Properly shutdown all loaded vLLM models and cleanup process groups.
 
-    This function ensures all distributed resources are properly released,
-    preventing resource leaks and warnings about destroy_process_group().
-    """
-    global _vllm_models
-
-    if not _vllm_models:
-        return
-
-    logger.info(f"Shutting down {len(_vllm_models)} vLLM models")
-
-    # Delete model instances to free GPU memory
-    for model_name, model in _vllm_models.items():
-        try:
-            logger.debug(f"Shutting down vLLM model: {model_name}")
-            del model
-        except Exception as e:
-            logger.warning(f"Error shutting down model {model_name}: {str(e)}")
-
-    # Clear the models dictionary
-    _vllm_models.clear()
-
-    # Cleanup process groups if initialized
-    if torch.distributed.is_initialized():
-        try:
-            logger.debug("Destroying PyTorch distributed process groups")
-            torch.distributed.destroy_process_group()
-        except Exception as e:
-            logger.warning(f"Error destroying process groups: {str(e)}")
-
-
-# Register shutdown handler to run when the program exits
-atexit.register(shutdown_vllm_models)
 
 
 def generate_with_vllm(
@@ -719,36 +683,3 @@ def generate_api_messages(
         ]
     return messages
 
-
-def main():
-    # You can set multiple GPUs with comma-separated indices, e.g., "0,1,2"
-
-    # Example usage of the generate_with_api function
-    question = "Is the sky blue?"
-    prompt = f"{question} Please provide a detailed explanation."
-    model_name = "/data/share_weight/Meta-Llama-3-8B"
-    provider = "vllm"
-    try:
-        result = call_model(
-            model_name=model_name,
-            provider=provider,
-            prompt=prompt,
-            temperature=0.7,
-            max_tokens=100,
-            json_mode=True,
-            timeout=180,
-        )
-        print("Generated response:", result)
-    finally:
-        # Ensure cleanup happens when main() finishes
-        shutdown_vllm_models()
-
-
-if __name__ == "__main__":
-    import os
-
-    # Set visible GPU devices for vLLM
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
-    main()
-    # This will run the main function to demonstrate the call_model function.
-    # You can replace the parameters with actual values as per your requirements.
