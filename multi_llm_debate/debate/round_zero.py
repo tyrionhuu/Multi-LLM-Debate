@@ -8,7 +8,7 @@ from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
 
 logger = setup_logging(__name__)
-
+logger.setLevel(logging.INFO)
 
 def run_debate_round_zero(
     prompt: str,
