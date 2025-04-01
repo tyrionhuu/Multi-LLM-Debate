@@ -694,7 +694,7 @@ def main():
         temperature=0.7,
         max_tokens=100,
         json_mode=True,
-        timeout=30,
+        timeout=180,
     )
     print("Generated response:", result)
 
