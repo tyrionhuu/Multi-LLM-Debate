@@ -4,7 +4,7 @@ import tempfile
 import time
 import uuid
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 
 from ..llm.prompt_builder import PromptBuilder
 from ..utils.logging_config import setup_logging
@@ -140,9 +140,9 @@ def run_debate_with_retry(
     run_debate_func: Callable,
     prompt: str,
     agents_ensemble: AgentsEnsemble,
-    output_dir: str | Path,
+    output_dir: Union[str, Path],
+    round_num: int,
     json_mode: bool = False,
-    round_num: Optional[int] = None,
     process_answer_func: Optional[Callable] = None,
     max_retries: int = 3,
 ) -> List[Dict]:
