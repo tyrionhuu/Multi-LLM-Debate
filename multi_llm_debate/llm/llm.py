@@ -458,7 +458,7 @@ def generate_with_ollama(
                 for chunk in ollama.generate(stream=True, **kwargs):
                     # Update activity time when we get a chunk
                     current_time = time.time()
-                    
+
                     # Check if we have a response in the chunk
                     if "response" in chunk:
                         is_streaming = True
@@ -472,21 +472,23 @@ def generate_with_ollama(
                             if len(stream_buffer) > 80 or "\n" in stream_buffer:
                                 logger.debug(f"Stream: {stream_buffer}")
                                 stream_buffer = ""
-                    
+
                     # Check if we've exceeded the inactivity timeout
                     if is_streaming and current_time - last_activity_time > timeout:
                         raise TimeoutError(
                             f"Timeout after {timeout}s without new tokens"
                         )
-                    
+
                     # For first activity timeout
                     if not is_streaming and current_time - last_activity_time > timeout:
-                        raise TimeoutError(
-                            f"Initial response timeout after {timeout}s"
-                        )
+                        raise TimeoutError(f"Initial response timeout after {timeout}s")
 
                 # Print any remaining text in debug buffer
-                if debug_stream and logger.getEffectiveLevel() <= logging.DEBUG and stream_buffer:
+                if (
+                    debug_stream
+                    and logger.getEffectiveLevel() <= logging.DEBUG
+                    and stream_buffer
+                ):
                     logger.debug(f"Stream: {stream_buffer}")
                     logger.debug("Streaming completed")
 
@@ -494,7 +496,7 @@ def generate_with_ollama(
             except TimeoutError as e:
                 logger.error(f"Streaming timeout: {str(e)}")
                 raise
-            
+
             # Process the response
             if json_mode:
                 try:
