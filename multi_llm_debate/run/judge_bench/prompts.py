@@ -5,7 +5,7 @@ NEW_LINE = "\n"
 JSON_FORMAT = """
 {
     "reasoning": "your reasoning based on the passage",
-    "answer": "A/B"
+    "Final Answer": "A/B"
 }
 """
 
@@ -17,7 +17,7 @@ JSON_FORMAT_COT = """
         "step_3": "third step of your reasoning",
         "...": "continue with as many steps as needed"
     },
-    "answer": "A/B"
+    "Final Answer": "A/B"
 }
 """
 
@@ -82,7 +82,7 @@ def build_judge_bench_round_zero_prompt(
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
             NEW_LINE
-            + "Note that the 'answer' field MUST contain only 'A' or 'B'."
+            + "Note that the 'Final Answer' field MUST contain only 'A' or 'B'."
             + NEW_LINE
         )
     else:
@@ -107,9 +107,6 @@ def build_judge_bench_round_zero_prompt(
 
     prompt += NEW_LINE
     prompt += "Which assistant provided the better response? A or B?"
-
-    prompt += NEW_LINE
-    prompt += "Remember: Your final answer must be EXACTLY 'A' or 'B'."
 
     prompt += NEW_LINE
     prompt += "Your answer:"
@@ -200,9 +197,6 @@ def build_judge_bench_round_n_prompt(
 
     prompt += NEW_LINE
     prompt += "Which assistant provided the better response? A or B?"
-
-    prompt += NEW_LINE
-    prompt += "Remember: Your final answer must be EXACTLY 'A' or 'B'."
 
     prompt += NEW_LINE
     prompt += "Your answer:"
