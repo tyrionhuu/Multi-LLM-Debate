@@ -685,7 +685,7 @@ def main():
     import os
     
     # Set visible GPU devices for vLLM
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3"  # Use only the first GPU
+    os.environ["CUDA_VISIBLE_DEVICES"] = "3" 
     # You can set multiple GPUs with comma-separated indices, e.g., "0,1,2"
     
     # Example usage of the generate_with_api function
