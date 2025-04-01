@@ -22,7 +22,7 @@ from .utils import AbortableVLLMInference, ThreadSafeTimeout
 
 # Set up logger
 logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)  # Set to INFO to reduce verbosity in production
+logger.setLevel(logging.DEBUG)  # Set to INFO to reduce verbosity in production
 
 KEY = get_api_key()
 BASE_URL = get_base_url()
@@ -67,6 +67,7 @@ def call_model(
     images: Union[
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
     ] = None,
+    debug_stream: bool = False,  # New parameter
 ) -> str:
     """Routes the call to the appropriate model provider and returns the response.
 
@@ -83,6 +84,7 @@ def call_model(
         vision (bool): Whether to use vision models.
         images (Union[str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None]):
             Image inputs when using vision models.
+        debug_stream (bool): Whether to stream responses in debug mode (ollama only).
 
     Returns:
         str: The generated response from the model.
@@ -109,6 +111,7 @@ def call_model(
                     images=images,
                     json_mode=json_mode,
                     timeout=timeout,
+                    debug_stream=debug_stream,  # Pass debug_stream parameter
                 )
             elif vision and provider == "vllm":
                 logger.warning(
@@ -123,6 +126,7 @@ def call_model(
                     max_tokens=max_tokens,
                     json_mode=json_mode,
                     timeout=timeout,
+                    debug_stream=debug_stream,  # Pass debug_stream parameter
                 )
             elif provider == "api":
                 result = generate_with_api(
@@ -305,6 +309,7 @@ def call_vision_model(
     ] = None,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
+    debug_stream: bool = False,  # New parameter
 ) -> str:
     """
     Routes the call to the appropriate vision model provider and returns the response.
@@ -319,6 +324,7 @@ def call_vision_model(
             Image file paths, bytes, PIL Images, or lists of any of these. If None, runs in text-only mode.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request. Defaults to 30.
+        debug_stream (bool): Whether to stream responses in debug mode (ollama only).
 
     Returns:
         str: The generated response from the vision model.
@@ -357,6 +363,7 @@ def call_vision_model(
             images=processed_images,
             json_mode=json_mode,
             timeout=timeout,
+            debug_stream=debug_stream,  # Pass debug_stream parameter
         )
     elif provider == "api":
         return generate_with_api(
@@ -384,6 +391,7 @@ def generate_with_ollama(
     images: Optional[List[str | bytes]] = None,
     json_mode: bool = False,
     timeout: int = 60,
+    debug_stream: bool = False,
 ) -> str:
     """Generates a response using the Ollama model with optional images.
 
@@ -396,6 +404,7 @@ def generate_with_ollama(
             If None or empty list, runs in text-only mode.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (int): Maximum time to wait for the response.
+        debug_stream (bool): Whether to stream the response in debug mode.
 
     Returns:
         str: The generated response from the model.
@@ -434,9 +443,34 @@ def generate_with_ollama(
                 kwargs["format"] = "json"
             else:
                 kwargs["prompt"] = prompt
-
-            # Single call to generate with proper params
-            result = ollama.generate(**kwargs)
+                
+            # Use streaming in debug mode if requested
+            if debug_stream and logger.getEffectiveLevel() <= logging.DEBUG:
+                logger.debug(f"Streaming response from Ollama model {model_name}...")
+                full_response = ""
+                stream_buffer = ""
+                
+                # Use the stream endpoint
+                for chunk in ollama.generate(stream=True, **kwargs):
+                    if "response" in chunk:
+                        response_piece = chunk["response"]
+                        full_response += response_piece
+                        stream_buffer += response_piece
+                        
+                        # Print buffer when it has a reasonable amount of text or contains a newline
+                        if len(stream_buffer) > 80 or "\n" in stream_buffer:
+                            logger.debug(f"Stream: {stream_buffer}")
+                            stream_buffer = ""
+                
+                # Print any remaining text in buffer
+                if stream_buffer:
+                    logger.debug(f"Stream: {stream_buffer}")
+                
+                result = {"response": full_response}
+                logger.debug("Streaming completed")
+            else:
+                # Single call to generate with proper params
+                result = ollama.generate(**kwargs)
 
             # Process the response
             if json_mode:
@@ -633,6 +667,21 @@ def main():
         timeout=180,
     )
     print("Generated response:", result)
+
+    # Example showing debug streaming
+    if logger.getEffectiveLevel() <= logging.DEBUG:
+        print("\nTesting debug streaming...")
+        result_streamed = call_model(
+            model_name=model_name,
+            provider=provider,
+            prompt=prompt,
+            temperature=0.7,
+            max_tokens=100,
+            json_mode=False,  # Streaming works best without JSON mode
+            timeout=180,
+            debug_stream=True,  # Enable debug streaming
+        )
+        print("Streamed response complete")
 
 
 if __name__ == "__main__":
