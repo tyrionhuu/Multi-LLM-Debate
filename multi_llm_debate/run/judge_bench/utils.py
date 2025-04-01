@@ -117,15 +117,10 @@ def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
     match = re.search(r"Final Answer:\s*([AB])", response)
     if match:
         return match.group(1)
-
-    # Fall back to original method if pattern not found
-    last_a = response.rfind("A")
-    last_b = response.rfind("B")
-
-    if last_a == -1 and last_b == -1:
-        raise ValueError("Answer not recognized")
-
-    return "A" if last_a > last_b else "B"
+    else:
+        raise ValueError(
+            "No valid answer found in the response. Please ensure the response contains 'Final Answer: A' or 'Final Answer: B'."
+        )
 
 
 def extract_bigger_char(comparison: str) -> str:
