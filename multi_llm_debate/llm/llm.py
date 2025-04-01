@@ -1,22 +1,22 @@
+import atexit
 import base64
 import io
 import json
 import logging
 import os
 import time
-import atexit
 from concurrent.futures import TimeoutError as FutureTimeoutError
 from typing import Any, Dict, List, Literal, Optional, Union
 
 import ollama
 import requests
 import requests.exceptions
+import torch.distributed
 from ollama import Options
 from openai import OpenAI
 from PIL import Image
 from requests.exceptions import ConnectionError, Timeout
 from vllm import LLM, SamplingParams
-import torch.distributed
 
 from ..utils.config_manager import get_api_key, get_base_url, get_vllm_model_path
 from ..utils.logging_config import setup_logging
@@ -210,17 +210,17 @@ def get_or_create_vllm_model(model_name: str) -> LLM:
 
 def shutdown_vllm_models() -> None:
     """Properly shutdown all loaded vLLM models and cleanup process groups.
-    
+
     This function ensures all distributed resources are properly released,
     preventing resource leaks and warnings about destroy_process_group().
     """
     global _vllm_models
-    
+
     if not _vllm_models:
         return
-    
+
     logger.info(f"Shutting down {len(_vllm_models)} vLLM models")
-    
+
     # Delete model instances to free GPU memory
     for model_name, model in _vllm_models.items():
         try:
@@ -228,10 +228,10 @@ def shutdown_vllm_models() -> None:
             del model
         except Exception as e:
             logger.warning(f"Error shutting down model {model_name}: {str(e)}")
-    
+
     # Clear the models dictionary
     _vllm_models.clear()
-    
+
     # Cleanup process groups if initialized
     if torch.distributed.is_initialized():
         try:
@@ -722,7 +722,7 @@ def generate_api_messages(
 
 def main():
     # You can set multiple GPUs with comma-separated indices, e.g., "0,1,2"
-    
+
     # Example usage of the generate_with_api function
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
@@ -746,9 +746,9 @@ def main():
 
 if __name__ == "__main__":
     import os
-    
+
     # Set visible GPU devices for vLLM
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3" 
+    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
     main()
     # This will run the main function to demonstrate the call_model function.
     # You can replace the parameters with actual values as per your requirements.
