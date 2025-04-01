@@ -506,7 +506,7 @@ def generate_with_ollama(
                 except json.JSONDecodeError:
                     # Return raw response if JSON parsing fails
                     logger.warning(
-                        f"Ollama returned invalid JSON despite json_mode=True"
+                        "Ollama returned invalid JSON despite json_mode=True"
                     )
                     return result["response"]
             else:
@@ -519,7 +519,7 @@ def generate_with_ollama(
             )
         except requests.exceptions.Timeout:
             logger.error(f"Request to {model_name} timed out from HTTP client")
-            raise TimeoutError(f"HTTP request timed out")
+            raise TimeoutError("HTTP request timed out")
         except ConnectionError as e:
             logger.error(f"Connection error with Ollama: {str(e)}")
             raise ConnectionError(
@@ -691,7 +691,7 @@ def main():
     # Example showing debug streaming
     if logger.getEffectiveLevel() <= logging.DEBUG:
         print("\nTesting debug streaming...")
-        result_streamed = call_model(
+        call_model(
             model_name=model_name,
             provider=provider,
             prompt=prompt,

@@ -1,7 +1,7 @@
 import json
 import logging
 import time
-from pathlib import Dict, Path
+from pathlib import Path
 from typing import Dict, List
 
 from ..utils.logging_config import setup_logging
