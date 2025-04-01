@@ -155,9 +155,7 @@ def build_judge_bench_round_n_prompt(
     )
 
     prompt += (
-        "Your evaluation should consider factors such as the helpfulness, "
-        "relevance, accuracy, depth, creativity, and level of detail of their "
-        "responses. Avoid any position biases and ensure that the order in "
+        "Avoid any position biases and ensure that the order in "
         "which the responses were presented does not influence your decision. "
         "Do not allow the length of the responses to influence your evaluation. "
         "Do not favor certain names of the assistants. Be as objective as "
