@@ -285,5 +285,5 @@ def shutdown_vllm_models() -> None:
             logger.warning(f"Error destroying process groups: {str(e)}")
 
 
-# Register shutdown handler to run when the program exits
-atexit.register(shutdown_vllm_models)
+    # Register shutdown handler to run when the program exits
+    atexit.register(shutdown_vllm_models)

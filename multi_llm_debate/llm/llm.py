@@ -679,3 +679,33 @@ def generate_api_messages(
             }
         ]
     return messages
+
+
+def main():
+    # You can set multiple GPUs with comma-separated indices, e.g., "0,1,2"
+    
+    # Example usage of the generate_with_api function
+    question = "Is the sky blue?"
+    prompt = f"{question} Please provide a detailed explanation."
+    model_name = "/data/share_weight/Meta-Llama-3-8B"
+    provider = "vllm"
+    result = call_model(
+        model_name=model_name,
+        provider=provider,
+        prompt=prompt,
+        temperature=0.7,
+        max_tokens=100,
+        json_mode=True,
+        timeout=180,
+    )
+    print("Generated response:", result)
+
+
+if __name__ == "__main__":
+    import os
+    
+    # Set visible GPU devices for vLLM
+    os.environ["CUDA_VISIBLE_DEVICES"] = "3" 
+    main()
+    # This will run the main function to demonstrate the call_model function.
+    # You can replace the parameters with actual values as per your requirements.
