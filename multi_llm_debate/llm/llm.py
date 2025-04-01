@@ -376,48 +376,6 @@ def call_vision_model(
         raise ValueError(f"Unsupported provider: {provider}")
 
 
-def retry_json_generation(
-    model_name: str,
-    prompt: str,
-    options: Options,
-    max_retries: int = 3,
-    images: Optional[List[str | bytes]] = None,
-) -> str:
-    """
-    Retries JSON generation when parsing fails.
-
-    Args:
-        model_name (str): The name of the model to use.
-        prompt (str): The text prompt for the model.
-        options (Options): Ollama options object.
-        max_retries (int): Maximum number of retry attempts.
-        images (Optional[List[str | bytes]]): Optional images for vision models.
-
-    Returns:
-        str: Valid JSON string response.
-
-    Raises:
-        ValueError: If unable to get valid JSON after max retries.
-    """
-    kwargs = {
-        "model": model_name,
-        "prompt": "You must respond with valid JSON. " + prompt,
-        "options": options,
-        "format": "json",
-    }
-    if images:
-        kwargs["images"] = images
-
-    for attempt in range(max_retries):
-        try:
-            response_str = ollama.generate(**kwargs)["response"]
-            return json.dumps(json.loads(response_str))
-        except json.JSONDecodeError:
-            if attempt == max_retries - 1:
-                raise ValueError(f"Invalid JSON response after {max_retries} attempts")
-            continue
-
-
 def generate_with_ollama(
     model_name: str,
     prompt: str,
@@ -470,22 +428,29 @@ def generate_with_ollama(
             if images:
                 kwargs["images"] = images
 
+            # Update prompt for JSON mode if needed
             if json_mode:
                 kwargs["prompt"] = "You must respond with valid JSON. " + prompt
                 kwargs["format"] = "json"
-
-                try:
-                    result = ollama.generate(**kwargs)
-                    # Validate JSON response
-                    return json.dumps(json.loads(result["response"]))
-                except json.JSONDecodeError:
-                    # Retry with explicit JSON formatting if parsing fails
-                    return retry_json_generation(
-                        model_name, prompt, options, images=images
-                    )
             else:
                 kwargs["prompt"] = prompt
-                result = ollama.generate(**kwargs)
+                
+            # Single call to generate with proper params
+            result = ollama.generate(**kwargs)
+            
+            # Process the response
+            if json_mode:
+                try:
+                    # Try to parse the JSON and re-serialize to ensure valid JSON
+                    parsed_json = json.loads(result["response"])
+                    return json.dumps(parsed_json)
+                except json.JSONDecodeError:
+                    # Return raw response if JSON parsing fails
+                    logger.warning(
+                        f"Ollama returned invalid JSON despite json_mode=True"
+                    )
+                    return result["response"]
+            else:
                 return result["response"]
 
         except requests.exceptions.Timeout:
