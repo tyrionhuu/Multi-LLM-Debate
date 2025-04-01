@@ -63,9 +63,7 @@ def build_judge_bench_round_zero_prompt(
     )
 
     prompt += (
-        "Your evaluation should consider factors such as the helpfulness, "
-        "relevance, accuracy, depth, creativity, and level of detail of their "
-        "responses. Avoid any position biases and ensure that the order in "
+        "Avoid any position biases and ensure that the order in "
         "which the responses were presented does not influence your decision. "
         "Do not allow the length of the responses to influence your evaluation. "
         "Do not favor certain names of the assistants. Be as objective as "
@@ -82,7 +80,9 @@ def build_judge_bench_round_zero_prompt(
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
             NEW_LINE
-            + "Note that the 'Final Answer' field MUST contain only 'A' or 'B'."
+            + "Note that the 'Final Answer' MUST be placed at the end of your response, "
+            + "and the value must be only 'A' or 'B'. "
+            + "Do not include any other text after 'Final Answer: A' or 'Final Answer: B'."
             + NEW_LINE
         )
     else:
@@ -90,7 +90,9 @@ def build_judge_bench_round_zero_prompt(
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
         prompt += (
             NEW_LINE
-            + "Note that the 'Final Answer' MUST be only 'A' or 'B'."
+            + "Note that the 'Final Answer: ' MUST be placed at the end of your response, "
+            + "and the value must be only 'A' or 'B'. "
+            + "Do not include any other text after 'Final Answer: A' or 'Final Answer: B'."
             + NEW_LINE
         )
 
@@ -172,7 +174,9 @@ def build_judge_bench_round_n_prompt(
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
             NEW_LINE
-            + "Note that the 'answer' field MUST contain only 'A' or 'B'."
+            + "Note that the 'Final Answer' MUST be placed at the end of your response, "
+            + "and the value must be only 'A' or 'B'. "
+            + "Do not include any other text after 'Final Answer: A' or 'Final Answer: B'."
             + NEW_LINE
         )
     else:
@@ -180,7 +184,9 @@ def build_judge_bench_round_n_prompt(
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
         prompt += (
             NEW_LINE
-            + "Note that the 'Final Answer' MUST be only 'A' or 'B'."
+            + "Note that the 'Final Answer: ' MUST be placed at the end of your response, "
+            + "and the value must be only 'A' or 'B'. "
+            + "Do not include any other text after 'Final Answer: A' or 'Final Answer: B'."
             + NEW_LINE
         )
 
