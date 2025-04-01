@@ -67,7 +67,7 @@ def call_model(
     images: Union[
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
     ] = None,
-    debug_stream: bool = False,  # New parameter
+    debug_stream: bool = True,  # New parameter
 ) -> str:
     """Routes the call to the appropriate model provider and returns the response.
 
@@ -309,7 +309,7 @@ def call_vision_model(
     ] = None,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    debug_stream: bool = False,  # New parameter
+    debug_stream: bool = True,  # New parameter
 ) -> str:
     """
     Routes the call to the appropriate vision model provider and returns the response.
@@ -391,7 +391,7 @@ def generate_with_ollama(
     images: Optional[List[str | bytes]] = None,
     json_mode: bool = False,
     timeout: int = 60,
-    debug_stream: bool = False,
+    debug_stream: bool = True,
 ) -> str:
     """Generates a response using the Ollama model with optional images.
 
