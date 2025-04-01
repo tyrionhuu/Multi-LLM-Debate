@@ -280,21 +280,93 @@ def check_convergence(
 
 
 def main():
+    """Test the debate functionality with a simple example.
+    
+    This function demonstrates how to run a debate with retry capabilities
+    using a simple boolean question.
+    """
+    import time
+    
     from ..run.bool_q.prompts import (
         build_bool_q_round_n_prompt,
         build_bool_q_round_zero_prompt,
     )
 
+    # Define a simple question and passage
     question = "Is the sky blue?"
-    passage = "The sky is blue."
+    passage = "The sky appears blue to the human eye during the day because of Rayleigh scattering."
+    
+    # Create a prompt builder with the question and passage
     prompt_builder = PromptBuilder(
         round_zero_fn=build_bool_q_round_zero_prompt,
         round_n_fn=build_bool_q_round_n_prompt,
         prompt_params={"question": question, "passage": passage},
     )
+    
+    # Create an agents ensemble for the debate
     agents_ensemble = AgentsEnsemble()
-    output_dir = "data/test"
-    debate(3, prompt_builder, agents_ensemble, output_dir)
+    
+    # Define the output directory
+    output_dir = Path("data/test_with_retry")
+    
+    # Define a custom process_answer_func that sometimes fails
+    # to demonstrate retry capability
+    def test_process_answer_func(response: str) -> bool:
+        """Process the response to extract a boolean answer.
+        
+        This function randomly fails occasionally to test the retry mechanism.
+        
+        Args:
+            response: The text response from an agent.
+            
+        Returns:
+            bool: True if the answer is 'yes', False if 'no'.
+            
+        Raises:
+            ValueError: If the response cannot be processed or if 
+                random failure is triggered.
+        """
+        # Randomly fail sometimes to test retry
+        if time.time() % 10 < 3:  # Will fail ~30% of the time
+            logger.warning("Simulated random failure in process_answer_func")
+            raise ValueError("Simulated random failure to test retry mechanism")
+        
+        # Extract the answer from the response
+        response = response.lower()
+        if "yes" in response:
+            return True
+        elif "no" in response:
+            return False
+        else:
+            raise ValueError(f"Could not extract boolean answer from: {response}")
+    
+    # Log test parameters
+    logger.info("=== Starting Debate Test with Retry Capability ===")
+    logger.info(f"Question: {question}")
+    logger.info(f"Passage: {passage}")
+    logger.info(f"Output directory: {output_dir}")
+    
+    try:
+        # Run the debate with 2 rounds, 3 retries max
+        results = debate(
+            max_rounds=2, 
+            prompt_builder=prompt_builder, 
+            agents_ensemble=agents_ensemble, 
+            output_dir=output_dir,
+            process_answer_func=test_process_answer_func,
+            max_retries=3,
+            json_mode=False
+        )
+        
+        # Print results summary
+        logger.info("=== Debate Completed Successfully ===")
+        logger.info(f"Total rounds completed: {len(results)}")
+        for i, round_results in enumerate(results):
+            logger.info(f"Round {i} had {len(round_results)} responses")
+            
+    except Exception as e:
+        logger.error(f"Debate test failed with error: {str(e)}")
+        raise
 
 
 if __name__ == "__main__":
