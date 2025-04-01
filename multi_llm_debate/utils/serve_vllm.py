@@ -1,9 +1,10 @@
 import argparse
 import logging
 import subprocess
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
+
 
 def serve_model_with_vllm(
     model_name_or_path: str,
@@ -18,7 +19,7 @@ def serve_model_with_vllm(
     additional_args: Optional[Dict[str, Any]] = None,
 ) -> subprocess.Popen:
     """Serves a model using VLLM server.
-    
+
     Args:
         model_name_or_path: Path to the model or model name from HuggingFace.
         tensor_parallel_size: Number of GPUs to use for tensor parallelism.
@@ -30,32 +31,41 @@ def serve_model_with_vllm(
         trust_remote_code: Whether to trust remote code in the model.
         quantization: Quantization method to use (awq, squeezellm, gptq).
         additional_args: Additional arguments to pass to the VLLM server.
-        
+
     Returns:
         A subprocess.Popen object representing the running server.
-    
+
     Raises:
         FileNotFoundError: If the VLLM package is not installed.
         RuntimeError: If the server fails to start.
     """
     try:
         cmd = [
-            "python", "-m", "vllm.entrypoints.api_server",
-            "--model", model_name_or_path,
-            "--tensor-parallel-size", str(tensor_parallel_size),
-            "--gpu-memory-utilization", str(gpu_memory_utilization),
-            "--host", host,
-            "--port", str(port),
-            "--max-model-len", str(max_model_len),
-            "--dtype", dtype,
+            "python",
+            "-m",
+            "vllm.entrypoints.api_server",
+            "--model",
+            model_name_or_path,
+            "--tensor-parallel-size",
+            str(tensor_parallel_size),
+            "--gpu-memory-utilization",
+            str(gpu_memory_utilization),
+            "--host",
+            host,
+            "--port",
+            str(port),
+            "--max-model-len",
+            str(max_model_len),
+            "--dtype",
+            dtype,
         ]
-        
+
         if trust_remote_code:
             cmd.append("--trust-remote-code")
-            
+
         if quantization:
             cmd.extend(["--quantization", quantization])
-            
+
         # Add any additional arguments
         if additional_args:
             for key, value in additional_args.items():
@@ -63,93 +73,85 @@ def serve_model_with_vllm(
                     cmd.append(f"--{key}")
                 else:
                     cmd.extend([f"--{key}", str(value)])
-        
+
         logger.info(f"Starting VLLM server with command: {' '.join(cmd)}")
-        
+
         # Start the server as a subprocess
         process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
-        
+
         # Log that the server is starting
         logger.info(f"VLLM server starting with PID {process.pid}")
         return process
-        
+
     except FileNotFoundError:
         logger.error("Failed to start VLLM server. Is VLLM installed?")
         raise FileNotFoundError(
             "VLLM package not found. Install it with: pip install vllm"
         )
 
+
 def main():
     """Command line interface for serving models with VLLM."""
     parser = argparse.ArgumentParser(description="Serve a model with VLLM")
     parser.add_argument(
-        "--model", 
-        type=str, 
+        "--model",
+        type=str,
         required=True,
-        help="Path to the model or model name from HuggingFace"
+        help="Path to the model or model name from HuggingFace",
     )
     parser.add_argument(
-        "--tensor-parallel-size", 
-        type=int, 
+        "--tensor-parallel-size",
+        type=int,
         default=1,
-        help="Number of GPUs to use for tensor parallelism"
+        help="Number of GPUs to use for tensor parallelism",
     )
     parser.add_argument(
-        "--gpu-memory-utilization", 
-        type=float, 
+        "--gpu-memory-utilization",
+        type=float,
         default=0.9,
-        help="Fraction of GPU memory to use"
+        help="Fraction of GPU memory to use",
     )
     parser.add_argument(
-        "--host", 
-        type=str, 
-        default="0.0.0.0",
-        help="Host address to bind the server to"
+        "--host", type=str, default="0.0.0.0", help="Host address to bind the server to"
     )
     parser.add_argument(
-        "--port", 
-        type=int, 
-        default=8000,
-        help="Port to bind the server to"
+        "--port", type=int, default=8000, help="Port to bind the server to"
     )
     parser.add_argument(
-        "--max-model-len", 
-        type=int, 
+        "--max-model-len",
+        type=int,
         default=4096,
-        help="Maximum sequence length for the model"
+        help="Maximum sequence length for the model",
     )
     parser.add_argument(
-        "--dtype", 
-        type=str, 
+        "--dtype",
+        type=str,
         default="bfloat16",
         choices=["float16", "bfloat16", "float32"],
-        help="Data type to use for the model"
+        help="Data type to use for the model",
     )
     parser.add_argument(
-        "--trust-remote-code", 
+        "--trust-remote-code",
         action="store_true",
-        help="Whether to trust remote code in the model"
+        help="Whether to trust remote code in the model",
     )
     parser.add_argument(
-        "--quantization", 
-        type=str, 
+        "--quantization",
+        type=str,
         choices=["awq", "squeezellm", "gptq"],
-        help="Quantization method to use"
+        help="Quantization method to use",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    
+
     # Start the server
     process = serve_model_with_vllm(
         model_name_or_path=args.model,
@@ -160,9 +162,9 @@ def main():
         max_model_len=args.max_model_len,
         dtype=args.dtype,
         trust_remote_code=args.trust_remote_code,
-        quantization=args.quantization
+        quantization=args.quantization,
     )
-    
+
     try:
         # Wait for the process to complete (or be interrupted)
         process.wait()
@@ -174,6 +176,7 @@ def main():
         except subprocess.TimeoutExpired:
             logger.warning("VLLM server did not terminate gracefully, killing...")
             process.kill()
+
 
 if __name__ == "__main__":
     main()
