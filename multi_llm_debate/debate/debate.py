@@ -143,7 +143,6 @@ def run_debate_with_retry(
     output_dir: Union[str, Path],
     round_num: int,
     json_mode: bool = False,
-    process_answer_func: Optional[Callable] = None,
     max_retries: int = 3,
 ) -> List[Dict]:
     """Run multiple debate rounds with retry capabilities.
@@ -166,70 +165,13 @@ def run_debate_with_retry(
     Raises:
         RuntimeError: If maximum retries are exceeded for any round.
     """
-    current_round = round_num if round_num is not None else 1
-    all_responses = []
-    current_prompt = prompt
-
-    logger.info(
-        f"Starting debate with retry. Max rounds: {max_rounds}, "
-        f"Starting round: {current_round}, Max retries: {max_retries}"
-    )
-
-    while current_round <= max_rounds:
-        retry_count = 0
-        round_success = False
-
-        while not round_success and retry_count < max_retries:
-            try:
-                logger.info(
-                    f"Running round {current_round} "
-                    f"(Attempt {retry_count + 1}/{max_retries})"
-                )
-
-                round_responses = run_debate_func(
-                    prompt=current_prompt,
-                    agents_ensemble=agents_ensemble,
-                    output_dir=output_dir,
-                    round_num=current_round,
-                    json_mode=json_mode,
-                )
-
-                # Process responses if a processing function is provided
-                if process_answer_func:
-                    logger.debug(f"Processing responses for round {current_round}")
-                    current_prompt = process_answer_func(
-                        round_responses, current_prompt, current_round
-                    )
-
-                all_responses.extend(round_responses)
-                round_success = True
-                logger.info(f"Round {current_round} completed successfully")
-
-            except Exception as e:
-                retry_count += 1
-                logger.warning(
-                    f"Error in round {current_round}, attempt "
-                    f"{retry_count}: {str(e)}"
-                )
-                if retry_count >= max_retries:
-                    logger.error(
-                        f"Maximum retries ({max_retries}) exceeded for "
-                        f"round {current_round}"
-                    )
-                    raise RuntimeError(
-                        f"Failed to complete round {current_round} after "
-                        f"{max_retries} attempts"
-                    ) from e
-
-                # Wait before retrying (with exponential backoff)
-                wait_time = 2**retry_count  # 2, 4, 8 seconds...
-                logger.info(f"Waiting {wait_time} seconds before retry...")
-                time.sleep(wait_time)
-
-        current_round += 1
-
-    logger.info(f"Debate completed successfully after {current_round - 1} rounds")
-    return all_responses
+    if round_num < 0 or round_num >= max_rounds:
+        logger.error(f"Invalid round number: {round_num}. Must be between 0 and {max_rounds - 1}.")
+        raise ValueError(f"Round number must be between 0 and {max_rounds - 1}.")
+    
+    run_debate_func = run_debate_round_zero if round_num == 0 else run_debate_func
+    logger.info(f"Starting debate round {round_num} with max_retries={max_retries}")
+    
 
 
 def check_convergence(
