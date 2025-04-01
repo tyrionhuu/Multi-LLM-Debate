@@ -685,7 +685,7 @@ def main():
     # Example usage of the generate_with_api function
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
-    model_name = "llama3"  # Example model name, adjust as needed
+    model_name = "meta-llama/Llama-3.2-1B" 
     provider = "vllm"
     result = call_model(
         model_name=model_name,
