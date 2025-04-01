@@ -443,29 +443,29 @@ def generate_with_ollama(
                 kwargs["format"] = "json"
             else:
                 kwargs["prompt"] = prompt
-                
+
             # Use streaming in debug mode if requested
             if debug_stream and logger.getEffectiveLevel() <= logging.DEBUG:
                 logger.debug(f"Streaming response from Ollama model {model_name}...")
                 full_response = ""
                 stream_buffer = ""
-                
+
                 # Use the stream endpoint
                 for chunk in ollama.generate(stream=True, **kwargs):
                     if "response" in chunk:
                         response_piece = chunk["response"]
                         full_response += response_piece
                         stream_buffer += response_piece
-                        
+
                         # Print buffer when it has a reasonable amount of text or contains a newline
                         if len(stream_buffer) > 80 or "\n" in stream_buffer:
                             logger.debug(f"Stream: {stream_buffer}")
                             stream_buffer = ""
-                
+
                 # Print any remaining text in buffer
                 if stream_buffer:
                     logger.debug(f"Stream: {stream_buffer}")
-                
+
                 result = {"response": full_response}
                 logger.debug("Streaming completed")
             else:
