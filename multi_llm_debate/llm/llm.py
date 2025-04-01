@@ -22,6 +22,7 @@ from .utils import AbortableVLLMInference, ThreadSafeTimeout
 
 # Set up logger
 logger = setup_logging(__name__)
+logger.setLevel(logging.INFO)  # Set to INFO to reduce verbosity in production
 
 KEY = get_api_key()
 BASE_URL = get_base_url()
@@ -421,7 +422,7 @@ def generate_with_ollama(
     model_name: str,
     prompt: str,
     temperature: float,
-    max_tokens: int,
+    max_tokens: int = 6400,  # Default max tokens for Ollama
     images: Optional[List[str | bytes]] = None,
     json_mode: bool = False,
     timeout: int = 60,
