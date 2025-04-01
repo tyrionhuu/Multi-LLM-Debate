@@ -168,12 +168,14 @@ def run_debate_with_retry(
         ValueError: If round_num is invalid.
     """
     if round_num < 0 or round_num >= max_rounds:
-        logger.error(f"Invalid round number: {round_num}. Must be between 0 and {max_rounds - 1}.")
+        logger.error(
+            f"Invalid round number: {round_num}. Must be between 0 and {max_rounds - 1}."
+        )
         raise ValueError(f"Round number must be between 0 and {max_rounds - 1}.")
     if max_retries < 1:
         logger.error("max_retries must be at least 1")
         raise ValueError("max_retries must be at least 1")
-    
+
     # Ensure output_dir is a Path object
     output_dir = Path(output_dir)
     if not output_dir.exists():
@@ -181,18 +183,18 @@ def run_debate_with_retry(
         output_dir.mkdir(parents=True, exist_ok=True)
     else:
         logger.debug(f"Output directory already exists: {output_dir}")
-        
+
     if not output_dir.is_dir():
         logger.error(f"Output path {output_dir} is not a directory.")
         raise ValueError(f"Output path {output_dir} must be a directory.")
-    
+
     if process_answer_func is None:
         logger.error("No process_answer_func function provided for debate round")
         raise ValueError("process_answer_func function must be provided")
-    
+
     # Log the start of the debate round with retries
     logger.info(f"Starting debate round {round_num} with max_retries={max_retries}")
-    
+
     for attempt in range(1, max_retries + 1):
         try:
             # Run the appropriate debate function based on round number
@@ -201,7 +203,7 @@ def run_debate_with_retry(
                     prompt=prompt,
                     agents_ensemble=agents_ensemble,
                     output_dir=output_dir,
-                    json_mode=json_mode
+                    json_mode=json_mode,
                 )
             else:
                 responses = run_debate_round_n(
@@ -209,21 +211,25 @@ def run_debate_with_retry(
                     agents_ensemble=agents_ensemble,
                     output_dir=output_dir,
                     round_num=round_num,
-                    json_mode=json_mode
+                    json_mode=json_mode,
                 )
-            
+
             # Validate responses with process_answer_func if provided
             if process_answer_func is not None:
                 try:
                     for response in responses:
                         process_answer_func(response["response"])
                 except Exception as e:
-                    logger.warning(f"Error processing response with process_answer_func: {str(e)}")
+                    logger.warning(
+                        f"Error processing response with process_answer_func: {str(e)}"
+                    )
                     raise  # Re-raise to trigger retry
-            
-            logger.info(f"Debate round {round_num} completed successfully on attempt {attempt}")
+
+            logger.info(
+                f"Debate round {round_num} completed successfully on attempt {attempt}"
+            )
             return responses
-            
+
         except Exception as e:
             if attempt < max_retries:
                 wait_time = 2 ** (attempt - 1)  # Exponential backoff
@@ -233,8 +239,12 @@ def run_debate_with_retry(
                 )
                 time.sleep(wait_time)
             else:
-                logger.error(f"Maximum retries ({max_retries}) exceeded for debate round {round_num}: {str(e)}")
-                raise RuntimeError(f"Failed to complete debate round {round_num} after {max_retries} attempts") from e
+                logger.error(
+                    f"Maximum retries ({max_retries}) exceeded for debate round {round_num}: {str(e)}"
+                )
+                raise RuntimeError(
+                    f"Failed to complete debate round {round_num} after {max_retries} attempts"
+                ) from e
 
 
 def check_convergence(
