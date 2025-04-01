@@ -1,10 +1,10 @@
+import atexit
 import logging
 import threading
 import time
 from typing import Optional
-import torch.distributed
-import atexit
 
+import torch.distributed
 from requests.exceptions import ConnectionError
 
 logger = logging.getLogger(__name__)
@@ -250,6 +250,8 @@ class AbortableVLLMInference:
             raise self.error
 
         return self.response
+
+
 def shutdown_vllm_models() -> None:
     """Properly shutdown all loaded vLLM models and cleanup process groups.
 

@@ -206,9 +206,6 @@ def get_or_create_vllm_model(model_name: str) -> LLM:
         raise ValueError(f"Failed to load vLLM model: {str(e)}")
 
 
-
-
-
 def generate_with_vllm(
     model_name: str,
     prompt: str,
@@ -682,4 +679,3 @@ def generate_api_messages(
             }
         ]
     return messages
-
