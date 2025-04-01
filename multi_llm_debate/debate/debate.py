@@ -214,16 +214,14 @@ def run_debate_with_retry(
                     json_mode=json_mode,
                 )
 
-            # Validate responses with process_answer_func if provided
-            if process_answer_func is not None:
-                try:
-                    for response in responses:
-                        process_answer_func(response["response"])
-                except Exception as e:
-                    logger.warning(
-                        f"Error processing response with process_answer_func: {str(e)}"
-                    )
-                    raise  # Re-raise to trigger retry
+            try:
+                for response in responses:
+                    process_answer_func(response["response"])
+            except Exception as e:
+                logger.warning(
+                    f"Error processing response with process_answer_func: {str(e)}"
+                )
+                raise  # Re-raise to trigger retry
 
             logger.info(
                 f"Debate round {round_num} completed successfully on attempt {attempt}"
