@@ -657,7 +657,7 @@ def main():
     prompt = f"{question} Please provide a detailed explanation."
     model_name = "llama3:8b"
     provider = "ollama"
-    
+
     # Example showing debug streaming
     if logger.getEffectiveLevel() <= logging.DEBUG:
         print("\nTesting debug streaming...")
