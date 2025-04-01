@@ -486,7 +486,7 @@ def generate_with_api(
     max_tokens: int,
     images: Optional[List[str | bytes]] = None,
     json_mode: bool = False,
-    timeout: int = 30,  # Default 30 seconds
+    timeout: int = 30,
 ) -> str:
     """
     Generates a response using the API with optional images.
