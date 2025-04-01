@@ -403,14 +403,14 @@ def generate_with_ollama(
         images (Optional[List[str | bytes]]): Paths to image files or image data.
             If None or empty list, runs in text-only mode.
         json_mode (bool): Whether the response should be in JSON format.
-        timeout (int): Maximum time to wait for the response.
+        timeout (int): Maximum time without activity in seconds before timeout.
         debug_stream (bool): Whether to stream the response in debug mode.
 
     Returns:
         str: The generated response from the model.
 
     Raises:
-        TimeoutError: If the request times out
+        TimeoutError: If the request times out (no activity for timeout seconds)
         ConnectionError: If there's an issue connecting to Ollama
         ValueError: If other validation fails
     """
@@ -426,7 +426,7 @@ def generate_with_ollama(
                 temperature=temperature,
                 num_ctx=max_tokens,
                 num_predict=max_tokens,
-                timeout=timeout,  # Set timeout in Ollama options
+                # Remove timeout from options - we'll handle it ourselves
             )
 
             kwargs = {
@@ -444,34 +444,57 @@ def generate_with_ollama(
             else:
                 kwargs["prompt"] = prompt
 
-            # Use streaming in debug mode if requested
-            if debug_stream and logger.getEffectiveLevel() <= logging.DEBUG:
-                logger.debug(f"Streaming response from Ollama model {model_name}...")
-                full_response = ""
-                stream_buffer = ""
+            # Use streaming to detect inactivity timeout
+            logger.debug(f"Streaming response from Ollama model {model_name}...")
+            full_response = ""
+            stream_buffer = ""
 
+            # Keep track of last activity time
+            last_activity_time = time.time()
+            is_streaming = False
+
+            try:
                 # Use the stream endpoint
                 for chunk in ollama.generate(stream=True, **kwargs):
+                    # Update activity time when we get a chunk
+                    current_time = time.time()
+                    
+                    # Check if we have a response in the chunk
                     if "response" in chunk:
+                        is_streaming = True
                         response_piece = chunk["response"]
                         full_response += response_piece
                         stream_buffer += response_piece
+                        last_activity_time = current_time
 
-                        # Print buffer when it has a reasonable amount of text or contains a newline
-                        if len(stream_buffer) > 80 or "\n" in stream_buffer:
-                            logger.debug(f"Stream: {stream_buffer}")
-                            stream_buffer = ""
+                        # For debug mode, print buffer when appropriate
+                        if debug_stream and logger.getEffectiveLevel() <= logging.DEBUG:
+                            if len(stream_buffer) > 80 or "\n" in stream_buffer:
+                                logger.debug(f"Stream: {stream_buffer}")
+                                stream_buffer = ""
+                    
+                    # Check if we've exceeded the inactivity timeout
+                    if is_streaming and current_time - last_activity_time > timeout:
+                        raise TimeoutError(
+                            f"Timeout after {timeout}s without new tokens"
+                        )
+                    
+                    # For first activity timeout
+                    if not is_streaming and current_time - last_activity_time > timeout:
+                        raise TimeoutError(
+                            f"Initial response timeout after {timeout}s"
+                        )
 
-                # Print any remaining text in buffer
-                if stream_buffer:
+                # Print any remaining text in debug buffer
+                if debug_stream and logger.getEffectiveLevel() <= logging.DEBUG and stream_buffer:
                     logger.debug(f"Stream: {stream_buffer}")
+                    logger.debug("Streaming completed")
 
                 result = {"response": full_response}
-                logger.debug("Streaming completed")
-            else:
-                # Single call to generate with proper params
-                result = ollama.generate(**kwargs)
-
+            except TimeoutError as e:
+                logger.error(f"Streaming timeout: {str(e)}")
+                raise
+            
             # Process the response
             if json_mode:
                 try:
@@ -487,9 +510,14 @@ def generate_with_ollama(
             else:
                 return result["response"]
 
+        except TimeoutError:
+            logger.error(f"Request to {model_name} timed out due to inactivity")
+            raise TimeoutError(
+                f"Request timed out after {timeout} seconds of inactivity"
+            )
         except requests.exceptions.Timeout:
-            logger.error(f"Request to {model_name} timed out after {timeout}s")
-            raise TimeoutError(f"Request timed out after {timeout} seconds")
+            logger.error(f"Request to {model_name} timed out from HTTP client")
+            raise TimeoutError(f"HTTP request timed out")
         except ConnectionError as e:
             logger.error(f"Connection error with Ollama: {str(e)}")
             raise ConnectionError(
