@@ -21,7 +21,7 @@ def debate(
     agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
     json_mode: bool = False,
-    process_answer: Optional[Callable] = None,
+    process_answer_func: Optional[Callable] = None,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -36,7 +36,7 @@ def debate(
         agents_ensemble: Collection of LLM agents participating in the debate.
         output_dir: Directory path where debate responses will be saved.
         json_mode: Whether to use JSON mode for responses.
-        process_answer: Function to process answers from responses. Defaults to
+        process_answer_func: Function to process answers from responses. Defaults to
             None, in which case extract_bool_answer will be used.
 
     Returns:
@@ -47,10 +47,10 @@ def debate(
         Exception: If any error occurs during the debate process.
             Original exception is logged and re-raised.
     """
-    # If process_answer is None, use extract_bool_answer as default
-    if process_answer is None:
-        logger.error("No process_answer function provided")
-        raise ValueError("process_answer function must be provided")
+    # If process_answer_func is None, use extract_bool_answer as default
+    if process_answer_func is None:
+        logger.error("No process_answer_func function provided")
+        raise ValueError("process_answer_func function must be provided")
 
     logger.info(f"Starting debate with max_rounds={max_rounds}, json_mode={json_mode}")
     logger.info(f"Using agents ensemble: {agents_ensemble}")
@@ -89,7 +89,7 @@ def debate(
                     f"Extracted responses for round {i}: {extracted_responses}"
                 )
                 try:
-                    if check_convergence(extracted_responses, process_answer):
+                    if check_convergence(extracted_responses, process_answer_func):
                         logger.info(
                             f"Convergence detected after round {i-1}, ending debate early"
                         )
@@ -135,25 +135,25 @@ def debate(
 
 
 def check_convergence(
-    responses: List[Dict], process_answer: Optional[Callable] = None
+    responses: List[Dict], process_answer_func: Optional[Callable] = None
 ) -> bool:
     """Check if the responses from all agents have converged to the same answer.
 
     Args:
         responses: List of agent responses from the most recent round of debate.
-        process_answer: Function to process answers from responses. Defaults to
+        process_answer_func: Function to process answers from responses. Defaults to
             None, in which case extract_bool_answer will be used.
 
     Returns:
         bool: True if all responses are the same, False otherwise.
     """
-    # If process_answer is None, use extract_bool_answer as default
-    if process_answer is None:
-        logger.error("No process_answer function provided for convergence check")
-        raise ValueError("process_answer function must be provided")
+    # If process_answer_func is None, use extract_bool_answer as default
+    if process_answer_func is None:
+        logger.error("No process_answer_func function provided for convergence check")
+        raise ValueError("process_answer_func function must be provided")
 
     try:
-        answers = [process_answer(response) for response in responses]
+        answers = [process_answer_func(response) for response in responses]
         logger.debug(f"Processed answers for convergence check: {answers}")
         is_converged = len(set(answers)) == 1
         if is_converged:
