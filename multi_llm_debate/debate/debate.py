@@ -141,7 +141,7 @@ def run_debate_with_retry(
     agents_ensemble: AgentsEnsemble,
     output_dir: Union[str, Path],
     round_num: int,
-    process_answer_func: Optional[Callable] = None,
+    process_answer_func: Callable,
     json_mode: bool = False,
     max_retries: int = 3,
 ) -> List[Dict]:
@@ -170,7 +170,27 @@ def run_debate_with_retry(
     if round_num < 0 or round_num >= max_rounds:
         logger.error(f"Invalid round number: {round_num}. Must be between 0 and {max_rounds - 1}.")
         raise ValueError(f"Round number must be between 0 and {max_rounds - 1}.")
+    if max_retries < 1:
+        logger.error("max_retries must be at least 1")
+        raise ValueError("max_retries must be at least 1")
     
+    # Ensure output_dir is a Path object
+    output_dir = Path(output_dir)
+    if not output_dir.exists():
+        logger.debug(f"Creating output directory: {output_dir}")
+        output_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        logger.debug(f"Output directory already exists: {output_dir}")
+        
+    if not output_dir.is_dir():
+        logger.error(f"Output path {output_dir} is not a directory.")
+        raise ValueError(f"Output path {output_dir} must be a directory.")
+    
+    if process_answer_func is None:
+        logger.error("No process_answer_func function provided for debate round")
+        raise ValueError("process_answer_func function must be provided")
+    
+    # Log the start of the debate round with retries
     logger.info(f"Starting debate round {round_num} with max_retries={max_retries}")
     
     for attempt in range(1, max_retries + 1):
