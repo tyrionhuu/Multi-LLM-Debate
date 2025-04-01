@@ -473,9 +473,6 @@ def generate_with_ollama(
                 logging.error(f"Persistent EOF error with Ollama: {error_msg}")
                 raise ValueError(
                     "Ollama server disconnected unexpectedly (EOF error). "
-                    "This usually happens when the Ollama server crashes or restarts. "
-                    "Please check if Ollama is running properly, restart it if needed, "
-                    "and try again."
                 )
             else:
                 logging.error(f"Error in generate_with_ollama: {error_msg}")
