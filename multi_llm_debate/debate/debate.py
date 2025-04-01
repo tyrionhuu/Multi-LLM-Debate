@@ -23,6 +23,7 @@ def debate(
     output_dir: str | Path,
     json_mode: bool = False,
     process_answer_func: Optional[Callable] = None,
+    max_retries: int = 3,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -37,8 +38,8 @@ def debate(
         agents_ensemble: Collection of LLM agents participating in the debate.
         output_dir: Directory path where debate responses will be saved.
         json_mode: Whether to use JSON mode for responses.
-        process_answer_func: Function to process answers from responses. Defaults to
-            None, in which case extract_bool_answer will be used.
+        process_answer_func: Function to process answers from responses.
+        max_retries: Maximum retry attempts for each round. Defaults to 3.
 
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
@@ -73,11 +74,15 @@ def debate(
                 logger.info("Running round 0 (initial statements)")
                 prompt = prompt_builder.build_round_zero()
                 logger.debug(f"Round 0 prompt built: {prompt[:100]}...")
-                round_responses = run_debate_round_zero(
+                round_responses = run_debate_with_retry(
+                    max_rounds=max_rounds,
                     prompt=prompt,
                     agents_ensemble=agents_ensemble,
                     output_dir=temp_dir,
+                    round_num=i,
+                    process_answer_func=process_answer_func,
                     json_mode=json_mode,
+                    max_retries=max_retries,
                 )
             else:
                 extracted_responses = [
@@ -101,12 +106,15 @@ def debate(
 
                 prompt = prompt_builder.build_round_n(extracted_responses)
                 logger.debug(f"Round {i} prompt built: {prompt[:100]}...")
-                round_responses = run_debate_round_n(
+                round_responses = run_debate_with_retry(
+                    max_rounds=max_rounds,
                     prompt=prompt,
                     agents_ensemble=agents_ensemble,
                     output_dir=temp_dir,
                     round_num=i,
+                    process_answer_func=process_answer_func,
                     json_mode=json_mode,
+                    max_retries=max_retries,
                 )
             all_responses.append(round_responses)
             logger.info(
