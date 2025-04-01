@@ -230,12 +230,9 @@ def run_debate_with_retry(
 
         except Exception as e:
             if attempt < max_retries:
-                wait_time = 2 ** (attempt - 1)  # Exponential backoff
                 logger.warning(
                     f"Error in debate round {round_num}, attempt {attempt}/{max_retries}: {str(e)}. "
-                    f"Retrying in {wait_time} seconds."
                 )
-                time.sleep(wait_time)
             else:
                 logger.error(
                     f"Maximum retries ({max_retries}) exceeded for debate round {round_num}: {str(e)}"
