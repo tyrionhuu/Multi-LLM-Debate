@@ -421,6 +421,15 @@ def generate_with_ollama(
                 f"Sending request to Ollama model {model_name} (attempt "
                 f"{eof_retry+1}/{max_eof_retries})"
             )
+            
+            # First, check if Ollama server is up and responsive
+            try:
+                # Check if model is available and pulled - this can detect many issues early
+                model_info = ollama.show(model_name)
+                logger.debug(f"Model info: {model_info}")
+            except Exception as e:
+                logger.warning(f"Could not verify model availability: {str(e)}")
+                # Continue anyway - the model might be loading or pulling
 
             options = Options(
                 temperature=temperature,
@@ -444,20 +453,31 @@ def generate_with_ollama(
             else:
                 kwargs["prompt"] = prompt
 
+            # Log the actual request being made
+            logger.debug(f"Sending Ollama request with parameters: {kwargs}")
+            
             # Use streaming to detect inactivity timeout
             logger.debug(f"Streaming response from Ollama model {model_name}...")
             full_response = ""
             stream_buffer = ""
 
             # Keep track of last activity time
-            last_activity_time = time.time()
+            start_time = time.time()
+            last_activity_time = start_time
             is_streaming = False
+            loading_message_shown = False
 
             try:
                 # Use the stream endpoint
                 for chunk in ollama.generate(stream=True, **kwargs):
                     # Update activity time when we get a chunk
                     current_time = time.time()
+                    
+                    # If we're taking too long to start and haven't shown a message yet
+                    if (not is_streaming and not loading_message_shown and 
+                        current_time - start_time > 5):
+                        logger.info(f"Model {model_name} is loading, please wait...")
+                        loading_message_shown = True
 
                     # Check if we have a response in the chunk
                     if "response" in chunk:
@@ -473,15 +493,18 @@ def generate_with_ollama(
                                 logger.debug(f"Stream: {stream_buffer}")
                                 stream_buffer = ""
 
-                    # Check if we've exceeded the inactivity timeout
+                    # Check if we've exceeded the inactivity timeout - only after streaming starts
                     if is_streaming and current_time - last_activity_time > timeout:
                         raise TimeoutError(
                             f"Timeout after {timeout}s without new tokens"
                         )
 
-                    # For first activity timeout
-                    if not is_streaming and current_time - last_activity_time > timeout:
-                        raise TimeoutError(f"Initial response timeout after {timeout}s")
+                    # For first activity timeout - give more time for initial model loading
+                    initial_timeout = max(timeout * 2, 120)  # At least 2 minutes for loading
+                    if not is_streaming and current_time - start_time > initial_timeout:
+                        raise TimeoutError(
+                            f"Initial model loading timeout after {initial_timeout}s"
+                        )
 
                 # Print any remaining text in debug buffer
                 if (
@@ -513,10 +536,28 @@ def generate_with_ollama(
                 return result["response"]
 
         except TimeoutError:
-            logger.error(f"Request to {model_name} timed out due to inactivity")
-            raise TimeoutError(
-                f"Request timed out after {timeout} seconds of inactivity"
-            )
+            # If this is the last retry, give more diagnostic information
+            if eof_retry == max_eof_retries - 1:
+                try:
+                    # Try to get Ollama server status
+                    server_info = ollama.list()
+                    logger.error(f"Ollama server is running but request timed out. Models: {server_info}")
+                except Exception as status_err:
+                    logger.error(f"Failed to get Ollama status: {str(status_err)}")
+                    
+                logger.error(f"Request to {model_name} timed out due to inactivity")
+                raise TimeoutError(
+                    f"Model {model_name} timed out. This may be due to: "
+                    f"1) Model is still loading (large models can take minutes) "
+                    f"2) Insufficient system resources (RAM/GPU memory) "
+                    f"3) Ollama server issues (try restarting Ollama)"
+                )
+            else:
+                # For non-final retries, just log and retry
+                logger.warning(f"Timeout on attempt {eof_retry+1}, retrying...")
+                time.sleep(1)  # Small delay before retry
+                continue
+                
         except requests.exceptions.Timeout:
             logger.error(f"Request to {model_name} timed out from HTTP client")
             raise TimeoutError("HTTP request timed out")
@@ -532,11 +573,13 @@ def generate_with_ollama(
                     f"Ollama EOF error encountered, retrying "
                     f"({eof_retry+1}/{max_eof_retries}): {error_msg}"
                 )
+                time.sleep(2)  # Add delay between retries
                 continue
             elif "EOF" in error_msg:
                 logging.error(f"Persistent EOF error with Ollama: {error_msg}")
                 raise ValueError(
                     "Ollama server disconnected unexpectedly (EOF error). "
+                    "This often happens when the model is still loading or when memory is insufficient."
                 )
             else:
                 logging.error(f"Error in generate_with_ollama: {error_msg}")
@@ -609,7 +652,7 @@ def generate_with_api(
 
 def generate_api_messages(
     prompt: str,
-    images: Optional[List[str | bytes]] = None,
+    images: Optional[List[Union[str, bytes]]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Prepares the messages payload for the API call with optional images and a prompt.
