@@ -682,6 +682,12 @@ def generate_api_messages(
 
 
 def main():
+    import os
+    
+    # Set visible GPU devices for vLLM
+    os.environ["CUDA_VISIBLE_DEVICES"] = "3"  # Use only the first GPU
+    # You can set multiple GPUs with comma-separated indices, e.g., "0,1,2"
+    
     # Example usage of the generate_with_api function
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
