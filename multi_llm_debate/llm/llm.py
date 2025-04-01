@@ -434,10 +434,10 @@ def generate_with_ollama(
                 kwargs["format"] = "json"
             else:
                 kwargs["prompt"] = prompt
-                
+
             # Single call to generate with proper params
             result = ollama.generate(**kwargs)
-            
+
             # Process the response
             if json_mode:
                 try:
