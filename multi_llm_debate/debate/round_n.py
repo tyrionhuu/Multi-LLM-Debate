@@ -1,14 +1,15 @@
 import json
 import logging
 import time
-from pathlib import Path, Dict
-from typing import List, Dict
+from pathlib import Dict, Path
+from typing import Dict, List
 
 from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
 
 logger = setup_logging(__name__)
 logger.setLevel(logging.INFO)
+
 
 def run_debate_round_n(
     prompt: str,
@@ -94,4 +95,3 @@ def run_debate_round_n(
     total_time = time.time() - start_time
     logger.info(f"Debate round {round_num} completed in {total_time:.2f} seconds")
     return responses
-
