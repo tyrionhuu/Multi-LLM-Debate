@@ -18,7 +18,7 @@ from vllm import LLM, SamplingParams
 
 from ..utils.config_manager import get_api_key, get_base_url, get_vllm_model_path
 from ..utils.logging_config import setup_logging
-from .utils import AbortableOllamaRequest, AbortableVLLMInference, ThreadSafeTimeout
+from .utils import AbortableVLLMInference, ThreadSafeTimeout
 
 # Set up logger
 logger = setup_logging(__name__)
@@ -428,8 +428,6 @@ def generate_with_ollama(
 ) -> str:
     """Generates a response using the Ollama model with optional images.
 
-    This function uses an abortable approach to handle timeouts properly.
-
     Args:
         model_name (str): The name of the model to use.
         prompt (str): The text prompt for the model.
@@ -446,7 +444,7 @@ def generate_with_ollama(
     Raises:
         TimeoutError: If the request times out
         ConnectionError: If there's an issue connecting to Ollama
-        ValueError: If the request is aborted or other validation fails
+        ValueError: If other validation fails
     """
     max_eof_retries = 3
     for eof_retry in range(max_eof_retries):
@@ -459,65 +457,36 @@ def generate_with_ollama(
             options = Options(
                 temperature=temperature,
                 num_ctx=max_tokens,
+                num_predict=max_tokens,
+                timeout=timeout,  # Set timeout in Ollama options
             )
 
+            kwargs = {
+                "model": model_name,
+                "options": options,
+            }
+
+            if images:
+                kwargs["images"] = images
+                
             if json_mode:
-                request = AbortableOllamaRequest()
+                kwargs["prompt"] = "You must respond with valid JSON. " + prompt
+                kwargs["format"] = "json"
+                
                 try:
-                    kwargs = {
-                        "model": model_name,
-                        "prompt": "You must respond with valid JSON. " + prompt,
-                        "options": options,
-                        "format": "json",
-                    }
-
-                    if images:
-                        kwargs["images"] = images
-
-                    result = request.run_with_timeout(
-                        func=ollama.generate, kwargs=kwargs, timeout=timeout
-                    )
-
+                    result = ollama.generate(**kwargs)
+                    # Validate JSON response
                     return json.dumps(json.loads(result["response"]))
-                except TimeoutError:
-                    logger.error(
-                        f"JSON request to {model_name} timed out after {timeout}s"
-                    )
-                    raise TimeoutError(f"Request timed out after {timeout} seconds")
-                except ValueError as e:
-                    if "Request aborted" in str(e):
-                        logger.error(f"JSON request to {model_name} was aborted")
-                        raise TimeoutError("Request was aborted due to timeout")
-                    raise
+                except json.JSONDecodeError:
+                    # Retry with explicit JSON formatting if parsing fails
+                    return retry_json_generation(model_name, prompt, options, images=images)
             else:
-                request = AbortableOllamaRequest()
-                try:
-                    kwargs = {
-                        "model": model_name,
-                        "prompt": prompt,
-                        "options": options,
-                        "format": "",
-                    }
-
-                    if images:
-                        kwargs["images"] = images
-
-                    result = request.run_with_timeout(
-                        func=ollama.generate, kwargs=kwargs, timeout=timeout
-                    )
-
-                    return result["response"]
-                except TimeoutError:
-                    logger.error(f"Request to {model_name} timed out after {timeout}s")
-                    raise TimeoutError(f"Request timed out after {timeout} seconds")
-                except ValueError as e:
-                    if "Request aborted" in str(e):
-                        logger.error(f"Request to {model_name} was aborted")
-                        raise TimeoutError("Request was aborted due to timeout")
-                    raise
+                kwargs["prompt"] = prompt
+                result = ollama.generate(**kwargs)
+                return result["response"]
 
         except requests.exceptions.Timeout:
-            logger.error(f"Request to {model_name} timed out")
+            logger.error(f"Request to {model_name} timed out after {timeout}s")
             raise TimeoutError(f"Request timed out after {timeout} seconds")
         except ConnectionError as e:
             logger.error(f"Connection error with Ollama: {str(e)}")
