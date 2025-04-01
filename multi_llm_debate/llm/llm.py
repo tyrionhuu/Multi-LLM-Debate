@@ -468,18 +468,20 @@ def generate_with_ollama(
 
             if images:
                 kwargs["images"] = images
-                
+
             if json_mode:
                 kwargs["prompt"] = "You must respond with valid JSON. " + prompt
                 kwargs["format"] = "json"
-                
+
                 try:
                     result = ollama.generate(**kwargs)
                     # Validate JSON response
                     return json.dumps(json.loads(result["response"]))
                 except json.JSONDecodeError:
                     # Retry with explicit JSON formatting if parsing fails
-                    return retry_json_generation(model_name, prompt, options, images=images)
+                    return retry_json_generation(
+                        model_name, prompt, options, images=images
+                    )
             else:
                 kwargs["prompt"] = prompt
                 result = ollama.generate(**kwargs)
@@ -652,7 +654,7 @@ def generate_api_messages(
 
 def main():
     # You can set multiple GPUs with comma-separated indices, e.g., "0,1,2"
-    
+
     # Example usage of the generate_with_api function
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
@@ -672,9 +674,9 @@ def main():
 
 if __name__ == "__main__":
     import os
-    
+
     # Set visible GPU devices for vLLM
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3" 
+    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
     main()
     # This will run the main function to demonstrate the call_model function.
     # You can replace the parameters with actual values as per your requirements.
