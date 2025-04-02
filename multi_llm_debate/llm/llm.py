@@ -35,7 +35,7 @@ def call_model(
     prompt: str = "",
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    json_mode: bool = True,
+    json_mode: bool = False,
     timeout: Optional[int] = 30,
     vision: bool = False,
     images: Union[
@@ -125,7 +125,7 @@ def call_model(
             response_format={"type": "json_object"} if json_mode else None,
             seed=42,
         )
-
+        logger.debug(f"API response: {response}")
         # Extract response content
         response_str = response.choices[0].message.content
 
@@ -235,16 +235,15 @@ def generate_api_messages(
 
 def main():
     """Example usage of the call_model function."""
-    question = "Is the sky blue?"
-    prompt = f"{question} Please provide a detailed explanation."
-    model_name = "Meta-Llama-3-8B"
+    prompt = "Hello, how are you?"
+    model_name = "/data/share_weight/Qwen2-7B"
     base_url = "http://localhost:8000/v1"
     response = call_model(
         model_name=model_name,
         prompt=prompt,
         base_url=base_url,
         temperature=0.7,
-        max_tokens=100,
+        max_tokens=1000,
         json_mode=False,
         timeout=30,
     )
