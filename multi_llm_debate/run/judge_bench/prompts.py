@@ -140,7 +140,6 @@ def build_judge_bench_round_n_prompt(
     prompt += DIVIDER + NEW_LINE
     for i, response in enumerate(responses, 1):
         prompt += f"Judge {i}: {response}" + NEW_LINE
-        
 
     prompt += DIVIDER + NEW_LINE
     prompt += (

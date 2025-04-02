@@ -55,7 +55,7 @@ def main(
             # Use provided config path or default to config.json in task directory
             if config is None:
                 config = Path(f"multi_llm_debate/run/{task_name}/config.json")
-            
+
             # Load configuration from file
             with open(config) as f:
                 model_configs_list = json.load(f)
