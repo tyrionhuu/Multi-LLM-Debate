@@ -21,7 +21,7 @@ while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
         exit 1
     fi
     echo "Attempt $ATTEMPT: Server not ready yet. Waiting..."
-    sleep 2
+    sleep 5
     ATTEMPT=$((ATTEMPT+1))
 done
 echo "Server is ready!"
