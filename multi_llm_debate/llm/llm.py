@@ -6,7 +6,6 @@ import os
 import time
 from typing import Any, Dict, List, Optional, Union
 
-import requests
 from openai import OpenAI
 from PIL import Image
 from requests.exceptions import ConnectionError, Timeout
