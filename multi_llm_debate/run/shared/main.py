@@ -18,7 +18,6 @@ def main(
     process_df_fn: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None,
     task_name: str = "debate",
     sample_size: Optional[int] = None,
-    max_workers: Optional[int] = 4,
     config: Optional[Union[Path, List[Dict]]] = None,
     config_json: Optional[str] = None,
     random_seed: Optional[int] = None,
@@ -34,7 +33,6 @@ def main(
             the dataframe will be used without preprocessing.
         task_name: Name of the debate task
         sample_size: Optional number of samples to process
-        max_workers: Maximum number of concurrent workers
         config: Path to JSON config file or list of model configurations
         config_json: JSON string containing model configurations
         random_seed: Random seed for sampling
@@ -80,7 +78,6 @@ def main(
                     report_path=Path(f"data/{task_name}"),
                     model_configs=model_configs,
                     random_seed=random_seed,
-                    max_workers=max_workers,
                 )
 
     except FileNotFoundError:
