@@ -14,4 +14,3 @@ CONFIG='[
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.judge_bench.main \
     --config "$CONFIG" \
-    --sample-size 2000 \
