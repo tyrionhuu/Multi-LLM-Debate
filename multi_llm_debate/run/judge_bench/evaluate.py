@@ -4,7 +4,7 @@ from typing import Dict, List
 import pandas as pd
 
 from ..shared.evaluate import EvaluationResults, evaluate_all
-from .utils import compare_judge_bench_responses, extract_caption_a_b_answer
+from .utils import compare_judge_bench_response, extract_caption_a_b_answer
 
 
 def evaluate_judge_bench_responses(
@@ -21,7 +21,7 @@ def evaluate_judge_bench_responses(
         bool: True if all responses are the same and match the answer, False otherwise.
     """
     return all(
-        compare_judge_bench_responses(response["response"], answer)
+        compare_judge_bench_response(response["response"], answer)
         for response in responses
     )
 
