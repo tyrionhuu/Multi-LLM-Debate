@@ -182,3 +182,16 @@ def get_latest_round_file(responses_dir: Path) -> Path:
     rounds = [int(re.search(r"debate_round_(\d+)", f).group(1)) for f in files]
     latest_round = max(rounds)
     return Path(responses_dir / f"debate_round_{latest_round}.json")
+
+def model_path_to_model_name(model_path: str) -> str:
+    """Convert a model path to a model name.
+
+    Args:
+        model_path: Path to the model
+
+    Returns:
+        str: Model name
+    """
+    # Extract the last part of the path and remove any file extension
+    return Path(model_path).stem
+    
