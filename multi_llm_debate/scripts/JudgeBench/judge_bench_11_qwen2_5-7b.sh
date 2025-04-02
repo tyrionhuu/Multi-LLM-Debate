@@ -3,6 +3,7 @@
 # Check if Multi-LLM-Debate environment is already activated
 if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
     echo "Activating Multi-LLM-Debate conda environment..."
+    eval "$(conda shell.bash hook)"
     conda activate Multi-LLM-Debate
 else
     echo "Multi-LLM-Debate conda environment is already activated."
@@ -15,7 +16,7 @@ PORT=8003
 
 # Start VLLM server with the specified model
 VLLM_CONFIGURE_LOGGING=0
-CUDA_VISIBLE_DEVICES=2 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 &
+CUDA_VISIBLE_DEVICES=2 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT &
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection
