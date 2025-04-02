@@ -1,4 +1,5 @@
 #!/bin/bash
+conda activate Multi-LLM-Debate
 
 # Define variables
 MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"

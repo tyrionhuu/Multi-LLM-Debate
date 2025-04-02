@@ -1,13 +1,14 @@
 #!/bin/bash
+conda activate Multi-LLM-Debate
 
 # Define variables
 MODEL_NAME="/data/share_weight/Qwen2-7B-Instruct"
 MODEL_QUANTITY=11
-PORT=8001
+PORT=8005
 
 # Start VLLM server with the specified model
 VLLM_CONFIGURE_LOGGING=0
-vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 --max-log-level ERROR > /dev/null 2>&1 &
+vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 &
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection
