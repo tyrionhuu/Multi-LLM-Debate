@@ -67,7 +67,7 @@ def build_judge_bench_round_zero_prompt(
         "which the responses were presented does not influence your decision. "
         "Do not allow the length of the responses to influence your evaluation. "
         "Do not favor certain names of the assistants. Be as objective as "
-        "possible. " + NEW_LINE
+        "possible. Be concise in your reasoning. " + NEW_LINE
     )
 
     if json_mode:
@@ -154,7 +154,7 @@ def build_judge_bench_round_n_prompt(
         "which the responses were presented does not influence your decision. "
         "Do not allow the length of the responses to influence your evaluation. "
         "Do not favor certain names of the assistants. Be as objective as "
-        "possible. " + NEW_LINE
+        "possible. Be concise in your reasoning. " + NEW_LINE
     )
 
     if json_mode:
