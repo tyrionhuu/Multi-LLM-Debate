@@ -221,14 +221,14 @@ def evaluate_ensemble_df(
 
             # Get all responses and their normalized answers
             raw_responses = [response["response"] for response in responses]
-            
+
             # Create a list of (normalized_response, raw_response) pairs
             response_pairs = []
             for raw in raw_responses:
                 normalized = extract_func(raw)
                 if normalized:  # Only include valid normalized responses
                     response_pairs.append((normalized, raw))
-            
+
             if not response_pairs:
                 logger.warning("No valid normalized responses found, skipping")
                 continue
@@ -249,8 +249,10 @@ def evaluate_ensemble_df(
 
             # Find the original raw response that corresponds to the majority normalized response
             # Use the first one found if there are multiple matches
-            majority_raw = next(raw for norm, raw in response_pairs if norm == majority_normalized)
-            
+            majority_raw = next(
+                raw for norm, raw in response_pairs if norm == majority_normalized
+            )
+
             logger.debug(f"Majority normalized response: {majority_normalized}")
             logger.debug(f"Corresponding raw response: {majority_raw}")
 
