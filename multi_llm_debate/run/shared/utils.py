@@ -175,7 +175,7 @@ def model_path_to_model_name(model_path: str) -> str:
         str: Model name with dots replaced by underscores
     """
     # Extract the last part of the path
-    last_part = str(model_path).split('/')[-1]
+    last_part = str(model_path).split("/")[-1]
     return last_part.replace(".", "_")
 
 
@@ -206,10 +206,12 @@ def model_configs_to_string(model_configs: List[Dict]) -> str:
     ]
     return "+".join(formatted_configs)
 
+
 def main():
     file_path = Path("path/to/your/file2.5")
     model_name = model_path_to_model_name(file_path)
     print(f"Model name: {model_name}")
-    
+
+
 if __name__ == "__main__":
     main()
