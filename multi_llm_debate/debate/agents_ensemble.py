@@ -65,11 +65,8 @@ class AgentsEnsemble:
 
             # Handle different formats returned by get_models()
             if isinstance(model_info, tuple) and len(model_info) >= 3:
-                # Old format: (provider, model_name, quantity)
-                # We'll use provider as base_url if it's not "openai"
-                provider, model_name, quantity = model_info[:3]
-                if provider.lower() != "openai":
-                    base_url = provider
+                # Old format: (model_name, base_url, quantity)
+                model_name, base_url, quantity = model_info[:3]
             elif isinstance(model_info, dict):
                 # New format: {"name": model_name, "base_url": url, "quantity": qty}
                 model_name = model_info.get("name", "")
@@ -98,14 +95,7 @@ class AgentsEnsemble:
 
         agent_id = 0
         for config in config_list:
-            base_url = None
-
-            # Convert provider to base_url if present
-            if "provider" in config and config["provider"].lower() != "openai":
-                base_url = config["provider"]
-            elif "base_url" in config:
-                base_url = config["base_url"]
-
+            base_url = config.get("base_url")
             quantity = config.get("quantity", 1)
             model_name = config["name"]
 
