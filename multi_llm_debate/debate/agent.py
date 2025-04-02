@@ -65,6 +65,7 @@ class Agent:
         timeout: Optional[int] = None,
         max_retries: int = 0,
         api_key: Optional[str] = None,
+        max_tokens: int = 6400,
     ) -> Dict[str, Any]:
         """Generate a response to the given prompt.
 
@@ -78,6 +79,8 @@ class Agent:
                 request fails. Defaults to 0 (no retries).
             api_key (Optional[str], optional): API key to use for this request.
                 Defaults to None, which uses the one from config.
+            max_tokens (int, optional): Maximum number of tokens in response.
+                Defaults to 6400.
 
         Returns:
             Dict[str, Any]: A dictionary containing:
@@ -121,7 +124,7 @@ class Agent:
                     base_url=self.base_url,
                     prompt=prompt,
                     json_mode=json_mode,
-                    max_tokens=6400,
+                    max_tokens=max_tokens,
                     timeout=timeout,
                     api_key=api_key,
                 )

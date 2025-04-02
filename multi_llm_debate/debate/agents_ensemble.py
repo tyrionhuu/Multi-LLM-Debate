@@ -119,6 +119,7 @@ class AgentsEnsemble:
         json_mode: bool,
         max_retries: Optional[int] = None,
         api_key: Optional[str] = None,
+        max_tokens: int = 6400,
     ) -> Dict[str, Any]:
         """Attempt to get a response from an agent with retry logic.
 
@@ -130,6 +131,8 @@ class AgentsEnsemble:
                 If None, use the ensemble's default max_retries. Defaults to None.
             api_key (Optional[str], optional): API key to use for this request.
                 Defaults to None, which uses the one from config.
+            max_tokens (int, optional): Maximum number of tokens in response.
+                Defaults to 6400.
 
         Returns:
             Dict[str, Any]: Response from the agent.
@@ -150,6 +153,7 @@ class AgentsEnsemble:
                 timeout=int(self.timeout),
                 max_retries=0,
                 api_key=api_key,
+                max_tokens=max_tokens,
             )
 
         # Use the agent's built-in retry mechanism
@@ -162,6 +166,7 @@ class AgentsEnsemble:
             timeout=int(self.timeout),
             max_retries=retries,
             api_key=api_key,
+            max_tokens=max_tokens,
         )
 
     def get_responses(
@@ -170,6 +175,7 @@ class AgentsEnsemble:
         json_mode: bool = False,
         max_retries: Optional[int] = None,
         api_key: Optional[str] = None,
+        max_tokens: int = 6400,
     ) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt.
 
@@ -181,6 +187,8 @@ class AgentsEnsemble:
                 If None, use the ensemble's default max_retries. Defaults to None.
             api_key (Optional[str], optional): API key to use for this request.
                 Defaults to None, which uses the one from config.
+            max_tokens (int, optional): Maximum number of tokens in response.
+                Defaults to 6400.
 
         Returns:
             List[Dict[str, Any]]: List of responses from all agents.
@@ -205,7 +213,12 @@ class AgentsEnsemble:
             )
             try:
                 response = self._get_response_with_retry(
-                    agent, prompt, json_mode, max_retries=max_retries, api_key=api_key
+                    agent, 
+                    prompt, 
+                    json_mode, 
+                    max_retries=max_retries, 
+                    api_key=api_key,
+                    max_tokens=max_tokens,
                 )
             except (ConnectionError, Exception) as e:
                 logger.error(
