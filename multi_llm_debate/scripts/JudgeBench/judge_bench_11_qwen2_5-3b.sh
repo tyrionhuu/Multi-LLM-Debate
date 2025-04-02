@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Define variables
+MODEL_NAME="/data/share_weight/Qwen2.5-3B-Instruct"
+MODEL_QUANTITY=11
+PORT=8003
+
+# Start VLLM server with the specified model
+VLLM_CONFIGURE_LOGGING=0
+CUDA_VISIBLE_DEVICES=7 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-log-level ERROR > /dev/null 2>&1 &
+SERVER_PID=$!
+
+# Wait for the server to be ready by checking the connection
+echo "Waiting for server to start..."
+sleep 30
+MAX_ATTEMPTS=30
+ATTEMPT=1
+while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
+    if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+        echo "Server did not start after $MAX_ATTEMPTS attempts. Exiting."
+        kill $SERVER_PID
+        exit 1
+    fi
+    echo "Attempt $ATTEMPT: Server not ready yet. Waiting..."
+    sleep 5
+    ATTEMPT=$((ATTEMPT+1))
+done
+echo "Server is ready!"
+
+# Define the configuration as a JSON string
+CONFIG='[
+    [
+        {
+            "name": "'$MODEL_NAME'",
+            "quantity": '$MODEL_QUANTITY',
+            "base_url": "http://localhost:'$PORT'/v1"
+        }
+    ]
+]'
+
+# Run the evaluation using module path with direct JSON config
+python -m multi_llm_debate.run.judge_bench.main \
+    --config-json "$CONFIG"
+
+# Kill the VLLM server process when done
+kill $SERVER_PID
