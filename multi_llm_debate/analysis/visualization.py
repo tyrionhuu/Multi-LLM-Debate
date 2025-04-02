@@ -349,36 +349,38 @@ def correct_rate_main(
 
 def main() -> None:
     """Test function for file count distribution visualization.
-    
+
     Analyzes the file count in the Qwen2_5-3B-Instruct(11) directory and
     visualizes the distribution using plot_file_count_distribution.
     """
     # Set path to the model directory
-    model_dir_path = Path("/Users/tyrionhuu/projects/research_projects/Multi-LLM-Debate/data/judge_bench/Qwen2_5-3B-Instruct(11)")
-    
+    model_dir_path = Path(
+        "/Users/tyrionhuu/projects/research_projects/Multi-LLM-Debate/data/judge_bench/Qwen2_5-3B-Instruct(11)"
+    )
+
     if not model_dir_path.exists():
         print(f"Error: Directory {model_dir_path} does not exist.")
         return
-    
+
     print(f"Analyzing file count distribution in: {model_dir_path}")
-    
+
     # Count files in each subdirectory
     distribution = {}
     for subdir in [d for d in model_dir_path.iterdir() if d.is_dir()]:
         file_count = len([f for f in subdir.iterdir() if f.is_file()])
-        
+
         # Add to distribution
         if file_count in distribution:
             distribution[file_count] += 1
         else:
             distribution[file_count] = 1
-    
+
     if not distribution:
         print(f"No subdirectories with files found in {model_dir_path}")
         return
-    
+
     print(f"Found file count distribution: {distribution}")
-    
+
     # Visualize the distribution
     plot_file_count_distribution(distribution)
     print("Plot displayed. Close the plot window to exit.")
