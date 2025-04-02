@@ -1,9 +1,0 @@
-[
-    [
-        {
-            "provider": "ollama",
-            "name": "mistral",
-            "quantity": 3
-        }
-    ]
-]
