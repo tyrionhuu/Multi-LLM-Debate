@@ -1,5 +1,12 @@
 #!/bin/bash
-conda activate Multi-LLM-Debate
+
+# Check if Multi-LLM-Debate environment is already activated
+if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
+    echo "Activating Multi-LLM-Debate conda environment..."
+    conda activate Multi-LLM-Debate
+else
+    echo "Multi-LLM-Debate conda environment is already activated."
+fi
 
 # Define variables
 MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
