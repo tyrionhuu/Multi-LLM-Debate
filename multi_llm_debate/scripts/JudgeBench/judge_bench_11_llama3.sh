@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="/data/share_weight/Qwen2-7B-Instruct"
+MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
 MODEL_QUANTITY=11
-PORT=8001
+PORT=8002
 
 # Start VLLM server with the specified model
 CUDA_VISIBLE_DEVICES=1 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT &
