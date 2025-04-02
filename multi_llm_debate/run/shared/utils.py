@@ -206,3 +206,11 @@ def model_configs_to_string(model_configs: List[Dict]) -> str:
         for config in sorted_configs
     ]
     return "+".join(formatted_configs)
+
+def main():
+    file_path = Path("path/to/your/file2.5.json")
+    model_name = model_path_to_model_name(file_path)
+    print(f"Model name: {model_name}")
+    
+if __name__ == "__main__":
+    main()
