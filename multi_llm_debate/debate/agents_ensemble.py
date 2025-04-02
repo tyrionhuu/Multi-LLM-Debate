@@ -213,10 +213,10 @@ class AgentsEnsemble:
             )
             try:
                 response = self._get_response_with_retry(
-                    agent, 
-                    prompt, 
-                    json_mode, 
-                    max_retries=max_retries, 
+                    agent,
+                    prompt,
+                    json_mode,
+                    max_retries=max_retries,
                     api_key=api_key,
                     max_tokens=max_tokens,
                 )

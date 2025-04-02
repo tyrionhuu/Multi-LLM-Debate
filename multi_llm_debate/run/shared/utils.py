@@ -138,7 +138,6 @@ def format_time(seconds: float) -> Tuple[str, str]:
     return display_time, csv_time
 
 
-
 def get_latest_round_file(responses_dir: Path) -> Path:
     """Get the file path for the latest debate round.
 
@@ -158,6 +157,7 @@ def get_latest_round_file(responses_dir: Path) -> Path:
     latest_round = max(rounds)
     return Path(responses_dir / f"debate_round_{latest_round}.json")
 
+
 def model_path_to_model_name(model_path: str) -> str:
     """Convert a model path to a model name.
 
@@ -169,7 +169,7 @@ def model_path_to_model_name(model_path: str) -> str:
     """
     # Extract the last part of the path and remove any file extension
     return Path(model_path).stem
-    
+
 
 def model_configs_to_string(model_configs: List[Dict]) -> str:
     """Convert model configs to a string representation.
@@ -189,7 +189,8 @@ def model_configs_to_string(model_configs: List[Dict]) -> str:
         'llama2(3)+llama3(3)'
     """
     sorted_configs = sorted(
-        model_configs, key=lambda x: (model_path_to_model_name(x["name"]), x["quantity"])
+        model_configs,
+        key=lambda x: (model_path_to_model_name(x["name"]), x["quantity"]),
     )
     formatted_configs = [
         f"{model_path_to_model_name(config['name'])}({config['quantity']})"
