@@ -16,7 +16,7 @@ from .utils import encode_image
 
 # Set up logger
 logger = setup_logging(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 KEY = get_api_key()
 
