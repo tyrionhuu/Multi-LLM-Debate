@@ -3,6 +3,7 @@
 # Check if Multi-LLM-Debate environment is already activated
 if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
     echo "Activating Multi-LLM-Debate conda environment..."
+    eval "$(conda shell.bash hook)"
     conda activate Multi-LLM-Debate
 else
     echo "Multi-LLM-Debate conda environment is already activated."
