@@ -16,7 +16,7 @@ PORT=8005
 
 # Start VLLM server with the specified model
 VLLM_CONFIGURE_LOGGING=0
-vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT &
+CUDA_VISIBLE_DEVICES=3 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT &
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection
