@@ -236,7 +236,7 @@ def generate_api_messages(
 def main():
     """Example usage of the call_model function."""
     prompt = "Hello, how are you?"
-    model_name = "/data/share_weight/Qwen2-7B"
+    model_name = "/data/share_weight/Meta-Llama-3-8B-Instruct"
     base_url = "http://localhost:8000/v1"
     response = call_model(
         model_name=model_name,
