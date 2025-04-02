@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 NEW_LINE = "\n"
-
+DIVIDER = "#" * 80
 JSON_FORMAT = """
 {
     "reasoning": "your reasoning based on the passage",
@@ -137,10 +137,12 @@ def build_judge_bench_round_n_prompt(
         "responses to a user question. Below are their evaluations: " + NEW_LINE
     )
 
+    prompt += DIVIDER + NEW_LINE
     for i, response in enumerate(responses, 1):
         prompt += f"Judge {i}: {response}" + NEW_LINE
+        
 
-    prompt += NEW_LINE
+    prompt += DIVIDER + NEW_LINE
     prompt += (
         "Please act as an independent impartial judge and evaluate the quality "
         "of the responses provided by two AI assistants to the user question "
