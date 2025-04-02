@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -19,7 +19,7 @@ def main(
     task_name: str = "debate",
     sample_size: Optional[int] = None,
     max_workers: Optional[int] = 4,
-    config_path: Optional[Path] = None,
+    config: Optional[Union[Path, List[Dict]]] = None,
     random_seed: Optional[int] = None,
     run_debate: bool = True,
 ) -> None:
@@ -34,19 +34,23 @@ def main(
         task_name: Name of the debate task
         sample_size: Optional number of samples to process
         max_workers: Maximum number of concurrent workers
-        config_path: Path to JSON config file
+        config: Path to JSON config file or list of model configurations
         random_seed: Random seed for sampling
         run_debate: Whether to run the debate or just evaluate existing results
-        **debate_kwargs: Additional arguments to pass to run_debate_fn
     """
 
     try:
-        # Use provided config path or default to config.json in task directory
-        if config_path is None:
-            config_path = Path(f"multi_llm_debate/run/{task_name}/config.json")
-
-        with open(config_path) as f:
-            model_configs_list = json.load(f)
+        # Check if config is a list (direct configuration)
+        if isinstance(config, list):
+            model_configs_list = config
+        else:
+            # Use provided config path or default to config.json in task directory
+            if config is None:
+                config = Path(f"multi_llm_debate/run/{task_name}/config.json")
+            
+            # Load configuration from file
+            with open(config) as f:
+                model_configs_list = json.load(f)
 
         # Adjust sample size if it exceeds dataset size
         if sample_size is not None and sample_size > len(dataframe):
@@ -72,4 +76,6 @@ def main(
                 )
 
     except FileNotFoundError:
-        raise FileNotFoundError(f"Configuration file not found at {config_path}")
+        raise FileNotFoundError(f"Configuration file not found at {config}")
+    except json.JSONDecodeError:
+        raise ValueError(f"Invalid JSON format in configuration file at {config}")
