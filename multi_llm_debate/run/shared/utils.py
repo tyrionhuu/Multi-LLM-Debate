@@ -208,7 +208,7 @@ def model_configs_to_string(model_configs: List[Dict]) -> str:
     return "+".join(formatted_configs)
 
 def main():
-    file_path = Path("path/to/your/file2.5.json")
+    file_path = Path("path/to/your/file2.5")
     model_name = model_path_to_model_name(file_path)
     print(f"Model name: {model_name}")
     
