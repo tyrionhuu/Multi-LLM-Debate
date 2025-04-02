@@ -16,7 +16,7 @@ PORT=8003
 
 # Start VLLM server with the specified model
 VLLM_CONFIGURE_LOGGING=0
-CUDA_VISIBLE_DEVICES=2 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT &
+CUDA_VISIBLE_DEVICES=6,7 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --tensor-parallel-size 2&
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection
