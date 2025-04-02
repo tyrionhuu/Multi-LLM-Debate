@@ -14,10 +14,10 @@ logger = setup_logging(__name__)
 @dataclass
 class Args:
     """Command line arguments."""
-
     config: Optional[Path]
     sample_size: int
     max_workers: int
+    config_json: Optional[str]
 
 
 class Parser:
