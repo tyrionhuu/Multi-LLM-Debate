@@ -16,7 +16,7 @@ PORT=8002
 
 # Start VLLM server with the specified model
 # Setting VLLM_CONFIGURE_LOGGING=0 and adding --max-log-level ERROR to reduce logging
-vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 &
+CUDA_VISIBLE_DEVICES=0 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 --tensor-parallel-size 2 &
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection
