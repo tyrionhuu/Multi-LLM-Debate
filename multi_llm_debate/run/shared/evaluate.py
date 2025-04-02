@@ -11,6 +11,7 @@ from .utils import get_latest_round_file
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
 class EvaluationResults(NamedTuple):
     """Container for evaluation results from all methods."""
 
