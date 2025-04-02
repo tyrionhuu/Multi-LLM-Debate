@@ -252,12 +252,11 @@ def process_debate_dataset(
             for _, entry in dataframe.iterrows():
                 try:
                     process_entry_fn(
-                        entry,
+                        entry=entry,
                         max_rounds=max_rounds,
                         base_dir=base_dir,
                         model_configs=model_configs,
                         overwrite=overwrite,
-                        max_workers=max_workers,
                     )
                     processed_count += 1
                     pbar.update(1)
