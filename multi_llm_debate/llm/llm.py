@@ -238,7 +238,7 @@ def main():
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
     model_name = "Meta-Llama-3-8B"
-    base_url = "http://localhost:8000/v1"
+    base_url = "http://0.0.0.0:8000/v1"
     response = call_model(
         model_name=model_name,
         prompt=prompt,
