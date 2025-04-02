@@ -235,7 +235,7 @@ def generate_api_messages(
 
 def main():
     """Example usage of the call_model function."""
-    prompt = "Hello, how are you?"
+    prompt = "What is the capital of France?"
     model_name = "/data/share_weight/Meta-Llama-3-8B-Instruct"
     base_url = "http://localhost:8000/v1"
     response = call_model(
