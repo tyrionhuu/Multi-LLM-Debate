@@ -168,15 +168,9 @@ def compare_judge_bench_responses(
 
 
 def main() -> None:
-    """Main function to load and display the JudgeBench dataset."""
-    # Load the dataset
-    dataframe = load_judge_bench_dataset()
-    # Display the first few rows
-    print(dataframe.head())
-    print(f"Total entries: {len(dataframe)}")
-    print("Columns:", dataframe.columns.tolist())
-    print("Sample entry:", dataframe.iloc[0].to_dict())
-    return dataframe
+    response = "Reasoning:\nStep 1: Both assistants followed the user's instructions and explained the steps to solve the problem.\nStep 2: Both assistants correctly used the ideal gas law and the polytropic relation to calculate the work done.\nStep 3: However, Assistant B provided a more direct and simplified expression for the work done in terms of P\u2081, V\u2081, and k, which made the calculation more straightforward and less prone to errors.\n\nFinal Answer: B"
+    extracted_answer = extract_caption_a_b_answer(response)
+    print(f"Extracted answer: {extracted_answer}")
 
 
 if __name__ == "__main__":
