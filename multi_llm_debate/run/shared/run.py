@@ -20,9 +20,9 @@ logger.setLevel("INFO")
 
 def execute_debate_workflow(
     dataframe: pd.DataFrame,
-    run_debate_fn: Callable[[pd.DataFrame, Path, List[ModelConfig], Any], Dict],
-    evaluate_fn: Callable[[Path, pd.DataFrame, bool], Any],
-    process_df_fn: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None,
+    run_debate_fn: Callable,
+    evaluate_fn: Callable,
+    process_df_fn: Optional[Callable] = None,
     task_name: str = "debate",
     sample_size: Optional[int] = None,
     report_path: Path = Path("data"),
@@ -193,10 +193,7 @@ def execute_debate_workflow(
 
 def process_debate_dataset(
     dataframe: pd.DataFrame,
-    process_entry_fn: Callable[
-        [pd.Series, int, Path, bool, Optional[List[ModelConfig]], bool, Optional[int]],
-        None,
-    ],
+    process_entry_fn: Callable,
     required_columns: List[str],
     base_dir: Path,
     max_rounds: int = 10,
