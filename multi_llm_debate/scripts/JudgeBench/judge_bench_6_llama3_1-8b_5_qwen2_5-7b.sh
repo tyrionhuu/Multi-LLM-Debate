@@ -14,8 +14,8 @@ MODEL_NAME1="/data/share_weight/Llama-3.1-8B-Instruct"
 MODEL_NAME2="/data/share_weight/Qwen2.5-7B-Instruct"
 MODEL_QUANTITY1=6
 MODEL_QUANTITY2=5
-GPU1=0
-GPU2=1
+GPU1=3
+GPU2=4
 PORT1=$((8102 + GPU1 * 10))
 PORT2=$((8202 + GPU2 * 10))
 
@@ -26,7 +26,7 @@ export VLLM_LOGGING_LEVEL=ERROR
 CUDA_VISIBLE_DEVICES=$GPU1 vllm serve $MODEL_NAME1 --host 0.0.0.0 --port $PORT1 --max-model-len 64000 &
 SERVER_PID1=$!
 
-CUDA_VISIBLE_DEVICES=$GPU2 vllm serve $MODEL_NAME2 --host 0.0.0.0 --port $PORT2 --max-model-len 64000 &
+CUDA_VISIBLE_DEVICES=$GPU2 vllm serve $MODEL_NAME2 --host 0.0.0.0 --port $PORT2 &
 SERVER_PID2=$!
 
 # Wait for the server to be ready by checking the connection
