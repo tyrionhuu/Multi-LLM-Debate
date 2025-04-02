@@ -12,7 +12,7 @@ fi
 # Define variables
 MODEL_NAME="/data/share_weight/Qwen2.5-3B-Instruct"
 MODEL_QUANTITY=11
-GPU=7
+GPU=2
 PORT=$((8004 + GPU * 10))
 
 # Start VLLM server with the specified model
