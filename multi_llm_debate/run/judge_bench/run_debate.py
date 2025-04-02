@@ -66,7 +66,6 @@ def process_judge_bench_entry(
     base_dir: Path = Path("data") / "judge_bench",
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
-    max_workers: Optional[int] = 4,
 ) -> None:
     """Process a single JudgeBench entry."""
     process_single_debate_entry(
@@ -76,7 +75,6 @@ def process_judge_bench_entry(
         max_rounds=max_rounds,
         model_configs=model_configs,
         overwrite=overwrite,
-        max_workers=max_workers,
         prompt_builder_fn=lambda prompt_params: PromptBuilder(
             round_zero_fn=build_judge_bench_round_zero_prompt,
             round_n_fn=build_judge_bench_round_n_prompt,

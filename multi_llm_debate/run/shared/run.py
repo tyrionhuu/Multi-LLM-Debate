@@ -33,7 +33,6 @@ def execute_debate_workflow(
         }
     ],
     random_seed: int = 42,
-    max_workers: Optional[int] = 4,
 ) -> Dict[str, Any]:
     """Execute debate evaluation with the given configuration.
 
@@ -47,7 +46,6 @@ def execute_debate_workflow(
         report_path: Path to save results
         model_configs: List of model configurations
         random_seed: Random seed for sampling
-        max_workers: Maximum number of concurrent workers
         **debate_kwargs: Additional arguments to pass to run_debate_fn
 
     Returns:
@@ -80,7 +78,6 @@ def execute_debate_workflow(
         dataframe=processed_dataframe,
         base_dir=output_path,
         model_configs=model_configs,
-        max_workers=max_workers,
     )
 
     # Print execution summary

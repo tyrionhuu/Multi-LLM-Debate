@@ -17,7 +17,6 @@ class Args:
 
     config: Optional[Path]
     sample_size: int
-    max_workers: int
     config_json: Optional[str]
 
 
@@ -42,12 +41,6 @@ class Parser:
             type=int,
             help="Number of samples to process",
             default=2000,
-        )
-        self.parser.add_argument(
-            "--max-workers",
-            type=int,
-            help="Maximum number of concurrent workers",
-            default=16,
         )
         self.parser.add_argument(
             "--config-json",
