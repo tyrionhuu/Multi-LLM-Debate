@@ -173,42 +173,6 @@ def evaluate_single_llm_df(
     return accuracy
 
 
-def get_majority_vote(
-    responses: List[Dict],
-    extract_func: Callable,
-) -> Optional[str]:
-    """Get the majority vote from a list of responses.
-
-    Args:
-        responses: List of response dictionaries containing 'response' key.
-        extract_func: Function to extract and normalize the response string.
-
-    Returns:
-        str or None: The majority response or None if no valid majority.
-    """
-    # Get all responses and their normalized answers
-    raw_responses = [response["response"] for response in responses]
-    normalized_responses = [extract_func(response) for response in raw_responses]
-    valid_responses = [r for r in normalized_responses if r]
-
-    if not valid_responses:
-        return None
-
-    # Count occurrences of each response
-    response_counts: Dict[str, int] = {}
-    for response in valid_responses:
-        response_counts[response] = response_counts.get(response, 0) + 1
-
-    # Get majority vote (most common response)
-    majority_response = max(response_counts.items(), key=lambda x: x[1])[0]
-
-    # Check if it's a true majority (more than half)
-    total_votes = sum(response_counts.values())
-    if response_counts[majority_response] > total_votes / 2:
-        return majority_response
-    return None
-
-
 def evaluate_ensemble_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
@@ -255,16 +219,43 @@ def evaluate_ensemble_df(
                 logger.warning("No valid responses found, skipping")
                 continue
 
-            # Get majority vote
-            majority_response = get_majority_vote(responses, extract_func)
-            if majority_response is None:
+            # Get all responses and their normalized answers
+            raw_responses = [response["response"] for response in responses]
+            
+            # Create a list of (normalized_response, raw_response) pairs
+            response_pairs = []
+            for raw in raw_responses:
+                normalized = extract_func(raw)
+                if normalized:  # Only include valid normalized responses
+                    response_pairs.append((normalized, raw))
+            
+            if not response_pairs:
+                logger.warning("No valid normalized responses found, skipping")
+                continue
+
+            # Count occurrences of each normalized response
+            response_counts: Dict[str, int] = {}
+            for normalized, _ in response_pairs:
+                response_counts[normalized] = response_counts.get(normalized, 0) + 1
+
+            # Get majority normalized response
+            majority_normalized = max(response_counts.items(), key=lambda x: x[1])[0]
+
+            # Check if it's a true majority (more than half)
+            total_votes = sum(response_counts.values())
+            if response_counts[majority_normalized] <= total_votes / 2:
                 logger.warning("No majority response found, skipping")
                 continue
 
-            logger.debug(f"Majority response: {majority_response}")
+            # Find the original raw response that corresponds to the majority normalized response
+            # Use the first one found if there are multiple matches
+            majority_raw = next(raw for norm, raw in response_pairs if norm == majority_normalized)
+            
+            logger.debug(f"Majority normalized response: {majority_normalized}")
+            logger.debug(f"Corresponding raw response: {majority_raw}")
 
-            # Compare with correct answer
-            is_correct = evaluation_func([{"response": majority_response}], answer)
+            # Compare with correct answer using the raw response
+            is_correct = evaluation_func([{"response": majority_raw}], answer)
             valid_count += 1
             if is_correct:
                 correct_count += 1
