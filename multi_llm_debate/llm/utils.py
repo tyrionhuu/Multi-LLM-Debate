@@ -3,6 +3,7 @@ import logging
 import threading
 import time
 from typing import Optional
+import base64
 
 import torch.distributed
 from requests.exceptions import ConnectionError
@@ -286,3 +287,15 @@ def shutdown_vllm_models() -> None:
 
     # Register shutdown handler to run when the program exits
     atexit.register(shutdown_vllm_models)
+def encode_image(image_path: str) -> str:
+    """Encodes an image file to a base64 string.
+
+    Args:
+        image_path (str): The path to the image file.
+
+    Returns:
+        str: The base64 encoded string of the image.
+    """
+    with open(image_path, "rb") as image_file:
+        encoded = base64.b64encode(image_file.read()).decode("utf-8")
+    return encoded
