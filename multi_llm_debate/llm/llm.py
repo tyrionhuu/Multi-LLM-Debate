@@ -237,7 +237,7 @@ def main():
     """Example usage of the call_model function."""
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
-    model_name = "llama3"
+    model_name = "gemma2:2b"
     base_url = "http://localhost:11434/v1"
     response = call_model(
         model_name=model_name,
