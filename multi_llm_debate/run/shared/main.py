@@ -20,6 +20,7 @@ def main(
     sample_size: Optional[int] = None,
     max_workers: Optional[int] = 4,
     config: Optional[Union[Path, List[Dict]]] = None,
+    config_json: Optional[str] = None,
     random_seed: Optional[int] = None,
     run_debate: bool = True,
 ) -> None:
@@ -35,13 +36,20 @@ def main(
         sample_size: Optional number of samples to process
         max_workers: Maximum number of concurrent workers
         config: Path to JSON config file or list of model configurations
+        config_json: JSON string containing model configurations
         random_seed: Random seed for sampling
         run_debate: Whether to run the debate or just evaluate existing results
     """
 
     try:
+        # Priority: 1. config_json, 2. config as list, 3. config as file path
+        if config_json is not None:
+            try:
+                model_configs_list = json.loads(config_json)
+            except json.JSONDecodeError:
+                raise ValueError(f"Invalid JSON string provided in config_json")
         # Check if config is a list (direct configuration)
-        if isinstance(config, list):
+        elif isinstance(config, list):
             model_configs_list = config
         else:
             # Use provided config path or default to config.json in task directory

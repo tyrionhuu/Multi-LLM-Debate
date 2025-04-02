@@ -21,5 +21,5 @@ if __name__ == "__main__":
         evaluate_fn=evaluate_all_judge_bench,
         task_name="judge_bench",
         sample_size=args.sample_size,
-        config=args.config,
+        config_json=args.config_json,
     )

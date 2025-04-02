@@ -48,6 +48,12 @@ class Parser:
             help="Maximum number of concurrent workers",
             default=16,
         )
+        self.parser.add_argument(
+            "--config-json",
+            type=str,
+            help="JSON string containing model configurations",
+            default=None,
+        )
 
     def parse_args(self) -> Args:
         """Parse and return the command line arguments.
