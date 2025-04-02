@@ -174,10 +174,9 @@ def model_path_to_model_name(model_path: str) -> str:
     Returns:
         str: Model name with dots replaced by underscores
     """
-    # Extract the last part of the path and remove any file extension
-    stem = Path(model_path).stem
-    # Replace dots with underscores
-    return stem.replace(".", "_")
+    # Extract the last part of the path
+    last_part = str(model_path).split('/')[-1]
+    return last_part.replace(".", "_")
 
 
 def model_configs_to_string(model_configs: List[Dict]) -> str:
