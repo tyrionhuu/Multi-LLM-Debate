@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from tqdm import tqdm
 
@@ -40,7 +40,7 @@ class AgentsEnsemble:
             config_list (Optional[List[ModelConfig]]): List of model configurations.
             job_delay (float, optional): Delay in seconds between agent calls.
             timeout (float, optional): Maximum time in seconds to wait for agent responses.
-            max_retries (int, optional): Maximum number of retry attempts. Defaults to 2.
+            max_retries (int, optional): Maximum number of retry attempts. Defaults to 3.
         """
         self.job_delay = job_delay
         self.timeout = timeout
@@ -60,9 +60,27 @@ class AgentsEnsemble:
         """
         models = get_models()
         agent_id = 0
-        for provider, model_name, quantity in models:
+        for model_info in models:
+            base_url = None
+            
+            # Handle different formats returned by get_models()
+            if isinstance(model_info, tuple) and len(model_info) >= 3:
+                # Old format: (provider, model_name, quantity)
+                # We'll use provider as base_url if it's not "openai"
+                provider, model_name, quantity = model_info[:3]
+                if provider.lower() != "openai":
+                    base_url = provider
+            elif isinstance(model_info, dict):
+                # New format: {"name": model_name, "base_url": url, "quantity": qty}
+                model_name = model_info.get("name", "")
+                base_url = model_info.get("base_url")
+                quantity = model_info.get("quantity", 1)
+            else:
+                logger.warning(f"Skipping unrecognized model info format: {model_info}")
+                continue
+                
             for _ in range(quantity):
-                agent = Agent(agent_id=agent_id, model=model_name, provider=provider)
+                agent = Agent(agent_id=agent_id, model=model_name, base_url=base_url)
                 self.add_agent(agent)
                 agent_id += 1
 
@@ -80,9 +98,20 @@ class AgentsEnsemble:
 
         agent_id = 0
         for config in config_list:
-            for _ in range(config["quantity"]):
+            base_url = None
+            
+            # Convert provider to base_url if present
+            if "provider" in config and config["provider"].lower() != "openai":
+                base_url = config["provider"]
+            elif "base_url" in config:
+                base_url = config["base_url"]
+                
+            quantity = config.get("quantity", 1)
+            model_name = config["name"]
+            
+            for _ in range(quantity):
                 agent = Agent(
-                    agent_id=agent_id, model=config["name"], provider=config["provider"]
+                    agent_id=agent_id, model=model_name, base_url=base_url
                 )
                 self.add_agent(agent)
                 agent_id += 1
@@ -101,6 +130,7 @@ class AgentsEnsemble:
         prompt: str,
         json_mode: bool,
         max_retries: Optional[int] = None,
+        api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Attempt to get a response from an agent with retry logic.
 
@@ -110,6 +140,8 @@ class AgentsEnsemble:
             json_mode (bool): Whether to expect JSON response.
             max_retries (Optional[int], optional): Maximum number of retry attempts.
                 If None, use the ensemble's default max_retries. Defaults to None.
+            api_key (Optional[str], optional): API key to use for this request.
+                Defaults to None, which uses the one from config.
 
         Returns:
             Dict[str, Any]: Response from the agent.
@@ -124,22 +156,34 @@ class AgentsEnsemble:
         if retries <= 0:
             # No retries, call agent.respond directly
             logger.debug(
-                f"No retries set for agent {agent.agent_id} ({agent.model}, {agent.provider})"
+                f"No retries set for agent {agent.agent_id} ({agent.model})"
             )
             return agent.respond(
-                prompt, json_mode=json_mode, timeout=int(self.timeout), max_retries=0
+                prompt, 
+                json_mode=json_mode, 
+                timeout=int(self.timeout), 
+                max_retries=0,
+                api_key=api_key
             )
 
         # Use the agent's built-in retry mechanism
         logger.debug(
-            f"Using {retries} retries for agent {agent.agent_id} ({agent.model}, {agent.provider})"
+            f"Using {retries} retries for agent {agent.agent_id} ({agent.model})"
         )
         return agent.respond(
-            prompt, json_mode=json_mode, timeout=int(self.timeout), max_retries=retries
+            prompt, 
+            json_mode=json_mode, 
+            timeout=int(self.timeout), 
+            max_retries=retries,
+            api_key=api_key
         )
 
     def get_responses(
-        self, prompt: str, json_mode: bool = False, max_retries: Optional[int] = None
+        self, 
+        prompt: str, 
+        json_mode: bool = False, 
+        max_retries: Optional[int] = None,
+        api_key: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt.
 
@@ -149,6 +193,8 @@ class AgentsEnsemble:
                 Defaults to False.
             max_retries (Optional[int], optional): Maximum number of retry attempts.
                 If None, use the ensemble's default max_retries. Defaults to None.
+            api_key (Optional[str], optional): API key to use for this request.
+                Defaults to None, which uses the one from config.
 
         Returns:
             List[Dict[str, Any]]: List of responses from all agents.
@@ -173,7 +219,7 @@ class AgentsEnsemble:
             )
             try:
                 response = self._get_response_with_retry(
-                    agent, prompt, json_mode, max_retries=max_retries
+                    agent, prompt, json_mode, max_retries=max_retries, api_key=api_key
                 )
             except (ConnectionError, Exception) as e:
                 logger.error(
@@ -210,7 +256,17 @@ class AgentsEnsemble:
         raise ValueError(f"Agent with ID {agent_id} not found")
 
     def __len__(self) -> int:
+        """Return the number of agents in the ensemble.
+        
+        Returns:
+            int: The number of agents.
+        """
         return len(self.agents)
 
     def __str__(self) -> str:
+        """Return a string representation of the ensemble.
+        
+        Returns:
+            str: String representation of the ensemble.
+        """
         return f"AgentsEnsemble with {len(self)} agents"

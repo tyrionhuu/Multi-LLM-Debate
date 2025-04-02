@@ -14,32 +14,48 @@ logger.setLevel(logging.INFO)
 class Agent:
     """A class representing an individual LLM agent.
 
-    This class encapsulates a language model agent with specific provider and model configurations.
-    Each agent has a unique ID and can generate responses to prompts.
+    This class encapsulates a language model agent with specific model configuration
+    and base URL for API calls.
 
     Attributes:
         agent_id (int): Unique identifier for the agent.
         model (str): Name of the language model being used.
-        provider (str): Name of the model provider (e.g., 'OpenAI', 'Anthropic').
+        base_url (Optional[str]): Base URL for the API calls.
     """
 
-    def __init__(self, agent_id: int, model: str, provider: str) -> None:
+    def __init__(
+        self, agent_id: int, model: str, base_url: Optional[str] = None
+    ) -> None:
         """Initialize an Agent instance.
 
         Args:
             agent_id (int): Unique identifier for the agent.
             model (str): Name of the language model.
-            provider (str): Name of the model provider.
+            base_url (Optional[str]): Base URL for the OpenAI API calls.
+                Default is None, which uses the OpenAI default.
         """
         self.agent_id = agent_id
         self.model = model
-        self.provider = provider.lower()
-        logger.debug(f"Initialized Agent {agent_id} with {provider} model {model}")
+        self.base_url = base_url
+        logger.debug(
+            f"Initialized Agent {agent_id} with model {model} "
+            f"(base_url: {'custom' if base_url else 'default'})"
+        )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a string representation of the agent.
+
+        Returns:
+            str: String representation of the agent.
+        """
         return f"Agent {self.agent_id} ({self.model})"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the agent.
+
+        Returns:
+            str: String representation of the agent.
+        """
         return str(self)
 
     def respond(
@@ -48,6 +64,7 @@ class Agent:
         json_mode: bool = False,
         timeout: Optional[int] = None,
         max_retries: int = 0,
+        api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Generate a response to the given prompt.
 
@@ -59,6 +76,8 @@ class Agent:
                 in seconds. Defaults to None, which uses the API's default timeout.
             max_retries (int, optional): Maximum number of retry attempts if the
                 request fails. Defaults to 0 (no retries).
+            api_key (Optional[str], optional): API key to use for this request.
+                Defaults to None, which uses the one from config.
 
         Returns:
             Dict[str, Any]: A dictionary containing:
@@ -73,7 +92,7 @@ class Agent:
         """
         start_time = time.time()
         logger.debug(
-            f"Agent {self.agent_id} ({self.provider}/{self.model}) starting request "
+            f"Agent {self.agent_id} ({self.model}) starting request "
             f"(timeout: {timeout}s, json_mode: {json_mode}, max_retries: {max_retries})"
         )
 
@@ -89,7 +108,7 @@ class Agent:
             try:
                 if attempt > 0:
                     logger.info(
-                        f"Retry #{attempt} for agent {self.agent_id} ({self.provider})"
+                        f"Retry #{attempt} for agent {self.agent_id}"
                     )
                     # Exponential backoff for retry delay
                     current_delay = retry_delay * (2 ** (attempt - 1))
@@ -99,19 +118,20 @@ class Agent:
                 # Make the actual API call
                 api_start = time.time()
                 logger.info(
-                    f"Agent {self.agent_id} ({self.provider}/{self.model}) sending request"
+                    f"Agent {self.agent_id} ({self.model}) sending request"
                 )
                 raw_response = call_model(
                     model_name=self.model,
-                    provider=self.provider,
+                    base_url=self.base_url,
                     prompt=prompt,
                     json_mode=json_mode,
                     max_tokens=6400,
                     timeout=timeout,
+                    api_key=api_key,
                 )
                 api_time = time.time() - api_start
                 logger.info(
-                    f"Agent {self.agent_id} ({self.provider}/{self.model}) "
+                    f"Agent {self.agent_id} ({self.model}) "
                     f"received raw response in {api_time:.2f}s"
                 )
 
@@ -151,7 +171,7 @@ class Agent:
 
                 total_time = time.time() - start_time
                 logger.info(
-                    f"Agent {self.agent_id} ({self.provider}/{self.model}) completed in "
+                    f"Agent {self.agent_id} ({self.model}) completed in "
                     f"{total_time:.2f}s with {response_length} chars"
                 )
 
@@ -163,7 +183,7 @@ class Agent:
                 error_msg = f"Connection error on attempt {attempt+1}: {str(e)}"
                 errors.append(error_msg)
                 logger.error(
-                    f"Agent {self.agent_id} ({self.provider}/{self.model}) connection error "
+                    f"Agent {self.agent_id} ({self.model}) connection error "
                     f"after {elapsed:.2f}s: {str(e)}"
                 )
                 # If this was the last attempt, re-raise the exception
@@ -178,7 +198,7 @@ class Agent:
                 error_msg = f"Error on attempt {attempt+1}: {str(e)}"
                 errors.append(error_msg)
                 logger.error(
-                    f"Agent {self.agent_id} ({self.provider}/{self.model}) unexpected error "
+                    f"Agent {self.agent_id} ({self.model}) unexpected error "
                     f"after {elapsed:.2f}s: {str(e)}",
                     exc_info=False,
                 )
