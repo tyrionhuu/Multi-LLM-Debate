@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import requests
 from openai import OpenAI
@@ -14,6 +14,7 @@ from requests.exceptions import ConnectionError, Timeout
 from ..utils.config_manager import get_api_key
 from ..utils.logging_config import setup_logging
 from .utils import encode_image
+
 # Set up logger
 logger = setup_logging(__name__)
 logger.setLevel(logging.DEBUG)  # Set to INFO to reduce verbosity in production
@@ -23,12 +24,10 @@ KEY = get_api_key()
 if KEY.strip() == "":
     KEY = input("Please enter your API key: ")
     from ..utils.config_manager import save_api_key
+
     save_api_key(KEY)
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
-
-
-
 
 
 def call_model(
@@ -106,19 +105,15 @@ def call_model(
 
         # Generate API messages
         messages = generate_api_messages(
-            prompt=prompt,
-            images=processed_images if vision else None
+            prompt=prompt, images=processed_images if vision else None
         )
 
         # Initialize OpenAI client with timeout and base_url if provided
-        client_kwargs = {
-            "api_key": api_key_to_use,
-            "timeout": timeout
-        }
-        
+        client_kwargs = {"api_key": api_key_to_use, "timeout": timeout}
+
         if base_url:
             client_kwargs["base_url"] = base_url
-            
+
         client = OpenAI(**client_kwargs)
 
         # Make the API call
@@ -130,7 +125,7 @@ def call_model(
             response_format={"type": "json_object"} if json_mode else None,
             seed=42,
         )
-        
+
         # Extract response content
         response_str = response.choices[0].message.content
 
@@ -141,7 +136,7 @@ def call_model(
             except json.JSONDecodeError:
                 logger.warning("API returned invalid JSON despite json_mode=True")
                 return response_str
-                
+
         elapsed = time.time() - start_time
         logger.info(f"Call to OpenAI/{model_name} completed in {elapsed:.2f}s")
         return response_str
@@ -149,14 +144,20 @@ def call_model(
     except Timeout:
         elapsed = time.time() - start_time
         logger.error(f"Timeout error calling {model_name} after {elapsed:.2f}s")
-        raise ConnectionError(f"Timeout error with OpenAI service after {timeout} seconds")
+        raise ConnectionError(
+            f"Timeout error with OpenAI service after {timeout} seconds"
+        )
     except ConnectionError as e:
         elapsed = time.time() - start_time
-        logger.error(f"Connection error calling {model_name} after {elapsed:.2f}s: {str(e)}")
+        logger.error(
+            f"Connection error calling {model_name} after {elapsed:.2f}s: {str(e)}"
+        )
         raise ConnectionError(f"Connection error with OpenAI service: {str(e)}")
     except Exception as e:
         elapsed = time.time() - start_time
-        logger.error(f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=False)
+        logger.error(
+            f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=False
+        )
         raise ValueError(f"Error with OpenAI service: {str(e)}")
 
 
@@ -237,7 +238,7 @@ def main():
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
     model_name = "gpt-4"
-    
+
     response = call_model(
         model_name=model_name,
         prompt=prompt,
