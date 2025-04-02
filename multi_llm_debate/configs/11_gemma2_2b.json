@@ -1,9 +1,0 @@
-[
-    [
-        {
-            "provider": "ollama",
-            "name": "gemma2:2b",
-            "quantity": 11
-        }
-    ]
-]

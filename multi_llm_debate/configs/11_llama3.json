@@ -1,9 +1,0 @@
-[
-    [
-        {
-            "name": "/data/share_weight/Meta-Llama-3-8B-Instruct",
-            "quantity": 11,
-            "base_url": "http://localhost:8000/v1"
-        }
-    ]
-]
