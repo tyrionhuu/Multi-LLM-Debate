@@ -3,7 +3,8 @@
         {
             "provider": "ollama",
             "name": "mistral",
-            "quantity": 11
+            "quantity": 11,
+            "base_url": "http://localhost:11434/api/generate"
         }
     ]
 ]
