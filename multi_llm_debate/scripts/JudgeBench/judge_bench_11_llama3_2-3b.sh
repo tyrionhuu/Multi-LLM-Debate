@@ -8,11 +8,12 @@ if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
 else
     echo "Multi-LLM-Debate conda environment is already activated."
 fi
+
 $GPU = 5
 # Define variables
 MODEL_NAME="/data/share_weight/Llama-3.2-3B-Instruct"
 MODEL_QUANTITY=11
-PORT=8005 + $GPU
+PORT=$((8005 + GPU))
 
 export VLLM_LOGGING_LEVEL=ERROR
 
