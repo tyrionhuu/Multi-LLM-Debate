@@ -31,7 +31,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 def call_model(
     model_name: str = "gpt-4",
-    base_url: Optional[str] = None,
+    base_url: str = None,
     prompt: str = "",
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -110,8 +110,9 @@ def call_model(
         # Initialize OpenAI client with timeout and base_url if provided
         client_kwargs = {"api_key": api_key_to_use, "timeout": timeout}
 
-        if base_url:
-            client_kwargs["base_url"] = base_url
+        if not base_url:
+            raise ValueError("Base URL is required for OpenAI API calls.")
+        client_kwargs["base_url"] = base_url
 
         client = OpenAI(**client_kwargs)
 
@@ -237,7 +238,7 @@ def main():
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
     model_name = "llama3"
-    base_url = "http://localhost:11434/api/generate"
+    base_url = "http://localhost:11434/v1"
     response = call_model(
         model_name=model_name,
         prompt=prompt,
