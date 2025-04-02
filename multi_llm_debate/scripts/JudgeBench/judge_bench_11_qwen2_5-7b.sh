@@ -12,12 +12,13 @@ fi
 # Define variables
 MODEL_NAME="/data/share_weight/Qwen2.5-7B-Instruct"
 MODEL_QUANTITY=11
-PORT=8003
+GPU=6
+PORT=$((8003 + GPU * 10))
 
 # Start VLLM server with the specified model
 export VLLM_LOGGING_LEVEL=ERROR
 
-CUDA_VISIBLE_DEVICES=6,7 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --tensor-parallel-size 2&
+CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT &
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection

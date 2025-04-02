@@ -13,7 +13,8 @@ GPU=5
 # Define variables
 MODEL_NAME="/data/share_weight/Llama-3.2-3B-Instruct"
 MODEL_QUANTITY=11
-PORT=$((8005 + GPU))
+GPU=7
+PORT=$((8005 + GPU * 10))
 
 export VLLM_LOGGING_LEVEL=ERROR
 
