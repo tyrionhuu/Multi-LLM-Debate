@@ -236,11 +236,12 @@ def main():
     """Example usage of the call_model function."""
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
-    model_name = "gpt-4"
-
+    model_name = "llama3"
+    base_url = "http://localhost:11434/api/generate"
     response = call_model(
         model_name=model_name,
         prompt=prompt,
+        base_url=base_url,
         temperature=0.7,
         max_tokens=100,
         json_mode=False,
