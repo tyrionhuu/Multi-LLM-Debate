@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Callable, Dict, List, NamedTuple, Optional
 
@@ -10,21 +9,7 @@ from .utils import get_latest_round_file
 
 # Set up logger with proper configuration
 logger = logging.getLogger(__name__)
-log_level = os.environ.get("DEBATE_LOG_LEVEL", "INFO")
-logger.setLevel(getattr(logging, log_level))
-
-# Add handler if not already added
-if not logger.handlers:
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-# Make sure we don't propagate to root logger to avoid duplicate logs
-logger.propagate = False
-
+logger.setLevel(logging.INFO)
 
 class EvaluationResults(NamedTuple):
     """Container for evaluation results from all methods."""
