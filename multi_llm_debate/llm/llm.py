@@ -117,7 +117,7 @@ def call_model(
         client = OpenAI(**client_kwargs)
 
         # Make the API call
-        response = client.completions.create(
+        response = client.chat.completions.create(
             model=model_name,
             messages=messages,
             max_tokens=max_tokens,
@@ -238,7 +238,7 @@ def main():
     question = "Is the sky blue?"
     prompt = f"{question} Please provide a detailed explanation."
     model_name = "Meta-Llama-3-8B"
-    base_url = "http://0.0.0.0:8000/v1"
+    base_url = "http://localhost:8000/v1"
     response = call_model(
         model_name=model_name,
         prompt=prompt,
