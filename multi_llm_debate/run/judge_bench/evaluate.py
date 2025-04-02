@@ -21,7 +21,9 @@ def evaluate_judge_bench_responses(
         bool: True if all responses are the same and match the answer, False otherwise.
     """
     return all(
-        compare_judge_bench_response(extract_caption_a_b_answer(response["response"]), answer)
+        compare_judge_bench_response(
+            extract_caption_a_b_answer(response["response"]), answer
+        )
         for response in responses
     )
 
