@@ -107,9 +107,7 @@ class Agent:
         for attempt in range(max_retries + 1):
             try:
                 if attempt > 0:
-                    logger.info(
-                        f"Retry #{attempt} for agent {self.agent_id}"
-                    )
+                    logger.info(f"Retry #{attempt} for agent {self.agent_id}")
                     # Exponential backoff for retry delay
                     current_delay = retry_delay * (2 ** (attempt - 1))
                     logger.info(f"Waiting {current_delay:.2f}s before retry")
@@ -117,9 +115,7 @@ class Agent:
 
                 # Make the actual API call
                 api_start = time.time()
-                logger.info(
-                    f"Agent {self.agent_id} ({self.model}) sending request"
-                )
+                logger.info(f"Agent {self.agent_id} ({self.model}) sending request")
                 raw_response = call_model(
                     model_name=self.model,
                     base_url=self.base_url,

@@ -62,7 +62,7 @@ class AgentsEnsemble:
         agent_id = 0
         for model_info in models:
             base_url = None
-            
+
             # Handle different formats returned by get_models()
             if isinstance(model_info, tuple) and len(model_info) >= 3:
                 # Old format: (provider, model_name, quantity)
@@ -78,7 +78,7 @@ class AgentsEnsemble:
             else:
                 logger.warning(f"Skipping unrecognized model info format: {model_info}")
                 continue
-                
+
             for _ in range(quantity):
                 agent = Agent(agent_id=agent_id, model=model_name, base_url=base_url)
                 self.add_agent(agent)
@@ -99,20 +99,18 @@ class AgentsEnsemble:
         agent_id = 0
         for config in config_list:
             base_url = None
-            
+
             # Convert provider to base_url if present
             if "provider" in config and config["provider"].lower() != "openai":
                 base_url = config["provider"]
             elif "base_url" in config:
                 base_url = config["base_url"]
-                
+
             quantity = config.get("quantity", 1)
             model_name = config["name"]
-            
+
             for _ in range(quantity):
-                agent = Agent(
-                    agent_id=agent_id, model=model_name, base_url=base_url
-                )
+                agent = Agent(agent_id=agent_id, model=model_name, base_url=base_url)
                 self.add_agent(agent)
                 agent_id += 1
 
@@ -155,15 +153,13 @@ class AgentsEnsemble:
 
         if retries <= 0:
             # No retries, call agent.respond directly
-            logger.debug(
-                f"No retries set for agent {agent.agent_id} ({agent.model})"
-            )
+            logger.debug(f"No retries set for agent {agent.agent_id} ({agent.model})")
             return agent.respond(
-                prompt, 
-                json_mode=json_mode, 
-                timeout=int(self.timeout), 
+                prompt,
+                json_mode=json_mode,
+                timeout=int(self.timeout),
                 max_retries=0,
-                api_key=api_key
+                api_key=api_key,
             )
 
         # Use the agent's built-in retry mechanism
@@ -171,19 +167,19 @@ class AgentsEnsemble:
             f"Using {retries} retries for agent {agent.agent_id} ({agent.model})"
         )
         return agent.respond(
-            prompt, 
-            json_mode=json_mode, 
-            timeout=int(self.timeout), 
+            prompt,
+            json_mode=json_mode,
+            timeout=int(self.timeout),
             max_retries=retries,
-            api_key=api_key
+            api_key=api_key,
         )
 
     def get_responses(
-        self, 
-        prompt: str, 
-        json_mode: bool = False, 
+        self,
+        prompt: str,
+        json_mode: bool = False,
         max_retries: Optional[int] = None,
-        api_key: Optional[str] = None
+        api_key: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt.
 
@@ -257,7 +253,7 @@ class AgentsEnsemble:
 
     def __len__(self) -> int:
         """Return the number of agents in the ensemble.
-        
+
         Returns:
             int: The number of agents.
         """
@@ -265,7 +261,7 @@ class AgentsEnsemble:
 
     def __str__(self) -> str:
         """Return a string representation of the ensemble.
-        
+
         Returns:
             str: String representation of the ensemble.
         """
