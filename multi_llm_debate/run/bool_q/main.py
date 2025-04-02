@@ -25,6 +25,5 @@ if __name__ == "__main__":
         process_df_fn=process_bool_q_df,
         task_name="bool_q",
         sample_size=args.sample_size,
-        max_workers=args.max_workers,
-        config_path=args.config,
+        config=args.config,
     )
