@@ -459,7 +459,7 @@ def run_visualization(
 
 if __name__ == "__main__":
     from multi_llm_debate.run.judge_bench.utils import (
-        compare_judge_bench_responses,
+        compare_judge_bench_response,
         extract_caption_a_b_answer,
     )
 
@@ -482,7 +482,7 @@ if __name__ == "__main__":
         verbose=True,
         enforce_increasing_success=ENFORCE_INCREASING,
         extract_func=extract_caption_a_b_answer,
-        compare_func=compare_judge_bench_responses,
+        compare_func=compare_judge_bench_response,
         model_config="llama3(11)",
     )
 
@@ -496,6 +496,6 @@ if __name__ == "__main__":
         verbose=True,
         enforce_increasing_success=ENFORCE_INCREASING,
         extract_func=extract_caption_a_b_answer,
-        compare_func=compare_judge_bench_responses,
+        compare_func=compare_judge_bench_response,
         model_config="gemma2:2b(11)",
     )

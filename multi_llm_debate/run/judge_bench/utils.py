@@ -145,23 +145,22 @@ def extract_bigger_char(comparison: str) -> str:
         raise ValueError("Invalid comparison operator")
 
 
-def compare_judge_bench_responses(
-    responses: str,
+def compare_judge_bench_response(
+    response: Literal["A", "B"],
     answer: str,
 ) -> bool:
     """Compare the responses from the judge bench.
 
     Args:
-        responses: The response string from the LLM.
+        response: The response string from the LLM.
         answer: The correct answer to the question ("A"/"B").
 
     Returns:
         bool: True if the response matches the answer, False otherwise.
     """
     try:
-        normalized_response = extract_caption_a_b_answer(responses)
         gold_answer = extract_bigger_char(answer)
-        return normalized_response == gold_answer.upper()
+        return response == gold_answer.upper()
     except Exception as e:
         print(f"Error comparing responses: {e}")
         return False
