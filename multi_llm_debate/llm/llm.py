@@ -231,24 +231,3 @@ def generate_api_messages(
             }
         ]
     return messages
-
-
-def main():
-    """Example usage of the call_model function."""
-    prompt = "What is the capital of France?"
-    model_name = "/data/share_weight/Meta-Llama-3-8B-Instruct"
-    base_url = "http://localhost:8000/v1"
-    response = call_model(
-        model_name=model_name,
-        prompt=prompt,
-        base_url=base_url,
-        temperature=0.7,
-        max_tokens=1000,
-        json_mode=False,
-        timeout=30,
-    )
-    print(response)
-
-
-if __name__ == "__main__":
-    main()

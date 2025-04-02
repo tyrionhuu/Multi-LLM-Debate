@@ -40,7 +40,7 @@ class Debate:
     def __init__(
         self,
         model_name: str = "gpt-3.5-turbo",
-        temperature: float = 0,
+        temperature: float = 1.0,
         num_players: int = 3,
         provider: str = "ollama",
         config: dict = None,
