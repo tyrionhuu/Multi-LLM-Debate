@@ -117,7 +117,7 @@ def call_model(
         client = OpenAI(**client_kwargs)
 
         # Make the API call
-        response = client.chat.completions.create(
+        response = client.completions.create(
             model=model_name,
             messages=messages,
             max_tokens=max_tokens,
