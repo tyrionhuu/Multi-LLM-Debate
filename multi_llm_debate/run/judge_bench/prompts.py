@@ -70,11 +70,6 @@ def build_judge_bench_round_zero_prompt(
         "possible. " + NEW_LINE
     )
 
-    prompt += (
-        "IMPORTANT: For your final answer, you MUST select either 'A' or 'B' "
-        "as the better assistant. No other answers are acceptable. " + NEW_LINE
-    )
-
     if json_mode:
         prompt += "Answer in the following JSON format:" + NEW_LINE
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
@@ -160,11 +155,6 @@ def build_judge_bench_round_n_prompt(
         "Do not allow the length of the responses to influence your evaluation. "
         "Do not favor certain names of the assistants. Be as objective as "
         "possible. " + NEW_LINE
-    )
-
-    prompt += (
-        "IMPORTANT: For your final answer, you MUST select either 'A' or 'B' "
-        "as the better assistant. No other answers are acceptable. " + NEW_LINE
     )
 
     if json_mode:
