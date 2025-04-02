@@ -47,7 +47,7 @@ def main(
             try:
                 model_configs_list = json.loads(config_json)
             except json.JSONDecodeError:
-                raise ValueError(f"Invalid JSON string provided in config_json")
+                raise ValueError("Invalid JSON string provided in config_json")
         # Check if config is a list (direct configuration)
         elif isinstance(config, list):
             model_configs_list = config
