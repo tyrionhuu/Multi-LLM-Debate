@@ -12,13 +12,14 @@ fi
 # Define variables
 MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
 MODEL_QUANTITY=11
-PORT=8002
+GPU=7
+PORT=$((8002 + GPU))
 
 export VLLM_LOGGING_LEVEL=ERROR
 
 # Start VLLM server with the specified model
 # Setting VLLM_CONFIGURE_LOGGING=0 and adding --max-log-level ERROR to reduce logging
-CUDA_VISIBLE_DEVICES=0 vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 &
+CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 &
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection
