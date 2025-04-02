@@ -92,11 +92,11 @@ def build_judge_bench_round_zero_prompt(
         )
 
     prompt += NEW_LINE + "[User Question]" + NEW_LINE
-    prompt += question + NEW_LINE + NEW_LINE
+    prompt += question + NEW_LINE
 
     prompt += "[The Start of Assistant A's Answer]" + NEW_LINE
     prompt += response_a + NEW_LINE
-    prompt += "[The End of Assistant A's Answer]" + NEW_LINE + NEW_LINE
+    prompt += "[The End of Assistant A's Answer]" + NEW_LINE
 
     prompt += "[The Start of Assistant B's Answer]" + NEW_LINE
     prompt += response_b + NEW_LINE
@@ -179,11 +179,11 @@ def build_judge_bench_round_n_prompt(
         )
 
     prompt += NEW_LINE + "[User Question]" + NEW_LINE
-    prompt += question + NEW_LINE + NEW_LINE
+    prompt += question + NEW_LINE
 
     prompt += "[The Start of Assistant A's Answer]" + NEW_LINE
     prompt += response_a + NEW_LINE
-    prompt += "[The End of Assistant A's Answer]" + NEW_LINE + NEW_LINE
+    prompt += "[The End of Assistant A's Answer]" + NEW_LINE
 
     prompt += "[The Start of Assistant B's Answer]" + NEW_LINE
     prompt += response_b + NEW_LINE
