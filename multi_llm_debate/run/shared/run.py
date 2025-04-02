@@ -28,7 +28,6 @@ def execute_debate_workflow(
     report_path: Path = Path("data"),
     model_configs: List[ModelConfig] = [
         {
-            "provider": "ollama",
             "name": "llama3",
             "quantity": 6,
         }
@@ -93,7 +92,7 @@ def execute_debate_workflow(
     print(f"Success rate: {execution_report['success_rate']:.2f}%")
 
     # Check if we have multiple model types
-    model_types = {(config["provider"], config["name"]) for config in model_configs}
+    model_types = {config["name"] for config in model_configs}
     multiple_models = len(model_types) > 1
     logger.info(f"Multiple model types detected: {multiple_models}")
 
