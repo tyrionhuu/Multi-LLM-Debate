@@ -120,6 +120,7 @@ class AgentsEnsemble:
         max_retries: Optional[int] = None,
         api_key: Optional[str] = None,
         max_tokens: int = 6400,
+        temperature: float = 1.0,
     ) -> Dict[str, Any]:
         """Attempt to get a response from an agent with retry logic.
 
@@ -133,6 +134,8 @@ class AgentsEnsemble:
                 Defaults to None, which uses the one from config.
             max_tokens (int, optional): Maximum number of tokens in response.
                 Defaults to 6400.
+            temperature (float, optional): Controls randomness in the response.
+                Defaults to 1.0. Lower values make responses more deterministic.
 
         Returns:
             Dict[str, Any]: Response from the agent.
@@ -154,6 +157,7 @@ class AgentsEnsemble:
                 max_retries=0,
                 api_key=api_key,
                 max_tokens=max_tokens,
+                temperature=temperature,
             )
 
         # Use the agent's built-in retry mechanism
@@ -167,6 +171,7 @@ class AgentsEnsemble:
             max_retries=retries,
             api_key=api_key,
             max_tokens=max_tokens,
+            temperature=temperature,
         )
 
     def get_responses(
@@ -176,6 +181,7 @@ class AgentsEnsemble:
         max_retries: Optional[int] = None,
         api_key: Optional[str] = None,
         max_tokens: int = 6400,
+        temperature: float = 1.0,
     ) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt.
 
@@ -189,6 +195,8 @@ class AgentsEnsemble:
                 Defaults to None, which uses the one from config.
             max_tokens (int, optional): Maximum number of tokens in response.
                 Defaults to 6400.
+            temperature (float, optional): Controls randomness in the response.
+                Defaults to 1.0. Lower values make responses more deterministic.
 
         Returns:
             List[Dict[str, Any]]: List of responses from all agents.
@@ -219,6 +227,7 @@ class AgentsEnsemble:
                     max_retries=max_retries,
                     api_key=api_key,
                     max_tokens=max_tokens,
+                    temperature=temperature,
                 )
             except (ConnectionError, Exception) as e:
                 logger.error(
