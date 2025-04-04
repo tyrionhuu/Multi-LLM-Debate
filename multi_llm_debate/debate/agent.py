@@ -66,6 +66,7 @@ class Agent:
         max_retries: int = 0,
         api_key: Optional[str] = None,
         max_tokens: int = 6400,
+        temperature: float = 1.0,
     ) -> Dict[str, Any]:
         """Generate a response to the given prompt.
 
@@ -81,6 +82,8 @@ class Agent:
                 Defaults to None, which uses the one from config.
             max_tokens (int, optional): Maximum number of tokens in response.
                 Defaults to 6400.
+            temperature (float, optional): Controls randomness in the response.
+                Defaults to 1.0. Lower values make responses more deterministic.
 
         Returns:
             Dict[str, Any]: A dictionary containing:
@@ -96,7 +99,8 @@ class Agent:
         start_time = time.time()
         logger.debug(
             f"Agent {self.agent_id} ({self.model}) starting request "
-            f"(timeout: {timeout}s, json_mode: {json_mode}, max_retries: {max_retries})"
+            f"(timeout: {timeout}s, json_mode: {json_mode}, max_retries: {max_retries}, "
+            f"temperature: {temperature})"
         )
 
         # Truncate prompt for logging
@@ -127,6 +131,7 @@ class Agent:
                     max_tokens=max_tokens,
                     timeout=timeout,
                     api_key=api_key,
+                    temperature=temperature,
                 )
                 api_time = time.time() - api_start
                 logger.info(
