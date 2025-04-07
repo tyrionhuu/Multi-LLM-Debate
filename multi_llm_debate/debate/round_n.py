@@ -58,11 +58,11 @@ def run_debate_round_n(
         logger.debug(f"Requesting responses from all agents for round {round_num}...")
         response_start_time = time.time()
         responses = agents_ensemble.get_responses(
-            prompt=prompt, 
+            prompt=prompt,
             json_mode=json_mode,
             temperature=temperature,
             max_tokens=max_tokens,
-            parallel=parallel
+            parallel=parallel,
         )
         response_time = time.time() - response_start_time
         logger.info(
