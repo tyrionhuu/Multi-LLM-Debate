@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# Parse command line arguments
+GPU=7  # Default GPU
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --gpu|-g)
+            GPU="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--gpu|-g GPU_NUMBER]"
+            exit 1
+            ;;
+    esac
+done
+
+echo "Using GPU: $GPU"
+
 # Check if Multi-LLM-Debate environment is already activated
 if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
     echo "Activating Multi-LLM-Debate conda environment..."
