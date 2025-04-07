@@ -7,6 +7,8 @@ from typing import Any, Callable, Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from copy import deepcopy
+import math
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -481,31 +483,62 @@ def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
     return dict(sorted(distribution.items()))
 
 
-def merge_figures(figures: List[plt.Figure], nrows: int) -> plt.Figure:
-    """Merge multiple figures into a single figure with subplots.
-
-    Args:
-        figures: List of figures to merge.
-        nrows: Number of rows in the merged figure.
-
-    Returns:
-        Merged figure.
+def merge_figures(figures, rows):
     """
-    # Calculate the number of columns needed
-    ncols = (len(figures) + nrows - 1) // nrows
-
-    merged_fig = plt.figure(figsize=(ncols * 5, nrows * 5))
+    Merges a list of matplotlib Figures into a single Figure with subplots arranged in the specified number of rows.
+    
+    Parameters:
+    figures (list of plt.Figure): List of Figure objects to merge.
+    rows (int): Number of rows in the merged plot.
+    
+    Returns:
+    plt.Figure: Merged Figure object.
+    """
+    num_figures = len(figures)
+    if num_figures == 0:
+        return plt.figure()
+    
+    cols = math.ceil(num_figures / rows)
+    merged_fig, merged_axes = plt.subplots(rows, cols, squeeze=False)
+    merged_axes = merged_axes.flatten()
+    
     for i, fig in enumerate(figures):
-        ax = merged_fig.add_subplot(nrows, ncols, i + 1)
-        for artist in fig.get_children():
-            if isinstance(artist, plt.Line2D):
-                ax.add_line(artist)
-            elif isinstance(artist, plt.Text):
-                ax.text(
-                    artist.get_position()[0],
-                    artist.get_position()[1],
-                    artist.get_text(),
-                )
-            elif isinstance(artist, plt.Patch):
-                ax.add_patch(artist)
+        if i >= len(merged_axes):
+            break  # Handle cases where figures exceed subplot count (unlikely due to cols calculation)
+        original_ax = fig.axes[0]
+        new_ax = merged_axes[i]
+        
+        # Copy artists
+        for artist in original_ax.get_children():
+            # Exclude certain artists like spines and axes to avoid duplication
+            if isinstance(artist, (plt.Line2D, plt.Patch, plt.collections.Collection, plt.Text, plt.image.AxesImage)):
+                new_artist = deepcopy(artist)
+                new_ax.add_artist(new_artist)
+        
+        # Copy axes properties
+        new_ax.set_title(original_ax.get_title())
+        new_ax.set_xlabel(original_ax.get_xlabel())
+        new_ax.set_ylabel(original_ax.get_ylabel())
+        new_ax.set_xlim(original_ax.get_xlim())
+        new_ax.set_ylim(original_ax.get_ylim())
+        new_ax.set_xscale(original_ax.get_xscale())
+        new_ax.set_yscale(original_ax.get_yscale())
+        
+        # Copy grid
+        x_grid = original_ax.xaxis.get_grid()
+        y_grid = original_ax.yaxis.get_grid()
+        new_ax.grid(x_grid or y_grid)
+        
+        # Copy legend if present
+        if original_ax.legend_ is not None:
+            legend = original_ax.legend_
+            handles, labels = new_ax.get_legend_handles_labels()
+            if handles:
+                new_ax.legend(handles, labels, title=legend.get_title().get_text(), loc=legend._loc)
+    
+    # Hide empty subplots
+    for j in range(num_figures, len(merged_axes)):
+        merged_axes[j].axis('off')
+    
+    merged_fig.tight_layout()
     return merged_fig
