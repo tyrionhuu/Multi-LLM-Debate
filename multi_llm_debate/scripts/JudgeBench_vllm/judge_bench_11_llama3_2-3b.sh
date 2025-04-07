@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# Parse command line arguments
+GPU=7  # Default GPU
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --gpu|-g)
+            GPU="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--gpu|-g GPU_NUMBER]"
+            exit 1
+            ;;
+    esac
+done
+
+echo "Using GPU: $GPU"
+
 # Check if Multi-LLM-Debate environment is already activated
 if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
     echo "Activating Multi-LLM-Debate conda environment..."
@@ -9,11 +27,9 @@ else
     echo "Multi-LLM-Debate conda environment is already activated."
 fi
 
-GPU=5
 # Define variables
 MODEL_NAME="/data/share_weight/Llama-3.2-3B-Instruct"
 MODEL_QUANTITY=11
-GPU=7
 PORT=$((8005 + GPU * 10))
 
 export VLLM_LOGGING_LEVEL=ERROR
