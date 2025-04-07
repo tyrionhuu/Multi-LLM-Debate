@@ -42,7 +42,10 @@ def debate(
         json_mode: Whether to use JSON mode for responses.
         process_answer_func: Function to process answers from responses.
         max_retries: Maximum retry attempts for each round. Defaults to 3.
-
+        temperature: Sampling temperature for the model. Defaults to 1.0.
+        max_tokens: Maximum number of tokens in the response. Defaults to 6400.
+        parallel: Whether to run agents in parallel.
+        
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
             responses is a list of dictionaries containing agent responses.
