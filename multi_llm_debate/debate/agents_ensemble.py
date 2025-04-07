@@ -1,7 +1,7 @@
+import concurrent.futures
 import logging
 import time
 from typing import Any, Dict, List, Optional
-import concurrent.futures
 
 from tqdm import tqdm
 
