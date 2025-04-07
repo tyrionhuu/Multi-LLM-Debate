@@ -3,8 +3,7 @@ import logging
 import os
 from collections import Counter
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, List
-
+from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
 
@@ -479,9 +478,13 @@ def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
     distribution = Counter(file_counts)
 
     return dict(sorted(distribution.items()))
-import numpy as np
+
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
+
+
 def combine_plots(
     figures: List[plt.Figure],
     ncols: int = 2,
@@ -498,7 +501,6 @@ def combine_plots(
     backend = mpl.get_backend()
     mpl.use("Agg")  # Use a non-interactive backend for combining figures
     combined_figure = plt.figure(figsize=(15, 10))
-    
 
     nrows = (len(figures) + ncols - 1) // ncols
     for i, figure in enumerate(figures):
@@ -508,19 +510,21 @@ def combine_plots(
         for artist in figure.get_children():
             ax.add_artist(artist)
         ax.set_title(figure.get_title())
-    
+
     return combined_figure
+
 
 def main():
     # Example usage
     figure1 = plt.figure()
     plt.plot([1, 2, 3], [4, 5, 6])
-    plt.title("Figure 1")   
+    plt.title("Figure 1")
     figure2 = plt.figure()
     plt.plot([1, 2, 3], [6, 5, 4])
     plt.title("Figure 2")
     combined_figure = combine_plots([figure1, figure2], ncols=2)
     plt.show()
-    
+
+
 if __name__ == "__main__":
     main()
