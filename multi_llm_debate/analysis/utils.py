@@ -483,7 +483,7 @@ def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
     return dict(sorted(distribution.items()))
 
 
-def merge_figures(figures, rows):
+def merge_figures(figures: List[plt.Figure], rows: int) -> plt.Figure:
     """
     Merges a list of matplotlib Figures into a single Figure with subplots arranged in the specified number of rows.
     
