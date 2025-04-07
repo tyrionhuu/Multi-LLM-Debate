@@ -1,6 +1,7 @@
 import logging
 import time
 from typing import Any, Dict, List, Optional
+import concurrent.futures
 
 from tqdm import tqdm
 
@@ -182,67 +183,82 @@ class AgentsEnsemble:
         api_key: Optional[str] = None,
         max_tokens: int = 6400,
         temperature: float = 1.0,
+        parallel: bool = False,
     ) -> List[Dict[str, Any]]:
-        """Get responses from all agents for a given prompt.
+        """Get responses from all agents.
 
         Args:
-            prompt (str): The input prompt to send to all agents.
-            json_mode (bool, optional): Whether to expect JSON response.
-                Defaults to False.
-            max_retries (Optional[int], optional): Maximum number of retry attempts.
-                If None, use the ensemble's default max_retries. Defaults to None.
-            api_key (Optional[str], optional): API key to use for this request.
-                Defaults to None, which uses the one from config.
-            max_tokens (int, optional): Maximum number of tokens in response.
-                Defaults to 6400.
-            temperature (float, optional): Controls randomness in the response.
-                Defaults to 1.0. Lower values make responses more deterministic.
+            prompt (str): Prompt to send.
+            json_mode (bool): Expect JSON responses.
+            max_retries (Optional[int]): Max retries.
+            api_key (Optional[str]): API key.
+            max_tokens (int): Max tokens.
+            temperature (float): Response randomness.
+            parallel (bool): Whether to process in parallel.
 
         Returns:
-            List[Dict[str, Any]]: List of responses from all agents.
-
-        Raises:
-            RuntimeError: If an agent fails all retries.
+            List[Dict[str, Any]]: Agent responses.
         """
-        retries = self.max_retries if max_retries is None else max_retries
-        retry_msg = f"{retries} retries" if retries > 0 else "no retries"
-        logger.info(
-            f"Getting responses from {len(self.agents)} agents sequentially with {retry_msg}"
-        )
-        start_time = time.time()
-
         responses = []
-
-        for i, agent in enumerate(
-            tqdm(self.agents, desc="Processing Agents", unit="agent")
-        ):
+        if parallel:
+            logger.info("Getting responses in parallel mode")
+            start_time = time.time()
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = [
+                    executor.submit(
+                        self._get_response_with_retry,
+                        agent,
+                        prompt,
+                        json_mode,
+                        max_retries=max_retries,
+                        api_key=api_key,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                    for agent in self.agents
+                ]
+                for future in concurrent.futures.as_completed(futures):
+                    responses.append(future.result())
+            elapsed = time.time() - start_time
+            logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
+        else:
+            retries = self.max_retries if max_retries is None else max_retries
+            retry_msg = f"{retries} retries" if retries > 0 else "no retries"
             logger.info(
-                f"Requesting response from agent {i+1}/{len(self.agents)}: {agent.agent_id}"
+                f"Getting responses from {len(self.agents)} agents sequentially with {retry_msg}"
             )
-            try:
-                response = self._get_response_with_retry(
-                    agent,
-                    prompt,
-                    json_mode,
-                    max_retries=max_retries,
-                    api_key=api_key,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
+            start_time = time.time()
+
+            for i, agent in enumerate(
+                tqdm(self.agents, desc="Processing Agents", unit="agent")
+            ):
+                logger.info(
+                    f"Requesting response from agent {i+1}/{len(self.agents)}: {agent.agent_id}"
                 )
-            except (ConnectionError, Exception) as e:
-                logger.error(
-                    f"All retries failed for agent {agent.agent_id}, aborting."
-                )
-                raise RuntimeError(str(e)) from e
+                try:
+                    response = self._get_response_with_retry(
+                        agent,
+                        prompt,
+                        json_mode,
+                        max_retries=max_retries,
+                        api_key=api_key,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                except (ConnectionError, Exception) as e:
+                    logger.error(
+                        f"All retries failed for agent {agent.agent_id}, aborting."
+                    )
+                    raise RuntimeError(str(e)) from e
 
-            responses.append(response)
+                responses.append(response)
 
-            if self.job_delay > 0 and i < len(self.agents) - 1:
-                logger.debug(f"Waiting {self.job_delay}s before next agent")
-                time.sleep(self.job_delay)
+                if self.job_delay > 0 and i < len(self.agents) - 1:
+                    logger.debug(f"Waiting {self.job_delay}s before next agent")
+                    time.sleep(self.job_delay)
 
-        elapsed = time.time() - start_time
-        logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
+            elapsed = time.time() - start_time
+            logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
 
         return responses
 
