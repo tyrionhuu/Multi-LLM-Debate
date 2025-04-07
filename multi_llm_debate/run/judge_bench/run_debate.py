@@ -26,6 +26,9 @@ def process_judge_bench_dataset(
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
     max_workers: Optional[int] = 4,
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> Dict[str, Any]:
     """Run the JudgeBench task on a DataFrame.
 
@@ -57,6 +60,9 @@ def process_judge_bench_dataset(
         overwrite=overwrite,
         max_workers=max_workers,
         task_name="JudgeBench task",
+        temperature=temperature,
+        max_tokens=max_tokens,
+        parallel=parallel,
     )
 
 
