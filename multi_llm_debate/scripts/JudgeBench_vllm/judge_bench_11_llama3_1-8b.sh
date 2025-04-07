@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parse command line arguments
-GPU=7  # Default GPU
+GPU="7"  # Default GPU
 while [[ $# -gt 0 ]]; do
     case $1 in
         --gpu|-g)
@@ -10,13 +10,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [--gpu|-g GPU_NUMBER]"
+            echo "Usage: $0 [--gpu|-g GPU_NUMBER(S)]"
+            echo "Example: $0 --gpu 0,1 (for tensor parallelism across 2 GPUs)"
             exit 1
             ;;
     esac
 done
 
-echo "Using GPU: $GPU"
+echo "Using GPU(s): $GPU"
 
 # Check if Multi-LLM-Debate environment is already activated
 if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
@@ -30,13 +31,29 @@ fi
 # Define variables
 MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
 MODEL_QUANTITY=11
-PORT=$((8002 + GPU * 10))
+# For port, use the first GPU in case of multiple GPUs
+FIRST_GPU=$(echo $GPU | cut -d',' -f1)
+PORT=$((8002 + FIRST_GPU * 10))
 
 export VLLM_LOGGING_LEVEL=ERROR
 
-# Start VLLM server with the specified model
-# Setting VLLM_CONFIGURE_LOGGING=0 and adding --max-log-level ERROR to reduce logging
-CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 &
+# Check if we have multiple GPUs and set tensor parallelism accordingly
+if [[ "$GPU" == *","* ]]; then
+    # Count the number of GPUs
+    IFS=',' read -ra GPU_ARRAY <<< "$GPU"
+    if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
+        echo "Using tensor parallelism with 2 GPUs"
+        # Start VLLM server with tensor parallelism
+        CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 --tensor-parallel-size=2 &
+    else
+        echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
+        exit 1
+    fi
+else
+    # Single GPU mode
+    CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 &
+fi
+
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection
