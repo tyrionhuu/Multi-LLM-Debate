@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
-
+import random
 from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.debate import debate
 from ...llm.prompt_builder import PromptBuilder
@@ -32,7 +32,7 @@ def execute_debate_workflow(
             "quantity": 6,
         }
     ],
-    random_seed: int = 42,
+    random_seed: int = random.randint(0, 1000),
 ) -> Dict[str, Any]:
     """Execute debate evaluation with the given configuration.
 
