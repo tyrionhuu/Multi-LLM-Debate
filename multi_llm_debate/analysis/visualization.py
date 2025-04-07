@@ -276,6 +276,7 @@ def correct_rate_main(
     max_rounds: int = 6,
     show_plots: bool = False,
     model_config: str = "",
+    show_heatmap: bool = False,
 ) -> None:
     """
     Loads data, calculates correct-rate distributions for each round,
@@ -289,6 +290,7 @@ def correct_rate_main(
         compare_func: Function to compare judge bench responses.
         max_rounds: Maximum number of rounds to process.
         show_plots: Whether to display plots interactively.
+        show_heatmap: Whether to display the heatmap interactively.
     """
     # Create output directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -353,9 +355,11 @@ def correct_rate_main(
     create_heatmap(
         all_distributions=all_distributions,
         output_dir=output_dir,
-        show_plot=show_plots,
+        show_plot=show_heatmap,
         file_name=f"correct_agent_heatmap_{model_config}.png",
     )
+    
+    logger.info("Heatmap creation complete.")
 
 
 def main() -> None:
