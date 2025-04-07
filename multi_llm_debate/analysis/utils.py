@@ -505,45 +505,47 @@ def combine_plots(
     """
     nrows = int(np.ceil(len(figures) / ncols))
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(15, 5 * nrows))
-    
+
     # Convert axs to a 1D array for easier indexing
     if isinstance(axs, np.ndarray):
         axs = axs.flatten()
     else:
         axs = [axs]  # Handle the case of a single subplot
-    
+
     # Hide any extra subplots if we have fewer figures than subplots
     for i in range(len(figures), len(axs)):
-        axs[i].axis('off')
-    
+        axs[i].axis("off")
+
     # Copy content from source figures to new figure using savefig/imshow
     for i, (src_fig, src_ax) in enumerate(zip(figures, axes)):
         if i < len(axs):
             # Capture the rendered image of the source figure
             src_fig.canvas.draw()
             img = np.array(src_fig.canvas.renderer.buffer_rgba())
-            
+
             # Display the image in the new figure
             axs[i].imshow(img)
-            axs[i].axis('off')  # Hide axes
-    
+            axs[i].axis("off")  # Hide axes
+
     plt.tight_layout()
     return fig
+
 
 def main():
     # Create figures and axes correctly
     fig1, ax1 = plt.subplots()
     ax1.plot([1, 2, 3], [4, 5, 6])
     ax1.set_title("First Plot")
-    
+
     fig2, ax2 = plt.subplots()
     ax2.plot([1, 2, 3], [6, 5, 4])
     ax2.set_title("Second Plot")
-    
+
     combined_fig = combine_plots([fig1, fig2], [ax1, ax2])
     plt.close(fig1)
     plt.close(fig2)
     plt.show()
-        
+
+
 if __name__ == "__main__":
     main()
