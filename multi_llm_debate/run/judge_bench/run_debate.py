@@ -41,7 +41,10 @@ def process_judge_bench_dataset(
                     default configs will be used.
         overwrite: Whether to overwrite existing debate results (default: False)
         max_workers: Maximum number of concurrent workers (default: 4)
-
+        temperature: Temperature for model responses
+        max_tokens: Maximum number of tokens for model responses
+        parallel: Whether to run in parallel (default: False)
+        
     Returns:
         Dict containing summary of execution including failed entries
 
