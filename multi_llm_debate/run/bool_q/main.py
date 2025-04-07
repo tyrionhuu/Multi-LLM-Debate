@@ -26,4 +26,7 @@ if __name__ == "__main__":
         task_name="bool_q",
         sample_size=args.sample_size,
         config=args.config,
+        temperature=args.temperature,
+        max_tokens=args.max_tokens,
+        parallel=args.parallel,
     )
