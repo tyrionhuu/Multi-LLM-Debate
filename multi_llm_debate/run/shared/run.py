@@ -63,7 +63,7 @@ def execute_debate_workflow(
         logger.info("Preprocessing input dataframe")
         processed_dataframe = process_df_fn(dataframe)
     else:
-        processed_dataframe = dataframe
+        processed_dataframe = dataframe.sample(frac=1, random_state=random_seed).reset_index(drop=True)
 
     if sample_size and len(processed_dataframe) > sample_size:
         logger.info(
