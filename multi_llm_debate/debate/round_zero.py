@@ -16,6 +16,9 @@ def run_debate_round_zero(
     agents_ensemble: AgentsEnsemble,
     output_dir: str | Path,
     json_mode: bool = False,
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> List[dict]:
     """Run the initial round (round zero) of a debate.
 
@@ -51,6 +54,9 @@ def run_debate_round_zero(
         responses = agents_ensemble.get_responses(
             prompt=prompt,
             json_mode=json_mode,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            parallel=parallel,
         )
         response_time = time.time() - response_start_time
         logger.info(f"All agent responses received in {response_time:.2f} seconds")
