@@ -23,6 +23,9 @@ def debate(
     json_mode: bool = False,
     process_answer_func: Optional[Callable] = None,
     max_retries: int = 3,
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -82,6 +85,9 @@ def debate(
                     process_answer_func=process_answer_func,
                     json_mode=json_mode,
                     max_retries=max_retries,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    parallel=parallel,
                 )
             else:
                 extracted_responses = [
@@ -114,6 +120,9 @@ def debate(
                     process_answer_func=process_answer_func,
                     json_mode=json_mode,
                     max_retries=max_retries,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    parallel=parallel,
                 )
             all_responses.append(round_responses)
             logger.info(
