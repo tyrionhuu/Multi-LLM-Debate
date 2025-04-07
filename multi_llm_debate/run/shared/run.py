@@ -320,6 +320,9 @@ def process_single_debate_entry(
     prompt_builder_fn: Callable[..., PromptBuilder],
     prompt_params: Dict[str, Any],
     process_answer_fn: Optional[Callable[..., Any]] = None,
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> None:
     """Run a single entry's debate logic in a generic way.
 
@@ -368,4 +371,7 @@ def process_single_debate_entry(
         agents_ensemble=agents_ensemble,
         output_dir=output_dir,
         process_answer_func=process_answer_fn,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        parallel=parallel,
     )
