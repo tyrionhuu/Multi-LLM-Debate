@@ -13,7 +13,7 @@ from requests.exceptions import ConnectionError, Timeout
 from ..utils.config_manager import get_api_key
 from ..utils.logging_config import setup_logging
 from .utils import encode_image
-
+import random
 # Set up logger
 logger = setup_logging(__name__)
 logger.setLevel(logging.INFO)
@@ -123,7 +123,7 @@ def call_model(
             max_tokens=max_tokens,
             temperature=temperature,
             response_format={"type": "json_object"} if json_mode else None,
-            seed=42,
+            seed=random.randint(0, 2**32 - 1),
         )
         logger.debug(f"API response: {response}")
         # Extract response content
