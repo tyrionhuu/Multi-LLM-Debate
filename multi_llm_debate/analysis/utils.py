@@ -3,7 +3,7 @@ import logging
 import os
 from collections import Counter
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, List
 
 
 import pandas as pd
@@ -479,3 +479,45 @@ def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
     distribution = Counter(file_counts)
 
     return dict(sorted(distribution.items()))
+import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+def combine_plots(
+    figures: List[plt.Figure],
+    ncols: int = 2,
+) -> plt.Figure:
+    """Combine multiple matplotlib figures into a single figure.
+
+    Args:
+        figures: List of matplotlib figures to combine.
+        ncols: Number of columns in the combined figure.
+
+    Returns:
+        A single matplotlib figure containing all input figures.
+    """
+    nrows = int(np.ceil(len(figures) / ncols))
+    combined_fig = plt.figure(figsize=(ncols * 5, nrows * 5))
+
+    for i, fig in enumerate(figures):
+        ax = combined_fig.add_subplot(nrows, ncols, i + 1)
+        for j, ax_orig in enumerate(fig.axes):
+            for artist in ax_orig.get_children():
+                if isinstance(artist, mpl.collections.Collection):
+                    artist.set_array(np.array([0]))
+                ax.add_artist(artist)
+
+    return combined_fig
+
+def main():
+    # Example usage
+    figure1 = plt.figure()
+    plt.plot([1, 2, 3], [4, 5, 6])
+    plt.title("Figure 1")   
+    figure2 = plt.figure()
+    plt.plot([1, 2, 3], [6, 5, 4])
+    plt.title("Figure 2")
+    combined_figure = combine_plots([figure1, figure2], ncols=2)
+    plt.show()
+    
+if __name__ == "__main__":
+    main()
