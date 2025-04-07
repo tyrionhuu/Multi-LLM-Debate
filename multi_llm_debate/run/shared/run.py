@@ -202,7 +202,6 @@ def process_debate_dataset(
     max_rounds: int = 10,
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
-    max_workers: Optional[int] = 4,
     task_name: str = "debate task",
 ) -> Dict[str, Any]:
     """Run a debate task on all entries in a dataframe.

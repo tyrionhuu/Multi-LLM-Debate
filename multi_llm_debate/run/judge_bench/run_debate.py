@@ -66,6 +66,9 @@ def process_judge_bench_entry(
     base_dir: Path = Path("data") / "judge_bench",
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> None:
     """Process a single JudgeBench entry."""
     process_single_debate_entry(
@@ -86,4 +89,7 @@ def process_judge_bench_entry(
             "response_b": entry["response_B"],
         },
         process_answer_fn=extract_caption_a_b_answer,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        parallel=parallel,
     )

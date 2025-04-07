@@ -60,6 +60,9 @@ def process_boolean_question_entry(
     base_dir: Path = Path("data") / "bool_q",
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> None:
     """Process a single Boolean Question entry."""
     process_single_debate_entry(
@@ -79,4 +82,7 @@ def process_boolean_question_entry(
             "passage": entry["passage"],
         },
         process_answer_fn=extract_bool_answer,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        parallel=parallel,
     )
