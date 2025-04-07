@@ -353,7 +353,10 @@ def process_single_debate_entry(
         prompt_builder_fn: Function returning a prompt builder.
         prompt_params: Parameters used to build prompts.
         process_answer_fn: Optional function for post-processing responses.
-
+        temperature: Temperature for model responses.
+        max_tokens: Maximum tokens for model responses.
+        parallel: Whether to run in parallel.
+        
     Raises:
         ValueError: If required columns are missing.
         RuntimeError: If debate execution fails.
