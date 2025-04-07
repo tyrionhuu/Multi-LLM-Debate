@@ -59,7 +59,7 @@ def plot_file_count_distribution(distribution: Dict[int, int]) -> plt.Figure:
     plt.xticks(range(min(file_counts), max(file_counts) + 1))
 
     plt.tight_layout()
-    
+
     return fig
 
 
