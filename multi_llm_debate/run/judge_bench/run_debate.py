@@ -79,7 +79,18 @@ def process_judge_bench_entry(
     max_tokens: int = 6400,
     parallel: bool = False,
 ) -> None:
-    """Process a single JudgeBench entry."""
+    """Process a single JudgeBench entry.
+    
+    Args:
+        entry: Pandas Series containing the entry data
+        max_rounds: Maximum number of debate rounds
+        base_dir: Base directory for output files
+        model_configs: Optional list of model configurations
+        overwrite: Whether to overwrite existing debate results
+        temperature: Temperature for model responses
+        max_tokens: Maximum number of tokens for model responses
+        parallel: Whether to run in parallel
+    """
     process_single_debate_entry(
         entry=entry,
         required_columns=["question", "response_A", "response_B", "id"],
