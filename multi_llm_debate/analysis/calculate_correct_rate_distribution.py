@@ -7,6 +7,7 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
 def calculate_correct_rate_distribution_for_round_n(
     df_answers: pd.DataFrame,
     df_debates: pd.DataFrame,

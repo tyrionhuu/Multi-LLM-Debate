@@ -10,6 +10,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
 def compare_bool(value_a: Any, value_b: Any) -> bool:
     """Compare two boolean values with robust type conversion.
 

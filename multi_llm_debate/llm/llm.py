@@ -3,6 +3,7 @@ import io
 import json
 import logging
 import os
+import random
 import time
 from typing import Any, Dict, List, Optional, Union
 
@@ -13,7 +14,7 @@ from requests.exceptions import ConnectionError, Timeout
 from ..utils.config_manager import get_api_key
 from ..utils.logging_config import setup_logging
 from .utils import encode_image
-import random
+
 # Set up logger
 logger = setup_logging(__name__)
 logger.setLevel(logging.INFO)
