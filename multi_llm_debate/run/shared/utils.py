@@ -22,6 +22,7 @@ class Args:
     max_tokens: int = 6400
     parallel: bool = False
 
+
 class Parser:
     """Command line argument parser for boolean question evaluation."""
 
@@ -64,7 +65,7 @@ class Parser:
         )
         self.parser.add_argument(
             "--parallel",
-            action='store_true',
+            action="store_true",
             help="Enable parallel processing",
         )
 
