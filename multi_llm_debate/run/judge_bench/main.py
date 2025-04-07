@@ -22,4 +22,7 @@ if __name__ == "__main__":
         task_name="judge_bench",
         sample_size=args.sample_size,
         config_json=args.config_json,
+        temperature=args.temperature,
+        max_tokens=args.max_tokens,
+        parallel=args.parallel,
     )
