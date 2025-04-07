@@ -16,17 +16,20 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def plot_file_count_distribution(distribution: Dict[int, int]) -> None:
-    """Creates and displays a plot of file count distribution across directories.
+def plot_file_count_distribution(distribution: Dict[int, int]) -> plt.Figure:
+    """Creates a plot of file count distribution across directories.
 
     Args:
         distribution: Dictionary mapping file counts to number of directories.
+
+    Returns:
+        plt.Figure: The created plot figure.
     """
     if not distribution:
         print("No directory data found to plot.")
-        return
+        return None
 
-    plt.figure(figsize=(12, 6))
+    fig = plt.figure(figsize=(12, 6))
 
     # Prepare data
     file_counts = list(distribution.keys())
@@ -56,7 +59,8 @@ def plot_file_count_distribution(distribution: Dict[int, int]) -> None:
     plt.xticks(range(min(file_counts), max(file_counts) + 1))
 
     plt.tight_layout()
-    plt.show()
+    
+    return fig
 
 
 def process_distribution_data(
@@ -382,7 +386,9 @@ def main() -> None:
     print(f"Found file count distribution: {distribution}")
 
     # Visualize the distribution
-    plot_file_count_distribution(distribution)
+    fig = plot_file_count_distribution(distribution)
+    if fig:
+        plt.show()
     print("Plot displayed. Close the plot window to exit.")
 
 
