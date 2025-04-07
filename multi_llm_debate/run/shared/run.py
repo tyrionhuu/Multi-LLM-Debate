@@ -33,7 +33,10 @@ def execute_debate_workflow(
             "quantity": 6,
         }
     ],
-    random_seed: int = random.randint(0, 1000),
+    random_seed: int = random.randint(0, 2**32 - 1),
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> Dict[str, Any]:
     """Execute debate evaluation with the given configuration.
 
@@ -81,6 +84,9 @@ def execute_debate_workflow(
         dataframe=processed_dataframe,
         base_dir=output_path,
         model_configs=model_configs,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        parallel=parallel,
     )
 
     # Print execution summary
