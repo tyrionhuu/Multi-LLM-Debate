@@ -493,7 +493,7 @@ def merge_figures(figures: List[plt.Figure], nrows: int) -> plt.Figure:
     """
     # Calculate the number of columns needed
     ncols = (len(figures) + nrows - 1) // nrows
-    
+
     merged_fig = plt.figure(figsize=(ncols * 5, nrows * 5))
     for i, fig in enumerate(figures):
         ax = merged_fig.add_subplot(nrows, ncols, i + 1)
