@@ -35,7 +35,7 @@ FIRST_GPU=$(echo $GPU | cut -d',' -f1)
 PORT=$((8003 + FIRST_GPU * 10))
 
 # Start VLLM server with the specified model
-export VLLM_LOGGING_LEVEL=ERROR
+# export VLLM_LOGGING_LEVEL=ERROR
 
 # Check if we have multiple GPUs and set tensor parallelism accordingly
 if [[ "$GPU" == *","* ]]; then
@@ -44,7 +44,7 @@ if [[ "$GPU" == *","* ]]; then
     if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
         echo "Using tensor parallelism with 2 GPUs"
         # Start VLLM server with tensor parallelism
-        CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 --tensor-parallel-size 2 &
+        CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --tensor-parallel-size 2 &
     else
         echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
         exit 1
@@ -59,7 +59,7 @@ SERVER_PID=$!
 # Wait for the server to be ready by checking the connection
 echo "Waiting for server to start..."
 sleep 30
-MAX_ATTEMPTS=30
+MAX_ATTEMPTS=60
 ATTEMPT=1
 while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
     if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
