@@ -358,7 +358,7 @@ def correct_rate_main(
         show_plot=show_heatmap,
         file_name=f"correct_agent_heatmap_{model_config}.png",
     )
-    
+
     logger.info("Heatmap creation complete.")
 
 
