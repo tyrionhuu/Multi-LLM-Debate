@@ -309,7 +309,6 @@ def draw_console_histogram(
         result.append(percent_line)
 
         # Count line
-        count_line = ""
         for label, value in sorted_data.items():
             if isinstance(value, float) and value.is_integer():
                 count_text = f"({int(value)})"
@@ -482,20 +481,22 @@ def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
     return dict(sorted(distribution.items()))
 
 
-def merge_figures(figures: List[plt.Figure], rows: int, cols: int) -> plt.Figure:
+def merge_figures(figures: List[plt.Figure], nrows: int) -> plt.Figure:
     """Merge multiple figures into a single figure with subplots.
 
     Args:
         figures: List of figures to merge.
-        rows: Number of rows in the merged figure.
-        cols: Number of columns in the merged figure.
+        nrows: Number of rows in the merged figure.
 
     Returns:
         Merged figure.
     """
-    merged_fig = plt.figure(figsize=(cols * 5, rows * 5))
+    # Calculate the number of columns needed
+    ncols = (len(figures) + nrows - 1) // nrows
+    
+    merged_fig = plt.figure(figsize=(ncols * 5, nrows * 5))
     for i, fig in enumerate(figures):
-        ax = merged_fig.add_subplot(rows, cols, i + 1)
+        ax = merged_fig.add_subplot(nrows, ncols, i + 1)
         for artist in fig.get_children():
             if isinstance(artist, plt.Line2D):
                 ax.add_line(artist)
