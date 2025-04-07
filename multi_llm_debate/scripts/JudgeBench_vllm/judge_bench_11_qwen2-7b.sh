@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parse command line arguments
-GPU=7  # Default GPU
+GPU="7"  # Default GPU
 while [[ $# -gt 0 ]]; do
     case $1 in
         --gpu|-g)
@@ -10,13 +10,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [--gpu|-g GPU_NUMBER]"
+            echo "Usage: $0 [--gpu|-g GPU_NUMBER(S)]"
+            echo "Example: $0 --gpu 0,1 (for tensor parallelism across 2 GPUs)"
             exit 1
             ;;
     esac
 done
 
-echo "Using GPU: $GPU"
+echo "Using GPU(s): $GPU"
 
 # Check if Multi-LLM-Debate environment is already activated
 if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then

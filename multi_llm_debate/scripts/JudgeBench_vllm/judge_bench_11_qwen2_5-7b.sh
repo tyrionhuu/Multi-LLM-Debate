@@ -31,7 +31,8 @@ fi
 # Define variables
 MODEL_NAME="/data/share_weight/Qwen2.5-7B-Instruct"
 MODEL_QUANTITY=11
-PORT=$((8003 + GPU * 10))
+FIRST_GPU=$(echo $GPU | cut -d',' -f1)
+PORT=$((8003 + FIRST_GPU * 10))
 
 # Start VLLM server with the specified model
 export VLLM_LOGGING_LEVEL=ERROR
