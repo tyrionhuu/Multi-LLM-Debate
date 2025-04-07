@@ -203,6 +203,9 @@ def process_debate_dataset(
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
     task_name: str = "debate task",
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> Dict[str, Any]:
     """Run a debate task on all entries in a dataframe.
 
@@ -259,6 +262,9 @@ def process_debate_dataset(
                         base_dir=base_dir,
                         model_configs=model_configs,
                         overwrite=overwrite,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        parallel=parallel,
                     )
                     processed_count += 1
                     pbar.update(1)
