@@ -14,8 +14,8 @@ MODEL_NAME1="/data/share_weight/Llama-3.1-8B-Instruct"
 MODEL_NAME2="/data/share_weight/Qwen2.5-7B-Instruct"
 MODEL_QUANTITY1=6
 MODEL_QUANTITY2=5
-GPU1=1
-GPU2=2
+GPU1=4
+GPU2=5
 PORT1=$((8102 + GPU1 * 10))
 PORT2=$((8202 + GPU2 * 10))
 
