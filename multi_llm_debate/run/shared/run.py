@@ -50,7 +50,9 @@ def execute_debate_workflow(
         report_path: Path to save results
         model_configs: List of model configurations
         random_seed: Random seed for sampling
-        **debate_kwargs: Additional arguments to pass to run_debate_fn
+        temperature: Temperature for model responses
+        max_tokens: Maximum tokens for model responses
+        parallel: Whether to run in parallel
 
     Returns:
         Dict containing execution results and evaluation metrics
