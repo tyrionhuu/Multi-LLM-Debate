@@ -35,7 +35,10 @@ def process_boolean_questions_dataset(
                     default configs will be used.
         overwrite: Whether to overwrite existing debate results (default: False)
         max_workers: Maximum number of concurrent workers (default: 4)
-
+        temperature: Sampling temperature for the model (default: 1.0)
+        max_tokens: Maximum number of tokens in the response (default: 6400)
+        parallel: Whether to run in parallel (default: False)
+        
     Returns:
         Dict containing summary of execution including failed entries
 
