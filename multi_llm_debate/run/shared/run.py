@@ -228,7 +228,10 @@ def process_debate_dataset(
         overwrite: Whether to overwrite existing debate results
         max_workers: Maximum number of concurrent workers
         task_name: Name of the task for logging purposes
-
+        temperature: Temperature for model responses
+        max_tokens: Maximum tokens for model responses
+        parallel: Whether to run in parallel
+        
     Returns:
         Dict containing summary of execution including failed entries
 
