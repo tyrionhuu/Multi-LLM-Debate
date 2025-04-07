@@ -18,7 +18,7 @@ logger.setLevel(logging.INFO)
 
 def plot_file_count_distribution(
     distribution: Dict[int, int], show_plot: bool = False
-) -> plt.Figure:
+) -> Tuple[plt.Figure, plt.Axes]:
     """Creates a plot of file count distribution across directories.
 
     Args:
@@ -26,25 +26,25 @@ def plot_file_count_distribution(
         show_plot: Whether to display the plot interactively.
 
     Returns:
-        plt.Figure: The created plot figure.
+        Tuple[plt.Figure, plt.Axes]: The created plot figure and axes.
     """
     if not distribution:
         print("No directory data found to plot.")
-        return None
+        return None, None
 
-    fig = plt.figure(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     # Prepare data
     file_counts = list(distribution.keys())
     dir_counts = list(distribution.values())
 
     # Create bar chart
-    bars = plt.bar(file_counts, dir_counts, color="salmon", edgecolor="darkred")
+    bars = ax.bar(file_counts, dir_counts, color="salmon", edgecolor="darkred")
 
     # Add value labels on top of bars
     for bar in bars:
         height = bar.get_height()
-        plt.text(
+        ax.text(
             bar.get_x() + bar.get_width() / 2.0,
             height + 0.1,
             f"{int(height)}",
@@ -53,13 +53,13 @@ def plot_file_count_distribution(
         )
 
     # Set chart attributes
-    plt.title("Distribution of File Counts Across Directories", fontsize=14)
-    plt.xlabel("Number of Files in Directory", fontsize=12)
-    plt.ylabel("Number of Directories", fontsize=12)
-    plt.grid(axis="y", alpha=0.3)
+    ax.set_title("Distribution of File Counts Across Directories", fontsize=14)
+    ax.set_xlabel("Number of Files in Directory", fontsize=12)
+    ax.set_ylabel("Number of Directories", fontsize=12)
+    ax.grid(axis="y", alpha=0.3)
 
     # Adjust x-axis to show all integer values
-    plt.xticks(range(min(file_counts), max(file_counts) + 1))
+    ax.set_xticks(range(min(file_counts), max(file_counts) + 1))
 
     plt.tight_layout()
 
@@ -67,7 +67,7 @@ def plot_file_count_distribution(
         plt.show()
     logger.info("File count distribution plot created.")
 
-    return fig
+    return fig, ax
 
 
 def process_distribution_data(
@@ -393,7 +393,7 @@ def main() -> None:
     print(f"Found file count distribution: {distribution}")
 
     # Visualize the distribution
-    fig = plot_file_count_distribution(distribution)
+    fig, ax = plot_file_count_distribution(distribution)
     if fig:
         plt.show()
     print("Plot displayed. Close the plot window to exit.")
