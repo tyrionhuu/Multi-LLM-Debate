@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Callable, Dict, List, NamedTuple, Optional
+from typing import Callable, Dict, NamedTuple, Optional
 
 import pandas as pd
 
