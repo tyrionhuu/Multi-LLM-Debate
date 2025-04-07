@@ -3,7 +3,8 @@ import logging
 import os
 from collections import Counter
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, List
+from typing import Any, Callable, Dict, List, Optional
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -479,6 +480,8 @@ def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
     distribution = Counter(file_counts)
 
     return dict(sorted(distribution.items()))
+
+
 def merge_figures(figures: List[plt.Figure], rows: int, cols: int) -> plt.Figure:
     """Merge multiple figures into a single figure with subplots.
 
@@ -497,7 +500,11 @@ def merge_figures(figures: List[plt.Figure], rows: int, cols: int) -> plt.Figure
             if isinstance(artist, plt.Line2D):
                 ax.add_line(artist)
             elif isinstance(artist, plt.Text):
-                ax.text(artist.get_position()[0], artist.get_position()[1], artist.get_text())
+                ax.text(
+                    artist.get_position()[0],
+                    artist.get_position()[1],
+                    artist.get_text(),
+                )
             elif isinstance(artist, plt.Patch):
                 ax.add_patch(artist)
     return merged_fig
