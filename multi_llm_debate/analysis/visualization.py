@@ -17,15 +17,14 @@ logger.setLevel(logging.INFO)
 
 
 def plot_file_count_distribution(
-    distribution: Dict[int, int],
-    show_plot: bool = False
+    distribution: Dict[int, int], show_plot: bool = False
 ) -> plt.Figure:
     """Creates a plot of file count distribution across directories.
 
     Args:
         distribution: Dictionary mapping file counts to number of directories.
         show_plot: Whether to display the plot interactively.
-        
+
     Returns:
         plt.Figure: The created plot figure.
     """
@@ -63,11 +62,11 @@ def plot_file_count_distribution(
     plt.xticks(range(min(file_counts), max(file_counts) + 1))
 
     plt.tight_layout()
-    
+
     if show_plot:
         plt.show()
     logger.info("File count distribution plot created.")
-    
+
     return fig
 
 
