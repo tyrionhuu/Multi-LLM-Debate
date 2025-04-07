@@ -30,7 +30,10 @@ def run_debate_round_n(
         output_dir (str | Path): Directory path where debate responses will be saved.
         round_num (int): Current round number.
         json_mode (bool): Whether to expect JSON responses from agents.
-
+        temperature (float): Sampling temperature for the model.
+        max_tokens (int): Maximum number of tokens in the response.
+        parallel (bool): Whether to run in parallel.
+        
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
 
