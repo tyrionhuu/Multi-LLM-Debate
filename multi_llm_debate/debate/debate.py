@@ -151,6 +151,9 @@ def run_debate_with_retry(
     process_answer_func: Callable,
     json_mode: bool = False,
     max_retries: int = 3,
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> List[Dict]:
     """Run a debate round with retry capabilities.
 
@@ -211,6 +214,9 @@ def run_debate_with_retry(
                     agents_ensemble=agents_ensemble,
                     output_dir=output_dir,
                     json_mode=json_mode,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    parallel=parallel,
                 )
             else:
                 responses = run_debate_round_n(
@@ -219,6 +225,9 @@ def run_debate_with_retry(
                     output_dir=output_dir,
                     round_num=round_num,
                     json_mode=json_mode,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    parallel=parallel,
                 )
 
             try:
