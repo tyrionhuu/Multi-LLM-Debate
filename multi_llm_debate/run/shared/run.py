@@ -1,10 +1,11 @@
 import csv
+import random
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
-import random
+
 from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.debate import debate
 from ...llm.prompt_builder import PromptBuilder
