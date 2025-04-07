@@ -18,7 +18,9 @@ class Args:
     config: Optional[Path]
     sample_size: int
     config_json: Optional[str]
-
+    temperature: float = 1.0
+    max_tokens: int = 6400
+    parallel: bool = False
 
 class Parser:
     """Command line argument parser for boolean question evaluation."""
@@ -47,6 +49,23 @@ class Parser:
             type=str,
             help="JSON string containing model configurations",
             default=None,
+        )
+        self.parser.add_argument(
+            "--temperature",
+            type=float,
+            help="Temperature for model responses",
+            default=1.0,
+        )
+        self.parser.add_argument(
+            "--max-tokens",
+            type=int,
+            help="Maximum number of tokens for model responses",
+            default=6400,
+        )
+        self.parser.add_argument(
+            "--parallel",
+            action='store_true',
+            help="Enable parallel processing",
         )
 
     def parse_args(self) -> Args:
