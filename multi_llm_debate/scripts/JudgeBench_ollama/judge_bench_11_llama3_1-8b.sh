@@ -12,10 +12,10 @@ fi
 # Define variables
 MODEL_NAME="llama3.1:latest"
 MODEL_QUANTITY=11
-PORT=11435
+PORT=11434
 
 # Start ollama server with the specified model
-OLLAMA_HOST_HOST="http://localhost:${PORT}" ollama serve &
+OLLAMA_HOST_HOST="http://127.0.0.1:${PORT}" ollama serve &
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection
@@ -23,7 +23,7 @@ echo "Waiting for server to start..."
 sleep 30
 MAX_ATTEMPTS=30
 ATTEMPT=1
-while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
+while ! curl -s "http://127.0.0.1:${PORT}/v1/models" > /dev/null 2>&1; do
     if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
         echo "Server did not start after $MAX_ATTEMPTS attempts. Exiting."
         kill $SERVER_PID
