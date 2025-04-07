@@ -4,17 +4,8 @@ from typing import Callable, Optional
 import pandas as pd
 from tqdm import tqdm
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("analysis.log"),
-    ],
-)
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.INFO)
 
 def calculate_correct_rate_distribution_for_round_n(
     df_answers: pd.DataFrame,
