@@ -40,6 +40,9 @@ def main(
         config_json: JSON string containing model configurations
         random_seed: Random seed for sampling
         run_debate: Whether to run the debate or just evaluate existing results
+        temperature: Temperature for model responses
+        max_tokens: Maximum number of tokens for model responses
+        parallel: Whether to run in parallel
     """
 
     try:
