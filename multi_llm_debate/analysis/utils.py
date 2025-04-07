@@ -7,12 +7,8 @@ from typing import Any, Callable, Dict, Optional
 
 import pandas as pd
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.INFO)
 
 def compare_bool(value_a: Any, value_b: Any) -> bool:
     """Compare two boolean values with robust type conversion.
