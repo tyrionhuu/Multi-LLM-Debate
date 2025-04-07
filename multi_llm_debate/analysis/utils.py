@@ -495,18 +495,21 @@ def combine_plots(
     Returns:
         A single matplotlib figure containing all input figures.
     """
-    nrows = int(np.ceil(len(figures) / ncols))
-    combined_fig = plt.figure(figsize=(ncols * 5, nrows * 5))
+    backend = mpl.get_backend()
+    mpl.use("Agg")  # Use a non-interactive backend for combining figures
+    combined_figure = plt.figure(figsize=(15, 10))
+    
 
-    for i, fig in enumerate(figures):
-        ax = combined_fig.add_subplot(nrows, ncols, i + 1)
-        for j, ax_orig in enumerate(fig.axes):
-            for artist in ax_orig.get_children():
-                if isinstance(artist, mpl.collections.Collection):
-                    artist.set_array(np.array([0]))
-                ax.add_artist(artist)
+    nrows = (len(figures) + ncols - 1) // ncols
+    for i, figure in enumerate(figures):
 
-    return combined_fig
+        ax = combined_figure.add_subplot(nrows, ncols, i + 1)
+
+        for artist in figure.get_children():
+            ax.add_artist(artist)
+        ax.set_title(figure.get_title())
+    
+    return combined_figure
 
 def main():
     # Example usage
