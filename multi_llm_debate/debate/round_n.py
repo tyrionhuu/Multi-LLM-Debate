@@ -17,6 +17,9 @@ def run_debate_round_n(
     output_dir: str | Path,
     round_num: int,
     json_mode: bool = False,
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    parallel: bool = False,
 ) -> List[Dict]:
     """Run a subsequent round of debate with the given prompt and agents.
 
@@ -54,7 +57,13 @@ def run_debate_round_n(
     try:
         logger.debug(f"Requesting responses from all agents for round {round_num}...")
         response_start_time = time.time()
-        responses = agents_ensemble.get_responses(prompt=prompt, json_mode=json_mode)
+        responses = agents_ensemble.get_responses(
+            prompt=prompt, 
+            json_mode=json_mode,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            parallel=parallel
+        )
         response_time = time.time() - response_start_time
         logger.info(
             f"All agent responses for round {round_num} received "
