@@ -73,7 +73,18 @@ def process_boolean_question_entry(
     max_tokens: int = 6400,
     parallel: bool = False,
 ) -> None:
-    """Process a single Boolean Question entry."""
+    """Process a single Boolean Question entry.
+    
+    Args:
+        entry: A Pandas Series containing the question, answer, passage, and id.
+        max_rounds: Maximum number of debate rounds.
+        base_dir: Base directory for output files.
+        model_configs: Optional list of model configurations.
+        overwrite: Whether to overwrite existing debate results.
+        temperature: Sampling temperature for the model.
+        max_tokens: Maximum number of tokens in the response.
+        parallel: Whether to run in parallel.
+    """
     process_single_debate_entry(
         entry=entry,
         required_columns=["question", "answer", "passage", "id"],
