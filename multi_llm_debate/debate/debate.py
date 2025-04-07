@@ -181,7 +181,10 @@ def run_debate_with_retry(
         process_answer_func: Function to process responses between rounds.
         json_mode: Whether to expect JSON responses from agents.
         max_retries: Maximum retry attempts for the round.
-
+        temperature: Sampling temperature for the model.
+        max_tokens: Maximum number of tokens in the response.
+        parallel: Whether to run agents in parallel.
+        
     Returns:
         List[Dict]: List of agent responses from the round.
 
