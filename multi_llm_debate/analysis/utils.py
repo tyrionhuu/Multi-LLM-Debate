@@ -487,44 +487,37 @@ import numpy as np
 
 def combine_plots(
     figures: List[plt.Figure],
+    axes: List[plt.Axes],
     ncols: int = 2,
 ) -> plt.Figure:
     """Combine multiple matplotlib figures into a single figure.
 
     Args:
-        figures: List of matplotlib figures to combine.
+        figures: List of matplotlib Figure objects to combine.
+        axes: List of matplotlib Axes objects corresponding to the figures.
         ncols: Number of columns in the combined figure.
 
     Returns:
-        A single matplotlib figure containing all input figures.
+        Combined matplotlib Figure object.
     """
-    backend = mpl.get_backend()
-    mpl.use("Agg")  # Use a non-interactive backend for combining figures
-    combined_figure = plt.figure(figsize=(15, 10))
+    nrows = int(np.ceil(len(figures) / ncols))
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(15, 5 * nrows))
 
-    nrows = (len(figures) + ncols - 1) // ncols
-    for i, figure in enumerate(figures):
+    for i, (fig, ax) in enumerate(zip(figures, axes)):
+        for artist in fig.get_children():
+            if isinstance(artist, mpl.artist.Artist):
+                artist.remove()
+                ax.add_artist(artist)
 
-        ax = combined_figure.add_subplot(nrows, ncols, i + 1)
-
-        for artist in figure.get_children():
-            ax.add_artist(artist)
-        ax.set_title(figure.get_title())
-
-    return combined_figure
-
+    plt.tight_layout()
+    return fig
 
 def main():
-    # Example usage
-    figure1 = plt.figure()
-    plt.plot([1, 2, 3], [4, 5, 6])
-    plt.title("Figure 1")
-    figure2 = plt.figure()
-    plt.plot([1, 2, 3], [6, 5, 4])
-    plt.title("Figure 2")
-    combined_figure = combine_plots([figure1, figure2], ncols=2)
+    fig1, ax1 = plt.plot([1, 2, 3], [4, 5, 6])
+    fig2, ax2 = plt.plot([1, 2, 3], [6, 5, 4])
+    combined_fig = combine_plots([fig1, fig2], [ax1, ax2])
     plt.show()
 
-
+        
 if __name__ == "__main__":
     main()
