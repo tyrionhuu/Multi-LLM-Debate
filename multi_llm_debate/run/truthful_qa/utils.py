@@ -154,13 +154,16 @@ def compare_truthful_qa_response(
         return False
 
 
-def main():
+def main() -> None:
+    """Main function for loading and processing the TruthfulQA dataset."""
     df = load_truthful_qa_dataset(
         "/Users/tyrionhuu/projects/research_projects/Multi-LLM-Debate/datasets/TruthfulQA"
     )
-    # print(df.columns.tolist())
     processed_df = preprocess_dataframe(df)
     print(processed_df.head())
+    # Count each answer
+    counts = processed_df["answer"].value_counts()
+    print("Answer counts:\n", counts)
 
 
 if __name__ == "__main__":
