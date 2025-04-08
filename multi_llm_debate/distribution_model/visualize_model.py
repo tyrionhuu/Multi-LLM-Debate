@@ -394,7 +394,8 @@ def run_visualization(
         compare_func: Function to compare extracted answers with ground truth
         model_config: Model configuration identifier for file naming
         row_number: Number of rows for the model evolution subplot grid (default: 2)
-
+        task_name: Task name for the title
+        
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
                results and generated figures
@@ -462,6 +463,7 @@ def run_visualization(
         model_results,
         output_dir=output_dir,
         model_config=model_config,
+        task_name=task_name,
     )
     if verbose:
         print(f"Saved parameter trend plot to {output_dir}")
