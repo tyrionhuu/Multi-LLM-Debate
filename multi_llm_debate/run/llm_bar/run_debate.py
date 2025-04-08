@@ -8,15 +8,13 @@ from ...llm.prompt_builder import PromptBuilder
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ..shared.run import process_debate_dataset, process_single_debate_entry
-from .prompts import (
-    build_llm_bar_round_n_prompt,
-    build_llm_bar_round_zero_prompt,
-)
+from .prompts import build_llm_bar_round_n_prompt, build_llm_bar_round_zero_prompt
 from .utils import extract_1_2_answer
 
 # Fix the setup_logging call by removing the level parameter
 logger = setup_logging(__name__)
 logger.setLevel(logging.INFO)
+
 
 def process_llm_bar_dataset(
     dataframe: pd.DataFrame,
@@ -72,7 +70,8 @@ def process_llm_bar_dataset(
         max_tokens=max_tokens,
         parallel=parallel,
     )
-    
+
+
 def process_llm_bar_entry(
     entry: pd.Series,
     max_rounds: int = 10,
@@ -95,7 +94,7 @@ def process_llm_bar_entry(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel (default: False)
-        
+
     Returns:
         Dict containing execution summary including failed entries
 
@@ -103,7 +102,7 @@ def process_llm_bar_entry(
         ValueError: If entry format is invalid
     """
     logger.info(f"Processing entry ID: {entry['id']} for LLMBar task")
-    
+
     process_single_debate_entry(
         entry=entry,
         required_columns=[
