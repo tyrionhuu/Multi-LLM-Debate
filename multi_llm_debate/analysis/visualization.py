@@ -293,6 +293,7 @@ def correct_rate_main(
     show_plots: bool = False,
     model_config: str = "",
     show_heatmap: bool = False,
+    task_name: str = "",
 ) -> None:
     """
     Loads data, calculates correct-rate distributions for each round,
@@ -307,6 +308,7 @@ def correct_rate_main(
         max_rounds: Maximum number of rounds to process.
         show_plots: Whether to display plots interactively.
         show_heatmap: Whether to display the heatmap interactively.
+        task_name: Name of the task for logging purposes.
     """
     # Create output directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -354,7 +356,7 @@ def correct_rate_main(
             logger.error(f"Error processing round {round_number}: {err}")
 
     # Create the single, combined plot in 2 rows if we have data
-    title = f"Correct Agent Distribution by Round ({model_config})"
+    title = f"Correct Agent Distribution by Round ({model_config}) - {task_name}"
     if all_distributions:
         plot_all_rounds_multi_rows(
             all_distributions=all_distributions,
@@ -362,7 +364,7 @@ def correct_rate_main(
             rows=2,
             show_plot=show_plots,
             plot_title=title,
-            file_name=f"correct_agent_distribution_{model_config}.png",
+            file_name=f"correct_agent_distribution_{model_config}_{task_name}.png",
         )
 
     logger.info("Visualization complete!")
@@ -372,7 +374,7 @@ def correct_rate_main(
         all_distributions=all_distributions,
         output_dir=output_dir,
         show_plot=show_heatmap,
-        file_name=f"correct_agent_heatmap_{model_config}.png",
+        file_name=f"correct_agent_heatmap_{model_config}_{task_name}.png",
     )
 
     logger.info("Heatmap creation complete.")
