@@ -356,7 +356,7 @@ def correct_rate_main(
             logger.error(f"Error processing round {round_number}: {err}")
 
     # Create the single, combined plot in 2 rows if we have data
-    title = f"Correct Agent Distribution by Round ({model_config}) - {task_name}"
+    title = f"Correct Agent Distribution by Round {model_config} - {task_name}"
     if all_distributions:
         plot_all_rounds_multi_rows(
             all_distributions=all_distributions,
