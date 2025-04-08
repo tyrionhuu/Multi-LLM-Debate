@@ -79,84 +79,48 @@ def preprocess_dataframe(
     if dataframe is None:
         raise ValueError("Input DataFrame is None. Please load the dataset first.")
 
-    # Create a copy to avoid modifying the original
-    processed_df = dataframe.copy()
-
-    # Set random seed for reproducibility
+    df = dataframe.copy()
     random.seed(random_state)
 
-    # Generate ID from index if 'id' column doesn't exist
-    if "id" not in processed_df.columns:
-        processed_df["id"] = processed_df.index + 1
+    # Create ID column if missing
+    if 'id' not in df.columns:
+        df['id'] = df.index + 1
 
-    # Select a random correct answer for each question
-    processed_df["selected_correct_answer"] = processed_df["Correct Answers"].apply(
-        lambda x: _choose_random_answer(x, random_state)
+    # Helper to choose random answers
+    def _random_answer(answers_str):
+        answers = [a.strip() for a in answers_str.split(';') if a.strip()]
+        return random.choice(answers) if answers else None
+
+    # Select correct and incorrect answers
+    df['correct_ans'] = df['Correct Answers'].apply(_random_answer)
+    
+    # Select two distinct incorrect answers
+    def _two_wrong_answers(answers_str):
+        answers = [a.strip() for a in answers_str.split(';') if a.strip()]
+        if len(answers) < 2:
+            return (answers[0], answers[0]) if answers else (None, None)
+        a, b = random.sample(answers, k=2)
+        return (a, b) if a != b else (a, random.choice([x for x in answers if x != a]))
+
+    incorrect_pairs = df['Incorrect Answers'].apply(_two_wrong_answers)
+    df[['wrong1', 'wrong2']] = pd.DataFrame(incorrect_pairs.tolist(), index=df.index)
+
+    # Assign options A/B/C randomly
+    df['answer'] = random.choices(['A', 'B', 'C'], k=len(df))
+    
+    # Map answers to options
+    def _map_options(row):
+        opts = {'A': None, 'B': None, 'C': None}
+        opts[row['answer']] = row['correct_ans']
+        others = [o for o in opts if o != row['answer']]
+        opts[others[0]], opts[others[1]] = row['wrong1'], row['wrong2']
+        return opts['A'], opts['B'], opts['C']
+    
+    df[['response_A', 'response_B', 'response_C']] = df.apply(_map_options, axis=1)
+
+    return df[['id', 'Question', 'response_A', 'response_B', 'response_C', 'answer']].rename(
+        columns={'Question': 'question'}
     )
-
-    # Select two random incorrect answers for each question
-    processed_df["incorrect_answer1"] = processed_df["Incorrect Answers"].apply(
-        lambda x: _choose_random_answer(x, random_state)
-    )
-
-    processed_df["incorrect_answer2"] = processed_df["Incorrect Answers"].apply(
-        lambda x: _choose_random_answer(x, random_state)
-    )
-
-    # Make sure the two incorrect answers are different
-    for idx, row in processed_df.iterrows():
-        incorrect_answers = row["Incorrect Answers"].split(";")
-        incorrect_answers = [ans.strip() for ans in incorrect_answers if ans.strip()]
-
-        if (
-            row["incorrect_answer1"] == row["incorrect_answer2"]
-            and len(incorrect_answers) > 1
-        ):
-            remaining = [
-                ans for ans in incorrect_answers if ans != row["incorrect_answer1"]
-            ]
-            if remaining:
-                processed_df.at[idx, "incorrect_answer2"] = random.choice(remaining)
-
-    # Randomly determine which option (A, B, C) will be the correct answer
-    processed_df["correct_option"] = [
-        random.choice(["A", "B", "C"]) for _ in range(len(processed_df))
-    ]
-
-    # Create the three options based on the correct_option
-    for idx, row in processed_df.iterrows():
-        options = {"A": None, "B": None, "C": None}
-
-        # Assign the correct answer to the chosen option
-        options[row["correct_option"]] = row["selected_correct_answer"]
-
-        # Assign incorrect answers to the other options
-        remaining_options = [
-            opt for opt in ["A", "B", "C"] if opt != row["correct_option"]
-        ]
-        options[remaining_options[0]] = row["incorrect_answer1"]
-        options[remaining_options[1]] = row["incorrect_answer2"]
-
-        # Store options in the DataFrame
-        processed_df.at[idx, "option_A"] = options["A"]
-        processed_df.at[idx, "option_B"] = options["B"]
-        processed_df.at[idx, "option_C"] = options["C"]
-
-    # Keep original columns that might be useful
-    columns_to_keep = [
-        "id",
-        "Question",
-        "Best Answer",
-        "Correct Answers",
-        "Incorrect Answers",
-        "selected_correct_answer",
-        "correct_option",
-        "option_A",
-        "option_B",
-        "option_C",
-    ]
-
-    return processed_df[columns_to_keep]
 
 
 def extract_caption_a_b_c_answer(response: str) -> Literal["A", "B", "C"]:
@@ -199,37 +163,6 @@ def compare_truthful_qa_response(
         return response.upper() == answer.upper()
     except AttributeError:
         return False
-
-
-def _choose_random_answer(input: str, random_state: int = 42) -> Optional[str]:
-    """Choose a random answer from the input string.
-
-    Args:
-        input: The input string containing possible answers.
-        random_state: Random seed for reproducibility.
-
-    Returns:
-        str: A randomly chosen answer from the input.
-    """
-
-    def _parse_string_to_list(input: str, divider: str = ";") -> List[str]:
-        """Parse a string into a list based on a divider.
-
-        Args:
-            input: The input string to be parsed.
-            divider: The string used to split the input.
-
-        Returns:
-            List[str]: A list of parsed strings.
-        """
-        return [item.strip() for item in input.split(divider) if item.strip()]
-
-    random.seed(random_state)
-    answers = _parse_string_to_list(input)
-    if not answers:
-        logger.warning("No answers found to choose from.")
-        return None
-    return random.choice(answers)
 
 
 def main():
