@@ -233,7 +233,7 @@ def visualize_parameter_trends(
     axes[0].set_ylabel("Mixture Weight (w)")
     axes[0].grid(alpha=0.3)
     axes[0].set_xticks(rounds)
-    axes[0].set_xticklabels(round_labels)
+    axes[0].set_xticklabels([str(i + 1) for i in rounds])  # Just integers
 
     # Plot expected success probabilities
     axes[1].plot(
@@ -258,7 +258,7 @@ def visualize_parameter_trends(
     axes[1].legend()
     axes[1].grid(alpha=0.3)
     axes[1].set_xticks(rounds)
-    axes[1].set_xticklabels(round_labels)
+    axes[1].set_xticklabels([str(i + 1) for i in rounds])  # Just integers
     axes[1].set_ylim(0, 1)  # Probabilities are between 0 and 1
 
     # Plot expected failure probabilities
@@ -284,7 +284,7 @@ def visualize_parameter_trends(
     axes[2].legend()
     axes[2].grid(alpha=0.3)
     axes[2].set_xticks(rounds)
-    axes[2].set_xticklabels(round_labels)
+    axes[2].set_xticklabels([str(i + 1) for i in rounds])  # Just integers
     axes[2].set_ylim(0, 1)  # Probabilities are between 0 and 1
 
     # Plot alpha parameters
@@ -310,7 +310,7 @@ def visualize_parameter_trends(
     axes[3].legend()
     axes[3].grid(alpha=0.3)
     axes[3].set_xticks(rounds)
-    axes[3].set_xticklabels(round_labels)
+    axes[3].set_xticklabels([str(i + 1) for i in rounds])  # Just integers
 
     # Plot beta parameters
     axes[4].plot(
@@ -335,7 +335,7 @@ def visualize_parameter_trends(
     axes[4].legend()
     axes[4].grid(alpha=0.3)
     axes[4].set_xticks(rounds)
-    axes[4].set_xticklabels(round_labels)
+    axes[4].set_xticklabels([str(i + 1) for i in rounds])  # Just integers
 
     # Hide the unused 6th subplot
     axes[5].set_visible(False)
