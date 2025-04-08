@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-import math
 import logging
+import math
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
