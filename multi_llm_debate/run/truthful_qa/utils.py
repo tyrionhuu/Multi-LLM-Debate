@@ -88,6 +88,7 @@ def preprocess_dataframe(
     processed_df = processed_df.drop(
         columns=["Type", "Category", "Source"], errors="ignore"
     )
+    
     return processed_df
 
 
@@ -162,3 +163,10 @@ def _choose_random_answer(input: str, random_state: int = 42) -> Optional[str]:
         logger.warning("No answers found to choose from.")
         return None
     return random.choice(answers)
+
+
+def main():
+    df = load_truthful_qa_dataset()
+    print(df.head())
+if __name__ == "__main__":
+    main()
