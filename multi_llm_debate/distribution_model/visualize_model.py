@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import math
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
@@ -125,8 +124,8 @@ def plot_model_evolution(
         model_config: Optional model configuration identifier for file naming
         row_number: Number of rows for the subplot grid (default: 2)
         task_name: Task name for the title
-        
-    Returns:    
+
+    Returns:
         List of generated figures
     """
     figures = []
@@ -162,7 +161,10 @@ def plot_model_evolution(
 
     # Adjust the combined figure layout
     plt.tight_layout()
-    fig.suptitle(f"Agent Performance Distribution Across All Debate Rounds {model_config} - {task_name}", fontsize=16)
+    fig.suptitle(
+        f"Agent Performance Distribution Across All Debate Rounds {model_config} - {task_name}",
+        fontsize=16,
+    )
     fig.subplots_adjust(top=0.93)  # Make room for the title
 
     # Save the combined figure if output directory is provided
@@ -192,7 +194,7 @@ def visualize_parameter_trends(
         model_config: Optional model configuration identifier for file naming
         task_name: Task name for the title
         row_number: Number of rows for the subplot grid (default: 2)
-        
+
     Returns:
         The generated figure
     """
@@ -229,7 +231,8 @@ def visualize_parameter_trends(
     fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(18, 12))
     axes = axes.flatten()  # Flatten for easier indexing
     fig.suptitle(
-        f"Model Parameter Evolution Across Debate Rounds {model_config} - {task_name}", fontsize=16
+        f"Model Parameter Evolution Across Debate Rounds {model_config} - {task_name}",
+        fontsize=16,
     )
     fig.subplots_adjust(top=0.92)  # Make room for the title
 
@@ -357,7 +360,8 @@ def visualize_parameter_trends(
         output_dir.mkdir(exist_ok=True, parents=True)
         config_suffix = f"_{model_config}" if model_config else ""
         fig.savefig(
-            output_dir / f"model_parameter_evolution{config_suffix}_{task_name}.png", dpi=300
+            output_dir / f"model_parameter_evolution{config_suffix}_{task_name}.png",
+            dpi=300,
         )
 
     return fig
@@ -395,7 +399,7 @@ def run_visualization(
         model_config: Model configuration identifier for file naming
         row_number: Number of rows for the model evolution subplot grid (default: 2)
         task_name: Task name for the title
-        
+
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
                results and generated figures
