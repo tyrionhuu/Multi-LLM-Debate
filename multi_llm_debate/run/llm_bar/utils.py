@@ -33,9 +33,12 @@ def preprocess_llm_bar_dataframe(
 
     # Shuffle the DataFrame if random_state is provided
     if random_state is not None:
-        dataframe = dataframe.sample(frac=1, random_state=random_state).reset_index(drop=True)
+        dataframe = dataframe.sample(frac=1, random_state=random_state).reset_index(
+            drop=True
+        )
 
     return dataframe
+
 
 def load_llm_bar_dataset(
     dataset_path: Union[str, Path] = "datasets/LLMBar",
