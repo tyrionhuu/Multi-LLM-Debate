@@ -35,7 +35,7 @@ MODEL_QUANTITY=11
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
 PORT=$((8002 + FIRST_GPU * 10))
 
-export VLLM_LOGGING_LEVEL=ERROR
+# export VLLM_LOGGING_LEVEL=ERROR
 
 # Check if we have multiple GPUs and set tensor parallelism accordingly
 if [[ "$GPU" == *","* ]]; then
