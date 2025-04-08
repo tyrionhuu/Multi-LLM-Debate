@@ -83,44 +83,44 @@ def preprocess_dataframe(
     random.seed(random_state)
 
     # Create ID column if missing
-    if 'id' not in df.columns:
-        df['id'] = df.index + 1
+    if "id" not in df.columns:
+        df["id"] = df.index + 1
 
     # Helper to choose random answers
     def _random_answer(answers_str):
-        answers = [a.strip() for a in answers_str.split(';') if a.strip()]
+        answers = [a.strip() for a in answers_str.split(";") if a.strip()]
         return random.choice(answers) if answers else None
 
     # Select correct and incorrect answers
-    df['correct_ans'] = df['Correct Answers'].apply(_random_answer)
-    
+    df["correct_ans"] = df["Correct Answers"].apply(_random_answer)
+
     # Select two distinct incorrect answers
     def _two_wrong_answers(answers_str):
-        answers = [a.strip() for a in answers_str.split(';') if a.strip()]
+        answers = [a.strip() for a in answers_str.split(";") if a.strip()]
         if len(answers) < 2:
             return (answers[0], answers[0]) if answers else (None, None)
         a, b = random.sample(answers, k=2)
         return (a, b) if a != b else (a, random.choice([x for x in answers if x != a]))
 
-    incorrect_pairs = df['Incorrect Answers'].apply(_two_wrong_answers)
-    df[['wrong1', 'wrong2']] = pd.DataFrame(incorrect_pairs.tolist(), index=df.index)
+    incorrect_pairs = df["Incorrect Answers"].apply(_two_wrong_answers)
+    df[["wrong1", "wrong2"]] = pd.DataFrame(incorrect_pairs.tolist(), index=df.index)
 
     # Assign options A/B/C randomly
-    df['answer'] = random.choices(['A', 'B', 'C'], k=len(df))
-    
+    df["answer"] = random.choices(["A", "B", "C"], k=len(df))
+
     # Map answers to options
     def _map_options(row):
-        opts = {'A': None, 'B': None, 'C': None}
-        opts[row['answer']] = row['correct_ans']
-        others = [o for o in opts if o != row['answer']]
-        opts[others[0]], opts[others[1]] = row['wrong1'], row['wrong2']
-        return opts['A'], opts['B'], opts['C']
-    
-    df[['response_A', 'response_B', 'response_C']] = df.apply(_map_options, axis=1)
+        opts = {"A": None, "B": None, "C": None}
+        opts[row["answer"]] = row["correct_ans"]
+        others = [o for o in opts if o != row["answer"]]
+        opts[others[0]], opts[others[1]] = row["wrong1"], row["wrong2"]
+        return opts["A"], opts["B"], opts["C"]
 
-    return df[['id', 'Question', 'response_A', 'response_B', 'response_C', 'answer']].rename(
-        columns={'Question': 'question'}
-    )
+    df[["response_A", "response_B", "response_C"]] = df.apply(_map_options, axis=1)
+
+    return df[
+        ["id", "Question", "response_A", "response_B", "response_C", "answer"]
+    ].rename(columns={"Question": "question"})
 
 
 def extract_caption_a_b_c_answer(response: str) -> Literal["A", "B", "C"]:
