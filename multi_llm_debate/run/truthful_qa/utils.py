@@ -103,6 +103,6 @@ def compare_truthful_qa_response(
 
 def main():
     df = load_truthful_qa_dataset()
-    print(df.head())
+    print(df)
 if __name__ == "__main__":
     main()
