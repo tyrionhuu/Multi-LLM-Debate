@@ -1,8 +1,11 @@
+import os
 import re
 from typing import Literal
+
 import pandas as pd
-import os
+
 from datasets import load_dataset, load_from_disk
+
 
 def load_truthful_qa_dataset(
     dataset_path: str = "datasets/TruthfulQA",
@@ -32,11 +35,11 @@ def load_truthful_qa_dataset(
             print("Loaded TruthfulQA dataset from local path.")
         except Exception as e:
             print(f"Failed to load local dataset: {e}")
-    
+
     if df is None:
         # Load from Hugging Face datasets
         try:
-            dataset = load_dataset(                
+            dataset = load_dataset(
                 name=dataset_name,
                 split="train",
                 cache_dir=dataset_path,
@@ -52,11 +55,9 @@ def load_truthful_qa_dataset(
 
     return df
 
+
 def preprocess_dataframe():
     pass
-
-
-
 
 
 def extract_caption_a_b_c_answer(response: str) -> Literal["A", "B", "C"]:
