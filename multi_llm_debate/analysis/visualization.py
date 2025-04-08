@@ -294,6 +294,7 @@ def correct_rate_main(
     model_config: str = "",
     show_heatmap: bool = False,
     task_name: str = "",
+    progress_bar: bool = False,
 ) -> None:
     """
     Loads data, calculates correct-rate distributions for each round,
@@ -309,6 +310,7 @@ def correct_rate_main(
         show_plots: Whether to display plots interactively.
         show_heatmap: Whether to display the heatmap interactively.
         task_name: Name of the task for logging purposes.
+        progress_bar: Whether to show a progress bar during processing.
     """
     # Create output directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -344,6 +346,7 @@ def correct_rate_main(
                 round_number=round_number,
                 extract_func=extract_func,
                 compare_func=compare_func,
+                progress_bar=progress_bar,
             )
 
             # Convert that distribution to a simple dict for plotting
