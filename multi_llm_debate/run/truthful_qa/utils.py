@@ -84,66 +84,78 @@ def preprocess_dataframe(
 
     # Set random seed for reproducibility
     random.seed(random_state)
-    
+
     # Generate ID from index if 'id' column doesn't exist
     if "id" not in processed_df.columns:
         processed_df["id"] = processed_df.index + 1
-    
+
     # Select a random correct answer for each question
     processed_df["selected_correct_answer"] = processed_df["Correct Answers"].apply(
         lambda x: _choose_random_answer(x, random_state)
     )
-    
+
     # Select two random incorrect answers for each question
     processed_df["incorrect_answer1"] = processed_df["Incorrect Answers"].apply(
         lambda x: _choose_random_answer(x, random_state)
     )
-    
+
     processed_df["incorrect_answer2"] = processed_df["Incorrect Answers"].apply(
         lambda x: _choose_random_answer(x, random_state)
     )
-    
+
     # Make sure the two incorrect answers are different
     for idx, row in processed_df.iterrows():
         incorrect_answers = row["Incorrect Answers"].split(";")
         incorrect_answers = [ans.strip() for ans in incorrect_answers if ans.strip()]
-        
-        if row["incorrect_answer1"] == row["incorrect_answer2"] and len(incorrect_answers) > 1:
-            remaining = [ans for ans in incorrect_answers if ans != row["incorrect_answer1"]]
+
+        if (
+            row["incorrect_answer1"] == row["incorrect_answer2"]
+            and len(incorrect_answers) > 1
+        ):
+            remaining = [
+                ans for ans in incorrect_answers if ans != row["incorrect_answer1"]
+            ]
             if remaining:
                 processed_df.at[idx, "incorrect_answer2"] = random.choice(remaining)
-    
+
     # Randomly determine which option (A, B, C) will be the correct answer
-    processed_df["correct_option"] = [random.choice(["A", "B", "C"]) for _ in range(len(processed_df))]
-    
+    processed_df["correct_option"] = [
+        random.choice(["A", "B", "C"]) for _ in range(len(processed_df))
+    ]
+
     # Create the three options based on the correct_option
     for idx, row in processed_df.iterrows():
-        options = {
-            "A": None,
-            "B": None,
-            "C": None
-        }
-        
+        options = {"A": None, "B": None, "C": None}
+
         # Assign the correct answer to the chosen option
         options[row["correct_option"]] = row["selected_correct_answer"]
-        
+
         # Assign incorrect answers to the other options
-        remaining_options = [opt for opt in ["A", "B", "C"] if opt != row["correct_option"]]
+        remaining_options = [
+            opt for opt in ["A", "B", "C"] if opt != row["correct_option"]
+        ]
         options[remaining_options[0]] = row["incorrect_answer1"]
         options[remaining_options[1]] = row["incorrect_answer2"]
-        
+
         # Store options in the DataFrame
         processed_df.at[idx, "option_A"] = options["A"]
         processed_df.at[idx, "option_B"] = options["B"]
         processed_df.at[idx, "option_C"] = options["C"]
-    
+
     # Keep original columns that might be useful
     columns_to_keep = [
-        "id", "Question", "Best Answer", "Correct Answers", "Incorrect Answers",
-        "selected_correct_answer", "correct_option", 
-        "option_A", "option_B", "option_C"
+        "id",
+        "Question",
+        "Best Answer",
+        "Correct Answers",
+        "Incorrect Answers",
+        "selected_correct_answer",
+        "correct_option",
+        "option_A",
+        "option_B",
+        "option_C",
     ]
-    
+
     return processed_df[columns_to_keep]
 
 
