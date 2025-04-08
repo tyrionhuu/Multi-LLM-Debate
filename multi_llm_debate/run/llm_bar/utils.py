@@ -26,23 +26,25 @@ def preprocess_llm_bar_dataframe(
     """
     # Create a copy to avoid modifying the original dataframe
     processed_df = dataframe.copy()
-    
+
     # Add an id column
-    processed_df['id'] = range(len(processed_df))
-    
+    processed_df["id"] = range(len(processed_df))
+
     # Rename columns
     column_mapping = {
-        'output_1': 'response_1',
-        'output_2': 'response_2',
-        'label': 'answer'
+        "output_1": "response_1",
+        "output_2": "response_2",
+        "label": "answer",
     }
-    
+
     processed_df = processed_df.rename(columns=column_mapping)
-    
+
     # If random_state is provided, shuffle the dataframe
     if random_state is not None:
-        processed_df = processed_df.sample(frac=1, random_state=random_state).reset_index(drop=True)
-    
+        processed_df = processed_df.sample(
+            frac=1, random_state=random_state
+        ).reset_index(drop=True)
+
     return processed_df
 
 
