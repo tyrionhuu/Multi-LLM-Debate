@@ -56,12 +56,17 @@ def load_truthful_qa_dataset(
     return df
 
 
-def preprocess_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
+def preprocess_dataframe(
+    dataframe: pd.DataFrame,
+    random_state: int = 42,
+) -> pd.DataFrame:
     """Preprocess the TruthfulQA DataFrame to ensure it has all required columns.
 
     Args:
         dataframe: Input DataFrame from TruthfulQA dataset
-
+        random_state: Random seed for shuffling. If None, the dataset will be
+            randomized differently each time.
+            
     Returns:
         pd.DataFrame: Processed DataFrame with all required columns
     """
@@ -121,3 +126,4 @@ def compare_truthful_qa_response(
         return response.upper() == answer.upper()
     except AttributeError:
         return False
+
