@@ -3,7 +3,7 @@ from functools import lru_cache
 import numpy as np
 from scipy.optimize import minimize
 from scipy.special import gammaln  # More efficient than math.lgamma
-
+from typing import Dict
 
 # -------------------------------------------------------------------
 # Beta-Binomial PMF and log-PMF with caching
@@ -117,7 +117,7 @@ def direct_mixture_log_likelihood(
     return ll
 
 
-def ensure_consistent_component_ordering(params: dict) -> dict:
+def ensure_consistent_component_ordering(params: Dict) -> Dict:
     """
     Ensure consistent ordering of mixture components to make comparison across
     rounds more reliable. This function:
@@ -132,7 +132,7 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
                 (w, alpha1, beta1, alpha2, beta2)
 
     Returns:
-        dict: Dictionary with consistently ordered components
+        Dict: Dictionary with consistently ordered components
     """
     # Calculate expected value of each beta component: alpha/(alpha+beta)
     expected1 = params["alpha1"] / (params["alpha1"] + params["beta1"])
@@ -192,7 +192,7 @@ def ensure_consistent_component_ordering(params: dict) -> dict:
 
 def fit_mixture_direct(
     counts, k, max_iter=100, tol=1e-6, random_state=42, n_restarts=3
-):
+) -> Dict:
     """
     Fit a two-component Beta-Binomial mixture by directly maximizing the overall
     mixture log-likelihood with multiple restarts for better convergence.
