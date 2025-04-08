@@ -2,8 +2,8 @@ import logging
 import os
 import random
 import re
-from typing import List, Literal, Optional
-
+from typing import Literal, Any
+from pathlib import Path
 import pandas as pd
 
 from multi_llm_debate.utils.download_dataset import load_save_huggingface_dataset_df
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def load_truthful_qa_dataset(
-    dataset_path: str = "datasets/TruthfulQA",
+    dataset_path: Any[Path, str] = "datasets/TruthfulQA",
     dataset_name: str = "domenicrosati/TruthfulQA",
     random_state: int = None,
 ) -> pd.DataFrame:
@@ -31,12 +31,12 @@ def load_truthful_qa_dataset(
     """
     # Initialize empty DataFrame
     df = None
-
+    dataset_path = Path(dataset_path)
     try:
         df = load_save_huggingface_dataset_df(dataset_name, dataset_path)
-        print("Loaded TruthfulQA dataset from Hugging Face.")
+        logger.info("Loaded TruthfulQA dataset from Hugging Face.")
     except Exception as e:
-        print(f"Failed to load dataset from Hugging Face: {e}")
+        logger.error(f"Failed to load dataset from Hugging Face: {e}")
         raise e
 
     # Shuffle the DataFrame if random_state is provided
