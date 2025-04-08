@@ -10,7 +10,6 @@ def load_truthful_qa_dataset():
     pass
 
 
-
 def extract_caption_a_b_c_answer(response: str) -> Literal["A", "B", "C"]:
     """
     Extract answer from the response string.
@@ -32,6 +31,7 @@ def extract_caption_a_b_c_answer(response: str) -> Literal["A", "B", "C"]:
         raise ValueError(
             "No valid answer found in the response. Please ensure the response contains 'Final Answer: A', 'Final Answer: B', or 'Final Answer: C'."
         )
+
 
 def compare_truthful_qa_response(
     response: Literal["A", "B", "C"],
