@@ -14,7 +14,7 @@ if __name__ == "__main__":
     dataframe = load_truthful_qa_dataset(
         dataset_path=dataset_path,
     )
-
+    dataframe = dataframe.sample(100, random_state=42)
     shared_main(
         dataframe=dataframe,
         run_debate_fn=process_truthful_qa_dataset,
