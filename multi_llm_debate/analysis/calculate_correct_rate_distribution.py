@@ -141,6 +141,7 @@ def calculate_correct_rate_distribution(
     max_rounds: Optional[int] = None,
     extract_func: Callable = None,
     compare_func: Callable = None,
+    progress_bar: bool = True,
 ) -> pd.DataFrame:
     """
     Aggregate correct-rate distribution across all rounds found in df_debates.
@@ -179,6 +180,7 @@ def calculate_correct_rate_distribution(
             round_number=rnum,
             extract_func=extract_func,
             compare_func=compare_func,
+            progress_bar=progress_bar,
         )
         # print(f"Round {rnum}: {len(df_round)} tasks")
         if df_round.empty:
