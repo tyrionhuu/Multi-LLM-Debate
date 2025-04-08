@@ -151,6 +151,7 @@ def extract_1_2_answer(
             "No valid answer found in the response. Please ensure the response contains 'Final Answer: 1' or 'Final Answer: 2'."
         )
 
+
 def compare_llm_bar_response(
     response: Literal["1", "2"],
     answer: Union[str, int],
@@ -168,6 +169,7 @@ def compare_llm_bar_response(
         return response == str(answer)
     except AttributeError:
         return False
+
 
 def main():
     dataset = load_llm_bar_dataset()
