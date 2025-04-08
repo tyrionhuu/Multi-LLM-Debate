@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Literal
+from typing import Literal, List
 
 import pandas as pd
 
@@ -127,3 +127,14 @@ def compare_truthful_qa_response(
     except AttributeError:
         return False
 
+def _parse_string_to_list(input: str, divider: str = ";") -> List[str]:
+    """Parse a string into a list based on a divider.
+
+    Args:
+        input: The input string to be parsed.
+        divider: The string used to split the input.
+
+    Returns:
+        List[str]: A list of parsed strings.
+    """
+    return [item.strip() for item in input.split(divider) if item.strip()]
