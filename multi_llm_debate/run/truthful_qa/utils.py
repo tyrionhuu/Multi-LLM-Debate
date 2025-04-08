@@ -7,7 +7,7 @@ from typing import List, Literal, Optional
 import pandas as pd
 
 from datasets import load_dataset, load_from_disk
-
+from multi_llm_debate.utils.download_dataset import load_save_huggingface_dataset_df
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -44,12 +44,7 @@ def load_truthful_qa_dataset(
     if df is None:
         # Load from Hugging Face datasets
         try:
-            dataset = load_dataset(
-                path=dataset_name,
-                split="train",
-                cache_dir=dataset_path,
-            )
-            df = pd.DataFrame(dataset)
+            df = load_save_huggingface_dataset_df(dataset_name, dataset_path)
             print("Loaded TruthfulQA dataset from Hugging Face.")
         except Exception as e:
             print(f"Failed to load dataset from Hugging Face: {e}")
@@ -169,8 +164,9 @@ def main():
     df = load_truthful_qa_dataset(
         "/Users/tyrionhuu/projects/research_projects/Multi-LLM-Debate/datasets/TruthfulQA"
     )
-    print(df.columns.tolist())
-
+    # print(df.columns.tolist())
+    processed_df = preprocess_dataframe(df)
+    print(processed_df.head())
 
 if __name__ == "__main__":
     main()
