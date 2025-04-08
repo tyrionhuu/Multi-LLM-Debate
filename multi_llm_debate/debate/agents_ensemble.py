@@ -113,6 +113,10 @@ class AgentsEnsemble:
         """
         self.agents.append(agent)
 
+    def _count_unique_models(self) -> int:
+        """Return the number of unique models among agents."""
+        return len({agent.model for agent in self.agents})
+
     def _get_response_with_retry(
         self,
         agent: Agent,
@@ -203,22 +207,45 @@ class AgentsEnsemble:
         if parallel:
             logger.info("Getting responses in parallel mode")
             start_time = time.time()
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = [
-                    executor.submit(
-                        self._get_response_with_retry,
-                        agent,
+            
+            # Group agents by model type
+            model_groups = {}
+            for agent in self.agents:
+                if agent.model not in model_groups:
+                    model_groups[agent.model] = []
+                model_groups[agent.model].append(agent)
+            
+            logger.info(f"Processing {len(model_groups)} unique models in parallel")
+            
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=len(model_groups)
+            ) as executor:
+                # Submit one job per model type
+                model_futures = {}
+                for model, agents_group in model_groups.items():
+                    future = executor.submit(
+                        self._process_agent_group,
+                        agents_group,
                         prompt,
                         json_mode,
-                        max_retries=max_retries,
-                        api_key=api_key,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
+                        max_retries,
+                        api_key,
+                        max_tokens,
+                        temperature,
                     )
-                    for agent in self.agents
-                ]
-                for future in concurrent.futures.as_completed(futures):
-                    responses.append(future.result())
+                    model_futures[future] = model
+                    
+                # Collect results
+                for future in concurrent.futures.as_completed(model_futures):
+                    model = model_futures[future]
+                    try:
+                        model_responses = future.result()
+                        responses.extend(model_responses)
+                        logger.info(f"Completed processing {len(model_responses)} agents for model {model}")
+                    except Exception as e:
+                        logger.error(f"Error processing model {model}: {str(e)}")
+                        raise
+                        
             elapsed = time.time() - start_time
             logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
         else:
@@ -261,6 +288,58 @@ class AgentsEnsemble:
             logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
 
         return responses
+
+    def _process_agent_group(
+        self,
+        agents: List[Agent],
+        prompt: str,
+        json_mode: bool,
+        max_retries: Optional[int],
+        api_key: Optional[str],
+        max_tokens: int,
+        temperature: float,
+    ) -> List[Dict[str, Any]]:
+        """Process a group of agents with the same model.
+        
+        Args:
+            agents: List of agents with the same model
+            prompt: Prompt to send
+            json_mode: Whether to use JSON mode
+            max_retries: Maximum retries
+            api_key: Optional API key
+            max_tokens: Maximum tokens
+            temperature: Temperature setting
+            
+        Returns:
+            List of responses from all agents in the group
+        """
+        group_responses = []
+        model_name = agents[0].model if agents else "unknown"
+        
+        logger.debug(f"Processing group of {len(agents)} agents with model {model_name}")
+        
+        for agent in agents:
+            try:
+                response = self._get_response_with_retry(
+                    agent,
+                    prompt,
+                    json_mode,
+                    max_retries=max_retries,
+                    api_key=api_key,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                )
+                group_responses.append(response)
+                
+                # Apply job delay between requests to the same model
+                if self.job_delay > 0 and agent != agents[-1]:
+                    time.sleep(self.job_delay)
+                    
+            except Exception as e:
+                logger.error(f"Failed to get response from agent {agent.agent_id}: {str(e)}")
+                raise
+                
+        return group_responses
 
     def get_agent_by_id(self, agent_id: int) -> Agent:
         """Get an agent by its ID.
