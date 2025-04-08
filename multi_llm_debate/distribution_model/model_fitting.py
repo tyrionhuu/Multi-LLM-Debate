@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-from typing import Optional
+from typing import Optional, Dict
 
 import numpy as np
 from scipy.optimize import minimize
@@ -21,7 +20,7 @@ def em_mixture_beta_binomial(
     tol: float = 1e-6,
     random_state: int = 42,
     n_restarts: int = 2,
-):
+) -> Dict[str, float]:
     """
     Fit a two-component mixture of Beta-Binomial distributions with
     multiple restarts and optimized computation.
@@ -35,7 +34,7 @@ def em_mixture_beta_binomial(
         n_restarts: Number of random restarts
 
     Returns:
-        dict: Dictionary of the learned parameters
+        dict: Fitted model parameters including weights and alpha/beta values
     """
     rng = np.random.default_rng(random_state)
 
