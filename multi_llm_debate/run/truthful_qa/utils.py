@@ -2,8 +2,9 @@ import logging
 import os
 import random
 import re
-from typing import Literal, Any
 from pathlib import Path
+from typing import Any, Literal
+
 import pandas as pd
 
 from multi_llm_debate.utils.download_dataset import load_save_huggingface_dataset_df
