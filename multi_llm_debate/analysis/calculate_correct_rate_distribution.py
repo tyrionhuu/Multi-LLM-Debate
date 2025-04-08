@@ -14,6 +14,7 @@ def calculate_correct_rate_distribution_for_round_n(
     round_number: int,
     extract_func: Callable = None,
     compare_func: Callable = None,
+    progress_bar: bool = True,
 ) -> pd.DataFrame:
     """
     Compute correct-rate distribution for a *requested* round_number.
@@ -26,7 +27,10 @@ def calculate_correct_rate_distribution_for_round_n(
         df_debates: DataFrame from debate_rounds.csv, containing columns:
                     [task_id, round_number, agent_index, agent_id, model, response]
         round_number: The round the user wants to analyze
-
+        extract_func: Function to extract and normalize responses.
+        compare_func: Function to compare normalized responses with correct answer.
+        progress_bar: If True, show a progress bar for task processing.
+        
     Returns:
         DataFrame with columns [task_id, round_number, 0, 1, 2, ...]
         where each row is a single task, and there's exactly one "1" in
