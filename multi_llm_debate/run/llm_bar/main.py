@@ -7,7 +7,7 @@ if __name__ == "__main__":
     from .run_debate import process_llm_bar_dataset
     from .utils import load_llm_bar_dataset, preprocess_llm_bar_dataframe
 
-    args = Parser(description="Run JudgeBench evaluation").parse_args()
+    args = Parser(description="Run LLMBar evaluation").parse_args()
 
     # Load the dataset
     dataset_path = Path("datasets/LLMBar")
