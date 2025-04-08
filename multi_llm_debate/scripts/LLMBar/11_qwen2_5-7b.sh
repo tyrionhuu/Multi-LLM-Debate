@@ -44,14 +44,14 @@ if [[ "$GPU" == *","* ]]; then
     if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
         echo "Using tensor parallelism with 2 GPUs"
         # Start VLLM server with tensor parallelism
-        CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --tensor-parallel-size 2 --max-model-len 32000 &
+        CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --tensor-parallel-size 2&
     else
         echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
         exit 1
     fi
 else
     # Single GPU mode
-    CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 &
+    CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT &
 fi
 
 SERVER_PID=$!
@@ -72,7 +72,7 @@ while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
     ATTEMPT=$((ATTEMPT+1))
 done
 echo "Server is ready!"
-
+  
 # Define the configuration as a JSON string
 CONFIG='[
     [
