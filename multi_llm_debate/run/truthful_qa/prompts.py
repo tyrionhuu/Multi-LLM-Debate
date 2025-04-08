@@ -200,7 +200,7 @@ def build_truthful_qa_round_n_prompt(
 
     prompt += "[The Start of Assistant C's Answer]" + NEW_LINE
     prompt += response_c + NEW_LINE
-    prompt += "[The End of Assistant C's Answer]" + NEW_LINE    
+    prompt += "[The End of Assistant C's Answer]" + NEW_LINE
 
     prompt += NEW_LINE
     prompt += "Which assistant provided the better response? A, B, or C?"
