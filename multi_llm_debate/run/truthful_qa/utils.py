@@ -6,7 +6,6 @@ from typing import List, Literal, Optional
 
 import pandas as pd
 
-from datasets import load_dataset, load_from_disk
 from multi_llm_debate.utils.download_dataset import load_save_huggingface_dataset_df
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,22 +31,12 @@ def load_truthful_qa_dataset(
     # Initialize empty DataFrame
     df = None
 
-    # Try to load local dataset first
-    if os.path.exists(dataset_path):
-        try:
-            dataset = load_from_disk(dataset_path)
-            df = pd.DataFrame(dataset)
-            print("Loaded TruthfulQA dataset from local path.")
-        except Exception as e:
-            print(f"Failed to load local dataset: {e}")
-
-    if df is None:
-        # Load from Hugging Face datasets
-        try:
-            df = load_save_huggingface_dataset_df(dataset_name, dataset_path)
-            print("Loaded TruthfulQA dataset from Hugging Face.")
-        except Exception as e:
-            print(f"Failed to load dataset from Hugging Face: {e}")
+    try:
+        df = load_save_huggingface_dataset_df(dataset_name, dataset_path)
+        print("Loaded TruthfulQA dataset from Hugging Face.")
+    except Exception as e:
+        print(f"Failed to load dataset from Hugging Face: {e}")
+        raise e
 
     # Shuffle the DataFrame if random_state is provided
     if random_state is not None:
