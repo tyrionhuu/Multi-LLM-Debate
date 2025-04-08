@@ -94,7 +94,7 @@ def load_llm_bar_dataset(
 
 def main():
     dataset = load_llm_bar_dataset()
-    print(dataset.head())
+    print(dataset.info())
 
 
 if __name__ == "__main__":
