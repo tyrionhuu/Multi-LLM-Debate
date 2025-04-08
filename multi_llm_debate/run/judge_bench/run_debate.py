@@ -44,7 +44,7 @@ def process_judge_bench_dataset(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel (default: False)
-        
+
     Returns:
         Dict containing summary of execution including failed entries
 
@@ -80,7 +80,7 @@ def process_judge_bench_entry(
     parallel: bool = False,
 ) -> None:
     """Process a single JudgeBench entry.
-    
+
     Args:
         entry: Pandas Series containing the entry data
         max_rounds: Maximum number of debate rounds

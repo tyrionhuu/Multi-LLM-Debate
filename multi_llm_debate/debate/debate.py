@@ -45,7 +45,7 @@ def debate(
         temperature: Sampling temperature for the model. Defaults to 1.0.
         max_tokens: Maximum number of tokens in the response. Defaults to 6400.
         parallel: Whether to run agents in parallel.
-        
+
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
             responses is a list of dictionaries containing agent responses.
@@ -184,7 +184,7 @@ def run_debate_with_retry(
         temperature: Sampling temperature for the model.
         max_tokens: Maximum number of tokens in the response.
         parallel: Whether to run agents in parallel.
-        
+
     Returns:
         List[Dict]: List of agent responses from the round.
 

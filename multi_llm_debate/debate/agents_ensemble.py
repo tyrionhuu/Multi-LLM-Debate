@@ -207,16 +207,16 @@ class AgentsEnsemble:
         if parallel:
             logger.info("Getting responses in parallel mode")
             start_time = time.time()
-            
+
             # Group agents by model type
             model_groups = {}
             for agent in self.agents:
                 if agent.model not in model_groups:
                     model_groups[agent.model] = []
                 model_groups[agent.model].append(agent)
-            
+
             logger.info(f"Processing {len(model_groups)} unique models in parallel")
-            
+
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=len(model_groups)
             ) as executor:
@@ -234,18 +234,20 @@ class AgentsEnsemble:
                         temperature,
                     )
                     model_futures[future] = model
-                    
+
                 # Collect results
                 for future in concurrent.futures.as_completed(model_futures):
                     model = model_futures[future]
                     try:
                         model_responses = future.result()
                         responses.extend(model_responses)
-                        logger.info(f"Completed processing {len(model_responses)} agents for model {model}")
+                        logger.info(
+                            f"Completed processing {len(model_responses)} agents for model {model}"
+                        )
                     except Exception as e:
                         logger.error(f"Error processing model {model}: {str(e)}")
                         raise
-                        
+
             elapsed = time.time() - start_time
             logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
         else:
@@ -300,7 +302,7 @@ class AgentsEnsemble:
         temperature: float,
     ) -> List[Dict[str, Any]]:
         """Process a group of agents with the same model.
-        
+
         Args:
             agents: List of agents with the same model
             prompt: Prompt to send
@@ -309,15 +311,17 @@ class AgentsEnsemble:
             api_key: Optional API key
             max_tokens: Maximum tokens
             temperature: Temperature setting
-            
+
         Returns:
             List of responses from all agents in the group
         """
         group_responses = []
         model_name = agents[0].model if agents else "unknown"
-        
-        logger.debug(f"Processing group of {len(agents)} agents with model {model_name}")
-        
+
+        logger.debug(
+            f"Processing group of {len(agents)} agents with model {model_name}"
+        )
+
         for agent in agents:
             try:
                 response = self._get_response_with_retry(
@@ -330,15 +334,17 @@ class AgentsEnsemble:
                     temperature=temperature,
                 )
                 group_responses.append(response)
-                
+
                 # Apply job delay between requests to the same model
                 if self.job_delay > 0 and agent != agents[-1]:
                     time.sleep(self.job_delay)
-                    
+
             except Exception as e:
-                logger.error(f"Failed to get response from agent {agent.agent_id}: {str(e)}")
+                logger.error(
+                    f"Failed to get response from agent {agent.agent_id}: {str(e)}"
+                )
                 raise
-                
+
         return group_responses
 
     def get_agent_by_id(self, agent_id: int) -> Agent:

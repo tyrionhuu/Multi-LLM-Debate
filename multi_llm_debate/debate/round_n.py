@@ -33,7 +33,7 @@ def run_debate_round_n(
         temperature (float): Sampling temperature for the model.
         max_tokens (int): Maximum number of tokens in the response.
         parallel (bool): Whether to run in parallel.
-        
+
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
 

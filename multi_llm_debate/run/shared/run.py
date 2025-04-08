@@ -231,7 +231,7 @@ def process_debate_dataset(
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
-        
+
     Returns:
         Dict containing summary of execution including failed entries
 
@@ -356,7 +356,7 @@ def process_single_debate_entry(
         temperature: Temperature for model responses.
         max_tokens: Maximum tokens for model responses.
         parallel: Whether to run in parallel.
-        
+
     Raises:
         ValueError: If required columns are missing.
         RuntimeError: If debate execution fails.
