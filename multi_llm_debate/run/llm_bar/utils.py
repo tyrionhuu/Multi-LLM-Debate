@@ -10,6 +10,33 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def preprocess_llm_bar_dataframe(
+    dataframe: pd.DataFrame,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Preprocess the LLMBar DataFrame to ensure it has all required columns.
+
+    Args:
+        dataframe: Input DataFrame from LLMBar dataset.
+        random_state: Random seed for shuffling. If None, the dataset will be
+            randomized differently each time.
+
+    Returns:
+        pd.DataFrame: Preprocessed DataFrame with required columns.
+    """
+    # Ensure required columns exist
+    required_columns = ["id", "input", "output", "category"]
+    for col in required_columns:
+        if col not in dataframe.columns:
+            logger.error(f"Missing required column: {col}")
+            return pd.DataFrame()
+
+    # Shuffle the DataFrame if random_state is provided
+    if random_state is not None:
+        dataframe = dataframe.sample(frac=1, random_state=random_state).reset_index(drop=True)
+
+    return dataframe
+
 def load_llm_bar_dataset(
     dataset_path: Union[str, Path] = "datasets/LLMBar",
     random_state: Optional[int] = None,
