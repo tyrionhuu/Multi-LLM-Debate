@@ -28,7 +28,7 @@ def load_llm_bar_dataset(
         pd.DataFrame: DataFrame containing the LLMBar data with randomized order.
     """
     dataset_path = Path(dataset_path)
-    with open(dataset_path / "LLMBar/Natural/dataset.json", "r") as f:
+    with open(dataset_path / "LLMBar/Natural/dataset.json", "r", encoding='utf-8') as f:
         json_data = json.load(f)
     df = pd.DataFrame(json_data)
     return df
