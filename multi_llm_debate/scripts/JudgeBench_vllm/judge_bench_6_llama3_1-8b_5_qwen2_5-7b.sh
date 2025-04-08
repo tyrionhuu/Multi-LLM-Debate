@@ -78,8 +78,8 @@ CONFIG='[
 
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.judge_bench.main \
-    --config-json "$CONFIG"
-
+    --config-json "$CONFIG" \
+    --parallel True \
 # Kill the VLLM server processes when done
 kill $SERVER_PID1
 kill $SERVER_PID2
