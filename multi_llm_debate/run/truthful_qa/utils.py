@@ -75,6 +75,9 @@ def preprocess_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
     if "id" not in processed_df.columns:
         processed_df["id"] = processed_df.index + 1
 
+    processed_df = processed_df.drop(
+        columns=["Type", "Category", "Source"], errors="ignore"
+    )
     return processed_df
 
 
