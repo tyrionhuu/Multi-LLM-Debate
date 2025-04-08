@@ -20,6 +20,7 @@ def plot_file_count_distribution(
     distribution: Dict[int, int],
     show_plot: bool = False,
     model_config: str = "",
+    task_name: str = "",
 ) -> Tuple[plt.Figure, plt.Axes]:
     """Creates a plot of file count distribution across directories.
 
@@ -27,7 +28,8 @@ def plot_file_count_distribution(
         distribution: Dictionary mapping file counts to number of directories.
         show_plot: Whether to display the plot interactively.
         model_config: Configuration name of the model being analyzed.
-
+        task_name: Name of the task being analyzed.
+        
     Returns:
         Tuple[plt.Figure, plt.Axes]: The created plot figure and axes.
     """
@@ -57,11 +59,16 @@ def plot_file_count_distribution(
 
     # Set chart attributes
     ax.set_title(
-        "Distribution of File Counts Across Directories " + model_config, fontsize=14
+        "Distribution of File Counts Across Directories " + model_config + " " + task_name, 
+        fontsize=14
     )
     ax.set_xlabel("Number of Files in Directory", fontsize=12)
     ax.set_ylabel("Number of Directories", fontsize=12)
     ax.grid(axis="y", alpha=0.3)
+
+
+    if task_name:
+        ax.set_title(f"Distribution of File Counts for {task_name} " + model_config, fontsize=14)
 
     # Adjust x-axis to show all integer values
     ax.set_xticks(range(min(file_counts), max(file_counts) + 1))
