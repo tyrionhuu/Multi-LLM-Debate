@@ -542,7 +542,7 @@ def main():
     ax2.plot([1, 2, 3], [6, 5, 4])
     ax2.set_title("Second Plot")
 
-    combined_fig = combine_plots([fig1, fig2], [ax1, ax2])
+    combine_plots([fig1, fig2], [ax1, ax2])
     plt.close(fig1)
     plt.close(fig2)
     plt.show()
