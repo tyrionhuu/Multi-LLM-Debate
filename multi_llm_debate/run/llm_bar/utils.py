@@ -151,11 +151,28 @@ def extract_1_2_answer(
             "No valid answer found in the response. Please ensure the response contains 'Final Answer: 1' or 'Final Answer: 2'."
         )
 
+def compare_llm_bar_response(
+    response: Literal["1", "2"],
+    answer: Union[str, int],
+) -> bool:
+    """Compare the responses from the LLMBar dataset.
+
+    Args:
+        response: The response string from the LLM.
+        answer: The correct answer to the question ("1" or "2").
+
+    Returns:
+        bool: True if the response matches the answer, False otherwise.
+    """
+    try:
+        return response == str(answer)
+    except AttributeError:
+        return False
 
 def main():
     dataset = load_llm_bar_dataset()
     processed_df = preprocess_llm_bar_dataframe(dataset)
-    print(processed_df.head())
+    print(processed_df.info())
 
 
 if __name__ == "__main__":
