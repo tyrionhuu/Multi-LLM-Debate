@@ -1,9 +1,10 @@
 from functools import lru_cache
+from typing import Dict
 
 import numpy as np
 from scipy.optimize import minimize
 from scipy.special import gammaln  # More efficient than math.lgamma
-from typing import Dict
+
 
 # -------------------------------------------------------------------
 # Beta-Binomial PMF and log-PMF with caching
