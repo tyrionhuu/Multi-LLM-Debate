@@ -88,7 +88,7 @@ def preprocess_dataframe(
     processed_df = processed_df.drop(
         columns=["Type", "Category", "Source"], errors="ignore"
     )
-    
+
     return processed_df
 
 
@@ -166,7 +166,11 @@ def _choose_random_answer(input: str, random_state: int = 42) -> Optional[str]:
 
 
 def main():
-    df = load_truthful_qa_dataset("/Users/tyrionhuu/projects/research_projects/Multi-LLM-Debate/datasets/TruthfulQA")
-    print(df.head())
+    df = load_truthful_qa_dataset(
+        "/Users/tyrionhuu/projects/research_projects/Multi-LLM-Debate/datasets/TruthfulQA"
+    )
+    print(df.columns.tolist())
+
+
 if __name__ == "__main__":
     main()
