@@ -113,6 +113,7 @@ def plot_model_evolution(
     output_dir: Optional[Path] = None,
     model_config: str = "",
     row_number: int = 2,
+    task_name: str = "judge_bench",
 ) -> List[Figure]:
     """Plot the evolution of the mixture model across rounds.
 
@@ -123,8 +124,9 @@ def plot_model_evolution(
         output_dir: Optional directory to save the plots
         model_config: Optional model configuration identifier for file naming
         row_number: Number of rows for the subplot grid (default: 2)
-
-    Returns:
+        task_name: Task name for the title
+        
+    Returns:    
         List of generated figures
     """
     figures = []
@@ -160,7 +162,7 @@ def plot_model_evolution(
 
     # Adjust the combined figure layout
     plt.tight_layout()
-    fig.suptitle("Agent Performance Distribution Across All Debate Rounds", fontsize=16)
+    fig.suptitle(f"Agent Performance Distribution Across All Debate Rounds {model_config} - {task_name}", fontsize=16)
     fig.subplots_adjust(top=0.93)  # Make room for the title
 
     # Save the combined figure if output directory is provided
@@ -179,6 +181,8 @@ def visualize_parameter_trends(
     model_results: List[Dict[str, float]],
     output_dir: Optional[Path] = None,
     model_config: str = "",
+    task_name: str = "judge_bench",
+    row_number: int = 2,
 ) -> Figure:
     """Visualize how model parameters change across rounds.
 
@@ -186,7 +190,9 @@ def visualize_parameter_trends(
         model_results: List of dictionaries with fitted model parameters for each round
         output_dir: Optional directory to save the plot
         model_config: Optional model configuration identifier for file naming
-
+        task_name: Task name for the title
+        row_number: Number of rows for the subplot grid (default: 2)
+        
     Returns:
         The generated figure
     """
@@ -217,10 +223,13 @@ def visualize_parameter_trends(
     ]
 
     # Create the figure with a 2x3 grid layout (2 rows, 3 columns)
-    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(18, 12))
+    # Adjust the number of rows based on the number of plots
+    n_rows = math.ceil(len(model_results) / row_number)
+    n_cols = min(row_number, 3)  # Limit to 3 columns for better readability
+    fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(18, 12))
     axes = axes.flatten()  # Flatten for easier indexing
     fig.suptitle(
-        f"Model Parameter Evolution Across Debate Rounds {model_config}", fontsize=16
+        f"Model Parameter Evolution Across Debate Rounds {model_config} - {task_name}", fontsize=16
     )
     fig.subplots_adjust(top=0.92)  # Make room for the title
 
@@ -348,7 +357,7 @@ def visualize_parameter_trends(
         output_dir.mkdir(exist_ok=True, parents=True)
         config_suffix = f"_{model_config}" if model_config else ""
         fig.savefig(
-            output_dir / f"model_parameter_evolution{config_suffix}.png", dpi=300
+            output_dir / f"model_parameter_evolution{config_suffix}_{task_name}.png", dpi=300
         )
 
     return fig
@@ -367,6 +376,7 @@ def run_visualization(
     compare_func: Callable = None,
     model_config: str = "",
     row_number: int = 2,
+    task_name: str = "judge_bench",
 ) -> tuple[pd.DataFrame, list[dict], List[Figure]]:
     """Run the complete visualization pipeline from data loading to generating plots.
 
@@ -441,6 +451,7 @@ def run_visualization(
         output_dir=output_dir,
         model_config=model_config,
         row_number=row_number,
+        task_name=task_name,
     )
     if verbose:
         print(f"Saved model evolution plots to {output_dir}")
