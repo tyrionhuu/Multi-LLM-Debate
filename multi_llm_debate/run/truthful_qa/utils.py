@@ -3,7 +3,7 @@ import os
 import random
 import re
 from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
 import pandas as pd
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def load_truthful_qa_dataset(
-    dataset_path: Any[Path, str] = "datasets/TruthfulQA",
+    dataset_path: str = "datasets/TruthfulQA",
     dataset_name: str = "domenicrosati/TruthfulQA",
     random_state: int = None,
 ) -> pd.DataFrame:
