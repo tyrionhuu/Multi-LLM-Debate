@@ -60,7 +60,7 @@ SERVER_PID=$!
 echo "Waiting for server to start..."
 sleep 30
 MAX_ATTEMPTS=30
-ATTEMPT=1
+ATTEMPT=2
 while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
     if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
         echo "Server did not start after $MAX_ATTEMPTS attempts. Exiting."
