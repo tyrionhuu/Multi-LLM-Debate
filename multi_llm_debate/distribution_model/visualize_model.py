@@ -184,7 +184,6 @@ def visualize_parameter_trends(
     output_dir: Optional[Path] = None,
     model_config: str = "",
     task_name: str = "judge_bench",
-    row_number: int = 2,
 ) -> Figure:
     """Visualize how model parameters change across rounds.
 
@@ -193,7 +192,6 @@ def visualize_parameter_trends(
         output_dir: Optional directory to save the plot
         model_config: Optional model configuration identifier for file naming
         task_name: Task name for the title
-        row_number: Number of rows for the subplot grid (default: 2)
 
     Returns:
         The generated figure
@@ -223,11 +221,7 @@ def visualize_parameter_trends(
         beta2 / (alpha2 + beta2) for alpha2, beta2 in zip(alpha2_values, beta2_values)
     ]
 
-    # Create the figure with a 2x3 grid layout (2 rows, 3 columns)
-    # Adjust the number of rows based on the number of plots
-    n_rows = math.ceil(len(model_results) / row_number)
-    n_cols = min(row_number, 3)  # Limit to 3 columns for better readability
-    fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(18, 12))
+    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(18, 12))
     axes = axes.flatten()  # Flatten for easier indexing
     fig.suptitle(
         f"Model Parameter Evolution Across Debate Rounds {model_config} - {task_name}",
