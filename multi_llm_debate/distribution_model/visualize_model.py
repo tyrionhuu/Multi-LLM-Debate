@@ -1,4 +1,4 @@
-import logging
+#!/usr/bin/env python
 import math
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
@@ -8,7 +8,9 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-from .analyze_distribution import analyze_rounds_distribution
+from .analyze_distribution import (
+    analyze_rounds_distribution,  # new function for analyzing rounds
+)
 from .pmf import beta_binomial_pmf
 
 
@@ -217,7 +219,7 @@ def visualize_parameter_trends(
     ]
 
     # Create the figure with 5 subplots
-    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(10, 20))
+    fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(10, 20))
     fig.suptitle(
         f"Model Parameter Evolution Across Debate Rounds {model_config}", fontsize=16
     )
@@ -389,7 +391,7 @@ def run_visualization(
     output_dir.mkdir(exist_ok=True, parents=True)
 
     if verbose:
-        logging.info("Analyzing debate rounds and fitting models...")
+        print("Analyzing debate rounds and fitting models...")
 
     # Use the analysis function
     aggregated_df, model_results = analyze_rounds_distribution(
@@ -406,7 +408,7 @@ def run_visualization(
 
     if aggregated_df.empty:
         if verbose:
-            logging.info("No data available for analysis")
+            print("No data available for analysis")
         return aggregated_df, model_results, []
 
     # Extract bin columns (representing correct counts)
@@ -425,7 +427,7 @@ def run_visualization(
 
     # Generate visualizations
     if verbose:
-        logging.info("Generating visualizations...")
+        print("Generating visualizations...")
 
     figures = []
 
@@ -439,7 +441,7 @@ def run_visualization(
         row_number=row_number,
     )
     if verbose:
-        logging.info(f"Saved model evolution plots to {output_dir}")
+        print(f"Saved model evolution plots to {output_dir}")
     figures.extend(evolution_figs)
 
     # 2) Plot parameter trends across rounds
@@ -449,7 +451,7 @@ def run_visualization(
         model_config=model_config,
     )
     if verbose:
-        logging.info(f"Saved parameter trend plot to {output_dir}")
+        print(f"Saved parameter trend plot to {output_dir}")
     figures.append(param_fig)
 
     return aggregated_df, model_results, figures
