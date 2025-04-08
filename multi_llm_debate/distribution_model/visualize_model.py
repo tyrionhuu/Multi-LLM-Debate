@@ -219,7 +219,7 @@ def visualize_parameter_trends(
     ]
 
     # Create the figure with 5 subplots
-    fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(10, 20))
+    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(10, 20))
     fig.suptitle(
         f"Model Parameter Evolution Across Debate Rounds {model_config}", fontsize=16
     )
