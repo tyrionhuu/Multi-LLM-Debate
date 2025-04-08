@@ -3,6 +3,7 @@ import random
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+import concurrent.futures
 
 import pandas as pd
 
@@ -224,7 +225,6 @@ def process_debate_dataset(
         required_columns: List of column names required in the dataframe
         base_dir: Base directory for output files
         max_rounds: Maximum number of debate rounds
-        use_cot: Whether to use chain-of-thought prompting
         model_configs: Optional list of model configurations
         overwrite: Whether to overwrite existing debate results
         max_workers: Maximum number of concurrent workers
@@ -261,37 +261,82 @@ def process_debate_dataset(
             logger.error("DataFrame is empty")
             raise ValueError("DataFrame is empty. Please provide valid data.")
 
-        # Using progress manager for the main progress bar
+        def process_single_entry(entry_data):
+            """Worker function to process a single entry."""
+            try:
+                process_entry_fn(
+                    entry=entry_data,
+                    max_rounds=max_rounds,
+                    base_dir=base_dir,
+                    model_configs=model_configs,
+                    overwrite=overwrite,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    parallel=parallel,
+                )
+                return {"success": True, "entry_id": entry_data.get("id", "unknown")}
+            except Exception as e:
+                entry_id = entry_data.get("id", "unknown")
+                logger.error(f"Error processing entry {entry_id}: {str(e)}")
+                return {
+                    "success": False,
+                    "entry_id": entry_id,
+                    "error": str(e),
+                    "question": entry_data.get("question", ""),
+                }
 
+        # Using progress manager for the main progress bar
         with progress.main_bar(
             total=len(dataframe), desc=f"Running {task_name}", unit="debate"
         ) as pbar:
-            for _, entry in dataframe.iterrows():
-                try:
-                    process_entry_fn(
-                        entry=entry,
-                        max_rounds=max_rounds,
-                        base_dir=base_dir,
-                        model_configs=model_configs,
-                        overwrite=overwrite,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
-                        parallel=parallel,
-                    )
-                    processed_count += 1
-                    pbar.update(1)
-                except Exception as e:
-                    entry_id = entry.get("id", "unknown")
-                    logger.error(f"Error processing entry {entry_id}: {str(e)}")
-                    failed_entries.append(
-                        {
-                            "id": entry_id,
-                            "error": str(e),
-                            "question": entry.get("question", ""),
-                        }
-                    )
-                    pbar.update(1)  # Update progress even for failures
-                    continue
+            if max_workers > 1:
+                logger.info(f"Running in parallel with {max_workers} workers")
+                with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+                    # Submit all tasks
+                    future_to_idx = {
+                        executor.submit(process_single_entry, entry): idx 
+                        for idx, entry in dataframe.iterrows()
+                    }
+                    
+                    # Process results as they complete
+                    for future in concurrent.futures.as_completed(future_to_idx):
+                        result = future.result()
+                        if result["success"]:
+                            processed_count += 1
+                        else:
+                            failed_entries.append({
+                                "id": result["entry_id"],
+                                "error": result["error"],
+                                "question": result["question"],
+                            })
+                        pbar.update(1)
+            else:
+                # Sequential processing (original implementation)
+                for _, entry in dataframe.iterrows():
+                    try:
+                        process_entry_fn(
+                            entry=entry,
+                            max_rounds=max_rounds,
+                            base_dir=base_dir,
+                            model_configs=model_configs,
+                            overwrite=overwrite,
+                            temperature=temperature,
+                            max_tokens=max_tokens,
+                            parallel=parallel,
+                        )
+                        processed_count += 1
+                    except Exception as e:
+                        entry_id = entry.get("id", "unknown")
+                        logger.error(f"Error processing entry {entry_id}: {str(e)}")
+                        failed_entries.append(
+                            {
+                                "id": entry_id,
+                                "error": str(e),
+                                "question": entry.get("question", ""),
+                            }
+                        )
+                    finally:
+                        pbar.update(1)
 
     except Exception as e:
         logger.error(f"Global execution error: {str(e)}", exc_info=True)
