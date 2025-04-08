@@ -100,3 +100,9 @@ def compare_truthful_qa_response(
         return response.upper() == answer.upper()
     except AttributeError:
         return False
+
+def main():
+    df = load_truthful_qa_dataset()
+    print(df.head())
+if __name__ == "__main__":
+    main()
