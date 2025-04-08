@@ -20,12 +20,15 @@ def evaluate_truthful_qa_responses(
     Returns:
         bool: True if all responses are the same and match the answer, False otherwise.
     """
-    return all(
-        compare_truthful_qa_response(
-            extract_caption_a_b_c_answer(response["response"]), answer
+    return (
+        all(
+            compare_truthful_qa_response(
+                extract_caption_a_b_c_answer(response["response"]), answer
+            )
+            for response in responses
         )
-        for response in responses
-    ) and len(responses) > 0
+        and len(responses) > 0
+    )
 
 
 def evaluate_all_truthful_qa(
