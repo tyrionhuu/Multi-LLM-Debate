@@ -33,6 +33,7 @@ def preprocess_llm_bar_dataframe(
 
     # Rename columns
     column_mapping = {
+        "input": "question",
         "output_1": "response_1",
         "output_2": "response_2",
         "label": "answer",
