@@ -51,7 +51,7 @@ if [[ "$GPU" == *","* ]]; then
     fi
 else
     # Single GPU mode
-    CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT &
+    CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT & 
 fi
 
 SERVER_PID=$!
