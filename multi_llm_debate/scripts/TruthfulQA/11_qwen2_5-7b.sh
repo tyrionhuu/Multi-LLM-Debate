@@ -90,3 +90,4 @@ python -m multi_llm_debate.run.truthful_qa.main \
 
 # Kill the VLLM server process when done
 kill $SERVER_PID
+
