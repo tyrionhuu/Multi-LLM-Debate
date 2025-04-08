@@ -156,7 +156,7 @@ def calculate_correct_rate_distribution(
         extract_func: Function to extract and normalize responses.
         compare_func: Function to compare normalized responses with correct answer.
         progress_bar: If True, show a progress bar for task processing.
-        
+
     Returns:
         DataFrame aggregated by round, with columns:
            [round_number, 0, 1, 2, ..., total_tasks]

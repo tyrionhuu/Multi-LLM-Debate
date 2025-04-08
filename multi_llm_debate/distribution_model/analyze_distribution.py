@@ -40,7 +40,7 @@ def analyze_rounds_distribution(
                                    probability doesn't decrease across rounds
         extract_func: Function to extract and normalize responses
         compare_func: Function to compare normalized responses with correct answer
-        
+
     Returns:
         tuple: (aggregated_df, fit_results) where:
             - aggregated_df: DataFrame with correct rate distribution per round

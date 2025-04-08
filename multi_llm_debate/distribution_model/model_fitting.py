@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import numpy as np
 from scipy.optimize import minimize
