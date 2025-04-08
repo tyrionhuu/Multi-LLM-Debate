@@ -1,9 +1,10 @@
 import json
 import logging
 import random
-from pathlib import Path
-from typing import Optional, Union, Literal
 import re
+from pathlib import Path
+from typing import Literal, Optional, Union
+
 import pandas as pd
 
 logging.basicConfig(level=logging.INFO)
@@ -134,10 +135,10 @@ def extract_1_2_answer(
     response: str,
 ) -> Literal["1", "2"]:
     """Extract the answer from the response string.
-    
+
     Args:
         response: The response string from the LLM.
-        
+
     Returns:
         Literal["1", "2"]: Answer "1" or "2".
     """
@@ -150,6 +151,7 @@ def extract_1_2_answer(
             "No valid answer found in the response. Please ensure the response contains 'Final Answer: 1' or 'Final Answer: 2'."
         )
 
+
 def main():
     dataset = load_llm_bar_dataset()
     processed_df = preprocess_llm_bar_dataframe(dataset)
@@ -158,4 +160,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
