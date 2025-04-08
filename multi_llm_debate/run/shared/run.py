@@ -203,6 +203,56 @@ def execute_debate_workflow(
         }
 
 
+def _process_single_entry_worker(
+    entry_data: pd.Series,
+    max_rounds: int,
+    base_dir: Path,
+    model_configs: Optional[List[ModelConfig]],
+    overwrite: bool,
+    temperature: float,
+    max_tokens: int,
+    parallel: bool,
+    process_entry_fn: Callable
+) -> Dict[str, Any]:
+    """Process a single entry for multiprocessing.
+    
+    Args:
+        entry_data: A row from the dataframe
+        max_rounds: Maximum number of debate rounds
+        base_dir: Base directory for output files
+        model_configs: Optional list of model configurations
+        overwrite: Whether to overwrite existing debate results
+        temperature: Temperature for model responses
+        max_tokens: Maximum tokens for model responses
+        parallel: Whether to run in parallel
+        process_entry_fn: Function to process a single entry
+    
+    Returns:
+        Dict with processing results and status
+    """
+    try:
+        process_entry_fn(
+            entry=entry_data,
+            max_rounds=max_rounds,
+            base_dir=base_dir,
+            model_configs=model_configs,
+            overwrite=overwrite,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            parallel=parallel,
+        )
+        return {"success": True, "entry_id": entry_data.get("id", "unknown")}
+    except Exception as e:
+        entry_id = entry_data.get("id", "unknown")
+        logger.error(f"Error processing entry {entry_id}: {str(e)}")
+        return {
+            "success": False,
+            "entry_id": entry_id,
+            "error": str(e),
+            "question": entry_data.get("question", ""),
+        }
+
+
 def process_debate_dataset(
     dataframe: pd.DataFrame,
     process_entry_fn: Callable,
@@ -261,47 +311,35 @@ def process_debate_dataset(
             logger.error("DataFrame is empty")
             raise ValueError("DataFrame is empty. Please provide valid data.")
 
-        def process_single_entry(entry_data):
-            """Worker function to process a single entry."""
-            try:
-                process_entry_fn(
-                    entry=entry_data,
-                    max_rounds=max_rounds,
-                    base_dir=base_dir,
-                    model_configs=model_configs,
-                    overwrite=overwrite,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                    parallel=parallel,
-                )
-                return {"success": True, "entry_id": entry_data.get("id", "unknown")}
-            except Exception as e:
-                entry_id = entry_data.get("id", "unknown")
-                logger.error(f"Error processing entry {entry_id}: {str(e)}")
-                return {
-                    "success": False,
-                    "entry_id": entry_id,
-                    "error": str(e),
-                    "question": entry_data.get("question", ""),
-                }
-
         # Using progress manager for the main progress bar
         with progress.main_bar(
             total=len(dataframe), desc=f"Running {task_name}", unit="debate"
         ) as pbar:
-            if max_workers > 1:
+            if parallel and max_workers > 1:
                 logger.info(f"Running in parallel with {max_workers} workers")
-                with concurrent.futures.ProcessPoolExecutor(
+                # Use ThreadPoolExecutor instead of ProcessPoolExecutor to avoid pickling issues
+                with concurrent.futures.ThreadPoolExecutor(
                     max_workers=max_workers
                 ) as executor:
-                    # Submit all tasks
-                    future_to_idx = {
-                        executor.submit(process_single_entry, entry): idx
-                        for idx, entry in dataframe.iterrows()
-                    }
+                    # Submit all tasks with required parameters
+                    futures = []
+                    for _, entry in dataframe.iterrows():
+                        future = executor.submit(
+                            _process_single_entry_worker,
+                            entry_data=entry,
+                            max_rounds=max_rounds,
+                            base_dir=base_dir,
+                            model_configs=model_configs,
+                            overwrite=overwrite,
+                            temperature=temperature,
+                            max_tokens=max_tokens,
+                            parallel=parallel,
+                            process_entry_fn=process_entry_fn
+                        )
+                        futures.append(future)
 
                     # Process results as they complete
-                    for future in concurrent.futures.as_completed(future_to_idx):
+                    for future in concurrent.futures.as_completed(futures):
                         result = future.result()
                         if result["success"]:
                             processed_count += 1
