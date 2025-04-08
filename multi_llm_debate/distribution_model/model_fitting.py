@@ -34,7 +34,7 @@ def em_mixture_beta_binomial(
         n_restarts: Number of random restarts
 
     Returns:
-        dict: Fitted model parameters including weights and alpha/beta values
+        Dict: Fitted model parameters including weights and alpha/beta values
     """
     rng = np.random.default_rng(random_state)
 
