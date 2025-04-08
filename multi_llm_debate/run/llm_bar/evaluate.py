@@ -22,9 +22,7 @@ def evaluate_llm_bar_responses(
     """
     return (
         all(
-            compare_llm_bar_response(
-                extract_1_2_answer(response["response"]), answer
-            )
+            compare_llm_bar_response(extract_1_2_answer(response["response"]), answer)
             for response in responses
         )
         and len(responses) > 0
