@@ -104,13 +104,12 @@ def preprocess_dataframe(
 
     # Use pd.DataFrame(...) to expand the tuple into columns
     df[["response_A", "response_B", "response_C"]] = pd.DataFrame(
-        df.apply(_map_options, axis=1).tolist(),
-        index=df.index
+        df.apply(_map_options, axis=1).tolist(), index=df.index
     )
 
-    return df[["id", "Question", "response_A", "response_B", "response_C", "answer"]].rename(
-        columns={"Question": "question"}
-    )
+    return df[
+        ["id", "Question", "response_A", "response_B", "response_C", "answer"]
+    ].rename(columns={"Question": "question"})
 
 
 def extract_caption_a_b_c_answer(response: str) -> Literal["A", "B", "C"]:
