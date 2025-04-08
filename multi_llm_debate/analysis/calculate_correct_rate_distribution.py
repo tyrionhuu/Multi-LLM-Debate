@@ -54,7 +54,8 @@ def calculate_correct_rate_distribution_for_round_n(
     max_agents = 0
 
     # Process each task individually
-    for task_id_val in tqdm(all_task_ids, desc=f"Round {round_number}", unit="task"):
+    task_iterator = tqdm(all_task_ids, desc=f"Round {round_number}", unit="task") if progress_bar else all_task_ids
+    for task_id_val in task_iterator:
         # All debate rows for this task
         df_task = df_debates[df_debates["task_id"] == task_id_val]
         if df_task.empty:
