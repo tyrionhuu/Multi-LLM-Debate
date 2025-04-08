@@ -153,7 +153,10 @@ def calculate_correct_rate_distribution(
         df_debates: DataFrame from debate_rounds.csv
                     columns: ["task_id", "round_number", "agent_index", "agent_id", "model", "response"]
         max_rounds: if provided, limit to [0..max_rounds-1], else use all found
-
+        extract_func: Function to extract and normalize responses.
+        compare_func: Function to compare normalized responses with correct answer.
+        progress_bar: If True, show a progress bar for task processing.
+        
     Returns:
         DataFrame aggregated by round, with columns:
            [round_number, 0, 1, 2, ..., total_tasks]
