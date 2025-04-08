@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import math
+import logging
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
@@ -391,7 +392,7 @@ def run_visualization(
     output_dir.mkdir(exist_ok=True, parents=True)
 
     if verbose:
-        print("Analyzing debate rounds and fitting models...")
+        logging.info("Analyzing debate rounds and fitting models...")
 
     # Use the analysis function
     aggregated_df, model_results = analyze_rounds_distribution(
@@ -408,7 +409,7 @@ def run_visualization(
 
     if aggregated_df.empty:
         if verbose:
-            print("No data available for analysis")
+            logging.info("No data available for analysis")
         return aggregated_df, model_results, []
 
     # Extract bin columns (representing correct counts)
@@ -427,7 +428,7 @@ def run_visualization(
 
     # Generate visualizations
     if verbose:
-        print("Generating visualizations...")
+        logging.info("Generating visualizations...")
 
     figures = []
 
@@ -441,7 +442,7 @@ def run_visualization(
         row_number=row_number,
     )
     if verbose:
-        print(f"Saved model evolution plots to {output_dir}")
+        logging.info(f"Saved model evolution plots to {output_dir}")
     figures.extend(evolution_figs)
 
     # 2) Plot parameter trends across rounds
@@ -451,7 +452,7 @@ def run_visualization(
         model_config=model_config,
     )
     if verbose:
-        print(f"Saved parameter trend plot to {output_dir}")
+        logging.info(f"Saved parameter trend plot to {output_dir}")
     figures.append(param_fig)
 
     return aggregated_df, model_results, figures
