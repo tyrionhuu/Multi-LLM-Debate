@@ -1,12 +1,12 @@
+import json
 import logging
 import os
 import random
 import re
 from pathlib import Path
-from typing import Literal, Union, Optional
-import json
-import pandas as pd
+from typing import Literal, Optional, Union
 
+import pandas as pd
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,14 +28,16 @@ def load_llm_bar_dataset(
         pd.DataFrame: DataFrame containing the LLMBar data with randomized order.
     """
     dataset_path = Path(dataset_path)
-    with open(dataset_path / "LLMBar/Natural/dataset.json", "r", encoding='utf-8') as f:
+    with open(dataset_path / "LLMBar/Natural/dataset.json", "r", encoding="utf-8") as f:
         json_data = json.load(f)
     df = pd.DataFrame(json_data)
     return df
 
+
 def main():
     dataset = load_llm_bar_dataset()
     print(dataset.head())
+
+
 if __name__ == "__main__":
     main()
-    
