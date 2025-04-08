@@ -14,9 +14,9 @@ if __name__ == "__main__":
     dataframe = load_llm_bar_dataset(
         dataset_path=dataset_path,
     )
-    dataframe = dataframe.sample(100, random_state=42)
+    dataframe = dataframe.sample(10, random_state=42)
     dataframe = preprocess_llm_bar_dataframe(dataframe)
-    
+
     shared_main(
         dataframe=dataframe,
         run_debate_fn=process_llm_bar_dataset,
