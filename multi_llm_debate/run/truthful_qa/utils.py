@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Literal, List
+from typing import List, Literal
 
 import pandas as pd
 
@@ -66,7 +66,7 @@ def preprocess_dataframe(
         dataframe: Input DataFrame from TruthfulQA dataset
         random_state: Random seed for shuffling. If None, the dataset will be
             randomized differently each time.
-            
+
     Returns:
         pd.DataFrame: Processed DataFrame with all required columns
     """
@@ -126,6 +126,7 @@ def compare_truthful_qa_response(
         return response.upper() == answer.upper()
     except AttributeError:
         return False
+
 
 def _parse_string_to_list(input: str, divider: str = ";") -> List[str]:
     """Parse a string into a list based on a divider.
