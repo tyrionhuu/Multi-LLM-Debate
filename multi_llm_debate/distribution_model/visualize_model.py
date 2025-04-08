@@ -8,9 +8,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-from .analyze_distribution import (
-    analyze_rounds_distribution,
-)
+from .analyze_distribution import analyze_rounds_distribution
 from .pmf import beta_binomial_pmf
 
 
@@ -194,7 +192,7 @@ def visualize_parameter_trends(
     """
     # Extract parameters for each round
     rounds = list(range(len(model_results)))
-    round_labels = [str(i+1) for i in rounds]  # Just use numbers instead of "Round X"
+    round_labels = [str(i + 1) for i in rounds]  # Just use numbers instead of "Round X"
     w_values = [r["w"] for r in model_results]
     alpha1_values = [r["alpha1"] for r in model_results]
     beta1_values = [r["beta1"] for r in model_results]
