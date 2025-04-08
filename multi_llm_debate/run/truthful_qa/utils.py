@@ -40,7 +40,7 @@ def load_truthful_qa_dataset(
         # Load from Hugging Face datasets
         try:
             dataset = load_dataset(
-                name=dataset_name,
+                path=dataset_name,
                 split="train",
                 cache_dir=dataset_path,
             )
