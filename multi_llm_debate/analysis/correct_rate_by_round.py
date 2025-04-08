@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
 import pandas as pd
-from tqdm import tqdm
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -216,7 +215,6 @@ def calculate_correct_rate_by_round(
     absolute_data = {"model_configuration": model_configuration, "metric": "absolute"}
 
     subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
-    pbar = tqdm(subdirs, desc=f"Processing {model_configuration}")
 
     correct_counts = {
         i: {"majority": 0, "absolute": 0.0} for i in range(max_round_number + 1)
@@ -224,7 +222,7 @@ def calculate_correct_rate_by_round(
     total_counts = {i: 0 for i in range(0, max_round_number + 1)}
     total_debates = 0
 
-    for subdir in pbar:
+    for subdir in subdirs:
         round_correct_counts, round_total_counts = process_debate_directory(
             subdir, dataframe, max_round_number, extract_func, compare_func
         )
