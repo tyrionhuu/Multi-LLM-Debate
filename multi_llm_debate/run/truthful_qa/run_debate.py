@@ -10,13 +10,14 @@ from ...utils.model_config import ModelConfig
 from ..shared.run import process_debate_dataset, process_single_debate_entry
 from .prompts import (
     build_truthful_qa_round_n_prompt,
-    build_truthful_qa_round_zero_prompt
+    build_truthful_qa_round_zero_prompt,
 )
 from .utils import extract_caption_a_b_c_answer
 
 # Fix the setup_logging call by removing the level parameter
 logger = setup_logging(__name__)
 logger.setLevel(logging.INFO)
+
 
 def process_truthful_qa_dataset(
     dataframe: pd.DataFrame,
@@ -50,7 +51,14 @@ def process_truthful_qa_dataset(
     Raises:
         ValueError: If DataFrame format is invalid
     """
-    required_columns = ["question", "response_A", "response_B", "response_C", "id", "answer"]
+    required_columns = [
+        "question",
+        "response_A",
+        "response_B",
+        "response_C",
+        "id",
+        "answer",
+    ]
 
     return process_debate_dataset(
         dataframe=dataframe,
@@ -95,7 +103,14 @@ def process_truthful_qa_entry(
 
     process_single_debate_entry(
         entry=entry,
-        required_columns=["question", "response_A", "response_B", "id", "response_C", "answer"],
+        required_columns=[
+            "question",
+            "response_A",
+            "response_B",
+            "id",
+            "response_C",
+            "answer",
+        ],
         base_dir=base_dir,
         max_rounds=max_rounds,
         model_configs=model_configs,
