@@ -338,7 +338,7 @@ def visualize_parameter_trends(
     axes[4].grid(alpha=0.3)
     axes[4].set_xticks(rounds)
     axes[4].set_xticklabels(round_labels)
-    
+
     # Hide the unused 6th subplot
     axes[5].set_visible(False)
 
