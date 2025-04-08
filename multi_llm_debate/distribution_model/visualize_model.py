@@ -194,7 +194,7 @@ def visualize_parameter_trends(
     """
     # Extract parameters for each round
     rounds = list(range(len(model_results)))
-    round_labels = [f"Round {i+1}" for i in rounds]
+    round_labels = [str(i+1) for i in rounds]  # Just use numbers instead of "Round X"
     w_values = [r["w"] for r in model_results]
     alpha1_values = [r["alpha1"] for r in model_results]
     beta1_values = [r["beta1"] for r in model_results]
@@ -231,7 +231,7 @@ def visualize_parameter_trends(
         rounds, w_values, marker="o", linestyle="-", label="Mixture Weight (w)"
     )
     axes[0].set_title("Component 1 Weight Evolution")
-    axes[0].set_xlabel("Debate Round")
+    axes[0].set_xlabel("Round Number")
     axes[0].set_ylabel("Mixture Weight (w)")
     axes[0].grid(alpha=0.3)
     axes[0].set_xticks(rounds)
@@ -255,7 +255,7 @@ def visualize_parameter_trends(
         color="purple",
     )
     axes[1].set_title("Success Probability Evolution by Component")
-    axes[1].set_xlabel("Debate Round")
+    axes[1].set_xlabel("Round Number")
     axes[1].set_ylabel("Expected Success Probability")
     axes[1].legend()
     axes[1].grid(alpha=0.3)
@@ -281,7 +281,7 @@ def visualize_parameter_trends(
         color="purple",
     )
     axes[2].set_title("Failure Probability Evolution by Component")
-    axes[2].set_xlabel("Debate Round")
+    axes[2].set_xlabel("Round Number")
     axes[2].set_ylabel("Expected Failure Probability")
     axes[2].legend()
     axes[2].grid(alpha=0.3)
@@ -307,7 +307,7 @@ def visualize_parameter_trends(
         color="purple",
     )
     axes[3].set_title("Alpha Parameter Evolution (Success Parameter)")
-    axes[3].set_xlabel("Debate Round")
+    axes[3].set_xlabel("Round Number")
     axes[3].set_ylabel("Alpha Value")
     axes[3].legend()
     axes[3].grid(alpha=0.3)
@@ -332,7 +332,7 @@ def visualize_parameter_trends(
         color="purple",
     )
     axes[4].set_title("Beta Parameter Evolution (Failure Parameter)")
-    axes[4].set_xlabel("Debate Round")
+    axes[4].set_xlabel("Round Number")
     axes[4].set_ylabel("Beta Value")
     axes[4].legend()
     axes[4].grid(alpha=0.3)
