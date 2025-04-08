@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
-
+import matplotlib.pyplot as plt
+import numpy as np
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -481,8 +482,7 @@ def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
     return dict(sorted(distribution.items()))
 
 
-import matplotlib.pyplot as plt
-import numpy as np
+
 
 
 def combine_plots(
