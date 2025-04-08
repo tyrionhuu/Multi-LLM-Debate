@@ -296,6 +296,7 @@ def draw_console_histogram(
 
     # Build histogram
     result = []
+    count_line = ""
     result.append(title.center(total_width))
     result.append("=" * total_width)
 
