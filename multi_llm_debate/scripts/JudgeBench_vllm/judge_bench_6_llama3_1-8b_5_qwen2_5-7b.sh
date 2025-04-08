@@ -1,5 +1,24 @@
 #!/bin/bash
 
+# Parse command line arguments
+GPU="4,5"  # Default GPU
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --gpu|-g)
+            GPU="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--gpu|-g GPU_NUMBER(S)]"
+            echo "Example: $0 --gpu 0,1 (for tensor parallelism across 2 GPUs)"
+            exit 1
+            ;;
+    esac
+done
+
+echo "Using GPU(s): $GPU"
+
 # Check if Multi-LLM-Debate environment is already activated
 if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
     echo "Activating Multi-LLM-Debate conda environment..."
@@ -14,8 +33,8 @@ MODEL_NAME1="/data/share_weight/Llama-3.1-8B-Instruct"
 MODEL_NAME2="/data/share_weight/Qwen2.5-7B-Instruct"
 MODEL_QUANTITY1=6
 MODEL_QUANTITY2=5
-GPU1=4
-GPU2=5
+GPU1=$(echo $GPU | cut -d',' -f1)
+GPU2=$(echo $GPU | cut -d',' -f2)
 PORT1=$((8102 + GPU1 * 10))
 PORT2=$((8202 + GPU2 * 10))
 
