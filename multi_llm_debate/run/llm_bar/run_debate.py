@@ -117,9 +117,9 @@ def process_llm_bar_entry(
         model_configs=model_configs,
         overwrite=overwrite,
         prompt_builder_fn=lambda prompt_params: PromptBuilder(
+            round_zero_fn=build_llm_bar_round_zero_prompt,
+            round_n_fn=build_llm_bar_round_n_prompt,
             prompt_params=prompt_params,
-            build_round_zero_prompt=build_llm_bar_round_zero_prompt,
-            build_round_n_prompt=build_llm_bar_round_n_prompt,
         ),
         prompt_params={
             "question": entry["question"],
