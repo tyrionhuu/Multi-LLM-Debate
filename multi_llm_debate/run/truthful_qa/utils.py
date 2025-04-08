@@ -1,14 +1,16 @@
+import logging
 import os
+import random
 import re
 from typing import List, Literal, Optional
 
 import pandas as pd
 
 from datasets import load_dataset, load_from_disk
-import random
-import logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def load_truthful_qa_dataset(
     dataset_path: str = "datasets/TruthfulQA",
@@ -130,6 +132,7 @@ def compare_truthful_qa_response(
     except AttributeError:
         return False
 
+
 def _choose_random_answer(input: str, random_state: int = 42) -> Optional[str]:
     """Choose a random answer from the input string.
 
@@ -140,6 +143,7 @@ def _choose_random_answer(input: str, random_state: int = 42) -> Optional[str]:
     Returns:
         str: A randomly chosen answer from the input.
     """
+
     def _parse_string_to_list(input: str, divider: str = ";") -> List[str]:
         """Parse a string into a list based on a divider.
 
