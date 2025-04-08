@@ -15,7 +15,7 @@ if __name__ == "__main__":
         dataset_path=dataset_path,
     )
     dataframe = preprocess_dataframe(dataframe)
-    dataframe = dataframe.sample(100, random_state=42)
+    # dataframe = dataframe.sample(100, random_state=42)
     shared_main(
         dataframe=dataframe,
         run_debate_fn=process_truthful_qa_dataset,
