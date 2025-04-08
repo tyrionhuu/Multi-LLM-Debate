@@ -30,7 +30,7 @@ def calculate_correct_rate_distribution_for_round_n(
         extract_func: Function to extract and normalize responses.
         compare_func: Function to compare normalized responses with correct answer.
         progress_bar: If True, show a progress bar for task processing.
-        
+
     Returns:
         DataFrame with columns [task_id, round_number, 0, 1, 2, ...]
         where each row is a single task, and there's exactly one "1" in
@@ -54,7 +54,11 @@ def calculate_correct_rate_distribution_for_round_n(
     max_agents = 0
 
     # Process each task individually
-    task_iterator = tqdm(all_task_ids, desc=f"Round {round_number}", unit="task") if progress_bar else all_task_ids
+    task_iterator = (
+        tqdm(all_task_ids, desc=f"Round {round_number}", unit="task")
+        if progress_bar
+        else all_task_ids
+    )
     for task_id_val in task_iterator:
         # All debate rows for this task
         df_task = df_debates[df_debates["task_id"] == task_id_val]
