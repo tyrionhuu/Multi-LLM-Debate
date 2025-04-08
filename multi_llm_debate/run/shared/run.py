@@ -1,9 +1,9 @@
+import concurrent.futures
 import csv
 import random
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
-import concurrent.futures
 
 import pandas as pd
 
@@ -291,24 +291,28 @@ def process_debate_dataset(
         ) as pbar:
             if max_workers > 1:
                 logger.info(f"Running in parallel with {max_workers} workers")
-                with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+                with concurrent.futures.ProcessPoolExecutor(
+                    max_workers=max_workers
+                ) as executor:
                     # Submit all tasks
                     future_to_idx = {
-                        executor.submit(process_single_entry, entry): idx 
+                        executor.submit(process_single_entry, entry): idx
                         for idx, entry in dataframe.iterrows()
                     }
-                    
+
                     # Process results as they complete
                     for future in concurrent.futures.as_completed(future_to_idx):
                         result = future.result()
                         if result["success"]:
                             processed_count += 1
                         else:
-                            failed_entries.append({
-                                "id": result["entry_id"],
-                                "error": result["error"],
-                                "question": result["question"],
-                            })
+                            failed_entries.append(
+                                {
+                                    "id": result["entry_id"],
+                                    "error": result["error"],
+                                    "question": result["question"],
+                                }
+                            )
                         pbar.update(1)
             else:
                 # Sequential processing (original implementation)
