@@ -212,10 +212,10 @@ def _process_single_entry_worker(
     temperature: float,
     max_tokens: int,
     parallel: bool,
-    process_entry_fn: Callable
+    process_entry_fn: Callable,
 ) -> Dict[str, Any]:
     """Process a single entry for multiprocessing.
-    
+
     Args:
         entry_data: A row from the dataframe
         max_rounds: Maximum number of debate rounds
@@ -226,7 +226,7 @@ def _process_single_entry_worker(
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
         process_entry_fn: Function to process a single entry
-    
+
     Returns:
         Dict with processing results and status
     """
@@ -334,7 +334,7 @@ def process_debate_dataset(
                             temperature=temperature,
                             max_tokens=max_tokens,
                             parallel=parallel,
-                            process_entry_fn=process_entry_fn
+                            process_entry_fn=process_entry_fn,
                         )
                         futures.append(future)
 
