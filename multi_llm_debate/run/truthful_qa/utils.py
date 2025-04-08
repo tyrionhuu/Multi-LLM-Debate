@@ -140,20 +140,21 @@ def _choose_random_answer(input: str, random_state: int = 42) -> Optional[str]:
     Returns:
         str: A randomly chosen answer from the input.
     """
+    def _parse_string_to_list(input: str, divider: str = ";") -> List[str]:
+        """Parse a string into a list based on a divider.
+
+        Args:
+            input: The input string to be parsed.
+            divider: The string used to split the input.
+
+        Returns:
+            List[str]: A list of parsed strings.
+        """
+        return [item.strip() for item in input.split(divider) if item.strip()]
+
     random.seed(random_state)
     answers = _parse_string_to_list(input)
     if not answers:
         logger.warning("No answers found to choose from.")
         return None
     return random.choice(answers)
-def _parse_string_to_list(input: str, divider: str = ";") -> List[str]:
-    """Parse a string into a list based on a divider.
-
-    Args:
-        input: The input string to be parsed.
-        divider: The string used to split the input.
-
-    Returns:
-        List[str]: A list of parsed strings.
-    """
-    return [item.strip() for item in input.split(divider) if item.strip()]
