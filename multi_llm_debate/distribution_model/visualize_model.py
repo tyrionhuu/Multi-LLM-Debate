@@ -218,12 +218,13 @@ def visualize_parameter_trends(
         beta2 / (alpha2 + beta2) for alpha2, beta2 in zip(alpha2_values, beta2_values)
     ]
 
-    # Create the figure with 5 subplots
-    fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(10, 20))
+    # Create the figure with a 2x3 grid layout (2 rows, 3 columns)
+    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(18, 12))
+    axes = axes.flatten()  # Flatten for easier indexing
     fig.suptitle(
         f"Model Parameter Evolution Across Debate Rounds {model_config}", fontsize=16
     )
-    fig.subplots_adjust(top=0.95)  # Make room for the title
+    fig.subplots_adjust(top=0.92)  # Make room for the title
 
     # Plot mixture weight
     axes[0].plot(
@@ -337,9 +338,12 @@ def visualize_parameter_trends(
     axes[4].grid(alpha=0.3)
     axes[4].set_xticks(rounds)
     axes[4].set_xticklabels(round_labels)
+    
+    # Hide the unused 6th subplot
+    axes[5].set_visible(False)
 
     plt.tight_layout()
-    fig.subplots_adjust(top=0.95)  # Make room for the title
+    fig.subplots_adjust(top=0.92)  # Make room for the title
 
     # Save if output directory is provided
     if output_dir is not None:
