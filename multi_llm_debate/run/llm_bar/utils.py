@@ -24,20 +24,26 @@ def preprocess_llm_bar_dataframe(
     Returns:
         pd.DataFrame: Preprocessed DataFrame with required columns.
     """
-    # Ensure required columns exist
-    required_columns = ["id", "input", "output", "category"]
-    for col in required_columns:
-        if col not in dataframe.columns:
-            logger.error(f"Missing required column: {col}")
-            return pd.DataFrame()
-
-    # Shuffle the DataFrame if random_state is provided
+    # Create a copy to avoid modifying the original dataframe
+    processed_df = dataframe.copy()
+    
+    # Add an id column
+    processed_df['id'] = range(len(processed_df))
+    
+    # Rename columns
+    column_mapping = {
+        'output_1': 'response_1',
+        'output_2': 'response_2',
+        'label': 'answer'
+    }
+    
+    processed_df = processed_df.rename(columns=column_mapping)
+    
+    # If random_state is provided, shuffle the dataframe
     if random_state is not None:
-        dataframe = dataframe.sample(frac=1, random_state=random_state).reset_index(
-            drop=True
-        )
-
-    return dataframe
+        processed_df = processed_df.sample(frac=1, random_state=random_state).reset_index(drop=True)
+    
+    return processed_df
 
 
 def load_llm_bar_dataset(
@@ -124,7 +130,8 @@ def load_llm_bar_dataset(
 
 def main():
     dataset = load_llm_bar_dataset()
-    print(dataset.info())
+    processed_df = preprocess_llm_bar_dataframe(dataset)
+    print(processed_df.head())
 
 
 if __name__ == "__main__":
