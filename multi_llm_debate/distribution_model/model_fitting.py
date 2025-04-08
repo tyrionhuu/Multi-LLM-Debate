@@ -169,7 +169,7 @@ def fit_mixture_beta_binomial(
     random_state: int = 42,
     n_restarts: int = 2,
     parallel: bool = False,
-):
+) -> Dict[str, float]:
     """
     Wrapper that calls either the EM-based or direct-likelihood-based approach
     to fit a 2-component Beta-Binomial mixture.
@@ -185,7 +185,7 @@ def fit_mixture_beta_binomial(
         parallel: whether to use parallel processing (if available)
 
     Returns:
-        dict: Fitted model parameters
+        Dict[str, float]: Fitted model parameters
     """
     # Try to use parallel processing if requested and available
     if parallel:
@@ -216,7 +216,7 @@ def fit_mixture_beta_binomial_with_constraints(
     random_state: int = 42,
     n_restarts: int = 2,
     prev_exp_success: Optional[float] = None,
-) -> dict:
+) -> Dict[str, float]:
     """
     Fit a 2-component Beta-Binomial mixture with the constraint that the
     expected success probability should not decrease from the previous rounds.
@@ -232,7 +232,7 @@ def fit_mixture_beta_binomial_with_constraints(
         prev_exp_success: Previous round's expected success probability
 
     Returns:
-        dict: Fitted model parameters
+        Dict[str, float]: Fitted model parameters
     """
     # First, get an unconstrained fit
     result = fit_mixture_beta_binomial(
