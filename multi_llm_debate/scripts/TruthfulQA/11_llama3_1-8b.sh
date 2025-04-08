@@ -85,7 +85,7 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.truthful_qa.main \
+python -m multi_llm_debate.run.llm_bar.main \
     --config-json "$CONFIG"
 
 # Kill the VLLM server process when done
