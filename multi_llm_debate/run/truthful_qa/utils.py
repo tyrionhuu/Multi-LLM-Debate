@@ -6,7 +6,6 @@ import pandas as pd
 
 from datasets import load_dataset, load_from_disk
 
-
 def load_truthful_qa_dataset(
     dataset_path: str = "datasets/TruthfulQA",
     dataset_name: str = "domenicrosati/TruthfulQA",
@@ -56,8 +55,26 @@ def load_truthful_qa_dataset(
     return df
 
 
-def preprocess_dataframe():
-    pass
+def preprocess_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
+    """Preprocess the TruthfulQA DataFrame to ensure it has all required columns.
+
+    Args:
+        dataframe: Input DataFrame from TruthfulQA dataset
+
+    Returns:
+        pd.DataFrame: Processed DataFrame with all required columns
+    """
+    if dataframe is None:
+        raise ValueError("Input DataFrame is None. Please load the dataset first.")
+    
+    # Create a copy to avoid modifying the original
+    processed_df = dataframe.copy()
+
+    # Generate ID from index if 'id' column doesn't exist
+    if "id" not in processed_df.columns:
+        processed_df["id"] = processed_df.index + 1
+        
+    return processed_df
 
 
 def extract_caption_a_b_c_answer(response: str) -> Literal["A", "B", "C"]:
