@@ -12,14 +12,12 @@ from .calculate_task_accuracy import analyze_task_accuracy
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
-# Maximum round number for your correct_rate_by_round function
-MAX_ROUND_NUMBER = 10
-
 
 def create_plot_majority_aggregated(
     aggregated_majority_by_round: np.ndarray,
     model_name: str,
     output_dir: Path,
+    max_round_number: int = 10,
     task_name: str = "Judge Bench",
 ) -> None:
     """Plots the aggregated majority accuracy value by round.
@@ -29,6 +27,7 @@ def create_plot_majority_aggregated(
             across all accuracies for each round.
         model_name: Name of the model for the plot title.
         output_dir: Directory to save the plot.
+        max_round_number: Maximum round number for the plot (default is 10).
         task_name: Name of the task (default is "Judge Bench").
 
     """
@@ -60,7 +59,7 @@ def create_plot_majority_aggregated(
     # Set y-axis limits and ticks
     plt.ylim(0, 1)
     plt.yticks(np.arange(0, 1.1, 0.1))
-    plt.xticks(range(min(11, MAX_ROUND_NUMBER + 1)))
+    plt.xticks(range(min(11, max_round_number + 1)))
 
     plt.tight_layout()
 
@@ -79,6 +78,7 @@ def process_model_majority_aggregated(
     output_dir: Path,
     dataframe: pd.DataFrame,
     task_name: str = "Judge Bench",
+    max_round_number: int = 10,
     extract_func: Callable = None,
     compare_func: Callable = None,
 ) -> None:
@@ -89,6 +89,7 @@ def process_model_majority_aggregated(
         output_dir: Path to the output directory for saving visualizations.
         dataframe: pd.DataFrame,
         task_name: Name of the task (default is "Judge Bench").
+        max_round_number: Maximum round number for the correct rate calculation.
         extract_func: Function to extract and normalize responses.
         compare_func: Function to compare normalized responses with correct answer.
 
@@ -133,7 +134,7 @@ def process_model_majority_aggregated(
             cr_filtered_df = calculate_correct_rate_by_round(
                 filtered_df,
                 model_dir,
-                max_round_number=MAX_ROUND_NUMBER,
+                max_round_number=max_round_number,
                 extract_func=extract_func,
                 compare_func=compare_func,
             )
