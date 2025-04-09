@@ -13,7 +13,7 @@ from .calculate_correct_rate_distribution import (
 from .utils import load_debate_data
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.ERROR)
 
 
 def plot_file_count_distribution(
@@ -418,7 +418,7 @@ def main() -> None:
     print(f"Found file count distribution: {distribution}")
 
     # Visualize the distribution
-    fig, ax = plot_file_count_distribution(distribution)
+    fig, _ = plot_file_count_distribution(distribution)
     if fig:
         plt.show()
     print("Plot displayed. Close the plot window to exit.")
