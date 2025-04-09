@@ -46,7 +46,7 @@ def load_truthful_qa_dataset(
     return df
 
 
-def preprocess_dataframe(
+def preprocess_truthful_qa_dataframe(
     dataframe: pd.DataFrame,
     random_state: int = 42,
 ) -> pd.DataFrame:
@@ -158,7 +158,7 @@ def main() -> None:
     df = load_truthful_qa_dataset(
         "/Users/tyrionhuu/projects/research_projects/Multi-LLM-Debate/datasets/TruthfulQA"
     )
-    processed_df = preprocess_dataframe(df)
+    processed_df = preprocess_truthful_qa_dataframe(df)
     print(processed_df.head())
     # Count each answer
     counts = processed_df["answer"].value_counts()

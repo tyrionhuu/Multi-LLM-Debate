@@ -61,7 +61,7 @@ if __name__ == "__main__":
     from pathlib import Path
 
     from ..shared.utils import Parser
-    from .utils import load_truthful_qa_dataset, preprocess_dataframe
+    from .utils import load_truthful_qa_dataset, preprocess_truthful_qa_dataframe
 
     args = Parser(description="Run TruthfulQA evaluation").parse_args()
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     dataframe = load_truthful_qa_dataset(
         dataset_path=dataset_path,
     )
-    dataframe = preprocess_dataframe(dataframe)
+    dataframe = preprocess_truthful_qa_dataframe(dataframe)
     evaluate_all_truthful_qa(
         response_base_dir=Path("data/truthful_qa/Llama-3_1-8B-Instruct(11)"),
         dataframe=dataframe,

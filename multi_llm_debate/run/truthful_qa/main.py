@@ -8,7 +8,7 @@ if __name__ == "__main__":
     from ..shared.utils import Parser
     from .evaluate import evaluate_all_truthful_qa
     from .run_debate import process_truthful_qa_dataset
-    from .utils import load_truthful_qa_dataset, preprocess_dataframe
+    from .utils import load_truthful_qa_dataset, preprocess_truthful_qa_dataframe
 
     args = Parser(description="Run Truthful QA evaluation").parse_args()
 
@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     if not df_path.exists():
         df = load_truthful_qa_dataset(dataset_path="datasets/TruthfulQA")
-        df = preprocess_dataframe(df)
+        df = preprocess_truthful_qa_dataframe(df)
         os.makedirs("output/truthful_qa", exist_ok=True)
         df.to_csv(df_path, index=False)
     else:
