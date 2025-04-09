@@ -1,17 +1,19 @@
 if __name__ == "__main__":
+    import os
     from pathlib import Path
+
+    import pandas as pd
 
     from ..shared.main import main as shared_main
     from ..shared.utils import Parser
     from .evaluate import evaluate_all_truthful_qa
     from .run_debate import process_truthful_qa_dataset
     from .utils import load_truthful_qa_dataset, preprocess_dataframe
-    import os
-    import pandas as pd
+
     args = Parser(description="Run Truthful QA evaluation").parse_args()
 
     df_path = Path("output/truthful_qa/processed_data.csv")
-    
+
     if not df_path.exists():
         df = load_truthful_qa_dataset(dataset_path="datasets/TruthfulQA")
         df = preprocess_dataframe(df)
