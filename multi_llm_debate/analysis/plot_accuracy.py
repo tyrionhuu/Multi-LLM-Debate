@@ -157,9 +157,9 @@ def process_model_majority_aggregated(
 
         # 6) Create the plot for aggregated majority correct rates
         create_plot_majority_aggregated(
-            aggregated_majority_by_round, 
-            model_name, 
-            output_dir, 
+            aggregated_majority_by_round,
+            model_name,
+            output_dir,
             max_round_number=max_round_number,
-            task_name=task_name
+            task_name=task_name,
         )
