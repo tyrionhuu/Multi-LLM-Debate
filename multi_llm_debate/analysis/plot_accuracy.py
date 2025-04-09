@@ -1,13 +1,14 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from pathlib import Path
 import logging
-from .calculate_correct_rate_by_round import (
-    calculate_correct_rate_by_round,
-)
-from .calculate_task_accuracy import analyze_task_accuracy
+from pathlib import Path
 from typing import Callable
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+
+from .calculate_correct_rate_by_round import calculate_correct_rate_by_round
+from .calculate_task_accuracy import analyze_task_accuracy
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
@@ -90,7 +91,7 @@ def process_model_majority_aggregated(
         task_name: Name of the task (default is "Judge Bench").
         extract_func: Function to extract and normalize responses.
         compare_func: Function to compare normalized responses with correct answer.
-        
+
     This function:
     1) Analyzes accuracy
     2) Calculates majority correct rates for each unique accuracy value
