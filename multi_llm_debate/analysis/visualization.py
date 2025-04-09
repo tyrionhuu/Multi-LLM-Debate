@@ -13,7 +13,7 @@ from .calculate_correct_rate_distribution import (
 from .utils import load_debate_data
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 
 def plot_file_count_distribution(
