@@ -394,6 +394,7 @@ def main():
             max_retries=3,
             json_mode=False,
             diversity_pruning_func=diversity_pruning_by_embedding,
+            pruning_amount=3,
         )
 
         # Print results summary
