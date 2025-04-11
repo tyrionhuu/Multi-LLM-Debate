@@ -401,7 +401,7 @@ def main():
             extract_func=test_extract_func,
             max_retries=3,
             json_mode=False,
-            diversity_pruning=diversity_pruning_by_embedding,
+            diversity_pruning_func=diversity_pruning_by_embedding,
         )
 
         # Print results summary
