@@ -125,10 +125,15 @@ def debate(
                     logger.info(
                         f"Applying diversity pruning for round {i} with amount={pruning_amount}"
                     )
+                    pruned_dir = temp_dir / "diversity_pruned"
+                    pruned_dir.mkdir(parents=True, exist_ok=True)
+                    
                     pruned_responses = diversity_pruning_func(
                         extracted_responses,
                         selected_amount=pruning_amount,
                         extract_func=extract_func,
+                        round_number=i,
+                        output_dir=pruned_dir,
                     )
 
                 prompt = prompt_builder.build_round_n(pruned_responses)
