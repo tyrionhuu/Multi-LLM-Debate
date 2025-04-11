@@ -1,5 +1,5 @@
-import random
 import json
+import random
 from pathlib import Path
 from typing import Callable, List, Union
 
@@ -30,7 +30,7 @@ def diversity_pruning_by_embedding(
         output_dir: Directory path to save intermediate results (if needed).
         round_number: The current round number for saving intermediate results.
         **kwargs: Additional keyword arguments.
-        
+
     Returns:
         A list of selected response strings that maximize information entropy.
     """
@@ -66,20 +66,24 @@ def diversity_pruning_by_embedding(
         selected_indices.append(next_index)
 
     selected_responses = [responses[i] for i in selected_indices]
-    
+
     # Save responses if output directory is provided
     if output_dir is not None:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         output_file = output_dir / f"debate_round_{round_number}.json"
         with open(output_file, "w") as f:
-            json.dump({
-                "selected_indices": selected_indices,
-                "selected_responses": selected_responses,
-                "total_responses": len(responses)
-            }, f, indent=2)
-            
+            json.dump(
+                {
+                    "selected_indices": selected_indices,
+                    "selected_responses": selected_responses,
+                    "total_responses": len(responses),
+                },
+                f,
+                indent=2,
+            )
+
     return selected_responses
 
 
@@ -158,19 +162,23 @@ def diversity_pruning_by_answer(
         )
 
     selected_responses = [responses[i] for i in selected_indices]
-    
+
     # Save responses if output directory is provided
     if output_dir is not None:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         output_file = output_dir / f"debate_round_{round_number}.json"
         with open(output_file, "w") as f:
-            json.dump({
-                "selected_indices": selected_indices,
-                "selected_responses": selected_responses,
-                "total_responses": len(responses)
-            }, f, indent=2)
+            json.dump(
+                {
+                    "selected_indices": selected_indices,
+                    "selected_responses": selected_responses,
+                    "total_responses": len(responses),
+                },
+                f,
+                indent=2,
+            )
 
     return selected_responses
 
