@@ -49,7 +49,7 @@ def debate(
         parallel: Whether to run agents in parallel.
         diversity_pruning_func: Optional function for diversity pruning.
         pruning_amount: Amount of selected responses for diversity pruning.
-        
+
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
             responses is a list of dictionaries containing agent responses.
