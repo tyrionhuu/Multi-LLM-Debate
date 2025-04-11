@@ -332,8 +332,6 @@ def main():
     This function demonstrates how to run a debate with retry capabilities
     using a simple boolean question.
     """
-    import time
-
     from multi_llm_debate.interventions.diversity_pruning import (
         diversity_pruning_by_embedding,
     )
@@ -363,7 +361,7 @@ def main():
     )
 
     # Define the output directory
-    # output_dir = Path("data/test_with_retry")
+    output_dir = Path("data/test")
     # Log test parameters
     logger.info("=== Starting Debate Test with Retry Capability ===")
     logger.info(f"Question: {question}")
@@ -376,7 +374,7 @@ def main():
             max_rounds=2,
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
-            # output_dir=output_dir,
+            output_dir=output_dir,
             extract_func=extract_bool_answer,
             max_retries=3,
             json_mode=False,
