@@ -328,11 +328,15 @@ def main():
     """
     import time
 
+    from multi_llm_debate.interventions.diversity_pruning import (
+        diversity_pruning_by_embedding,
+    )
+
     from ..run.bool_q.prompts import (
         build_bool_q_round_n_prompt,
         build_bool_q_round_zero_prompt,
     )
-    from multi_llm_debate.interventions.diversity_pruning import diversity_pruning_by_embedding
+
     # Define a simple question and passage
     question = "Is the sky blue?"
     passage = "The sky appears blue to the human eye during the day because of Rayleigh scattering."
