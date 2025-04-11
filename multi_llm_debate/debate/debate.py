@@ -20,7 +20,7 @@ def debate(
     prompt_builder: PromptBuilder,
     agents_ensemble: AgentsEnsemble,
     extract_func: Callable,
-    output_dir: Union[str, Path],
+    output_dir: Optional[Union[str, Path]] = None,
     json_mode: bool = False,
     max_retries: int = 3,
     temperature: float = 1.0,
@@ -67,7 +67,11 @@ def debate(
     logger.info(f"Using agents ensemble: {agents_ensemble}")
 
     # Create a temporary directory for intermediate files
-    output_dir = Path(output_dir)
+    if output_dir is None:
+        output_dir = Path(tempfile.gettempdir())
+    else:
+        output_dir = Path(output_dir)
+        
     output_dir.mkdir(parents=True, exist_ok=True)
     temp_dir = Path(
         tempfile.mkdtemp(prefix=f"debate_temp_{uuid.uuid4().hex}_", dir=output_dir)
@@ -344,7 +348,7 @@ def main():
     agents_ensemble = AgentsEnsemble()
 
     # Define the output directory
-    output_dir = Path("data/test_with_retry")
+    # output_dir = Path("data/test_with_retry")
 
     # Define a custom extract_func that sometimes fails
     # to demonstrate retry capability
@@ -381,7 +385,7 @@ def main():
     logger.info("=== Starting Debate Test with Retry Capability ===")
     logger.info(f"Question: {question}")
     logger.info(f"Passage: {passage}")
-    logger.info(f"Output directory: {output_dir}")
+    # logger.info(f"Output directory: {output_dir}")
 
     try:
         # Run the debate with 2 rounds, 3 retries max
@@ -389,7 +393,7 @@ def main():
             max_rounds=2,
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
-            output_dir=output_dir,
+            # output_dir=output_dir,
             extract_func=test_extract_func,
             max_retries=3,
             json_mode=False,
