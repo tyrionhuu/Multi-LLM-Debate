@@ -336,10 +336,10 @@ def main():
         build_bool_q_round_n_prompt,
         build_bool_q_round_zero_prompt,
     )
-
+    from ..run.bool_q.utils import extract_bool_answer
     # Define a simple question and passage
-    question = "Is the sky blue?"
-    passage = "The sky appears blue to the human eye during the day because of Rayleigh scattering."
+    question = "do iran and afghanistan speak the same language"
+    passage = "Persian (/ˈpɜːrʒən, -ʃən/), also known by its endonym Farsi (فارسی fārsi (fɒːɾˈsiː) ( listen)), is one of the Western Iranian languages within the Indo-Iranian branch of the Indo-European language family. It is primarily spoken in Iran, Afghanistan (officially known as Dari since 1958), and Tajikistan (officially known as Tajiki since the Soviet era), and some other regions which historically were Persianate societies and considered part of Greater Iran. It is written in the Persian alphabet, a modified variant of the Arabic script, which itself evolved from the Aramaic alphabet."
 
     # Create a prompt builder with the question and passage
     prompt_builder = PromptBuilder(
@@ -357,38 +357,6 @@ def main():
 
     # Define the output directory
     # output_dir = Path("data/test_with_retry")
-
-    # Define a custom extract_func that sometimes fails
-    # to demonstrate retry capability
-    def test_extract_func(response: str) -> bool:
-        """Process the response to extract a boolean answer.
-
-        This function randomly fails occasionally to test the retry mechanism.
-
-        Args:
-            response: The text response from an agent.
-
-        Returns:
-            bool: True if the answer is 'yes', False if 'no'.
-
-        Raises:
-            ValueError: If the response cannot be processed or if
-                random failure is triggered.
-        """
-        # Randomly fail sometimes to test retry
-        if time.time() % 10 < 3:  # Will fail ~30% of the time
-            logger.warning("Simulated random failure in extract_func")
-            raise ValueError("Simulated random failure to test retry mechanism")
-
-        # Extract the answer from the response
-        response = response.lower()
-        if "yes" in response:
-            return True
-        elif "no" in response:
-            return False
-        else:
-            raise ValueError(f"Could not extract boolean answer from: {response}")
-
     # Log test parameters
     logger.info("=== Starting Debate Test with Retry Capability ===")
     logger.info(f"Question: {question}")
@@ -402,7 +370,7 @@ def main():
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
             # output_dir=output_dir,
-            extract_func=test_extract_func,
+            extract_func=extract_bool_answer,
             max_retries=3,
             json_mode=False,
             diversity_pruning_func=diversity_pruning_by_embedding,
