@@ -129,3 +129,69 @@ def diversity_pruning_by_answer(
         )
 
     return [responses[i] for i in selected_indices]
+
+
+def main() -> None:
+    """Test function for diversity pruning algorithms.
+    
+    This function demonstrates the use of both embedding-based and 
+    answer-based diversity pruning methods on a set of example responses.
+    """
+    # Example responses for testing
+    test_responses = [
+        "The answer is 42 because it is the meaning of life.",
+        "I believe the answer is 42, as per Douglas Adams.",
+        "The solution to this problem is 7 squared, which equals 49.",
+        "After careful calculation, I determine the answer is 42.",
+        "Based on the evidence, the answer must be 36.",
+        "The correct response is 42, without a doubt.",
+        "I would argue that 36 is the right answer to this question.",
+        "My analysis shows that 49 is the correct value.",
+        "The most logical conclusion is that the answer is 36.",
+        "According to my calculations, the answer is 49."
+    ]
+    
+    # Define a simple extraction function that looks for numbers in the response
+    def extract_numerical_answer(response: str) -> str:
+        """Extract numerical answer from a response string.
+        
+        Args:
+            response: A string containing the full response.
+            
+        Returns:
+            The first number found in the response as a string.
+        """
+        import re
+        numbers = re.findall(r'\d+', response)
+        return numbers[0] if numbers else None
+    
+    print("Original responses:")
+    for i, response in enumerate(test_responses):
+        print(f"{i+1}. {response}")
+    print("\n" + "="*50 + "\n")
+    
+    # Test embedding-based pruning
+    print("Testing embedding-based diversity pruning (select 3):")
+    embedding_selected = diversity_pruning_by_embedding(
+        test_responses, 
+        selected_amount=3
+    )
+    
+    for i, response in enumerate(embedding_selected):
+        print(f"{i+1}. {response}")
+    print("\n" + "="*50 + "\n")
+    
+    # Test answer-based pruning
+    print("Testing answer-based diversity pruning (select 3):")
+    answer_selected = diversity_pruning_by_answer(
+        test_responses,
+        selected_amount=3, 
+        exctract_func=extract_numerical_answer
+    )
+    
+    for i, response in enumerate(answer_selected):
+        print(f"{i+1}. {response} (extracted: {extract_numerical_answer(response)})")
+
+
+if __name__ == "__main__":
+    main()
