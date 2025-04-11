@@ -9,7 +9,6 @@ from multi_llm_debate.interventions.diversity_pruning import (
     diversity_pruning_by_answer,
     diversity_pruning_by_embedding,
 )
-
 from multi_llm_debate.utils.logging_config import setup_logging
 from multi_llm_debate.utils.model_config import ModelConfig
 
