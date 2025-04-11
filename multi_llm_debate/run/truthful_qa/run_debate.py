@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
 
@@ -30,7 +30,7 @@ def process_truthful_qa_dataset(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
-    pruning_amount: int = 5
+    pruning_amount: int = 5,
 ) -> Dict[str, Any]:
     """Run the TruthfulQA task on a DataFrame.
 

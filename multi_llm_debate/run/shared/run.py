@@ -58,7 +58,7 @@ def execute_debate_workflow(
         parallel: Whether to run in parallel
         diversity_pruning_func: Optional function for diversity pruning
         pruning_amount: int = 5,
-        
+
     Returns:
         Dict containing execution results and evaluation metrics
     """
@@ -236,7 +236,7 @@ def _process_single_entry_worker(
         process_entry_fn: Function to process a single entry
         diversity_pruning_func: Optional function for diversity pruning
         pruning_amount: int = 5,
-        
+
     Returns:
         Dict with processing results and status
     """
@@ -298,7 +298,7 @@ def process_debate_dataset(
         parallel: Whether to run in parallel
         diversity_pruning_func: Optional function for diversity pruning
         pruning_amount: int = 5,
-        
+
     Returns:
         Dict containing summary of execution including failed entries
 

@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
 
@@ -44,7 +44,7 @@ def process_llm_bar_dataset(
         parallel: Whether to run in parallel (default: False)
         diversity_pruning_func: Optional function for diversity pruning
         pruning_amount: Amount for pruning diversity
-        
+
     Returns:
         Dict containing summary of execution including failed entries
 
@@ -104,7 +104,7 @@ def process_llm_bar_entry(
         parallel: Whether to run in parallel (default: False)
         diversity_pruning_func: Optional function for diversity pruning
         pruning_amount: Amount for pruning diversity
-        
+
     Returns:
         Dict containing execution summary including failed entries
 
