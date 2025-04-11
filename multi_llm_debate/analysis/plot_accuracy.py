@@ -106,7 +106,7 @@ def process_model_majority_aggregated(
     result_df = analyze_task_accuracy(
         model_dir=model_dir,
         dataframe=dataframe,
-        extract_fn=extract_func,
+        extract_func=extract_func,
         compare_func=compare_func,
     )
 

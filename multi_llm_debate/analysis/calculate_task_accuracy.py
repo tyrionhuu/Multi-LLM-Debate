@@ -10,7 +10,7 @@ from .utils import get_final_round
 def analyze_task_accuracy(
     model_dir: Path,
     dataframe: pd.DataFrame,
-    extract_fn: Callable,
+    extract_func: Callable,
     compare_func: Callable[[str, str], bool] = lambda r, c: r == c,
 ) -> pd.DataFrame:
     """
@@ -19,7 +19,7 @@ def analyze_task_accuracy(
     Args:
         model_dir (Path): The path to the model directory.
         dataframe (pd.DataFrame): The DataFrame containing task information.
-        extract_fn (Callable[[str], Optional[bool]], optional): Function to extract
+        extract_func (Callable[[str], Optional[bool]], optional): Function to extract
             boolean answers from response text. Defaults to extract_bool_answer.
         compare_func (Callable[[str, str], bool]): Function to compare normalized
             responses with correct answer, should take (response, correct_answer)
@@ -51,7 +51,7 @@ def analyze_task_accuracy(
 
         answer = dataframe.loc[dataframe["id"] == task_id, "answer"].values[0]
         accuracy = calculate_task_accuracy(
-            task_dir, answer, extract_fn=extract_fn, compare_func=compare_func
+            task_dir, answer, extract_func=extract_func, compare_func=compare_func
         )
         accuracy_dict[task_id] = accuracy
 
@@ -66,7 +66,7 @@ def analyze_task_accuracy(
 def calculate_task_accuracy(
     task_dir: Path,
     answer: str,
-    extract_fn: Callable,
+    extract_func: Callable,
     compare_func: Callable[[str, str], bool] = lambda r, c: r == c,
     normalize_func: Callable[[str], str] = lambda x: x,
     round_number: int = 0,
@@ -79,7 +79,7 @@ def calculate_task_accuracy(
         answer (str): The correct answer for the task ('yes'/'no' or 'true'/'false').
         round_number (int, optional): The debate round number to analyze. Defaults to 0.
             If this round is larger than the final round, the final round's data will be used.
-        extract_fn (Callable[[str], Optional[bool]], optional): Function to extract
+        extract_func (Callable[[str], Optional[bool]], optional): Function to extract
             boolean answers from response text. Defaults to extract_bool_answer.
         compare_func (Callable[[str, str], bool]): Function to compare normalized
             responses with correct answer, should take (response, correct_answer)
@@ -120,7 +120,7 @@ def calculate_task_accuracy(
         # Count correct responses in the specified round
         for response in responses:
             response_text = response["response"]
-            extracted_response = extract_fn(response_text)
+            extracted_response = extract_func(response_text)
 
             # Skip invalid responses
             if extracted_response is None:
