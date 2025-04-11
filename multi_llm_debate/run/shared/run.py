@@ -477,7 +477,7 @@ def process_single_debate_entry(
         prompt_builder=prompt_builder,
         agents_ensemble=agents_ensemble,
         output_dir=output_dir,
-        process_answer_func=extract_func,
+        extract_func=extract_func,
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,

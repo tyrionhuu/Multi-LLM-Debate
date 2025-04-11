@@ -19,7 +19,7 @@ def debate(
     max_rounds: int,
     prompt_builder: PromptBuilder,
     agents_ensemble: AgentsEnsemble,
-    process_answer_func: Callable,
+    extract_func: Callable,
     output_dir: Union[str, Path],
     json_mode: bool = False,
     max_retries: int = 3,
@@ -41,7 +41,7 @@ def debate(
         agents_ensemble: Collection of LLM agents participating in the debate.
         output_dir: Directory path where debate responses will be saved.
         json_mode: Whether to use JSON mode for responses.
-        process_answer_func: Function to process answers from responses.
+        extract_func: Function to process answers from responses.
         max_retries: Maximum retry attempts for each round. Defaults to 3.
         temperature: Sampling temperature for the model. Defaults to 1.0.
         max_tokens: Maximum number of tokens in the response. Defaults to 6400.
@@ -56,10 +56,10 @@ def debate(
         Exception: If any error occurs during the debate process.
             Original exception is logged and re-raised.
     """
-    # If process_answer_func is None, use extract_bool_answer as default
-    if process_answer_func is None:
-        logger.error("No process_answer_func function provided")
-        raise ValueError("process_answer_func function must be provided")
+    # If extract_func is None, use extract_bool_answer as default
+    if extract_func is None:
+        logger.error("No extract_func function provided")
+        raise ValueError("extract_func function must be provided")
 
     logger.info(f"Starting debate with max_rounds={max_rounds}, json_mode={json_mode}")
     logger.info(f"Using agents ensemble: {agents_ensemble}")
@@ -87,7 +87,7 @@ def debate(
                     agents_ensemble=agents_ensemble,
                     output_dir=temp_dir,
                     round_num=i,
-                    process_answer_func=process_answer_func,
+                    extract_func=extract_func,
                     json_mode=json_mode,
                     max_retries=max_retries,
                     temperature=temperature,
@@ -105,7 +105,7 @@ def debate(
                     f"Extracted responses for round {i}: {extracted_responses}"
                 )
                 try:
-                    if check_convergence(extracted_responses, process_answer_func):
+                    if check_convergence(extracted_responses, extract_func):
                         logger.info(
                             f"Convergence detected after round {i-1}, ending debate early"
                         )
@@ -122,7 +122,7 @@ def debate(
                     agents_ensemble=agents_ensemble,
                     output_dir=temp_dir,
                     round_num=i,
-                    process_answer_func=process_answer_func,
+                    extract_func=extract_func,
                     json_mode=json_mode,
                     max_retries=max_retries,
                     temperature=temperature,
@@ -162,7 +162,7 @@ def run_debate_with_retry(
     agents_ensemble: AgentsEnsemble,
     output_dir: Union[str, Path],
     round_num: int,
-    process_answer_func: Callable,
+    extract_func: Callable,
     json_mode: bool = False,
     max_retries: int = 3,
     temperature: float = 1.0,
@@ -171,7 +171,7 @@ def run_debate_with_retry(
 ) -> List[Dict]:
     """Run a debate round with retry capabilities.
 
-    If process_answer_func raises an error, the function will retry the debate
+    If extract_func raises an error, the function will retry the debate
     round up to max_retries times.
 
     Args:
@@ -180,7 +180,7 @@ def run_debate_with_retry(
         agents_ensemble: Collection of LLM agents for the debate.
         output_dir: Directory path for saving debate responses.
         round_num: The current round number.
-        process_answer_func: Function to process responses between rounds.
+        extract_func: Function to process responses between rounds.
         json_mode: Whether to expect JSON responses from agents.
         max_retries: Maximum retry attempts for the round.
         temperature: Sampling temperature for the model.
@@ -215,9 +215,9 @@ def run_debate_with_retry(
         logger.error(f"Output path {output_dir} is not a directory.")
         raise ValueError(f"Output path {output_dir} must be a directory.")
 
-    if process_answer_func is None:
-        logger.error("No process_answer_func function provided for debate round")
-        raise ValueError("process_answer_func function must be provided")
+    if extract_func is None:
+        logger.error("No extract_func function provided for debate round")
+        raise ValueError("extract_func function must be provided")
 
     # Log the start of the debate round with retries
     logger.info(f"Starting debate round {round_num} with max_retries={max_retries}")
@@ -249,10 +249,10 @@ def run_debate_with_retry(
 
             try:
                 for response in responses:
-                    process_answer_func(response["response"])
+                    extract_func(response["response"])
             except Exception as e:
                 logger.warning(
-                    f"Error processing response with process_answer_func: {str(e)}"
+                    f"Error processing response with extract_func: {str(e)}"
                 )
                 raise  # Re-raise to trigger retry
 
@@ -276,25 +276,25 @@ def run_debate_with_retry(
 
 
 def check_convergence(
-    responses: List[Dict], process_answer_func: Optional[Callable] = None
+    responses: List[Dict], extract_func: Optional[Callable] = None
 ) -> bool:
     """Check if the responses from all agents have converged to the same answer.
 
     Args:
         responses: List of agent responses from the most recent round of debate.
-        process_answer_func: Function to process answers from responses. Defaults to
+        extract_func: Function to process answers from responses. Defaults to
             None, in which case extract_bool_answer will be used.
 
     Returns:
         bool: True if all responses are the same, False otherwise.
     """
-    # If process_answer_func is None, use extract_bool_answer as default
-    if process_answer_func is None:
-        logger.error("No process_answer_func function provided for convergence check")
-        raise ValueError("process_answer_func function must be provided")
+    # If extract_func is None, use extract_bool_answer as default
+    if extract_func is None:
+        logger.error("No extract_func function provided for convergence check")
+        raise ValueError("extract_func function must be provided")
 
     try:
-        answers = [process_answer_func(response) for response in responses]
+        answers = [extract_func(response) for response in responses]
         logger.debug(f"Processed answers for convergence check: {answers}")
         is_converged = len(set(answers)) == 1
         if is_converged:
@@ -335,9 +335,9 @@ def main():
     # Define the output directory
     output_dir = Path("data/test_with_retry")
 
-    # Define a custom process_answer_func that sometimes fails
+    # Define a custom extract_func that sometimes fails
     # to demonstrate retry capability
-    def test_process_answer_func(response: str) -> bool:
+    def test_extract_func(response: str) -> bool:
         """Process the response to extract a boolean answer.
 
         This function randomly fails occasionally to test the retry mechanism.
@@ -354,7 +354,7 @@ def main():
         """
         # Randomly fail sometimes to test retry
         if time.time() % 10 < 3:  # Will fail ~30% of the time
-            logger.warning("Simulated random failure in process_answer_func")
+            logger.warning("Simulated random failure in extract_func")
             raise ValueError("Simulated random failure to test retry mechanism")
 
         # Extract the answer from the response
@@ -379,7 +379,7 @@ def main():
             prompt_builder=prompt_builder,
             agents_ensemble=agents_ensemble,
             output_dir=output_dir,
-            process_answer_func=test_process_answer_func,
+            extract_func=test_extract_func,
             max_retries=3,
             json_mode=False,
         )
