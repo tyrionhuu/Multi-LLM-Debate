@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Callable
 
 import pandas as pd
 
@@ -29,6 +29,8 @@ def process_truthful_qa_dataset(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    diversity_pruning_func: Callable = None,
+    pruning_amount: int = 5
 ) -> Dict[str, Any]:
     """Run the TruthfulQA task on a DataFrame.
 
@@ -73,6 +75,8 @@ def process_truthful_qa_dataset(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        diversity_pruning_func=diversity_pruning_func,
+        pruning_amount=pruning_amount,
     )
 
 
@@ -85,18 +89,22 @@ def process_truthful_qa_entry(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    diversity_pruning_func: Callable = None,
+    pruning_amount: int = 5,
 ) -> None:
     """Process a single TruthfulQA entry.
 
     Args:
         entry: Pandas Series containing the entry data
-        max_rounds: Maximum number of debate rounds
+        max_rounds: Current maximum number of rounds
         base_dir: Base directory for output files
         model_configs: Optional list of model configurations
         overwrite: Whether to overwrite existing debate results
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel
+        diversity_pruning_func: Optional function for diversity pruning
+        pruning_amount: Amount for pruning diversity
     """
 
     logger.info(f"Processing entry with ID: {entry['id']}")
@@ -130,4 +138,6 @@ def process_truthful_qa_entry(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        diversity_pruning_func=diversity_pruning_func,
+        pruning_amount=pruning_amount,
     )

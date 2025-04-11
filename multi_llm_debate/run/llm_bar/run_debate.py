@@ -94,7 +94,7 @@ def process_llm_bar_entry(
 
     Args:
         entry: Pandas Series containing the entry data
-        round_number: Current round number
+        max_rounds: Current maximum number of rounds
         model_configs: Optional list of model configurations. If None,
                     default configs will be used.
         base_dir: Base directory for output files
