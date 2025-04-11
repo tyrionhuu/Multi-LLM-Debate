@@ -158,15 +158,30 @@ def debate(
             )
 
         # Debate completed successfully, move files from temp_dir to output_dir
-        file_count = len(list(temp_dir.glob("*")))
+        file_count = len(list(temp_dir.glob("**/*")))
         logger.info(
             f"Debate completed successfully after {len(all_responses)} rounds, saving {file_count} files"
         )
 
+        # Modified file copying section to handle directories
         for file_path in temp_dir.glob("*"):
             target_path = output_dir / file_path.name
-            shutil.copy2(file_path, target_path)
-            logger.debug(f"Saved debate artifact: {target_path}")
+            
+            if file_path.is_dir():
+                # Handle directories by using copytree for directories
+                if target_path.exists():
+                    # If target directory already exists, remove it first
+                    if target_path.is_dir():
+                        shutil.rmtree(target_path)
+                    else:
+                        target_path.unlink()  # Remove if it's a file
+                # Copy the entire directory tree
+                shutil.copytree(file_path, target_path)
+                logger.debug(f"Saved debate directory: {target_path}")
+            else:
+                # Handle files with copy2 as before
+                shutil.copy2(file_path, target_path)
+                logger.debug(f"Saved debate file: {target_path}")
 
         return all_responses
     except Exception as e:
