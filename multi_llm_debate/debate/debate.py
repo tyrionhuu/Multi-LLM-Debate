@@ -121,13 +121,13 @@ def debate(
                     logger.info(
                         f"Applying diversity pruning for round {i} with amount={pruning_amount}"
                     )
-                    extracted_responses = diversity_pruning_func(
+                    pruned_responses = diversity_pruning_func(
                         extracted_responses,
                         selected_amount=pruning_amount,
-                        exctract_func=extract_func,
+                        extract_func=extract_func,
                     )
                 
-                prompt = prompt_builder.build_round_n(extracted_responses)
+                prompt = prompt_builder.build_round_n(pruned_responses)
                 logger.debug(f"Round {i} prompt built: {prompt[:100]}...")
                 round_responses = run_debate_with_retry(
                     max_rounds=max_rounds,

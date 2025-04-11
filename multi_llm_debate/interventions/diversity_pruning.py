@@ -64,7 +64,7 @@ def diversity_pruning_by_embedding(
 def diversity_pruning_by_answer(
     responses: List[str],
     selected_amount: int = 5,
-    exctract_func: Callable = None,
+    extract_func: Callable = None,
     random_seed: int = 42,
     **kwargs
 ) -> List[str]:
@@ -77,7 +77,7 @@ def diversity_pruning_by_answer(
     Args:
         responses: A list of response strings.
         selected_amount: The number of responses to select (k).
-        exctract_func: A function that extracts the final answer from the response.
+        extract_func: A function that extracts the final answer from the response.
         random_seed: Seed for random selection when filling remaining slots.
 
     Returns:
@@ -91,7 +91,7 @@ def diversity_pruning_by_answer(
     if len(responses) <= selected_amount:
         return responses
 
-    if exctract_func is None:
+    if extract_func is None:
         raise ValueError(
             "An extraction function must be provided for diversity pruning by answer."
         )
@@ -101,7 +101,7 @@ def diversity_pruning_by_answer(
     # Extract final answers from responses
     extracted_answers = []
     for response in responses:
-        extracted_response = exctract_func(response)
+        extracted_response = extract_func(response)
         if extracted_response is None:
             raise ValueError(
                 "All responses must have a valid final answer for diversity pruning by answer."
@@ -186,7 +186,7 @@ def main() -> None:
     # Test answer-based pruning
     print("Testing answer-based diversity pruning (select 3):")
     answer_selected = diversity_pruning_by_answer(
-        test_responses, selected_amount=3, exctract_func=extract_numerical_answer
+        test_responses, selected_amount=3, extract_func=extract_numerical_answer
     )
 
     for i, response in enumerate(answer_selected):
