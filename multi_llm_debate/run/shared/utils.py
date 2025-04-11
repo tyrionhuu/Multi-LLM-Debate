@@ -10,8 +10,8 @@ from multi_llm_debate.interventions.diversity_pruning import (
     diversity_pruning_by_embedding,
 )
 
-from ...utils.logging_config import setup_logging
-from ...utils.model_config import ModelConfig
+from multi_llm_debate.utils.logging_config import setup_logging
+from multi_llm_debate.utils.model_config import ModelConfig
 
 logger = setup_logging(__name__)
 
