@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 from .utils import compute_sentence_embedding, kullback_leibler_approximation_distance
 
 
-def diversity_pruning(
+def diversity_pruning_by_embedding(
     responses: List[str],
     selected_amount: int = 5,
     model: SentenceTransformer = None,
