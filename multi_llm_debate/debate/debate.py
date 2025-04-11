@@ -166,7 +166,7 @@ def debate(
         # Modified file copying section to handle directories
         for file_path in temp_dir.glob("*"):
             target_path = output_dir / file_path.name
-            
+
             if file_path.is_dir():
                 # Handle directories by using copytree for directories
                 if target_path.exists():
