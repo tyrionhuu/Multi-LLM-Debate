@@ -1,5 +1,5 @@
-from typing import List, Callable
 import random
+from typing import Callable, List
 
 from sentence_transformers import SentenceTransformer
 
@@ -63,6 +63,7 @@ def diversity_pruning(
 
     return [responses[i] for i in selected_indices]
 
+
 def diversity_pruning_by_answer(
     responses: List[str],
     selected_amount: int = 5,
@@ -70,23 +71,23 @@ def diversity_pruning_by_answer(
     random_seed: int = 42,
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy on final answers.
-    
+
     This function selects responses with different final answers. If there are fewer
     unique answers than the requested amount, additional responses will be included
     to meet the requested amount (which may result in duplicate answer types).
-    
+
     Args:
         responses: A list of response strings.
         selected_amount: The number of responses to select (k).
         exctract_func: A function that extracts the final answer from the response.
         random_seed: Seed for random selection when filling remaining slots.
-        
+
     Returns:
         A list of selected response strings with exactly selected_amount items
         (unless the input has fewer total responses).
-        
+
     Raises:
-        ValueError: If no extraction function is provided or any response lacks a 
+        ValueError: If no extraction function is provided or any response lacks a
             valid final answer.
     """
     if len(responses) <= selected_amount:
@@ -108,24 +109,27 @@ def diversity_pruning_by_answer(
                 "All responses must have a valid final answer for diversity pruning by answer."
             )
         extracted_answers.append(extracted_response)
-    
+
     # Select responses with different answers
     selected_indices = []
     seen_answers = set()
-    
+
     # First pass: collect responses with unique answers
     for i, answer in enumerate(extracted_answers):
         if answer not in seen_answers and len(selected_indices) < selected_amount:
             selected_indices.append(i)
             seen_answers.add(answer)
-    
+
     # Second pass: if we don't have enough responses, add more even if answers repeat
     if len(selected_indices) < selected_amount:
-        remaining_indices = [i for i in range(len(responses)) if i not in selected_indices]
+        remaining_indices = [
+            i for i in range(len(responses)) if i not in selected_indices
+        ]
         # Shuffle the remaining indices to introduce randomness
         random.shuffle(remaining_indices)
         # Add additional responses up to the requested amount
-        selected_indices.extend(remaining_indices[:selected_amount - len(selected_indices)])
-    
-    return [responses[i] for i in selected_indices]
+        selected_indices.extend(
+            remaining_indices[: selected_amount - len(selected_indices)]
+        )
 
+    return [responses[i] for i in selected_indices]
