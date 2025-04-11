@@ -43,7 +43,7 @@ def create_plot_majority_aggregated(
         color="tab:blue",
         linestyle="-",
         linewidth=2,
-        label=f"Aggregated Majority Correct Rate",
+        label="Aggregated Majority Correct Rate",
     )
 
     # Title and labels
