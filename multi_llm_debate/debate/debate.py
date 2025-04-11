@@ -47,7 +47,7 @@ def debate(
         max_tokens: Maximum number of tokens in the response. Defaults to 6400.
         parallel: Whether to run agents in parallel.
         diversity_pruning: Optional function for diversity pruning of responses.
-        
+
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
             responses is a list of dictionaries containing agent responses.
