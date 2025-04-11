@@ -34,7 +34,7 @@ def diversity_pruning_by_embedding(
     Returns:
         A list of selected response strings that maximize information entropy.
     """
-    if len(responses) <= selected_amount:
+    if len(responses) < selected_amount:
         return responses
 
     # Compute embeddings for all responses
@@ -119,7 +119,7 @@ def diversity_pruning_by_answer(
         ValueError: If no extraction function is provided or any response lacks a
             valid final answer.
     """
-    if len(responses) <= selected_amount:
+    if len(responses) < selected_amount:
         return responses
 
     if extract_func is None:
