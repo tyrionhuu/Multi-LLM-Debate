@@ -1,4 +1,5 @@
 import random
+import json
 from pathlib import Path
 from typing import Callable, List, Union
 
@@ -12,6 +13,7 @@ def diversity_pruning_by_embedding(
     selected_amount: int = 5,
     model: SentenceTransformer = SentenceTransformer("all-MiniLM-L6-v2"),
     output_dir: Union[str, Path] = None,
+    round_number: int = 0,
     **kwargs,
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy.
@@ -26,7 +28,9 @@ def diversity_pruning_by_embedding(
         model: A SentenceTransformer model instance used for encoding.
                Defaults to 'all-MiniLM-L6-v2'.
         output_dir: Directory path to save intermediate results (if needed).
+        round_number: The current round number for saving intermediate results.
         **kwargs: Additional keyword arguments.
+        
     Returns:
         A list of selected response strings that maximize information entropy.
     """
@@ -61,7 +65,22 @@ def diversity_pruning_by_embedding(
 
         selected_indices.append(next_index)
 
-    return [responses[i] for i in selected_indices]
+    selected_responses = [responses[i] for i in selected_indices]
+    
+    # Save responses if output directory is provided
+    if output_dir is not None:
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        output_file = output_dir / f"debate_round_{round_number}.json"
+        with open(output_file, "w") as f:
+            json.dump({
+                "selected_indices": selected_indices,
+                "selected_responses": selected_responses,
+                "total_responses": len(responses)
+            }, f, indent=2)
+            
+    return selected_responses
 
 
 def diversity_pruning_by_answer(
@@ -70,6 +89,7 @@ def diversity_pruning_by_answer(
     extract_func: Callable = None,
     random_seed: int = 42,
     output_dir: Union[str, Path] = None,
+    round_number: int = 0,
     **kwargs,
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy on final answers.
@@ -84,6 +104,7 @@ def diversity_pruning_by_answer(
         extract_func: A function that extracts the final answer from the response.
         random_seed: Seed for random selection when filling remaining slots.
         output_dir: Directory path to save intermediate results (if needed).
+        round_number: The current round number for saving intermediate results.
         **kwargs: Additional keyword arguments.
 
     Returns:
@@ -136,7 +157,22 @@ def diversity_pruning_by_answer(
             remaining_indices[: selected_amount - len(selected_indices)]
         )
 
-    return [responses[i] for i in selected_indices]
+    selected_responses = [responses[i] for i in selected_indices]
+    
+    # Save responses if output directory is provided
+    if output_dir is not None:
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        output_file = output_dir / f"debate_round_{round_number}.json"
+        with open(output_file, "w") as f:
+            json.dump({
+                "selected_indices": selected_indices,
+                "selected_responses": selected_responses,
+                "total_responses": len(responses)
+            }, f, indent=2)
+
+    return selected_responses
 
 
 def main() -> None:
