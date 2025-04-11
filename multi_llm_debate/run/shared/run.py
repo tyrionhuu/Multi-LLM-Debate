@@ -427,6 +427,8 @@ def process_single_debate_entry(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    diversity_pruning_func: Callable = None,
+    pruning_amount: int = 5,
 ) -> None:
     """Run a single entry's debate logic in a generic way.
 
@@ -444,6 +446,8 @@ def process_single_debate_entry(
         temperature: Temperature for model responses.
         max_tokens: Maximum tokens for model responses.
         parallel: Whether to run in parallel.
+        diversity_pruning_func: Optional function for diversity pruning.
+        pruning_amount: Amount for pruning diversity.
 
     Raises:
         ValueError: If required columns are missing.
@@ -481,4 +485,6 @@ def process_single_debate_entry(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        diversity_pruning_func=diversity_pruning_func,
+        pruning_amount=pruning_amount,
     )
