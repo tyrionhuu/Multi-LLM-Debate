@@ -71,7 +71,7 @@ def debate(
         output_dir = Path(tempfile.gettempdir())
     else:
         output_dir = Path(output_dir)
-        
+
     output_dir.mkdir(parents=True, exist_ok=True)
     temp_dir = Path(
         tempfile.mkdtemp(prefix=f"debate_temp_{uuid.uuid4().hex}_", dir=output_dir)
