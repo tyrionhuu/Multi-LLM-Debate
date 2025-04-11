@@ -47,7 +47,7 @@ def debate(
         max_tokens: Maximum number of tokens in the response. Defaults to 6400.
         parallel: Whether to run agents in parallel.
         diversity_pruning_func: Optional function for diversity pruning.
-        
+
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
             responses is a list of dictionaries containing agent responses.
@@ -251,9 +251,7 @@ def run_debate_with_retry(
                 for response in responses:
                     extract_func(response["response"])
             except Exception as e:
-                logger.warning(
-                    f"Error processing response with extract_func: {str(e)}"
-                )
+                logger.warning(f"Error processing response with extract_func: {str(e)}")
                 raise  # Re-raise to trigger retry
 
             logger.info(
