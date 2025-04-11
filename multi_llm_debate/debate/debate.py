@@ -115,7 +115,18 @@ def debate(
                 except Exception as e:
                     logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
                     raise
-
+                
+                # Apply diversity pruning if specified
+                if diversity_pruning_func:
+                    logger.info(
+                        f"Applying diversity pruning for round {i} with amount={pruning_amount}"
+                    )
+                    extracted_responses = diversity_pruning_func(
+                        extracted_responses,
+                        selected_amount=pruning_amount,
+                        exctract_func=extract_func,
+                    )
+                
                 prompt = prompt_builder.build_round_n(extracted_responses)
                 logger.debug(f"Round {i} prompt built: {prompt[:100]}...")
                 round_responses = run_debate_with_retry(

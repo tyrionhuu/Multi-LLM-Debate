@@ -10,6 +10,7 @@ def diversity_pruning_by_embedding(
     responses: List[str],
     selected_amount: int = 5,
     model: SentenceTransformer = SentenceTransformer("all-MiniLM-L6-v2"),
+    **kwargs
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy.
 
