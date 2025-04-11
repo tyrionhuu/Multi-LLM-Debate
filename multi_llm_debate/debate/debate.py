@@ -26,7 +26,7 @@ def debate(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
-    diversity_pruning: Callable = None,
+    diversity_pruning_func: Callable = None,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -46,8 +46,8 @@ def debate(
         temperature: Sampling temperature for the model. Defaults to 1.0.
         max_tokens: Maximum number of tokens in the response. Defaults to 6400.
         parallel: Whether to run agents in parallel.
-        diversity_pruning: Optional function for diversity pruning of responses.
-
+        diversity_pruning_func: Optional function for diversity pruning.
+        
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
             responses is a list of dictionaries containing agent responses.
