@@ -126,7 +126,7 @@ def process_truthful_qa_entry(
             "response_b": entry["response_B"],
             "response_c": entry["response_C"],
         },
-        process_answer_fn=extract_caption_a_b_c_answer,
+        extract_func=extract_caption_a_b_c_answer,
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,

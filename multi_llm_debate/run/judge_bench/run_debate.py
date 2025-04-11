@@ -108,7 +108,7 @@ def process_judge_bench_entry(
             "response_a": entry["response_A"],
             "response_b": entry["response_B"],
         },
-        process_answer_fn=extract_caption_a_b_answer,
+        extract_func=extract_caption_a_b_answer,
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,

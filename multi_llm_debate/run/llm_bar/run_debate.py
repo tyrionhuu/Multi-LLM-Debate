@@ -126,7 +126,7 @@ def process_llm_bar_entry(
             "response_1": entry["response_1"],
             "response_2": entry["response_2"],
         },
-        process_answer_fn=extract_1_2_answer,
+        extract_func=extract_1_2_answer,
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,

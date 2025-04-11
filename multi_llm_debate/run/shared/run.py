@@ -423,7 +423,7 @@ def process_single_debate_entry(
     overwrite: bool,
     prompt_builder_fn: Callable[..., PromptBuilder],
     prompt_params: Dict[str, Any],
-    process_answer_fn: Optional[Callable[..., Any]] = None,
+    extract_func: Optional[Callable[..., Any]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
@@ -440,7 +440,7 @@ def process_single_debate_entry(
         overwrite: Whether to overwrite existing files.
         prompt_builder_fn: Function returning a prompt builder.
         prompt_params: Parameters used to build prompts.
-        process_answer_fn: Optional function for post-processing responses.
+        extract_func: Optional function for post-processing responses.
         temperature: Temperature for model responses.
         max_tokens: Maximum tokens for model responses.
         parallel: Whether to run in parallel.
@@ -477,7 +477,7 @@ def process_single_debate_entry(
         prompt_builder=prompt_builder,
         agents_ensemble=agents_ensemble,
         output_dir=output_dir,
-        process_answer_func=process_answer_fn,
+        process_answer_func=extract_func,
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,

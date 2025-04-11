@@ -101,7 +101,7 @@ def process_boolean_question_entry(
             "question": entry["question"],
             "passage": entry["passage"],
         },
-        process_answer_fn=extract_bool_answer,
+        extract_func=extract_bool_answer,
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
