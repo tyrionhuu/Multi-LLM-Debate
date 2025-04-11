@@ -7,7 +7,7 @@ from .utils import compute_sentence_embedding, kullback_leibler_approximation_di
 
 def diversity_pruning(
     responses: List[str],
-    selected_amount: int,
+    selected_amount: int = 5,
     model: SentenceTransformer = None,
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy.
