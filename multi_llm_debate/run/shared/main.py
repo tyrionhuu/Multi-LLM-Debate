@@ -25,6 +25,8 @@ def main(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    diversity_pruning_func: Callable = None,
+    pruning_amount: int = 5,
 ) -> None:
     """Run debate evaluation with configured models.
 
@@ -43,6 +45,8 @@ def main(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel
+        diversity_pruning_func: Function for diversity pruning
+        pruning_amount: Amount of pruning to apply
     """
 
     try:
@@ -87,6 +91,8 @@ def main(
                     temperature=temperature,
                     max_tokens=max_tokens,
                     parallel=parallel,
+                    diversity_pruning_func=diversity_pruning_func,
+                    pruning_amount=pruning_amount,
                 )
 
     except FileNotFoundError:

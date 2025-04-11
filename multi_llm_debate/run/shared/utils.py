@@ -3,10 +3,14 @@ import glob
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
-from ...utils.logging_config import setup_logging
-from ...utils.model_config import ModelConfig
+from multi_llm_debate.interventions.diversity_pruning import (
+    diversity_pruning_by_answer,
+    diversity_pruning_by_embedding,
+)
+from multi_llm_debate.utils.logging_config import setup_logging
+from multi_llm_debate.utils.model_config import ModelConfig
 
 logger = setup_logging(__name__)
 
@@ -21,6 +25,9 @@ class Args:
     temperature: float = 1.0
     max_tokens: int = 6400
     parallel: bool = False
+    diversity_pruning: Optional[str] = None
+    diversity_pruning_func: Callable = None
+    pruning_amount: int = 5
 
 
 class Parser:
@@ -68,6 +75,19 @@ class Parser:
             action="store_true",
             help="Enable parallel processing",
         )
+        self.parser.add_argument(
+            "--diversity-pruning",
+            type=str,
+            choices=["embedding", "answer"],
+            help="Function for diversity pruning ('embedding' or 'answer')",
+            default=None,
+        )
+        self.parser.add_argument(
+            "--pruning-amount",
+            type=int,
+            help="Amount for pruning diversity",
+            default=5,
+        )
 
     def parse_args(self) -> Args:
         """Parse and return the command line arguments.
@@ -75,7 +95,17 @@ class Parser:
         Returns:
             Args: Parsed command line arguments.
         """
-        return Args(**vars(self.parser.parse_args()))
+        args: Args = self.parser.parse_args()
+
+        # Convert diversity_pruning string to the corresponding function
+        if args.diversity_pruning == "embedding":
+            args.diversity_pruning_func = diversity_pruning_by_embedding
+        elif args.diversity_pruning == "answer":
+            args.diversity_pruning_func = diversity_pruning_by_answer
+        else:
+            args.diversity_pruning_func = None
+
+        return Args(**vars(args))
 
 
 def format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
