@@ -349,7 +349,7 @@ def main():
         prompt_params={"question": question, "passage": passage},
     )
     config_list = [
-        {"name": "llama3.1", "quantity": 5, "base_url": "http://localhost:11434"}
+        {"name": "llama3.1", "quantity": 5, "base_url": "http://localhost:11434/v1"}
     ]
     # Create an agents ensemble for the debate
     agents_ensemble = AgentsEnsemble(
