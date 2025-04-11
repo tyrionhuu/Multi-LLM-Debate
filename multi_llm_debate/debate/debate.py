@@ -27,6 +27,7 @@ def debate(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
+    pruning_amount: int = 5,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -47,7 +48,8 @@ def debate(
         max_tokens: Maximum number of tokens in the response. Defaults to 6400.
         parallel: Whether to run agents in parallel.
         diversity_pruning_func: Optional function for diversity pruning.
-
+        pruning_amount: Amount of selected responses for diversity pruning.
+        
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
             responses is a list of dictionaries containing agent responses.
