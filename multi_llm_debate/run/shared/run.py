@@ -38,6 +38,8 @@ def execute_debate_workflow(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    diversity_pruning_func: Callable = None,
+    pruning_amount: int = 5,
 ) -> Dict[str, Any]:
     """Execute debate evaluation with the given configuration.
 
@@ -54,7 +56,9 @@ def execute_debate_workflow(
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
-
+        diversity_pruning_func: Optional function for diversity pruning
+        pruning_amount: int = 5,
+        
     Returns:
         Dict containing execution results and evaluation metrics
     """
@@ -90,6 +94,8 @@ def execute_debate_workflow(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        diversity_pruning_func=diversity_pruning_func,
+        pruning_amount=pruning_amount,
     )
 
     # Print execution summary
@@ -213,6 +219,8 @@ def _process_single_entry_worker(
     max_tokens: int,
     parallel: bool,
     process_entry_fn: Callable,
+    diversity_pruning_func: Callable = None,
+    pruning_amount: int = 5,
 ) -> Dict[str, Any]:
     """Process a single entry for multiprocessing.
 
@@ -226,7 +234,9 @@ def _process_single_entry_worker(
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
         process_entry_fn: Function to process a single entry
-
+        diversity_pruning_func: Optional function for diversity pruning
+        pruning_amount: int = 5,
+        
     Returns:
         Dict with processing results and status
     """
@@ -240,6 +250,8 @@ def _process_single_entry_worker(
             temperature=temperature,
             max_tokens=max_tokens,
             parallel=parallel,
+            diversity_pruning_func=diversity_pruning_func,
+            pruning_amount=pruning_amount,
         )
         return {"success": True, "entry_id": entry_data.get("id", "unknown")}
     except Exception as e:
@@ -266,6 +278,8 @@ def process_debate_dataset(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    diversity_pruning_func: Callable = None,
+    pruning_amount: int = 5,
 ) -> Dict[str, Any]:
     """Run a debate task on all entries in a dataframe.
 
@@ -282,7 +296,9 @@ def process_debate_dataset(
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
-
+        diversity_pruning_func: Optional function for diversity pruning
+        pruning_amount: int = 5,
+        
     Returns:
         Dict containing summary of execution including failed entries
 
@@ -335,6 +351,8 @@ def process_debate_dataset(
                             max_tokens=max_tokens,
                             parallel=parallel,
                             process_entry_fn=process_entry_fn,
+                            diversity_pruning_func=diversity_pruning_func,
+                            pruning_amount=pruning_amount,
                         )
                         futures.append(future)
 
@@ -365,6 +383,8 @@ def process_debate_dataset(
                             temperature=temperature,
                             max_tokens=max_tokens,
                             parallel=parallel,
+                            diversity_pruning_func=diversity_pruning_func,
+                            pruning_amount=pruning_amount,
                         )
                         processed_count += 1
                     except Exception as e:
@@ -427,6 +447,8 @@ def process_single_debate_entry(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    diversity_pruning_func: Callable = None,
+    pruning_amount: int = 5,
 ) -> None:
     """Run a single entry's debate logic in a generic way.
 
@@ -444,6 +466,8 @@ def process_single_debate_entry(
         temperature: Temperature for model responses.
         max_tokens: Maximum tokens for model responses.
         parallel: Whether to run in parallel.
+        diversity_pruning_func: Optional function for diversity pruning.
+        pruning_amount: Amount for pruning diversity.
 
     Raises:
         ValueError: If required columns are missing.
@@ -481,4 +505,6 @@ def process_single_debate_entry(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        diversity_pruning_func=diversity_pruning_func,
+        pruning_amount=pruning_amount,
     )
