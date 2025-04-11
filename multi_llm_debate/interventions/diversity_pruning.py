@@ -1,6 +1,6 @@
 import random
-from typing import Callable, List
-
+from typing import Callable, List, Union
+from pathlib import Path
 from sentence_transformers import SentenceTransformer
 
 from .utils import compute_sentence_embedding, kullback_leibler_approximation_distance
@@ -10,6 +10,7 @@ def diversity_pruning_by_embedding(
     responses: List[str],
     selected_amount: int = 5,
     model: SentenceTransformer = SentenceTransformer("all-MiniLM-L6-v2"),
+    output_dir: Union[str, Path] = None,
     **kwargs,
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy.
@@ -23,7 +24,8 @@ def diversity_pruning_by_embedding(
         selected_amount: The number of responses to select (k).
         model: A SentenceTransformer model instance used for encoding.
                Defaults to 'all-MiniLM-L6-v2'.
-
+        output_dir: Directory path to save intermediate results (if needed).
+        **kwargs: Additional keyword arguments.
     Returns:
         A list of selected response strings that maximize information entropy.
     """
@@ -66,6 +68,7 @@ def diversity_pruning_by_answer(
     selected_amount: int = 5,
     extract_func: Callable = None,
     random_seed: int = 42,
+    output_dir: Union[str, Path] = None,
     **kwargs,
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy on final answers.
@@ -79,7 +82,9 @@ def diversity_pruning_by_answer(
         selected_amount: The number of responses to select (k).
         extract_func: A function that extracts the final answer from the response.
         random_seed: Seed for random selection when filling remaining slots.
-
+        output_dir: Directory path to save intermediate results (if needed).
+        **kwargs: Additional keyword arguments.
+        
     Returns:
         A list of selected response strings with exactly selected_amount items
         (unless the input has fewer total responses).
