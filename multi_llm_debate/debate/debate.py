@@ -337,6 +337,7 @@ def main():
         build_bool_q_round_zero_prompt,
     )
     from ..run.bool_q.utils import extract_bool_answer
+
     # Define a simple question and passage
     question = "do iran and afghanistan speak the same language"
     passage = "Persian (/ˈpɜːrʒən, -ʃən/), also known by its endonym Farsi (فارسی fārsi (fɒːɾˈsiː) ( listen)), is one of the Western Iranian languages within the Indo-Iranian branch of the Indo-European language family. It is primarily spoken in Iran, Afghanistan (officially known as Dari since 1958), and Tajikistan (officially known as Tajiki since the Soviet era), and some other regions which historically were Persianate societies and considered part of Greater Iran. It is written in the Persian alphabet, a modified variant of the Arabic script, which itself evolved from the Aramaic alphabet."
