@@ -9,7 +9,7 @@ from .utils import compute_sentence_embedding, kullback_leibler_approximation_di
 def quality_pruning(
     responses: List[str],
     task: str,
-    selected_amount: int,
+    selected_amount: int = 5,
     model: SentenceTransformer = None,
 ) -> List[str]:
     """Select a subset of responses that are most similar to the task (maximizing quality).
