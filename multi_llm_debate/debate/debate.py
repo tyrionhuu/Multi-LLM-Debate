@@ -127,7 +127,7 @@ def debate(
                     )
                     pruned_dir = temp_dir / "diversity_pruned"
                     pruned_dir.mkdir(parents=True, exist_ok=True)
-                    
+
                     pruned_responses = diversity_pruning_func(
                         extracted_responses,
                         selected_amount=pruning_amount,
