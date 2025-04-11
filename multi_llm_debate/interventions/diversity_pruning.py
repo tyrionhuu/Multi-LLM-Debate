@@ -1,6 +1,7 @@
 import random
-from typing import Callable, List, Union
 from pathlib import Path
+from typing import Callable, List, Union
+
 from sentence_transformers import SentenceTransformer
 
 from .utils import compute_sentence_embedding, kullback_leibler_approximation_distance
@@ -84,7 +85,7 @@ def diversity_pruning_by_answer(
         random_seed: Seed for random selection when filling remaining slots.
         output_dir: Directory path to save intermediate results (if needed).
         **kwargs: Additional keyword arguments.
-        
+
     Returns:
         A list of selected response strings with exactly selected_amount items
         (unless the input has fewer total responses).
