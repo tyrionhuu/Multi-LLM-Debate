@@ -66,6 +66,7 @@ def diversity_pruning_by_answer(
     selected_amount: int = 5,
     exctract_func: Callable = None,
     random_seed: int = 42,
+    **kwargs
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy on final answers.
 
