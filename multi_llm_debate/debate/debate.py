@@ -332,7 +332,7 @@ def main():
         build_bool_q_round_n_prompt,
         build_bool_q_round_zero_prompt,
     )
-
+    from multi_llm_debate.interventions.diversity_pruning import diversity_pruning_by_embedding
     # Define a simple question and passage
     question = "Is the sky blue?"
     passage = "The sky appears blue to the human eye during the day because of Rayleigh scattering."
@@ -397,6 +397,7 @@ def main():
             extract_func=test_extract_func,
             max_retries=3,
             json_mode=False,
+            diversity_pruning=diversity_pruning_by_embedding,
         )
 
         # Print results summary
