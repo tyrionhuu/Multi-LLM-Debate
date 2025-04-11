@@ -9,7 +9,7 @@ from .utils import compute_sentence_embedding, kullback_leibler_approximation_di
 def diversity_pruning_by_embedding(
     responses: List[str],
     selected_amount: int = 5,
-    model: SentenceTransformer = SentenceTransformer('all-MiniLM-L6-v2'),
+    model: SentenceTransformer = SentenceTransformer("all-MiniLM-L6-v2"),
 ) -> List[str]:
     """Select a subset of responses that maximizes information entropy.
 
@@ -20,7 +20,7 @@ def diversity_pruning_by_embedding(
     Args:
         responses: A list of response strings.
         selected_amount: The number of responses to select (k).
-        model: A SentenceTransformer model instance used for encoding. 
+        model: A SentenceTransformer model instance used for encoding.
                Defaults to 'all-MiniLM-L6-v2'.
 
     Returns:
