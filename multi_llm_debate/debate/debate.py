@@ -136,6 +136,7 @@ def debate(
                         output_dir=pruned_dir,
                     )
 
+                # Run the debate round with the pruned responses
                 prompt = prompt_builder.build_round_n(pruned_responses)
                 logger.debug(f"Round {i} prompt built: {prompt[:100]}...")
                 round_responses = run_debate_with_retry(
