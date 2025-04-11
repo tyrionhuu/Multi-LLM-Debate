@@ -3,14 +3,16 @@ import glob
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Callable
+from typing import Callable, Dict, List, Optional, Tuple
 
-from ...utils.logging_config import setup_logging
-from ...utils.model_config import ModelConfig
 from multi_llm_debate.interventions.diversity_pruning import (
     diversity_pruning_by_answer,
     diversity_pruning_by_embedding,
 )
+
+from ...utils.logging_config import setup_logging
+from ...utils.model_config import ModelConfig
+
 logger = setup_logging(__name__)
 
 
@@ -95,7 +97,7 @@ class Parser:
             Args: Parsed command line arguments.
         """
         args: Args = self.parser.parse_args()
-        
+
         # Convert diversity_pruning string to the corresponding function
         if args.diversity_pruning == "embedding":
             args.diversity_pruning_func = diversity_pruning_by_embedding
@@ -103,7 +105,7 @@ class Parser:
             args.diversity_pruning_func = diversity_pruning_by_answer
         else:
             args.diversity_pruning_func = None
-        
+
         return Args(**vars(args))
 
 
