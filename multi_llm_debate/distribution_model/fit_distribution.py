@@ -312,7 +312,6 @@ def analyze_rounds_distribution(
 if __name__ == "__main__":
     from pathlib import Path
 
-    from multi_llm_debate.distribution_model.visualize_model import run_visualization
     from multi_llm_debate.run.llm_bar.utils import (
         compare_llm_bar_response,
         extract_1_2_answer,
