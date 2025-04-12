@@ -95,17 +95,18 @@ class Parser:
         Returns:
             Args: Parsed command line arguments.
         """
-        args: Args = self.parser.parse_args()
+        args = self.parser.parse_args()
+        args_dict = vars(args)
 
         # Convert diversity_pruning string to the corresponding function
         if args.diversity_pruning == "embedding":
-            args.diversity_pruning_func = diversity_pruning_by_embedding
+            args_dict["diversity_pruning_func"] = diversity_pruning_by_embedding
         elif args.diversity_pruning == "answer":
-            args.diversity_pruning_func = diversity_pruning_by_answer
+            args_dict["diversity_pruning_func"] = diversity_pruning_by_answer
         else:
-            args.diversity_pruning_func = None
+            args_dict["diversity_pruning_func"] = None
 
-        return Args(**vars(args))
+        return Args(**args_dict)
 
 
 def format_config_overview(model_configs_list: List[List[ModelConfig]]) -> str:
