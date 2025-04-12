@@ -7,7 +7,7 @@ import pandas as pd
 from ..analysis.calculate_correct_rate_distribution import (
     calculate_correct_rate_distribution,
 )
-from .model_fitting import (
+from .fit_beta_binomial_mixture import (
     ensure_consistent_component_ordering,
     fit_mixture_beta_binomial,
     fit_mixture_beta_binomial_with_constraints,

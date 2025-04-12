@@ -168,7 +168,6 @@ def fit_mixture_beta_binomial(
     tol: float = 1e-6,
     random_state: int = 42,
     n_restarts: int = 2,
-    parallel: bool = False,
 ) -> Dict[str, float]:
     """
     Wrapper that calls either the EM-based or direct-likelihood-based approach
@@ -182,21 +181,10 @@ def fit_mixture_beta_binomial(
         tol: convergence tolerance
         random_state: seed for random initialization
         n_restarts: number of random initializations to try
-        parallel: whether to use parallel processing (if available)
 
     Returns:
         Dict[str, float]: Fitted model parameters
     """
-    # Try to use parallel processing if requested and available
-    if parallel:
-        try:
-            print("Using parallel processing for model fitting")
-            # This would need additional code to implement parallel fitting
-            # Not implemented in this example
-        except ImportError:
-            print("joblib not available, using serial processing")
-            parallel = False
-
     if fitting_method == "em":
         return em_mixture_beta_binomial(
             counts, k, max_iter, tol, random_state, n_restarts
