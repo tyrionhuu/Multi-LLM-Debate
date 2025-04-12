@@ -396,7 +396,7 @@ def run_visualization(
         task_name: Task name for the title
         ks_threshold: Threshold for KS test to determine model fit
         adaptive_stopping: Whether to use adaptive stopping criteria
-        
+
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
                results and generated figures
