@@ -86,7 +86,7 @@ def analyze_rounds_distribution(
     compare_func: Callable = None,
     adaptive_stopping: bool = False,
     ks_threshold: float = 0.05,
-    stability_rounds: int = 3,
+    stability_rounds: int = 2,
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
     Analyze the correct rate distribution across debate rounds and fit
@@ -299,33 +299,32 @@ def analyze_rounds_distribution(
 # Example usage in main
 # -------------------------------------------------------------------
 if __name__ == "__main__":
-    import sys
+    from pathlib import Path
+    from multi_llm_debate.distribution_model.visualize_model import run_visualization
+    from multi_llm_debate.run.llm_bar.utils import (
+        extract_1_2_answer,
+        compare_llm_bar_response,
+    )
+    answers_csv_path=Path("../output/llm_bar/processed_data.csv"),
+    model_config="Llama-3_1-8B-Instruct(11)",
 
-    # Example import from your code:
-    # PATHS (placeholders in this example)
-    ANSWERS_CSV = Path("output/bool_q/processed_data.csv")  # your "id" -> "answer" file
-    DEBATES_CSV = Path(
-        "data/bool_q/llama3(11)/debate_rounds.csv"
-    )  # the debate rounds CSV
+    FIT_METHOD = "direct"  # "direct" or "em" optimization approach
+    N_RESTARTS = 2  # Number of random restarts for more stable fitting
+    ENFORCE_INCREASING = False  # Enforce non-decreasing expected success probability
     MAX_ROUNDS = None  # or an int
-
-    # Choose which method to use for fitting
-    FIT_METHOD = "em"  # or "direct"
-
-    # Set to True to enforce increasing success probability constraint
-    ENFORCE_INCREASING_SUCCESS = True
-
-    try:
-        # Call the analysis function with our parameters
-        aggregated_df, fit_results = analyze_rounds_distribution(
-            answers_csv_path=ANSWERS_CSV,
-            debates_csv_path=DEBATES_CSV,
-            fitting_method=FIT_METHOD,
-            max_rounds=MAX_ROUNDS,
-            verbose=True,
-            enforce_increasing_success=ENFORCE_INCREASING_SUCCESS,
-        )
-        print(f"Successfully analyzed {len(fit_results)} rounds")
-    except Exception as e:
-        print(f"Analysis failed: {e}")
-        sys.exit(1)
+    OUTPUT_DIR = Path("../output/visualizations/llm_bar")
+    task_name = "LLMBar"
+    analyze_rounds_distribution(
+        answers_csv_path=Path("../output/llm_bar/processed_data.csv"),
+        debates_csv_path=Path("../output/llm_bar/debates_data.csv"),
+        fitting_method=FIT_METHOD,
+        max_rounds=MAX_ROUNDS,
+        n_restarts=N_RESTARTS,
+        verbose=True,
+        enforce_increasing_success=ENFORCE_INCREASING,
+        extract_func=extract_1_2_answer,
+        compare_func=compare_llm_bar_response,
+        adaptive_stopping=True,
+        ks_threshold=0.05,
+        stability_rounds=2,
+    )

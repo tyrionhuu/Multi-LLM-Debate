@@ -374,6 +374,8 @@ def run_visualization(
     model_config: str = "",
     row_number: int = 2,
     task_name: str = "judge_bench",
+    ks_threshold: float = 0.05,
+    adaptive_stopping: bool = False,
 ) -> tuple[pd.DataFrame, list[dict], List[Figure]]:
     """Run the complete visualization pipeline from data loading to generating plots.
 
@@ -392,7 +394,9 @@ def run_visualization(
         model_config: Model configuration identifier for file naming
         row_number: Number of rows for the model evolution subplot grid (default: 2)
         task_name: Task name for the title
-
+        ks_threshold: Threshold for KS test to determine model fit
+        adaptive_stopping: Whether to use adaptive stopping criteria
+        
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
                results and generated figures
@@ -414,6 +418,8 @@ def run_visualization(
         enforce_increasing_success=enforce_increasing_success,
         extract_func=extract_func,
         compare_func=compare_func,
+        ks_threshold=ks_threshold,
+        adaptive_stopping=adaptive_stopping,
     )
 
     if aggregated_df.empty:
