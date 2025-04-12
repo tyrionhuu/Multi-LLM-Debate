@@ -329,7 +329,7 @@ if __name__ == "__main__":
     task_name = "LLMBar"
     analyze_rounds_distribution(
         answers_csv_path=Path("output/llm_bar/processed_data.csv"),
-        debates_csv_path=Path("output/llm_bar/debates_data.csv"),
+        debates_csv_path=Path("data/llm_bar/Llama-3_1-8B-Instruct(11)/debate_rounds.csv"),
         fitting_method=FIT_METHOD,
         max_rounds=MAX_ROUNDS,
         n_restarts=N_RESTARTS,
