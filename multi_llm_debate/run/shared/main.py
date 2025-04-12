@@ -1,14 +1,14 @@
 import json
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
-
+import logging
 import pandas as pd
 
 from .run import execute_debate_workflow
 from .utils import setup_logging
 
 logger = setup_logging(__name__)
-logger.setLevel("INFO")
+logger.setLevel(logging.INFO)
 
 
 def main(
