@@ -87,8 +87,8 @@ CONFIG='[
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.llm_bar.main \
     --config-json "$CONFIG" \
-    --task-name "llm_bar_diversity_pruning_by_answer" \
-    --diversity-pruning "answer" \
+    --task-name "llm_bar_diversity_pruning_by_embedding" \
+    --diversity-pruning "embedding" \
     --pruning-amount 5 \
 
 # Kill the VLLM server process when done
