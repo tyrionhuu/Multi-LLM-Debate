@@ -318,18 +318,18 @@ if __name__ == "__main__":
         extract_1_2_answer,
     )
 
-    answers_csv_path = (Path("../output/llm_bar/processed_data.csv"),)
+    answers_csv_path = (Path("output/llm_bar/processed_data.csv"),)
     model_config = ("Llama-3_1-8B-Instruct(11)",)
 
     FIT_METHOD = "direct"  # "direct" or "em" optimization approach
     N_RESTARTS = 2  # Number of random restarts for more stable fitting
     ENFORCE_INCREASING = False  # Enforce non-decreasing expected success probability
     MAX_ROUNDS = None  # or an int
-    OUTPUT_DIR = Path("../output/visualizations/llm_bar")
+    OUTPUT_DIR = Path("output/visualizations/llm_bar")
     task_name = "LLMBar"
     analyze_rounds_distribution(
-        answers_csv_path=Path("../output/llm_bar/processed_data.csv"),
-        debates_csv_path=Path("../output/llm_bar/debates_data.csv"),
+        answers_csv_path=Path("output/llm_bar/processed_data.csv"),
+        debates_csv_path=Path("output/llm_bar/debates_data.csv"),
         fitting_method=FIT_METHOD,
         max_rounds=MAX_ROUNDS,
         n_restarts=N_RESTARTS,
