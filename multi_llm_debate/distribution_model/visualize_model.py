@@ -376,6 +376,7 @@ def run_visualization(
     task_name: str = "judge_bench",
     ks_threshold: float = 0.05,
     adaptive_stopping: bool = False,
+    stability_rounds: int = 3,
 ) -> tuple[pd.DataFrame, list[dict], List[Figure]]:
     """Run the complete visualization pipeline from data loading to generating plots.
 
@@ -396,7 +397,8 @@ def run_visualization(
         task_name: Task name for the title
         ks_threshold: Threshold for KS test to determine model fit
         adaptive_stopping: Whether to use adaptive stopping criteria
-
+        stability_rounds: Number of rounds to check for stability in adaptive stopping
+        
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
                results and generated figures
@@ -420,6 +422,7 @@ def run_visualization(
         compare_func=compare_func,
         ks_threshold=ks_threshold,
         adaptive_stopping=adaptive_stopping,
+        stability_rounds=stability_rounds,
     )
 
     if aggregated_df.empty:
