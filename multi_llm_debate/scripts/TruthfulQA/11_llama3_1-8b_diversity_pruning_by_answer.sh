@@ -90,7 +90,6 @@ python -m multi_llm_debate.run.truthful_qa.main \
     --task-name "truthful_qa_diversity_pruning_by_answer" \
     --diversity-pruning "answer" \
     --pruning-amount 5 \
-    --sample-size 5 \
 
 # Kill the VLLM server process when done
 kill $SERVER_PID
