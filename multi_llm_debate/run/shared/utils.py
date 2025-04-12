@@ -28,7 +28,7 @@ class Args:
     diversity_pruning: Optional[str] = None
     diversity_pruning_func: Callable = None
     pruning_amount: int = 5
-
+    task_name: str = "debate"
 
 class Parser:
     """Command line argument parser for boolean question evaluation."""
@@ -88,7 +88,12 @@ class Parser:
             help="Amount for pruning diversity",
             default=5,
         )
-
+        self.parser.add_argument(
+            "--task-name",
+            type=str,
+            help="Name of the task",
+            default="debate",
+        )
     def parse_args(self) -> Args:
         """Parse and return the command line arguments.
 
