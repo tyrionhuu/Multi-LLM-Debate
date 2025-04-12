@@ -9,7 +9,11 @@ if __name__ == "__main__":
     from .utils import process_bool_q_df
 
     args = Parser(description="Run Bool Q evaluation").parse_args()
-
+    if args.task_name is None:
+        task_name = "bool_q"
+    else:
+        task_name = args.task_name
+    print(f"Running evaluation for task: {task_name}")
     # Load the dataset
     dataset_path = Path("datasets/boolq")
     dataframe = load_save_dataset_df(
@@ -23,7 +27,7 @@ if __name__ == "__main__":
         run_debate_fn=process_boolean_questions_dataset,
         evaluate_fn=evaluate_all_bool_q,
         process_df_fn=process_bool_q_df,
-        task_name="bool_q",
+        task_name=task_name,
         sample_size=args.sample_size,
         config=args.config,
         temperature=args.temperature,

@@ -8,7 +8,11 @@ if __name__ == "__main__":
     from .utils import load_judge_bench_dataset
 
     args = Parser(description="Run JudgeBench evaluation").parse_args()
-
+    if args.task_name is None:
+        task_name = "judge_bench"
+    else:
+        task_name = args.task_name
+    print(f"Running evaluation for task: {task_name}")
     # Load the dataset
     dataset_path = Path("datasets/JudgeBench")
     dataframe = load_judge_bench_dataset(
@@ -19,7 +23,7 @@ if __name__ == "__main__":
         dataframe=dataframe,
         run_debate_fn=process_judge_bench_dataset,
         evaluate_fn=evaluate_all_judge_bench,
-        task_name="judge_bench",
+        task_name=task_name,
         sample_size=args.sample_size,
         config_json=args.config_json,
         temperature=args.temperature,
