@@ -15,7 +15,11 @@ if __name__ == "__main__":
     args = Parser(description="Run Truthful QA evaluation").parse_args()
     logger.info("Parsed arguments: %s", args)
     df_path = Path("output/truthful_qa/processed_data.csv")
-
+    if args.task_name is None:
+        task_name = "truthful_qa"
+    else:
+        task_name = args.task_name
+    print(f"Running evaluation for task: {task_name}")
     if not df_path.exists():
         df = load_truthful_qa_dataset(dataset_path="datasets/TruthfulQA")
         df = preprocess_truthful_qa_dataframe(df)
@@ -28,7 +32,7 @@ if __name__ == "__main__":
         dataframe=df,
         run_debate_fn=process_truthful_qa_dataset,
         evaluate_fn=evaluate_all_truthful_qa,
-        task_name=args.task_name,
+        task_name=task_name,
         sample_size=args.sample_size,
         config_json=args.config_json,
         temperature=args.temperature,

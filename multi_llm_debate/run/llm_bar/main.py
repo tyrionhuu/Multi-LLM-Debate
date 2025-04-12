@@ -8,7 +8,11 @@ if __name__ == "__main__":
     from .utils import load_llm_bar_dataset, preprocess_llm_bar_dataframe
 
     args = Parser(description="Run LLMBar evaluation").parse_args()
-
+    if args.task_name is None:
+        task_name = "llm_bar"
+    else:
+        task_name = args.task_name
+    print(f"Running evaluation for task: {task_name}")
     # Load the dataset
     dataset_path = Path("datasets/LLMBar")
     dataframe = load_llm_bar_dataset(
@@ -21,7 +25,7 @@ if __name__ == "__main__":
         dataframe=dataframe,
         run_debate_fn=process_llm_bar_dataset,
         evaluate_fn=evaluate_llm_bar_responses,
-        task_name="llm_bar",
+        task_name=task_name,
         sample_size=args.sample_size,
         config_json=args.config_json,
         temperature=args.temperature,
