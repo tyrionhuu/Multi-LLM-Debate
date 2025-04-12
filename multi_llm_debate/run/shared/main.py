@@ -1,7 +1,8 @@
 import json
+import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
-import logging
+
 import pandas as pd
 
 from .run import execute_debate_workflow
