@@ -30,6 +30,7 @@ class Args:
     pruning_amount: int = 5
     task_name: str = "debate"
 
+
 class Parser:
     """Command line argument parser for boolean question evaluation."""
 
@@ -94,6 +95,7 @@ class Parser:
             help="Name of the task",
             default="debate",
         )
+
     def parse_args(self) -> Args:
         """Parse and return the command line arguments.
 

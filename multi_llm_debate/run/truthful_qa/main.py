@@ -1,4 +1,5 @@
 if __name__ == "__main__":
+    import logging
     import os
     from pathlib import Path
 
@@ -9,7 +10,7 @@ if __name__ == "__main__":
     from .evaluate import evaluate_all_truthful_qa
     from .run_debate import process_truthful_qa_dataset
     from .utils import load_truthful_qa_dataset, preprocess_truthful_qa_dataframe
-    import logging
+
     logger = logging.getLogger(__name__)
 
     args = Parser(description="Run Truthful QA evaluation").parse_args()
