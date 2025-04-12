@@ -3,6 +3,7 @@ from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 from ..analysis.calculate_correct_rate_distribution import (
     calculate_correct_rate_distribution,
@@ -12,6 +13,65 @@ from .fit_beta_binomial_mixture import (
     fit_mixture_beta_binomial,
     fit_mixture_beta_binomial_with_constraints,
 )
+
+
+def beta_mixture_cdf(x: np.ndarray, w: float, alpha1: float, beta1: float, 
+                     alpha2: float, beta2: float) -> np.ndarray:
+    """
+    Calculate the CDF of a beta mixture distribution.
+    
+    Args:
+        x: Points at which to evaluate the CDF
+        w: Mixture weight for the first component
+        alpha1: Alpha parameter of the first beta component
+        beta1: Beta parameter of the first beta component
+        alpha2: Alpha parameter of the second beta component
+        beta2: Beta parameter of the second beta component
+        
+    Returns:
+        Array of CDF values
+    """
+    cdf1 = stats.beta.cdf(x, alpha1, beta1)
+    cdf2 = stats.beta.cdf(x, alpha2, beta2)
+    return w * cdf1 + (1 - w) * cdf2
+
+
+def ks_statistic_beta_mixtures(params1: dict, params2: dict) -> float:
+    """
+    Calculate the Kolmogorov-Smirnov statistic between two beta mixture
+    distributions.
+    
+    Args:
+        params1: Parameters of the first beta mixture
+        params2: Parameters of the second beta mixture
+        
+    Returns:
+        KS statistic value
+    """
+    # Create a grid of points in [0,1] for comparison
+    x_grid = np.linspace(0, 1, 1000)
+    
+    # Calculate CDFs
+    cdf1 = beta_mixture_cdf(
+        x_grid, 
+        params1['w'], 
+        params1['alpha1'], 
+        params1['beta1'], 
+        params1['alpha2'], 
+        params1['beta2']
+    )
+    
+    cdf2 = beta_mixture_cdf(
+        x_grid, 
+        params2['w'], 
+        params2['alpha1'], 
+        params2['beta1'], 
+        params2['alpha2'], 
+        params2['beta2']
+    )
+    
+    # KS statistic is the maximum absolute difference between CDFs
+    return np.max(np.abs(cdf1 - cdf2))
 
 
 def analyze_rounds_distribution(
@@ -25,6 +85,8 @@ def analyze_rounds_distribution(
     extract_func: Callable = None,
     compare_func: Callable = None,
     adaptive_stopping: bool = False,
+    ks_threshold: float = 0.05,
+    stability_rounds: int = 3,
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
     Analyze the correct rate distribution across debate rounds and fit
@@ -42,6 +104,8 @@ def analyze_rounds_distribution(
         extract_func: Function to extract and normalize responses
         compare_func: Function to compare normalized responses with correct answer
         adaptive_stopping: Whether to use adaptive stopping for fitting
+        ks_threshold: Threshold for KS statistic to consider distributions stable
+        stability_rounds: Number of consecutive rounds below threshold to stop
         
     Returns:
         tuple: (aggregated_df, fit_results) where:
@@ -102,6 +166,10 @@ def analyze_rounds_distribution(
     prev_fit_result = None
     fit_results = []
     prev_exp_success = None
+    
+    # Initialize adaptive stopping variables
+    consecutive_stable_rounds = 0
+    stopped_early = False
 
     # Process each round in the aggregated data
     for _, row in aggregated_df.iterrows():
@@ -145,6 +213,29 @@ def analyze_rounds_distribution(
         # Ensure consistent ordering
         fit_result = ensure_consistent_component_ordering(fit_result)
         fit_results.append(fit_result)
+
+        # Check adaptive stopping criteria
+        if adaptive_stopping and prev_fit_result is not None:
+            # Calculate KS statistic between current and previous distribution
+            ks_stat = ks_statistic_beta_mixtures(fit_result, prev_fit_result)
+            
+            if ks_stat < ks_threshold:
+                consecutive_stable_rounds += 1
+                if verbose:
+                    print(f"  KS statistic: {ks_stat:.4f} (below threshold {ks_threshold})")
+                    print(f"  Consecutive stable rounds: {consecutive_stable_rounds}/{stability_rounds}")
+                
+                if consecutive_stable_rounds >= stability_rounds:
+                    if verbose:
+                        print(f"Adaptive stopping criteria met after round {round_number}.")
+                        print(f"Distribution has stabilized for {stability_rounds} consecutive rounds.")
+                    stopped_early = True
+                    break
+            else:
+                consecutive_stable_rounds = 0
+                if verbose:
+                    print(f"  KS statistic: {ks_stat:.4f} (above threshold {ks_threshold})")
+                    print(f"  Consecutive stable rounds reset to 0")
 
         # Calculate expected success probability for next round constraints
         if enforce_increasing_success:
@@ -197,6 +288,9 @@ def analyze_rounds_distribution(
             print("-" * 80)
 
         prev_fit_result = fit_result.copy()
+    
+    if adaptive_stopping and verbose and not stopped_early:
+        print("Adaptive stopping criteria not met after all rounds.")
 
     return aggregated_df, fit_results
 
