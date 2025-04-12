@@ -24,6 +24,7 @@ def analyze_rounds_distribution(
     enforce_increasing_success: bool = False,
     extract_func: Callable = None,
     compare_func: Callable = None,
+    adaptive_stopping: bool = False,
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
     Analyze the correct rate distribution across debate rounds and fit
@@ -40,7 +41,8 @@ def analyze_rounds_distribution(
                                    probability doesn't decrease across rounds
         extract_func: Function to extract and normalize responses
         compare_func: Function to compare normalized responses with correct answer
-
+        adaptive_stopping: Whether to use adaptive stopping for fitting
+        
     Returns:
         tuple: (aggregated_df, fit_results) where:
             - aggregated_df: DataFrame with correct rate distribution per round
