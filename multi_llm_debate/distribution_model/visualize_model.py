@@ -398,7 +398,7 @@ def run_visualization(
         ks_threshold: Threshold for KS test to determine model fit
         adaptive_stopping: Whether to use adaptive stopping criteria
         stability_rounds: Number of rounds to check for stability in adaptive stopping
-        
+
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
                results and generated figures
