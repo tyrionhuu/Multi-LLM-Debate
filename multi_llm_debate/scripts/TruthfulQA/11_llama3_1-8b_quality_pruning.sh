@@ -88,7 +88,7 @@ CONFIG='[
 python -m multi_llm_debate.run.truthful_qa.main \
     --config-json "$CONFIG" \
     --task-name "truthful_qa_quality_pruning" \
-    --quality-pruning true \
+    --quality-pruning \
 
 # Kill the VLLM server process when done
 kill $SERVER_PID

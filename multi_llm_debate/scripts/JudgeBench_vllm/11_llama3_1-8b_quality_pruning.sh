@@ -85,9 +85,9 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.llm_bar.main \
+python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
-    --task-name "llm_bar_quality_pruning" \
+    --task-name "judge_bench_quality_pruning" \
     --quality-pruning \
 
 # Kill the VLLM server process when done
