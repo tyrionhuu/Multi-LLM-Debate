@@ -110,7 +110,7 @@ class Parser:
             help="Amount for pruning quality",
             default=5,
         )
-        
+
     def parse_args(self) -> Args:
         """Parse and return the command line arguments.
 
@@ -132,7 +132,7 @@ class Parser:
             args_dict["quality_pruning_func"] = quality_pruning
         else:
             args_dict["quality_pruning_func"] = None
-            
+
         return Args(**args_dict)
 
 

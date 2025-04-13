@@ -120,9 +120,7 @@ def execute_debate_workflow(
     # Evaluate using provided evaluation function
     logger.info("Running evaluation")
     try:
-        results: EvaluationResults = evaluate_fn(
-            output_path, processed_dataframe
-        )
+        results: EvaluationResults = evaluate_fn(output_path, processed_dataframe)
 
         # Calculate running time
         running_time = time.time() - start_time

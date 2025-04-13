@@ -123,7 +123,7 @@ def debate(
                 except Exception as e:
                     logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
                     raise
-                
+
                 # Apply quality pruning if specified
                 if quality_pruning_func:
                     logger.info(
@@ -139,7 +139,7 @@ def debate(
                         round_number=i,
                         output_dir=pruned_dir,
                     )
-                    
+
                 # Apply diversity pruning if specified
                 if diversity_pruning_func:
                     logger.info(
