@@ -40,5 +40,5 @@ if __name__ == "__main__":
         max_tokens=args.max_tokens,
         parallel=args.parallel,
         diversity_pruning_func=args.diversity_pruning_func,
-        pruning_amount=args.pruning_amount,
+        diversity_pruning_amount=args.diversity_pruning_amount,
     )

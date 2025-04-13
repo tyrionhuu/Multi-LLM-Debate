@@ -30,7 +30,7 @@ def process_truthful_qa_dataset(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
-    pruning_amount: int = 5,
+    diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
     """Run the TruthfulQA task on a DataFrame.
 
@@ -76,7 +76,7 @@ def process_truthful_qa_dataset(
         max_tokens=max_tokens,
         parallel=parallel,
         diversity_pruning_func=diversity_pruning_func,
-        pruning_amount=pruning_amount,
+        diversity_pruning_amount=diversity_pruning_amount,
     )
 
 
@@ -90,7 +90,7 @@ def process_truthful_qa_entry(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
-    pruning_amount: int = 5,
+    diversity_pruning_amount: int = 5,
 ) -> None:
     """Process a single TruthfulQA entry.
 
@@ -104,7 +104,7 @@ def process_truthful_qa_entry(
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel
         diversity_pruning_func: Optional function for diversity pruning
-        pruning_amount: Amount for pruning diversity
+        diversity_pruning_amount: Amount for pruning diversity
     """
 
     logger.info(f"Processing entry with ID: {entry['id']}")
@@ -139,5 +139,5 @@ def process_truthful_qa_entry(
         max_tokens=max_tokens,
         parallel=parallel,
         diversity_pruning_func=diversity_pruning_func,
-        pruning_amount=pruning_amount,
+        diversity_pruning_amount=diversity_pruning_amount,
     )

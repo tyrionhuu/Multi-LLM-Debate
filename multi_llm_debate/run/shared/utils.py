@@ -27,7 +27,7 @@ class Args:
     parallel: bool = False
     diversity_pruning: Optional[str] = None
     diversity_pruning_func: Callable = None
-    pruning_amount: int = 5
+    diversity_pruning_amount: int = 5
     task_name: str = "debate"
 
 

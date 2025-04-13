@@ -27,7 +27,8 @@ def debate(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
-    pruning_amount: int = 5,
+    quality_pruning_func: Callable = None,
+    diversity_pruning_amount: int = 5,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -48,7 +49,8 @@ def debate(
         max_tokens: Maximum number of tokens in the response. Defaults to 6400.
         parallel: Whether to run agents in parallel.
         diversity_pruning_func: Optional function for diversity pruning.
-        pruning_amount: Amount of selected responses for diversity pruning.
+        quality_pruning_func: Optional function for quality pruning.
+        diversity_pruning_amount: Amount of selected responses for diversity pruning.
 
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
@@ -123,14 +125,14 @@ def debate(
                 # Apply diversity pruning if specified
                 if diversity_pruning_func:
                     logger.info(
-                        f"Applying diversity pruning for round {i} with amount={pruning_amount}"
+                        f"Applying diversity pruning for round {i} with amount={diversity_pruning_amount}"
                     )
                     pruned_dir = temp_dir / "diversity_pruned"
                     pruned_dir.mkdir(parents=True, exist_ok=True)
 
                     pruned_responses = diversity_pruning_func(
                         extracted_responses,
-                        selected_amount=pruning_amount,
+                        selected_amount=diversity_pruning_amount,
                         extract_func=extract_func,
                         round_number=i,
                         output_dir=pruned_dir,
@@ -394,7 +396,7 @@ def main():
             max_retries=3,
             json_mode=False,
             diversity_pruning_func=diversity_pruning_by_embedding,
-            pruning_amount=3,
+            diversity_pruning_amount=3,
         )
 
         # Print results summary

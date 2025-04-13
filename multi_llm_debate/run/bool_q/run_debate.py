@@ -24,7 +24,7 @@ def process_boolean_questions_dataset(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
-    pruning_amount: int = 5,
+    diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
     """Run the Boolean Question task on a DataFrame.
 
@@ -41,7 +41,7 @@ def process_boolean_questions_dataset(
         max_tokens: Maximum number of tokens in the response (default: 6400)
         parallel: Whether to run in parallel (default: False)
         diversity_pruning_func: Optional function for diversity pruning
-        pruning_amount: Amount for pruning diversity
+        diversity_pruning_amount: Amount for pruning diversity
 
     Returns:
         Dict containing summary of execution including failed entries
@@ -65,7 +65,7 @@ def process_boolean_questions_dataset(
         max_tokens=max_tokens,
         parallel=parallel,
         diversity_pruning_func=diversity_pruning_func,
-        pruning_amount=pruning_amount,
+        diversity_pruning_amount=diversity_pruning_amount,
     )
 
 
@@ -79,7 +79,7 @@ def process_boolean_question_entry(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
-    pruning_amount: int = 5,
+    diversity_pruning_amount: int = 5,
 ) -> None:
     """Process a single Boolean Question entry.
 
@@ -93,7 +93,7 @@ def process_boolean_question_entry(
         max_tokens: Maximum number of tokens in the response.
         parallel: Whether to run in parallel.
         diversity_pruning_func: Optional function for diversity pruning.
-        pruning_amount: Amount for pruning diversity.
+        diversity_pruning_amount: Amount for pruning diversity.
     """
     process_single_debate_entry(
         entry=entry,
@@ -116,5 +116,5 @@ def process_boolean_question_entry(
         max_tokens=max_tokens,
         parallel=parallel,
         diversity_pruning_func=diversity_pruning_func,
-        pruning_amount=pruning_amount,
+        diversity_pruning_amount=diversity_pruning_amount,
     )

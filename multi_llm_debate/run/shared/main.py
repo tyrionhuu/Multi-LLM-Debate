@@ -27,7 +27,7 @@ def main(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
-    pruning_amount: int = 5,
+    diversity_pruning_amount: int = 5,
 ) -> None:
     """Run debate evaluation with configured models.
 
@@ -47,7 +47,7 @@ def main(
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel
         diversity_pruning_func: Function for diversity pruning
-        pruning_amount: Amount of pruning to apply
+        diversity_pruning_amount: Amount of pruning to apply
     """
 
     try:
@@ -93,7 +93,7 @@ def main(
                     max_tokens=max_tokens,
                     parallel=parallel,
                     diversity_pruning_func=diversity_pruning_func,
-                    pruning_amount=pruning_amount,
+                    diversity_pruning_amount=diversity_pruning_amount,
                 )
 
     except FileNotFoundError:

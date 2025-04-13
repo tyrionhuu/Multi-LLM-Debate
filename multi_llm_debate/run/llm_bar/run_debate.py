@@ -27,7 +27,7 @@ def process_llm_bar_dataset(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
-    pruning_amount: int = 5,
+    diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
     """Run the LLMBar task on a DataFrame.
 
@@ -43,7 +43,7 @@ def process_llm_bar_dataset(
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel (default: False)
         diversity_pruning_func: Optional function for diversity pruning
-        pruning_amount: Amount for pruning diversity
+        diversity_pruning_amount: Amount for pruning diversity
 
     Returns:
         Dict containing summary of execution including failed entries
@@ -74,7 +74,7 @@ def process_llm_bar_dataset(
         max_tokens=max_tokens,
         parallel=parallel,
         diversity_pruning_func=diversity_pruning_func,
-        pruning_amount=pruning_amount,
+        diversity_pruning_amount=diversity_pruning_amount,
     )
 
 
@@ -88,7 +88,7 @@ def process_llm_bar_entry(
     max_tokens: int = 6400,
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
-    pruning_amount: int = 5,
+    diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
     """Process a single entry for the LLMBar task.
 
@@ -103,7 +103,7 @@ def process_llm_bar_entry(
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel (default: False)
         diversity_pruning_func: Optional function for diversity pruning
-        pruning_amount: Amount for pruning diversity
+        diversity_pruning_amount: Amount for pruning diversity
 
     Returns:
         Dict containing execution summary including failed entries
@@ -141,5 +141,5 @@ def process_llm_bar_entry(
         max_tokens=max_tokens,
         parallel=parallel,
         diversity_pruning_func=diversity_pruning_func,
-        pruning_amount=pruning_amount,
+        diversity_pruning_amount=diversity_pruning_amount,
     )
