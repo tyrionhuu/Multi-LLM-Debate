@@ -23,6 +23,8 @@ def process_boolean_questions_dataset(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    quality_pruning_func: Callable = None,
+    quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
@@ -40,6 +42,8 @@ def process_boolean_questions_dataset(
         temperature: Sampling temperature for the model (default: 1.0)
         max_tokens: Maximum number of tokens in the response (default: 6400)
         parallel: Whether to run in parallel (default: False)
+        quality_pruning_func: Optional function for quality pruning
+        quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
         diversity_pruning_amount: Amount for pruning diversity
 
@@ -64,6 +68,8 @@ def process_boolean_questions_dataset(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        quality_pruning_func=quality_pruning_func,
+        quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
@@ -80,6 +86,8 @@ def process_boolean_question_entry(
     parallel: bool = False,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
+    quality_pruning_func: Callable = None,
+    quality_pruning_amount: int = 5,
 ) -> None:
     """Process a single Boolean Question entry.
 
@@ -94,6 +102,8 @@ def process_boolean_question_entry(
         parallel: Whether to run in parallel.
         diversity_pruning_func: Optional function for diversity pruning.
         diversity_pruning_amount: Amount for pruning diversity.
+        quality_pruning_func: Optional function for quality pruning.
+        quality_pruning_amount: Amount for pruning quality.
     """
     process_single_debate_entry(
         entry=entry,
@@ -117,4 +127,6 @@ def process_boolean_question_entry(
         parallel=parallel,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
+        quality_pruning_func=quality_pruning_func,
+        quality_pruning_amount=quality_pruning_amount,
     )
