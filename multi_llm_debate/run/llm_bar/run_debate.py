@@ -26,6 +26,8 @@ def process_llm_bar_dataset(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    quality_pruning_func: Callable = None,
+    quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
@@ -42,6 +44,8 @@ def process_llm_bar_dataset(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel (default: False)
+        quality_pruning_func: Optional function for quality pruning
+        quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
         diversity_pruning_amount: Amount for pruning diversity
 
@@ -73,6 +77,8 @@ def process_llm_bar_dataset(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        quality_pruning_func=quality_pruning_func,
+        quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
@@ -87,6 +93,8 @@ def process_llm_bar_entry(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    quality_pruning_func: Callable = None,
+    quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
@@ -102,6 +110,8 @@ def process_llm_bar_entry(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel (default: False)
+        quality_pruning_func: Optional function for quality pruning
+        quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
         diversity_pruning_amount: Amount for pruning diversity
 
@@ -140,6 +150,8 @@ def process_llm_bar_entry(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        quality_pruning_func=quality_pruning_func,
+        quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
