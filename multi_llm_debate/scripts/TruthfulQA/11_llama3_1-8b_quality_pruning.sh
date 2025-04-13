@@ -87,9 +87,8 @@ CONFIG='[
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.truthful_qa.main \
     --config-json "$CONFIG" \
-    --task-name "truthful_qa_diversity_pruning_by_answer" \
-    --diversity-pruning "answer" \
-    --pruning-amount 5 \
+    --task-name "truthful_qa_quality_pruning" \
+    --quality-pruning true \
 
 # Kill the VLLM server process when done
 kill $SERVER_PID
