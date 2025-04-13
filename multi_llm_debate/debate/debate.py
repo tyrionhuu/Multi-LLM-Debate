@@ -26,8 +26,9 @@ def debate(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
-    diversity_pruning_func: Callable = None,
     quality_pruning_func: Callable = None,
+    quality_pruning_amount: int = 5,
+    diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
@@ -48,9 +49,10 @@ def debate(
         temperature: Sampling temperature for the model. Defaults to 1.0.
         max_tokens: Maximum number of tokens in the response. Defaults to 6400.
         parallel: Whether to run agents in parallel.
-        diversity_pruning_func: Optional function for diversity pruning.
         quality_pruning_func: Optional function for quality pruning.
-        diversity_pruning_amount: Amount of selected responses for diversity pruning.
+        quality_pruning_amount: int = 5,
+        diversity_pruning_func: Optional function for diversity pruning.
+        diversity_pruning_amount: int = 5,
 
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
@@ -121,7 +123,23 @@ def debate(
                 except Exception as e:
                     logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
                     raise
+                
+                # Apply quality pruning if specified
+                if quality_pruning_func:
+                    logger.info(
+                        f"Applying quality pruning for round {i} with amount={quality_pruning_amount}"
+                    )
+                    pruned_dir = temp_dir / "quality_pruned"
+                    pruned_dir.mkdir(parents=True, exist_ok=True)
 
+                    pruned_responses = quality_pruning_func(
+                        extracted_responses,
+                        selected_amount=quality_pruning_amount,
+                        extract_func=extract_func,
+                        round_number=i,
+                        output_dir=pruned_dir,
+                    )
+                    
                 # Apply diversity pruning if specified
                 if diversity_pruning_func:
                     logger.info(
