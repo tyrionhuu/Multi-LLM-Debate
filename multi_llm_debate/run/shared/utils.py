@@ -9,6 +9,7 @@ from multi_llm_debate.interventions.diversity_pruning import (
     diversity_pruning_by_answer,
     diversity_pruning_by_embedding,
 )
+from multi_llm_debate.interventions.quality_pruning import quality_pruning
 from multi_llm_debate.utils.logging_config import setup_logging
 from multi_llm_debate.utils.model_config import ModelConfig
 
@@ -25,6 +26,9 @@ class Args:
     temperature: float = 1.0
     max_tokens: int = 6400
     parallel: bool = False
+    quality_pruning: bool = False
+    quality_pruning_amount: int = 5
+    quality_pruning_func: Callable = None
     diversity_pruning: Optional[str] = None
     diversity_pruning_func: Callable = None
     diversity_pruning_amount: int = 5
@@ -84,7 +88,7 @@ class Parser:
             default=None,
         )
         self.parser.add_argument(
-            "--pruning-amount",
+            "--diversity-pruning-amount",
             type=int,
             help="Amount for pruning diversity",
             default=5,
@@ -95,14 +99,25 @@ class Parser:
             help="Name of the task",
             default="debate",
         )
-
+        self.parser.add_argument(
+            "--quality-pruning",
+            action="store_true",
+            help="Enable quality pruning",
+        )
+        self.parser.add_argument(
+            "--quality-pruning-amount",
+            type=int,
+            help="Amount for pruning quality",
+            default=5,
+        )
+        
     def parse_args(self) -> Args:
         """Parse and return the command line arguments.
 
         Returns:
             Args: Parsed command line arguments.
         """
-        args = self.parser.parse_args()
+        args: Args = self.parser.parse_args()
         args_dict = vars(args)
 
         # Convert diversity_pruning string to the corresponding function
@@ -113,6 +128,11 @@ class Parser:
         else:
             args_dict["diversity_pruning_func"] = None
 
+        if args.quality_pruning:
+            args_dict["quality_pruning_func"] = quality_pruning
+        else:
+            args_dict["quality_pruning_func"] = None
+            
         return Args(**args_dict)
 
 
