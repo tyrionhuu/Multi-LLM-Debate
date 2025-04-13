@@ -38,6 +38,8 @@ def execute_debate_workflow(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    quality_pruning_func: Callable = None,
+    quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
@@ -56,6 +58,8 @@ def execute_debate_workflow(
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
+        quality_pruning_func: Optional function for quality pruning
+        quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
         diversity_pruning_amount: int = 5,
 
@@ -94,6 +98,8 @@ def execute_debate_workflow(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        quality_pruning_func=quality_pruning_func,
+        quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
@@ -219,6 +225,8 @@ def _process_single_entry_worker(
     max_tokens: int,
     parallel: bool,
     process_entry_fn: Callable,
+    quality_pruning_func: Callable = None,
+    quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
@@ -234,6 +242,8 @@ def _process_single_entry_worker(
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
         process_entry_fn: Function to process a single entry
+        quality_pruning_func: Optional function for quality pruning
+        quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
         diversity_pruning_amount: int = 5,
 
@@ -250,6 +260,8 @@ def _process_single_entry_worker(
             temperature=temperature,
             max_tokens=max_tokens,
             parallel=parallel,
+            quality_pruning_func=quality_pruning_func,
+            quality_pruning_amount=quality_pruning_amount,
             diversity_pruning_func=diversity_pruning_func,
             diversity_pruning_amount=diversity_pruning_amount,
         )
@@ -278,6 +290,8 @@ def process_debate_dataset(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    quality_pruning_func: Callable = None,
+    quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
@@ -296,6 +310,8 @@ def process_debate_dataset(
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
+        quality_pruning_func: Optional function for quality pruning
+        quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
         diversity_pruning_amount: int = 5,
 
@@ -351,6 +367,8 @@ def process_debate_dataset(
                             max_tokens=max_tokens,
                             parallel=parallel,
                             process_entry_fn=process_entry_fn,
+                            quality_pruning_func=quality_pruning_func,
+                            quality_pruning_amount=quality_pruning_amount,
                             diversity_pruning_func=diversity_pruning_func,
                             diversity_pruning_amount=diversity_pruning_amount,
                         )
@@ -383,6 +401,8 @@ def process_debate_dataset(
                             temperature=temperature,
                             max_tokens=max_tokens,
                             parallel=parallel,
+                            quality_pruning_func=quality_pruning_func,
+                            quality_pruning_amount=quality_pruning_amount,
                             diversity_pruning_func=diversity_pruning_func,
                             diversity_pruning_amount=diversity_pruning_amount,
                         )
@@ -447,6 +467,8 @@ def process_single_debate_entry(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    quality_pruning_func: Callable = None,
+    quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> None:
@@ -466,6 +488,8 @@ def process_single_debate_entry(
         temperature: Temperature for model responses.
         max_tokens: Maximum tokens for model responses.
         parallel: Whether to run in parallel.
+        quality_pruning_func: Optional function for quality pruning.
+        quality_pruning_amount: Amount for pruning quality.
         diversity_pruning_func: Optional function for diversity pruning.
         diversity_pruning_amount: Amount for pruning diversity.
 
@@ -505,6 +529,8 @@ def process_single_debate_entry(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        quality_pruning_func=quality_pruning_func,
+        quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
