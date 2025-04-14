@@ -75,5 +75,4 @@ def quality_pruning(
                 indent=2,
             )
 
-
     return selected_responses
