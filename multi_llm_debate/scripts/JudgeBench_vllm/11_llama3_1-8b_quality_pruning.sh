@@ -88,6 +88,7 @@ CONFIG='[
 python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
     --task-name "judge_bench_quality_pruning" \
+    --sample-size 5 \
     --quality-pruning \
 
 # Kill the VLLM server process when done
