@@ -12,7 +12,7 @@ def quality_pruning(
     responses: List[str],
     input: str,
     selected_amount: int = 5,
-    model: SentenceTransformer = None,
+    model: SentenceTransformer = SentenceTransformer("all-MiniLM-L6-v2"),
     output_dir: Union[str, Path] = None,
     round_number: int = 0,
 ) -> List[str]:
