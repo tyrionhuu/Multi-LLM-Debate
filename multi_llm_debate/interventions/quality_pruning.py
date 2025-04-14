@@ -67,12 +67,13 @@ def quality_pruning(
         with open(output_file, "w") as f:
             json.dump(
                 {
-                    "selected_indices": selected_indices,
+                    "selected_indices": selected_indices.tolist(),
                     "selected_responses": selected_responses,
                     "total_responses": len(responses),
                 },
                 f,
                 indent=2,
             )
+
 
     return selected_responses
