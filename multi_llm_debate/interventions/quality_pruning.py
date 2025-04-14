@@ -1,8 +1,9 @@
-from typing import List
+from typing import List, Union
+from pathlib import Path
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
-
+import json
 from .utils import compute_sentence_embedding, kullback_leibler_approximation_distance
 
 
@@ -11,6 +12,8 @@ def quality_pruning(
     input: str,
     selected_amount: int = 5,
     model: SentenceTransformer = None,
+    output_dir: Union[str, Path] = None,
+    round_number: int = 0,
 ) -> List[str]:
     """Select a subset of responses that are most similar to the input (maximizing quality).
 
@@ -49,6 +52,23 @@ def quality_pruning(
 
     # Select the indices of the k responses that are closest to the input (minimize distance)
     selected_indices = np.argsort(distances)[:selected_amount]
-
-    # Return the selected responses based on the indices
-    return [responses[i] for i in selected_indices]
+    
+    selected_responses = [responses[i] for i in selected_indices]
+    
+    if output_dir is not None:
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        output_file = output_dir / f"debate_round_{round_number}.json"
+        with open(output_file, "w") as f:
+            json.dump(
+                {
+                    "selected_indices": selected_indices,
+                    "selected_responses": selected_responses,
+                    "total_responses": len(responses),
+                },
+                f,
+                indent=2,
+            )
+            
+    return selected_responses
