@@ -36,6 +36,9 @@ def quality_pruning(
             "A SentenceTransformer model must be provided for quality pruning."
         )
 
+    if input is None or len(input.strip()) == 0:
+        return responses
+    
     if len(responses) <= selected_amount:
         return responses
 

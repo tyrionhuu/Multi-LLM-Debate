@@ -133,7 +133,8 @@ def debate(
                     pruned_dir.mkdir(parents=True, exist_ok=True)
 
                     pruned_responses = quality_pruning_func(
-                        extracted_responses,
+                        responses=extracted_responses,
+                        input=prompt_builder.query,
                         selected_amount=quality_pruning_amount,
                         extract_func=extract_func,
                         round_number=i,
@@ -149,7 +150,7 @@ def debate(
                     pruned_dir.mkdir(parents=True, exist_ok=True)
 
                     pruned_responses = diversity_pruning_func(
-                        extracted_responses,
+                        responses=extracted_responses,
                         selected_amount=diversity_pruning_amount,
                         extract_func=extract_func,
                         round_number=i,
@@ -360,73 +361,3 @@ def check_convergence(
         logger.error(f"Error checking convergence: {str(e)}", exc_info=False)
         raise
 
-
-def main():
-    """Test the debate functionality with a simple example.
-
-    This function demonstrates how to run a debate with retry capabilities
-    using a simple boolean question.
-    """
-    from multi_llm_debate.interventions.diversity_pruning import (
-        diversity_pruning_by_embedding,
-    )
-
-    from ..run.bool_q.prompts import (
-        build_bool_q_round_n_prompt,
-        build_bool_q_round_zero_prompt,
-    )
-    from ..run.bool_q.utils import extract_bool_answer
-
-    # Define a simple question and passage
-    question = "do iran and afghanistan speak the same language"
-    passage = "Persian (/ˈpɜːrʒən, -ʃən/), also known by its endonym Farsi (فارسی fārsi (fɒːɾˈsiː) ( listen))."
-
-    # Create a prompt builder with the question and passage
-    prompt_builder = PromptBuilder(
-        round_zero_fn=build_bool_q_round_zero_prompt,
-        round_n_fn=build_bool_q_round_n_prompt,
-        prompt_params={"question": question, "passage": passage},
-    )
-    config_list = [
-        {"name": "llama3.1", "quantity": 5, "base_url": "http://localhost:11434/v1"}
-    ]
-    # Create an agents ensemble for the debate
-    agents_ensemble = AgentsEnsemble(
-        config_list=config_list,
-    )
-
-    # Define the output directory
-    output_dir = Path("data/test")
-    # Log test parameters
-    logger.info("=== Starting Debate Test with Retry Capability ===")
-    logger.info(f"Question: {question}")
-    logger.info(f"Passage: {passage}")
-    # logger.info(f"Output directory: {output_dir}")
-
-    try:
-        # Run the debate with 2 rounds, 3 retries max
-        results = debate(
-            max_rounds=2,
-            prompt_builder=prompt_builder,
-            agents_ensemble=agents_ensemble,
-            output_dir=output_dir,
-            extract_func=extract_bool_answer,
-            max_retries=3,
-            json_mode=False,
-            diversity_pruning_func=diversity_pruning_by_embedding,
-            diversity_pruning_amount=3,
-        )
-
-        # Print results summary
-        logger.info("=== Debate Completed Successfully ===")
-        logger.info(f"Total rounds completed: {len(results)}")
-        for i, round_results in enumerate(results):
-            logger.info(f"Round {i} had {len(round_results)} responses")
-
-    except Exception as e:
-        logger.error(f"Debate test failed with error: {str(e)}")
-        raise
-
-
-if __name__ == "__main__":
-    main()

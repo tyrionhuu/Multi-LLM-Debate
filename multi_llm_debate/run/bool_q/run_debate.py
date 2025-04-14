@@ -116,6 +116,7 @@ def process_boolean_question_entry(
             round_zero_fn=build_bool_q_round_zero_prompt,
             round_n_fn=build_bool_q_round_n_prompt,
             prompt_params=prompt_params,
+            query=entry["passage"] + "\n" + entry["question"],
         ),
         prompt_params={
             "question": entry["question"],

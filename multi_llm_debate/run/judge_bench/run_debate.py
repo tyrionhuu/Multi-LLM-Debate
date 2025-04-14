@@ -122,6 +122,7 @@ def process_judge_bench_entry(
             round_zero_fn=build_judge_bench_round_zero_prompt,
             round_n_fn=build_judge_bench_round_n_prompt,
             prompt_params=prompt_params,
+            query=entry["question"],
         ),
         prompt_params={
             "question": entry["question"],

@@ -140,6 +140,7 @@ def process_llm_bar_entry(
             round_zero_fn=build_llm_bar_round_zero_prompt,
             round_n_fn=build_llm_bar_round_n_prompt,
             prompt_params=prompt_params,
+            query=entry["question"],
         ),
         prompt_params={
             "question": entry["question"],
