@@ -38,7 +38,7 @@ def quality_pruning(
 
     if input is None or len(input.strip()) == 0:
         return responses
-    
+
     if len(responses) <= selected_amount:
         return responses
 

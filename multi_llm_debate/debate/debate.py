@@ -360,4 +360,3 @@ def check_convergence(
     except Exception as e:
         logger.error(f"Error checking convergence: {str(e)}", exc_info=False)
         raise
-
