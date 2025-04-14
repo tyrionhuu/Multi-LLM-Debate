@@ -27,7 +27,9 @@ def quality_pruning(
         input: The input string to compare the responses to.
         selected_amount: The number of responses to select (k).
         model: A SentenceTransformer model instance used for encoding.
-
+        output_dir: Directory path to save intermediate results (if needed).
+        round_number: The current round number for saving intermediate results.
+        
     Returns:
         A list of selected response strings that are most similar to the input.
     """
