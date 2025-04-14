@@ -33,7 +33,7 @@ MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
 MODEL_QUANTITY=11
 # For port, use the first GPU in case of multiple GPUs
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
-PORT=$((8002 + FIRST_GPU * 10))
+PORT=$((8003 + FIRST_GPU * 10))
 
 export VLLM_LOGGING_LEVEL=ERROR
 
