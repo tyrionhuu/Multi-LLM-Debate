@@ -136,7 +136,6 @@ def debate(
                         responses=extracted_responses,
                         input=prompt_builder.query,
                         selected_amount=quality_pruning_amount,
-                        extract_func=extract_func,
                         round_number=i,
                         output_dir=pruned_dir,
                     )
