@@ -15,7 +15,7 @@ def load_ice_score_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
 
     Returns:
         pd.DataFrame: DataFrame containing the data from the JSON file,
-            with columns 'id', 'input', and 'response'.
+            with columns 'id', 'input', 'response', and 'answer'.
     """
     json_path = Path(json_path)
 
@@ -24,10 +24,16 @@ def load_ice_score_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
     try:
         with json_path.open("r", encoding="utf-8") as file:
             data = json.load(file)
+        # Compute mean of grade-snippet values for each item
+        answers = [
+            sum(item["grade-snippet"].values()) / len(item["grade-snippet"])
+            for item in data
+        ]
         df = pd.DataFrame(data)
         df = df.rename(columns={"intent": "input", "snippet": "response"})
         df = df[["input", "response"]]
         df.insert(0, "id", range(len(df)))
+        df["answer"] = answers
         return df
     except ValueError as e:
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
@@ -77,3 +83,4 @@ def compare_ice_score_response(
     if isinstance(answer, int):
         answer = str(answer)
     return response == answer
+
