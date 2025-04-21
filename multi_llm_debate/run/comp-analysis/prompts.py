@@ -81,7 +81,7 @@ def build_comp_analysis_round_zero_prompt(
         prompt += "You MUST return your response in the following format: " + NEW_LINE
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
 
-    prompt += DIVIDER + NEW_LINE + "Your response: " 
+    prompt += DIVIDER + NEW_LINE + "Your response: "
     return prompt.format(context=context, response=response)
 
 
@@ -112,9 +112,9 @@ def build_comp_analysis_round_n_prompt(
     prompt += DIVIDER + NEW_LINE
     for i, _response in enumerate(responses, 1):
         prompt += f"Judge {i} response: {_response}" + NEW_LINE
-        
+
     prompt += DIVIDER + NEW_LINE
-    
+
     prompt += (
         "Please act as an impartial evaluator and analyze the quality of the "
         "response provided based on the given context and responses from other judges. "
@@ -130,30 +130,35 @@ def build_comp_analysis_round_n_prompt(
         "Do not favor certain names of the assistants. Be as objective as "
         "possible. Be concise in your reasoning. " + NEW_LINE
     )
-    
+
     if json_mode:
-        prompt += "You MUST return your response in the following JSON format: " + NEW_LINE
+        prompt += (
+            "You MUST return your response in the following JSON format: " + NEW_LINE
+        )
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
     else:
         prompt += "You MUST return your response in the following format: " + NEW_LINE
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
-        
+
     prompt += DIVIDER + NEW_LINE
-    
+
     prompt += "Context: {context}" + NEW_LINE
     prompt += "Response: {response}" + NEW_LINE
     prompt += DIVIDER + NEW_LINE
-    prompt += "Your response: " 
+    prompt += "Your response: "
     return prompt.format(context=context, response=response)
 
-print(build_comp_analysis_round_n_prompt(
-    context="This is a sample context for evaluation.",
-    response="This is a sample response to be evaluated.",
-    responses=[
-        "Judge 1: The response was clear and relevant.",
-        "Judge 2: The response lacked specificity but was interesting.",
-        "Judge 3: The response was understandable but not very engaging."
-    ],
-    use_cot=True,
-    json_mode=False
-))
+if __name__ == "__main__":
+    print(
+        build_comp_analysis_round_n_prompt(
+            context="This is a sample context for evaluation.",
+            response="This is a sample response to be evaluated.",
+            responses=[
+                "Judge 1: The response was clear and relevant.",
+                "Judge 2: The response lacked specificity but was interesting.",
+                "Judge 3: The response was understandable but not very engaging.",
+            ],
+            use_cot=True,
+            json_mode=False,
+        )
+    )
