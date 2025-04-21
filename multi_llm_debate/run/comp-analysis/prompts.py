@@ -106,12 +106,12 @@ def build_comp_analysis_round_n_prompt(
     """
     prompt = (
         "Several other judges have provided evaluations of two AI assistant "
-        "responses to a user question. Below are their evaluations: " + NEW_LINE
+        "responses to a given context. Below are their evaluations: " + NEW_LINE
     )
 
     prompt += DIVIDER + NEW_LINE
-    for i, response in enumerate(responses, 1):
-        prompt += f"Judge {i} response: {response}" + NEW_LINE
+    for i, _response in enumerate(responses, 1):
+        prompt += f"Judge {i} response: {_response}" + NEW_LINE
         
     prompt += DIVIDER + NEW_LINE
     
@@ -120,9 +120,9 @@ def build_comp_analysis_round_n_prompt(
         "response provided based on the given context and responses from other judges. "
         "Please use the CONTEXT, RESPONSE, and PREVIOUS RESPONSES to rate the "
         "context relevance, specificity, interestingness, understandability, "
-        "and overall quality of the response on a scale of 1 to 5"
+        "and overall quality of the response on a scale of 1 to 5. "
     )
-
+    prompt += NEW_LINE
     prompt += (
         "Avoid any position biases and ensure that the order in "
         "which the responses were presented does not influence your decision. "
@@ -149,6 +149,11 @@ def build_comp_analysis_round_n_prompt(
 print(build_comp_analysis_round_n_prompt(
     context="This is a sample context for evaluation.",
     response="This is a sample response to be evaluated.",
+    responses=[
+        "Judge 1: The response was clear and relevant.",
+        "Judge 2: The response lacked specificity but was interesting.",
+        "Judge 3: The response was understandable but not very engaging."
+    ],
     use_cot=True,
     json_mode=False
 ))
