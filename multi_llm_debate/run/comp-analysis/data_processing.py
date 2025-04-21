@@ -9,7 +9,7 @@ FILE_NAMES = [
     "data/comp_analysis/persona-usr_text.txt",
 ]
 
-def process_files(file_names: List[str]) -> pd.DataFrame:
+def process_files(file_names: List[str] = FILE_NAMES) -> pd.DataFrame:
     """
     Process the given files and return a DataFrame with the content.
     
@@ -37,3 +37,5 @@ def process_files(file_names: List[str]) -> pd.DataFrame:
     df = pd.DataFrame(data, columns=["input"])
     print(df.head())
     return df
+
+process_files()  # Call the function to process files and print the DataFrame head
