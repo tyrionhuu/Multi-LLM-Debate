@@ -76,20 +76,17 @@ def extract_0_4_answer(
 
 
 def compare_ice_score_response(
-    response: Literal["0", "1", "2", "3", "4"],
-    answer: Union[str, int],
+    response: Union[str, float],
+    answer: Union[str, float],
 ) -> bool:
     """Compare the responses from the ICE-Score dataset for values 0-4.
 
     Args:
-        response (Literal["0", "1", "2", "3", "4"]): The response string from
-            the LLM.
-        answer (Union[str, int]): The correct answer to the question ("0" to
-            "4").
+        response (float): The response value extracted from the LLM.
+        answer (float): The correct answer to the question.
 
     Returns:
-        bool: True if the response matches the answer, False otherwise.
+        bool: True if the response matches the answer (within tolerance),
+            False otherwise.
     """
-    if isinstance(answer, int):
-        answer = str(answer)
-    return response == answer
+    return abs(float(response) - float(answer)) < 1.5
