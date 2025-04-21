@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List
 
 NEW_LINE = "\n"
 DIVIDER = "#" * 80
@@ -147,6 +147,7 @@ def build_comp_analysis_round_n_prompt(
     prompt += DIVIDER + NEW_LINE
     prompt += "Your response: "
     return prompt.format(context=context, response=response)
+
 
 if __name__ == "__main__":
     print(
