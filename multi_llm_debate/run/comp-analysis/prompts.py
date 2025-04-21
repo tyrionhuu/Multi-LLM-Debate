@@ -81,7 +81,7 @@ def build_comp_analysis_round_zero_prompt(
         prompt += "You MUST return your response in the following format: " + NEW_LINE
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
 
-    prompt += NEW_LINE + "Your response: "
+    prompt += DIVIDER + NEW_LINE + "Your response: " 
     return prompt.format(context=context, response=response)
 
 
