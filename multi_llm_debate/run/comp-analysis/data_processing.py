@@ -17,24 +17,36 @@ def process_files(file_names: List[str] = FILE_NAMES) -> pd.DataFrame:
         file_names (List[str]): List of file paths to process.
         
     Returns:
-        pd.DataFrame: DataFrame containing the processed content.
+        pd.DataFrame: DataFrame containing context and response columns.
     """
-    # Initialize an empty list to store the text inputs
-    data = []
+    # Initialize lists to store the context and response data
+    contexts = []
+    responses = []
 
     # Iterate over each file and append rows to the text_input list
     for file_name in file_names:
         try:
             with open(file_name, "r") as file:
-                # Read each line from the file and append to the list
-                data.extend([line.strip() for line in file if line.strip()])
+                # Read each line from the file, split by tabs, and extract context and response
+                for line in file:
+                    if line.strip():
+                        parts = line.strip().split('\t')
+                        if len(parts) >= 2:
+                            # Get the last two tab-separated values as context and response
+                            contexts.append(parts[-2])
+                            responses.append(parts[-1])
+                        else:
+                            print(f"Skipping line with insufficient fields: {line.strip()}")
         except FileNotFoundError:
             print(f"File not found: {file_name}")
         except Exception as e:
             print(f"An error occurred while processing {file_name}: {e}")
             
-    # Create a DataFrame from the list of text inputs
-    df = pd.DataFrame(data, columns=["input"])
+    # Create a DataFrame with context and response columns
+    df = pd.DataFrame({
+        "context": contexts,
+        "response": responses
+    })
     print(df.head())
     return df
 
