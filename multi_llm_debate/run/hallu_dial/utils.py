@@ -8,14 +8,16 @@ import pandas as pd
 
 def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
     """
-    Convert a JSON file to a DataFrame with an added 'id' column.
+    Convert a JSON file to a DataFrame with added 'id' and 'answer' columns.
 
     Args:
         json_path (Union[str, Path]): Path to the JSON file.
 
     Returns:
         pd.DataFrame: DataFrame containing the data from the JSON file,
-            with columns 'id', 'knowledge', 'dialogue_history', and 'response'.
+            with columns 'id', 'knowledge', 'dialogue_history', 'response',
+            and 'answer'. The 'answer' column is derived from the 'target'
+            field using the str_to_bool function.
     """
     json_path = Path(json_path)
 
@@ -25,7 +27,10 @@ def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
         with json_path.open("r", encoding="utf-8") as file:
             data = json.load(file)
         df = pd.DataFrame(data)
-        df = df[["knowledge", "dialogue_history", "response"]]
+        # Apply str_to_bool to the 'target' column to create the 'answer' column
+        df["answer"] = df["target"].apply(str_to_bool)
+        # Select and reorder columns
+        df = df[["knowledge", "dialogue_history", "response", "answer"]]
         df.insert(0, "id", range(len(df)))
         return df
     except ValueError as e:
@@ -34,6 +39,26 @@ def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
 
 
+def str_to_bool(input: str) -> Literal["0", "1"]:
+    """Convert a string to a boolean value.
+    Args:
+        input (str): The input string to convert.
+
+    Returns:
+        Literal["0", "1"]: "0" if the input starts with "no", "1" otherwise.
+    """
+    input = input.lower()
+    if input.startswith("no"):
+        return "0"
+    elif input.startswith("yes"):
+        return "1"
+    else:
+        raise ValueError(
+            "Input string must start with 'yes' or 'no'. "
+            f"Received: {input}"
+        )
+    
+    
 def extract_0_1_answer(
     response: str,
 ) -> Literal["0", "1"]:
