@@ -74,16 +74,17 @@ def build_ice_score_round_zero_prompt(
         "snippet is totally incorrect and meaningless.\n"
         "- A score of 4 (passing all possible tests) means that the code "
         "snippet is totally correct and can handle all cases.\n"
-    ) + NEW_LINE
+    )
 
     prompt += (
-        (
-            "Evaluation Steps: \n"
-            "1. Read the problem carefully and identify required functionalities of the implementation.\n"
-            "2. Read the code snippet and compare it to the problem. Check if the code snippet covers all required functionalities of the problem.\n"
-            "3. Assign a score for functional correctness on a scale of 0 to 4, where 0 is the lowest and 4 is the highest based on the Evaluation Criteria.\n"
-        )
-        + NEW_LINE
+        "Evaluation Steps:\n"
+        "1. Read the problem carefully and identify required functionalities "
+        "of the implementation.\n"
+        "2. Read the code snippet and compare it to the problem. Check if the "
+        "code snippet covers all required functionalities of the problem.\n"
+        "3. Assign a score for functional correctness on a scale of 0 to 4, "
+        "where 0 is the lowest and 4 is the highest based on the Evaluation "
+        "Criteria.\n"
         + DIVIDER
         + NEW_LINE
     )
@@ -170,15 +171,17 @@ def build_ice_score_round_n_prompt(
         "snippet is totally incorrect and meaningless.\n"
         "- A score of 4 (passing all possible tests) means that the code "
         "snippet is totally correct and can handle all cases.\n"
-    ) + NEW_LINE
+    )
+    
     prompt += (
-        (
-            "Evaluation Steps: \n"
-            "1. Read the problem carefully and identify required functionalities of the implementation.\n"
-            "2. Read the code snippet and compare it to the problem. Check if the code snippet covers all required functionalities of the problem.\n"
-            "3. Assign a score for functional correctness on a scale of 0 to 4, where 0 is the lowest and 4 is the highest based on the Evaluation Criteria.\n"
-        )
-        + NEW_LINE
+        "Evaluation Steps:\n"
+        "1. Read the problem carefully and identify required functionalities "
+        "of the implementation.\n"
+        "2. Read the code snippet and compare it to the problem. Check if the "
+        "code snippet covers all required functionalities of the problem.\n"
+        "3. Assign a score for functional correctness on a scale of 0 to 4, "
+        "where 0 is the lowest and 4 is the highest based on the Evaluation "
+        "Criteria.\n"
         + DIVIDER
         + NEW_LINE
     )
