@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Import utility functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
-source "$PROJECT_ROOT/multi_llm_debate/scripts/utils/shell_utils.sh"
-
 # Define variables
 MODEL_NAME="/data/share_weight/gemma-3-4b-it"
 MODEL_QUANTITY=11
@@ -28,12 +23,29 @@ done
 
 echo "Using GPU(s): $GPU"
 
-# Use imported function to activate conda environment
-activate_conda_env "Multi-LLM-Debate"
+# Check if Multi-LLM-Debate environment is already activated
+if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
+    echo "Activating Multi-LLM-Debate conda environment..."
+    eval "$(conda shell.bash hook)"
+    conda activate Multi-LLM-Debate
+else
+    echo "Multi-LLM-Debate conda environment is already activated."
+fi
 
-# Define cleanup wrapper that uses the imported function
+# Define cleanup function
 cleanup() {
-    cleanup_vllm_server "$SERVER_PID"
+    echo "Cleaning up..."
+    if [[ -n "$SERVER_PID" ]]; then
+        echo "Terminating VLLM server (PID: $SERVER_PID)..."
+        kill $SERVER_PID 2>/dev/null || true
+        # Wait a moment and force kill if still running
+        sleep 2
+        if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "Server still running, force killing..."
+            kill -9 $SERVER_PID 2>/dev/null || true
+        fi
+    fi
+    echo "Cleanup complete."
     exit ${1:-0}
 }
 
@@ -95,8 +107,7 @@ CONFIG='[
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.ice_score.main \
     --sample-size 5 \
-    --config-json "$CONFIG"  
-
+    --config-json "$CONFIG"
 # Run the evaluation using module path with direct JSON config
 # python -m multi_llm_debate.run.ice_score.main \
 #     --config-json "$CONFIG" \
@@ -105,4 +116,6 @@ python -m multi_llm_debate.run.ice_score.main \
 #     --diversity-pruning "embedding" \
 #     --pruning-amount 5 \
 
+# The cleanup function with the EXIT trap will handle server termination,
+# so we don't need an explicit kill command here anymore
 cleanup 1
