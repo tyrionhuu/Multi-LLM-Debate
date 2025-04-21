@@ -43,27 +43,36 @@ def load_ice_score_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
 
 def extract_0_4_answer(
     response: str,
-) -> Literal["0", "1", "2", "3", "4"]:
-    """Extract the answer from the response string for values 0-4.
+) -> float:
+    """Extract the answer from the LLM response for values 0-4.
 
     Args:
         response (str): The response string from the LLM.
 
     Returns:
-        Literal["0", "1", "2", "3", "4"]: Answer "0", "1", "2", "3", or "4".
-
-    Raises:
-        ValueError: If no valid answer is found in the response.
+        float: The extracted answer as a float.
     """
-    match = re.search(r"Final Answer:\s*([0-4])", response)
+    match = re.search(r"Final Answer:\s*([0-9]+(?:\.[0-9]+)?)", response)
     if match:
-        return match.group(1)
+        answer = match.group(1)
+        try:
+            answer = float(answer)
+            if 0 <= answer <= 4:
+                return answer
+            else:
+                raise ValueError(
+                    "Extracted answer is out of range. Please ensure the "
+                    "response contains a valid number between 0 and 4."
+                )
+        except ValueError:
+            raise ValueError(
+                "Extracted answer is not a valid float. Please ensure the "
+                "response contains a valid number between 0 and 4."
+            )
     raise ValueError(
         "No valid answer found in the response. Please ensure the response "
-        "contains 'Final Answer: 0', 'Final Answer: 1', 'Final Answer: 2', "
-        "'Final Answer: 3', or 'Final Answer: 4'."
+        "contains 'Final Answer: X' where X is a number between 0 and 4."
     )
-
 
 def compare_ice_score_response(
     response: Literal["0", "1", "2", "3", "4"],
