@@ -193,5 +193,4 @@ if __name__ == "__main__":
 
     prompt = build_hallu_dial_round_n_prompt(knowledge, dialogue, response, responses)
     print(prompt)
-    # prompt = build_hallu_dial_round_zero_prompt(knowledge, dialogue, response)
-    # print(prompt)
+
