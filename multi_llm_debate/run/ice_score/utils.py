@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Union
-
+import json
 import pandas as pd
 
 
@@ -21,7 +21,10 @@ def json_to_processed_df(json_path: Union[str, Path]):
         raise FileNotFoundError(f"File not found: {json_path}")
     try:
         # Read the JSON file into a DataFrame
-        df = pd.read_json(json_path, lines=True)
+        with json_path.open("r", encoding="utf-8") as file:
+            data = json.load(file)
+        df = pd.DataFrame(data)
+        df = df[["intent", "snippet"]]
         print(df.head())
         return df
     except ValueError as e:
