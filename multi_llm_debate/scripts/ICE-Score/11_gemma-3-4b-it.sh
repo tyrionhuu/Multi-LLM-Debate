@@ -28,6 +28,26 @@ else
     echo "Multi-LLM-Debate conda environment is already activated."
 fi
 
+# Define cleanup function
+cleanup() {
+    echo "Cleaning up..."
+    if [[ -n "$SERVER_PID" ]]; then
+        echo "Terminating VLLM server (PID: $SERVER_PID)..."
+        kill $SERVER_PID 2>/dev/null || true
+        # Wait a moment and force kill if still running
+        sleep 2
+        if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "Server still running, force killing..."
+            kill -9 $SERVER_PID 2>/dev/null || true
+        fi
+    fi
+    echo "Cleanup complete."
+    exit ${1:-0}
+}
+
+# Set trap to catch exit signals
+trap cleanup SIGINT SIGTERM EXIT
+
 # Define variables
 MODEL_NAME="/data/share_weight/gemma-3-4b-it"
 MODEL_QUANTITY=11
@@ -64,8 +84,7 @@ ATTEMPT=2
 while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
     if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
         echo "Server did not start after $MAX_ATTEMPTS attempts. Exiting."
-        kill $SERVER_PID
-        exit 1
+        cleanup 1
     fi
     echo "Attempt $ATTEMPT: Server not ready yet. Waiting..."
     sleep 6
@@ -87,7 +106,7 @@ CONFIG='[
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.ice_score.main \
     --sample-size 5 \
-    --config-json "$CONFIG"
+    --config-json "$CONFIG"  
 
 # Run the evaluation using module path with direct JSON config
 # python -m multi_llm_debate.run.ice_score.main \
@@ -96,6 +115,5 @@ python -m multi_llm_debate.run.ice_score.main \
 #     --quality-pruning \
 #     --diversity-pruning "embedding" \
 #     --pruning-amount 5 \
-    
-# Kill the VLLM server process when done
-kill $SERVER_PID
+
+cleanup 1
