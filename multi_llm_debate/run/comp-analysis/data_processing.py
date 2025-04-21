@@ -17,7 +17,7 @@ def process_files(file_names: List[str] = FILE_NAMES) -> pd.DataFrame:
         file_names (List[str]): List of file paths to process.
         
     Returns:
-        pd.DataFrame: DataFrame containing context and response columns.
+        pd.DataFrame: DataFrame containing id, context, and response columns.
     """
     # Initialize lists to store the context and response data
     contexts = []
@@ -42,8 +42,9 @@ def process_files(file_names: List[str] = FILE_NAMES) -> pd.DataFrame:
         except Exception as e:
             print(f"An error occurred while processing {file_name}: {e}")
             
-    # Create a DataFrame with context and response columns
+    # Create a DataFrame with id, context, and response columns
     df = pd.DataFrame({
+        "id": [f"conv_{i}" for i in range(len(contexts))],
         "context": contexts,
         "response": responses
     })
