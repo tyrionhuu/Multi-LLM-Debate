@@ -9,7 +9,7 @@ from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ..shared.run import process_debate_dataset, process_single_debate_entry
 from .prompts import build_ice_score_round_n_prompt, build_ice_score_round_zero_prompt
-from .utils import extract_0_1_answer
+from .utils import extract_0_4_answer
 
 # Fix the setup_logging call by removing the level parameter
 logger = setup_logging(__name__)
@@ -142,7 +142,7 @@ def process_ice_score_entry(
             "input": entry["input"],
             "response": entry["response"],
         },
-        extract_func=extract_0_1_answer,
+        extract_func=extract_0_4_answer,
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,

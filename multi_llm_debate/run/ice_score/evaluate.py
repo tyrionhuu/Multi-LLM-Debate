@@ -4,7 +4,7 @@ from typing import Dict, List
 import pandas as pd
 
 from ..shared.evaluate import EvaluationResults, evaluate_all
-from .utils import compare_ice_score_response, extract_0_1_answer
+from .utils import compare_ice_score_response, extract_0_4_answer
 
 
 def evaluate_ice_score_responses(
@@ -21,7 +21,7 @@ def evaluate_ice_score_responses(
         bool: True if all responses are the same and match the answer, False otherwise.
     """
     return all(
-        compare_ice_score_response(extract_0_1_answer(response["response"]), answer)
+        compare_ice_score_response(extract_0_4_answer(response["response"]), answer)
         for response in responses
     )
 
@@ -46,7 +46,7 @@ def evaluate_all_ice_score(
     return evaluate_all(
         response_base_dir=response_base_dir,
         dataframe=dataframe,
-        extract_func=extract_0_1_answer,
+        extract_func=extract_0_4_answer,
         evaluation_func=evaluate_ice_score_responses,
         multiple_models=multiple_models,
     )
