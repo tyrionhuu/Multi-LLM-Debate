@@ -58,6 +58,7 @@ def extract_0_4_answer(
         "'Final Answer: 3', or 'Final Answer: 4'."
     )
 
+
 def compare_ice_score_response(
     response: Literal["0", "1", "2", "3", "4"],
     answer: Union[str, int],
