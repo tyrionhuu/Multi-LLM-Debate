@@ -6,7 +6,7 @@ from typing import Literal, Union
 import pandas as pd
 
 
-def json_to_processed_df(json_path: Union[str, Path]) -> pd.DataFrame:
+def load_ice_score_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
     """
     Convert a JSON file to a DataFrame with an added 'id' column.
 

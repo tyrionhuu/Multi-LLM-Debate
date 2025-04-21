@@ -26,7 +26,7 @@ def evaluate_ice_score_responses(
     )
 
 
-def evaluate_ice_score_bench(
+def evaluate_all_ice_score(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
     multiple_models: bool = False,
