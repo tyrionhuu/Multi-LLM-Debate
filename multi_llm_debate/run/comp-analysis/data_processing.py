@@ -50,7 +50,7 @@ def process_files(file_names: List[str] = FILE_NAMES) -> pd.DataFrame:
     # Create a DataFrame with id, context, and response columns
     df = pd.DataFrame(
         {
-            "id": [f"conv_{i}" for i in range(len(contexts))],
+            "id": range(len(contexts)),
             "context": contexts,
             "response": responses,
         }
