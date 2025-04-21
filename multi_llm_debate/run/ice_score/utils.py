@@ -35,36 +35,40 @@ def load_ice_score_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
 
 
-def extract_0_1_answer(
+def extract_0_4_answer(
     response: str,
-) -> Literal["1", "2"]:
-    """Extract the answer from the response string.
+) -> Literal["0", "1", "2", "3", "4"]:
+    """Extract the answer from the response string for values 0-4.
 
     Args:
-        response: The response string from the LLM.
+        response (str): The response string from the LLM.
 
     Returns:
-        Literal["0", "1"]: Answer "0" or "1".
+        Literal["0", "1", "2", "3", "4"]: Answer "0", "1", "2", "3", or "4".
+
+    Raises:
+        ValueError: If no valid answer is found in the response.
     """
-    # Try to find "Final Answer: X" pattern
-    match = re.search(r"Final Answer:\s*([01])", response)
+    match = re.search(r"Final Answer:\s*([0-4])", response)
     if match:
         return match.group(1)
-    else:
-        raise ValueError(
-            "No valid answer found in the response. Please ensure the response contains 'Final Answer: 0' or 'Final Answer: 1'."
-        )
-
+    raise ValueError(
+        "No valid answer found in the response. Please ensure the response "
+        "contains 'Final Answer: 0', 'Final Answer: 1', 'Final Answer: 2', "
+        "'Final Answer: 3', or 'Final Answer: 4'."
+    )
 
 def compare_ice_score_response(
-    response: Literal["1", "0"],
+    response: Literal["0", "1", "2", "3", "4"],
     answer: Union[str, int],
 ) -> bool:
-    """Compare the responses from the ICE-Score dataset.
+    """Compare the responses from the ICE-Score dataset for values 0-4.
 
     Args:
-        response: The response string from the LLM.
-        answer: The correct answer to the question ("1" or "0").
+        response (Literal["0", "1", "2", "3", "4"]): The response string from
+            the LLM.
+        answer (Union[str, int]): The correct answer to the question ("0" to
+            "4").
 
     Returns:
         bool: True if the response matches the answer, False otherwise.
