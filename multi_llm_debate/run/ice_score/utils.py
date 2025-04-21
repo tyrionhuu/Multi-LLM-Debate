@@ -43,22 +43,22 @@ def load_ice_score_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
 
 def extract_0_4_answer(
     response: str,
-) -> float:
+) -> str:
     """Extract the answer from the LLM response for values 0-4.
 
     Args:
         response (str): The response string from the LLM.
 
     Returns:
-        float: The extracted answer as a float.
+        str: The extracted answer as a string.
     """
     match = re.search(r"Final Answer:\s*([0-9]+(?:\.[0-9]+)?)", response)
     if match:
         answer = match.group(1)
         try:
-            answer = float(answer)
-            if 0 <= answer <= 4:
-                return answer
+            float_answer = float(answer)
+            if 0 <= float_answer <= 4:
+                return str(float_answer)
             else:
                 raise ValueError(
                     "Extracted answer is out of range. Please ensure the "
