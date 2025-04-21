@@ -21,9 +21,7 @@ def evaluate_ice_score_responses(
         bool: True if all responses are the same and match the answer, False otherwise.
     """
     return all(
-        compare_ice_score_response(
-            extract_0_1_answer(response["response"]), answer
-        )
+        compare_ice_score_response(extract_0_1_answer(response["response"]), answer)
         for response in responses
     )
 

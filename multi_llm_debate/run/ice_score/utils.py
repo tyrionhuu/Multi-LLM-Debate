@@ -54,12 +54,14 @@ def extract_0_1_answer(
         raise ValueError(
             "No valid answer found in the response. Please ensure the response contains 'Final Answer: 0' or 'Final Answer: 1'."
         )
+
+
 def compare_ice_score_response(
     response: Literal["1", "0"],
     answer: Union[str, int],
 ) -> bool:
     """Compare the responses from the ICE-Score dataset.
-    
+
     Args:
         response: The response string from the LLM.
         answer: The correct answer to the question ("1" or "0").
