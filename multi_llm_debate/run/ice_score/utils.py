@@ -74,6 +74,7 @@ def extract_0_4_answer(
         "contains 'Final Answer: X' where X is a number between 0 and 4."
     )
 
+
 def compare_ice_score_response(
     response: Literal["0", "1", "2", "3", "4"],
     answer: Union[str, int],
@@ -92,4 +93,3 @@ def compare_ice_score_response(
     if isinstance(answer, int):
         answer = str(answer)
     return response == answer
-
