@@ -6,28 +6,28 @@ from typing import Literal, Union
 import pandas as pd
 
 
-def json_to_processed_df(json_path: Union[str, Path]):
+def json_to_processed_df(json_path: Union[str, Path]) -> pd.DataFrame:
     """
-    Convert a JSON file to a DataFrame.
+    Convert a JSON file to a DataFrame with an added 'id' column.
 
     Args:
         json_path (Union[str, Path]): Path to the JSON file.
 
     Returns:
-        pd.DataFrame: DataFrame containing the data from the JSON file.
+        pd.DataFrame: DataFrame containing the data from the JSON file,
+            with columns 'id', 'input', and 'response'.
     """
-    # Ensure the path is a Path object
     json_path = Path(json_path)
 
     if not json_path.is_file():
         raise FileNotFoundError(f"File not found: {json_path}")
     try:
-        # Read the JSON file into a DataFrame
         with json_path.open("r", encoding="utf-8") as file:
             data = json.load(file)
         df = pd.DataFrame(data)
-        df = df[["intent", "snippet"]]
-
+        df = df.rename(columns={"intent": "input", "snippet": "response"})
+        df = df[["input", "response"]]
+        df.insert(0, "id", range(len(df)))
         return df
     except ValueError as e:
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
