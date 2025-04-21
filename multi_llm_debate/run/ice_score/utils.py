@@ -1,6 +1,7 @@
+import json
 from pathlib import Path
 from typing import Union
-import json
+
 import pandas as pd
 
 
@@ -25,7 +26,7 @@ def json_to_processed_df(json_path: Union[str, Path]):
             data = json.load(file)
         df = pd.DataFrame(data)
         df = df[["intent", "snippet"]]
-        print(df.head())
+
         return df
     except ValueError as e:
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
