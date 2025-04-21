@@ -1,9 +1,10 @@
 from pathlib import Path
 from typing import Union
+
 import pandas as pd
-def json_to_processed_df(
-    json_path: Union[str, Path]
-):
+
+
+def json_to_processed_df(json_path: Union[str, Path]):
     """
     Convert a JSON file to a DataFrame.
 
@@ -27,5 +28,6 @@ def json_to_processed_df(
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
     except Exception as e:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
+
 
 json_to_processed_df("data/ice_score/conala_grade.json")
