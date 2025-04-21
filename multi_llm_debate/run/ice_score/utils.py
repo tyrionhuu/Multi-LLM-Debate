@@ -1,7 +1,7 @@
 import json
-from pathlib import Path
-from typing import Union, Literal
 import re
+from pathlib import Path
+from typing import Literal, Union
 
 import pandas as pd
 
@@ -33,6 +33,7 @@ def json_to_processed_df(json_path: Union[str, Path]):
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
     except Exception as e:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
+
 
 def extract_0_1_answer(
     response: str,
