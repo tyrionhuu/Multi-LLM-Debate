@@ -36,23 +36,25 @@ def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
 
 def extract_0_1_answer(
     response: str,
-) -> Literal["1", "2"]:
+) -> Literal["0", "1"]:
     """Extract the answer from the response string.
 
     Args:
-        response: The response string from the LLM.
+        response (str): The response string from the LLM.
 
     Returns:
         Literal["0", "1"]: Answer "0" or "1".
+
+    Raises:
+        ValueError: If no valid answer is found in the response.
     """
-    # Try to find "Final Answer: X" pattern
     match = re.search(r"Final Answer:\s*([01])", response)
     if match:
         return match.group(1)
-    else:
-        raise ValueError(
-            "No valid answer found in the response. Please ensure the response contains 'Final Answer: 0' or 'Final Answer: 1'."
-        )
+    raise ValueError(
+        "No valid answer found in the response. Please ensure the response "
+        "contains 'Final Answer: 0' or 'Final Answer: 1'."
+    )
 
 
 def compare_hallu_dial_response(
