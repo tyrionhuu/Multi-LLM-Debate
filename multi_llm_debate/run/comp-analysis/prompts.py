@@ -33,6 +33,7 @@ Step 3: third step of your reasoning
 Final Answer: relevance - x; specificity - x; interestingness - x; understandability - x; overall - x
 """
 
+
 def build_comp_analysis_round_zero_prompt(
     context: str,
     response: str,
@@ -53,26 +54,40 @@ def build_comp_analysis_round_zero_prompt(
     prompt = (
         "Please act as an impartial evaluator and analyze the quality of the "
         "response provided based on the given context. "
-        "Please use the CONTEXT and RESPONSE to rate the context relevance, specificity, interestingness, understandability, and overall quality of the response on a scale of 1 to 5"
+        "Please use the CONTEXT and RESPONSE to rate the context relevance, "
+        "specificity, interestingness, understandability, "
+        "and overall quality of the response on a scale of 1 to 5"
     )
-    
+
     if use_cot:
         prompt += NEW_LINE + "Please provide your reasoning step-by-step."
-    
+
     prompt += NEW_LINE + DIVIDER + NEW_LINE
-    prompt += "Context: {context}" + NEW_LINE + "Response: {response}" + NEW_LINE + DIVIDER + NEW_LINE
-    
+    prompt += (
+        "Context: {context}"
+        + NEW_LINE
+        + "Response: {response}"
+        + NEW_LINE
+        + DIVIDER
+        + NEW_LINE
+    )
+
     if json_mode:
-        prompt += "You MUST return your response in the following JSON format: " + NEW_LINE
+        prompt += (
+            "You MUST return your response in the following JSON format: " + NEW_LINE
+        )
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
     else:
         prompt += "You MUST return your response in the following format: " + NEW_LINE
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
-    
+
     prompt += NEW_LINE + "Your response: "
     return prompt.format(context=context, response=response)
 
-print(build_comp_analysis_round_zero_prompt(
-    context="Is the sky blue?",
-    response="Yes, the sky is blue during the day due to the scattering of sunlight by the atmosphere.",
-))
+
+print(
+    build_comp_analysis_round_zero_prompt(
+        context="Is the sky blue?",
+        response="Yes, the sky is blue during the day due to the scattering of sunlight by the atmosphere.",
+    )
+)
