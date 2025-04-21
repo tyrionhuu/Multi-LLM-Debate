@@ -116,6 +116,4 @@ python -m multi_llm_debate.run.ice_score.main \
 #     --diversity-pruning "embedding" \
 #     --pruning-amount 5 \
 
-# The cleanup function with the EXIT trap will handle server termination,
-# so we don't need an explicit kill command here anymore
 cleanup 1

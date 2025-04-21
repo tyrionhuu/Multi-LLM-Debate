@@ -116,5 +116,5 @@ python -m multi_llm_debate.run.llm_bar.main \
     --diversity-pruning "embedding" \
     --pruning-amount 5 \
     
-# Kill the VLLM server process when done
-kill $SERVER_PID
+cleanup 1
+

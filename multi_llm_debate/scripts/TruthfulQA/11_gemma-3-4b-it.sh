@@ -116,5 +116,5 @@ python -m multi_llm_debate.run.truthful_qa.main \
     --pruning-amount 5 \
     --diversity-pruning "embedding" \
     
-# Kill the VLLM server process when done
-kill $SERVER_PID
+cleanup 1
+
