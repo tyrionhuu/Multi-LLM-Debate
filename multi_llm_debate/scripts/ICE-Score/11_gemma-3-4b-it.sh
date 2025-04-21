@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Import utility functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+source "$PROJECT_ROOT/multi_llm_debate/scripts/utils/shell_utils.sh"
+
 # Parse command line arguments
 GPU="7"  # Default GPU
 while [[ $# -gt 0 ]]; do
@@ -19,29 +24,12 @@ done
 
 echo "Using GPU(s): $GPU"
 
-# Check if Multi-LLM-Debate environment is already activated
-if [[ "$CONDA_DEFAULT_ENV" != "Multi-LLM-Debate" ]]; then
-    echo "Activating Multi-LLM-Debate conda environment..."
-    eval "$(conda shell.bash hook)"
-    conda activate Multi-LLM-Debate
-else
-    echo "Multi-LLM-Debate conda environment is already activated."
-fi
+# Use imported function to activate conda environment
+activate_conda_env "Multi-LLM-Debate"
 
-# Define cleanup function
+# Define cleanup wrapper that uses the imported function
 cleanup() {
-    echo "Cleaning up..."
-    if [[ -n "$SERVER_PID" ]]; then
-        echo "Terminating VLLM server (PID: $SERVER_PID)..."
-        kill $SERVER_PID 2>/dev/null || true
-        # Wait a moment and force kill if still running
-        sleep 2
-        if kill -0 $SERVER_PID 2>/dev/null; then
-            echo "Server still running, force killing..."
-            kill -9 $SERVER_PID 2>/dev/null || true
-        fi
-    fi
-    echo "Cleanup complete."
+    cleanup_vllm_server "$SERVER_PID"
     exit ${1:-0}
 }
 
@@ -77,19 +65,8 @@ fi
 SERVER_PID=$!
 
 # Wait for the server to be ready by checking the connection
-echo "Waiting for server to start..."
-sleep 30
-MAX_ATTEMPTS=30
-ATTEMPT=2
-while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
-    if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-        echo "Server did not start after $MAX_ATTEMPTS attempts. Exiting."
-        cleanup 1
-    fi
-    echo "Attempt $ATTEMPT: Server not ready yet. Waiting..."
-    sleep 6
-    ATTEMPT=$((ATTEMPT+1))
-done
+wait_for_server "$PORT" 30 6
+
 echo "Server is ready!"
 
 # Define the configuration as a JSON string
