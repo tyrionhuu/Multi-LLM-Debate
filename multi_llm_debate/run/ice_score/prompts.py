@@ -84,9 +84,7 @@ def build_ice_score_round_zero_prompt(
         "code snippet covers all required functionalities of the problem.\n"
         "3. Assign a score for functional correctness on a scale of 0 to 4, "
         "where 0 is the lowest and 4 is the highest based on the Evaluation "
-        "Criteria.\n"
-        + DIVIDER
-        + NEW_LINE
+        "Criteria.\n" + DIVIDER + NEW_LINE
     )
 
     if json_mode:
@@ -172,7 +170,7 @@ def build_ice_score_round_n_prompt(
         "- A score of 4 (passing all possible tests) means that the code "
         "snippet is totally correct and can handle all cases.\n"
     )
-    
+
     prompt += (
         "Evaluation Steps:\n"
         "1. Read the problem carefully and identify required functionalities "
@@ -181,9 +179,7 @@ def build_ice_score_round_n_prompt(
         "code snippet covers all required functionalities of the problem.\n"
         "3. Assign a score for functional correctness on a scale of 0 to 4, "
         "where 0 is the lowest and 4 is the highest based on the Evaluation "
-        "Criteria.\n"
-        + DIVIDER
-        + NEW_LINE
+        "Criteria.\n" + DIVIDER + NEW_LINE
     )
     if json_mode:
         prompt += "You MUST answer in the following JSON format:" + NEW_LINE
