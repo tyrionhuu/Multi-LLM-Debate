@@ -43,13 +43,13 @@ def build_ice_score_round_zero_prompt(
     json_mode: bool = False,
 ) -> str:
     """Build prompt for the initial round of judge evaluation.
-    
+
     Args:
         question: The user question to be evaluated
         response: Response from the AI assistant
         use_cot: Whether to use chain-of-thought prompting
         json_mode: Whether to return response in JSON format
-        
+
     Returns:
         str: The formatted prompt for judge evaluation
     """
@@ -59,7 +59,7 @@ def build_ice_score_round_zero_prompt(
         "Please make sure you read and understand these instructions carefully."
         "Please keep this document open while reviewing, and refer to it as needed."
     ) + NEW_LINE
-        
+
     prompt += (
         "Evaluation Criteria:\n"
         "Functional Correctness (0-4) - Execution-based quality of the code "
@@ -77,12 +77,17 @@ def build_ice_score_round_zero_prompt(
     ) + NEW_LINE
 
     prompt += (
-        "Evaluation Steps: \n"
-        "1. Read the problem carefully and identify required functionalities of the implementation.\n"
-        "2. Read the code snippet and compare it to the problem. Check if the code snippet covers all required functionalities of the problem.\n"
-        "3. Assign a score for functional correctness on a scale of 0 to 4, where 0 is the lowest and 4 is the highest based on the Evaluation Criteria.\n"
-    ) + NEW_LINE + DIVIDER + NEW_LINE
-    
+        (
+            "Evaluation Steps: \n"
+            "1. Read the problem carefully and identify required functionalities of the implementation.\n"
+            "2. Read the code snippet and compare it to the problem. Check if the code snippet covers all required functionalities of the problem.\n"
+            "3. Assign a score for functional correctness on a scale of 0 to 4, where 0 is the lowest and 4 is the highest based on the Evaluation Criteria.\n"
+        )
+        + NEW_LINE
+        + DIVIDER
+        + NEW_LINE
+    )
+
     if json_mode:
         prompt += "You MUST answer in the following JSON format:" + NEW_LINE
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
@@ -110,10 +115,10 @@ def build_ice_score_round_zero_prompt(
     prompt += response + NEW_LINE
     prompt += "[The End of the Code Snippet]" + NEW_LINE
     prompt += NEW_LINE + "Your answer:" + NEW_LINE
-    
+
     return prompt
 
-    
+
 def build_ice_score_round_n_prompt(
     question: str,
     response: str,
@@ -150,7 +155,7 @@ def build_ice_score_round_n_prompt(
         "displayed below. Consider the previous judges' evaluations, but make "
         "your own assessment. " + NEW_LINE
     )
-    
+
     prompt += (
         "Evaluation Criteria:\n"
         "Functional Correctness (0-4) - Execution-based quality of the code "
@@ -167,11 +172,16 @@ def build_ice_score_round_n_prompt(
         "snippet is totally correct and can handle all cases.\n"
     ) + NEW_LINE
     prompt += (
-        "Evaluation Steps: \n"
-        "1. Read the problem carefully and identify required functionalities of the implementation.\n"
-        "2. Read the code snippet and compare it to the problem. Check if the code snippet covers all required functionalities of the problem.\n"
-        "3. Assign a score for functional correctness on a scale of 0 to 4, where 0 is the lowest and 4 is the highest based on the Evaluation Criteria.\n"
-    ) + NEW_LINE + DIVIDER + NEW_LINE
+        (
+            "Evaluation Steps: \n"
+            "1. Read the problem carefully and identify required functionalities of the implementation.\n"
+            "2. Read the code snippet and compare it to the problem. Check if the code snippet covers all required functionalities of the problem.\n"
+            "3. Assign a score for functional correctness on a scale of 0 to 4, where 0 is the lowest and 4 is the highest based on the Evaluation Criteria.\n"
+        )
+        + NEW_LINE
+        + DIVIDER
+        + NEW_LINE
+    )
     if json_mode:
         prompt += "You MUST answer in the following JSON format:" + NEW_LINE
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
@@ -199,6 +209,20 @@ def build_ice_score_round_n_prompt(
     prompt += response + NEW_LINE
     prompt += "[The End of the Code Snippet]" + NEW_LINE
     prompt += NEW_LINE + "Your answer:" + NEW_LINE
-    
+
     return prompt
 
+
+if __name__ == "__main__":
+    # Example usage
+    question = "What is the sum of 2 and 3?"
+    response = "The sum of 2 and 3 is 5."
+    responses = [
+        "Judge 1: The response is correct.",
+        "Judge 2: The response is accurate.",
+    ]
+
+    prompt = build_ice_score_round_n_prompt(question, response, responses)
+    print(prompt)
+    # prompt = build_ice_score_round_zero_prompt(question, response)
+    # print(prompt)
