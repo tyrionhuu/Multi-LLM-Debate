@@ -54,11 +54,10 @@ def str_to_bool(input: str) -> Literal["0", "1"]:
         return "1"
     else:
         raise ValueError(
-            "Input string must start with 'yes' or 'no'. "
-            f"Received: {input}"
+            "Input string must start with 'yes' or 'no'. " f"Received: {input}"
         )
-    
-    
+
+
 def extract_0_1_answer(
     response: str,
 ) -> Literal["0", "1"]:
