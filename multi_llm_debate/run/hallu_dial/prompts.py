@@ -56,19 +56,19 @@ def build_hallu_dial_round_zero_prompt(
         str: The formatted prompt for judge evaluation
     """
     prompt = "As an assistant, your task is to serve as a response judge.\n" + NEW_LINE
-    
+
     prompt += (
         "Provided with the related knowledge, a dialogue history and a generated response, "
         "your objective is to determine if the generated response contains any hallucinated information that:\n"
         "1. Directly contradicts the given knowledge\n"
         "2. cannot be verified from the provided knowledge and dialogue context.\n"
     ) + NEW_LINE
-    
+
     prompt += (
         "If the response has hallucination, you should rate it as 1.\n"
         "If the response does not have hallucination, you should rate it as 0.\n"
-    )       
-    
+    )
+
     if json_mode:
         prompt += "You MUST answer in the following JSON format:" + NEW_LINE
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
@@ -96,7 +96,7 @@ def build_hallu_dial_round_zero_prompt(
     prompt += dialogue + NEW_LINE
     prompt += "[Response]" + NEW_LINE
     prompt += response + NEW_LINE + DIVIDER
-    
+
     prompt += NEW_LINE + "Your answer:" + NEW_LINE
 
     return prompt
@@ -124,24 +124,24 @@ def build_hallu_dial_round_n_prompt(
         str: The formatted prompt for judge evaluation
     """
     prompt = "As an assistant, your task is to serve as a response judge.\n" + NEW_LINE
-    
+
     prompt += (
         "Several other judges have provided evaluations of an AI assistant's response. "
         "Review their assessments, but make your own independent evaluation.\n"
     ) + NEW_LINE
-    
+
     prompt += (
         "Provided with the related knowledge, a dialogue history and a generated response, "
         "your objective is to determine if the generated response contains any hallucinated information that:\n"
         "1. Directly contradicts the given knowledge\n"
         "2. cannot be verified from the provided knowledge and dialogue context.\n"
     ) + NEW_LINE
-    
+
     prompt += (
         "If the response has hallucination, you should rate it as 1.\n"
         "If the response does not have hallucination, you should rate it as 0.\n"
-    )       
-    
+    )
+
     if json_mode:
         prompt += "You MUST answer in the following JSON format:" + NEW_LINE
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
@@ -162,20 +162,20 @@ def build_hallu_dial_round_n_prompt(
             + "Do not include any other text after 'Final Answer: 0' or 'Final Answer: 1'."
             + NEW_LINE
         )
-    
+
     prompt += DIVIDER + NEW_LINE
     prompt += "Previous judge evaluations:" + NEW_LINE
     for i, judge_response in enumerate(responses, 1):
         prompt += f"Judge {i}: {judge_response}" + NEW_LINE
     prompt += DIVIDER + NEW_LINE
-    
+
     prompt += "[Knowledge]" + NEW_LINE
     prompt += knowledge + NEW_LINE
     prompt += "[Dialogue]" + NEW_LINE
     prompt += dialogue + NEW_LINE
     prompt += "[Response]" + NEW_LINE
     prompt += response + NEW_LINE + DIVIDER
-    
+
     prompt += NEW_LINE + "Your answer:" + NEW_LINE
 
     return prompt
@@ -184,7 +184,9 @@ def build_hallu_dial_round_n_prompt(
 if __name__ == "__main__":
     # Example usage
     knowledge = "The Earth revolves around the Sun."
-    dialogue = "User: Tell me about Earth's orbit.\nAssistant: I'll explain Earth's orbit."
+    dialogue = (
+        "User: Tell me about Earth's orbit.\nAssistant: I'll explain Earth's orbit."
+    )
     response = "Earth orbits around the Sun once per year."
     responses = [
         "Judge 1: No hallucination detected. The response aligns with the provided knowledge.",
@@ -193,4 +195,3 @@ if __name__ == "__main__":
 
     prompt = build_hallu_dial_round_n_prompt(knowledge, dialogue, response, responses)
     print(prompt)
-

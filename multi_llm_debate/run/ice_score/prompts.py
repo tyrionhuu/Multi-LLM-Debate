@@ -88,7 +88,10 @@ def build_ice_score_round_zero_prompt(
     )
 
     if json_mode:
-        prompt += "You MUST answer in the following JSON format (x is an integer from 0 to 4):" + NEW_LINE
+        prompt += (
+            "You MUST answer in the following JSON format (x is an integer from 0 to 4):"
+            + NEW_LINE
+        )
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
             NEW_LINE
@@ -98,7 +101,10 @@ def build_ice_score_round_zero_prompt(
             + NEW_LINE
         )
     else:
-        prompt += "You MUST answer in the following format (x is an integer from 0 to 4):" + NEW_LINE
+        prompt += (
+            "You MUST answer in the following format (x is an integer from 0 to 4):"
+            + NEW_LINE
+        )
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
         prompt += (
             NEW_LINE
