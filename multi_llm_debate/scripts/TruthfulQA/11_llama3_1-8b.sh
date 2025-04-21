@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Define variables
+MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
+MODEL_QUANTITY=11
+
 # Parse command line arguments
 GPU="7"  # Default GPU
 while [[ $# -gt 0 ]]; do
@@ -28,9 +32,26 @@ else
     echo "Multi-LLM-Debate conda environment is already activated."
 fi
 
-# Define variables
-MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
-MODEL_QUANTITY=11
+# Define cleanup function
+cleanup() {
+    echo "Cleaning up..."
+    if [[ -n "$SERVER_PID" ]]; then
+        echo "Terminating VLLM server (PID: $SERVER_PID)..."
+        kill $SERVER_PID 2>/dev/null || true
+        # Wait a moment and force kill if still running
+        sleep 2
+        if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "Server still running, force killing..."
+            kill -9 $SERVER_PID 2>/dev/null || true
+        fi
+    fi
+    echo "Cleanup complete."
+    exit ${1:-0}
+}
+
+# Set trap to catch exit signals
+trap cleanup SIGINT SIGTERM EXIT
+
 # For port, use the first GPU in case of multiple GPUs
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
 PORT=$((8002 + FIRST_GPU * 10))
@@ -51,7 +72,7 @@ if [[ "$GPU" == *","* ]]; then
     fi
 else
     # Single GPU mode
-    CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 64000 &
+    CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 32000 &
 fi
 
 SERVER_PID=$!
@@ -60,12 +81,11 @@ SERVER_PID=$!
 echo "Waiting for server to start..."
 sleep 30
 MAX_ATTEMPTS=30
-ATTEMPT=1
+ATTEMPT=2
 while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
     if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
         echo "Server did not start after $MAX_ATTEMPTS attempts. Exiting."
-        kill $SERVER_PID
-        exit 1
+        cleanup 1
     fi
     echo "Attempt $ATTEMPT: Server not ready yet. Waiting..."
     sleep 6
@@ -96,5 +116,5 @@ python -m multi_llm_debate.run.truthful_qa.main \
     --pruning-amount 5 \
     --diversity-pruning "embedding" \
     
-# Kill the VLLM server process when done
-kill $SERVER_PID
+cleanup 1
+
