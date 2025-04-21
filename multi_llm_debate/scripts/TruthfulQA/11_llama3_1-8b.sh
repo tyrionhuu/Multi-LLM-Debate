@@ -80,7 +80,7 @@ SERVER_PID=$!
 # Wait for the server to be ready by checking the connection
 echo "Waiting for server to start..."
 sleep 30
-MAX_ATTEMPTS=60
+MAX_ATTEMPTS=100
 ATTEMPT=2
 while ! curl -s "http://localhost:${PORT}/v1/models" > /dev/null 2>&1; do
     if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
