@@ -53,8 +53,7 @@ def build_comp_analysis_round_zero_prompt(
     prompt = (
         "Please act as an impartial evaluator and analyze the quality of the "
         "response provided based on the given context. "
-        "Your evaluation should consider relevance, specificity, interestingness, "
-        "understandability, and overall quality."
+        "Please use the CONTEXT and RESPONSE to rate the context relevance, specificity, interestingness, understandability, and overall quality of the response on a scale of 1 to 5"
     )
     
     if use_cot:
@@ -72,3 +71,8 @@ def build_comp_analysis_round_zero_prompt(
     
     prompt += NEW_LINE + "Your response: "
     return prompt.format(context=context, response=response)
+
+print(build_comp_analysis_round_zero_prompt(
+    context="Is the sky blue?",
+    response="Yes, the sky is blue during the day due to the scattering of sunlight by the atmosphere.",
+))
