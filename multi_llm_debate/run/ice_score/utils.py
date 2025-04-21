@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
-from typing import Union
+from typing import Union, Literal
+import re
 
 import pandas as pd
 
@@ -32,3 +33,23 @@ def json_to_processed_df(json_path: Union[str, Path]):
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
     except Exception as e:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
+
+def extract_0_1_answer(
+    response: str,
+) -> Literal["1", "2"]:
+    """Extract the answer from the response string.
+
+    Args:
+        response: The response string from the LLM.
+
+    Returns:
+        Literal["0", "1"]: Answer "0" or "1".
+    """
+    # Try to find "Final Answer: X" pattern
+    match = re.search(r"Final Answer:\s*([01])", response)
+    if match:
+        return match.group(1)
+    else:
+        raise ValueError(
+            "No valid answer found in the response. Please ensure the response contains 'Final Answer: 0' or 'Final Answer: 1'."
+        )
