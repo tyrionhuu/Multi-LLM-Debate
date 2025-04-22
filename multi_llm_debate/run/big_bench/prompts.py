@@ -92,9 +92,7 @@ def build_big_bench_round_zero_prompt(
 
 
 def build_big_bench_round_n_prompt(
-    knowledge: str,
-    dialogue: str,
-    response: str,
+    input: str,
     responses: List[str | Dict],
     use_cot: bool = True,
     json_mode: bool = False,
@@ -102,33 +100,28 @@ def build_big_bench_round_n_prompt(
     """Build prompt for subsequent rounds of judge evaluation.
 
     Args:
-        knowledge: The knowledge context for the evaluation
-        dialogue: The dialogue context for the evaluation
-        response: Response from the AI assistant
-        responses: Previous responses from judge models
-        use_cot: Whether to use chain-of-thought prompting
-        json_mode: Whether to return response in JSON format
+        input (str): The input string for the evaluation.
+        responses (List[str | Dict]): Previous responses from judge models.
+        use_cot (bool): Whether to use chain-of-thought prompting.
+        json_mode (bool): Whether to return response in JSON format.
 
     Returns:
-        str: The formatted prompt for judge evaluation
+        str: The formatted prompt for judge evaluation.
     """
     prompt = "As an assistant, your task is to serve as a response judge.\n" + NEW_LINE
 
     prompt += (
-        "Several other judges have provided evaluations of an AI assistant's response. "
+        "Several other judges have provided evaluations. "
         "Review their assessments, but make your own independent evaluation.\n"
     ) + NEW_LINE
 
     prompt += (
-        "Provided with the related knowledge, a dialogue history and a generated response, "
-        "your objective is to determine if the generated response contains any hallucinated information that:\n"
-        "1. Directly contradicts the given knowledge\n"
-        "2. cannot be verified from the provided knowledge and dialogue context.\n"
+        "Determine whether the following statement is plausible or implausible."
     ) + NEW_LINE
 
     prompt += (
-        "If the response has hallucination, you should rate it as 1.\n"
-        "If the response does not have hallucination, you should rate it as 0.\n"
+        "If the statement is plausible, you should rate it as 1.\n"
+        "If the statement is implausible, you should rate it as 0.\n"
     )
 
     if json_mode:
@@ -157,15 +150,10 @@ def build_big_bench_round_n_prompt(
     for i, judge_response in enumerate(responses, 1):
         prompt += f"Judge {i}: {judge_response}" + NEW_LINE
     prompt += DIVIDER + NEW_LINE
-
-    prompt += "[Knowledge]" + NEW_LINE
-    prompt += knowledge + NEW_LINE
-    prompt += "[Dialogue]" + NEW_LINE
-    prompt += dialogue + NEW_LINE
-    prompt += "[Response]" + NEW_LINE
-    prompt += response + NEW_LINE + DIVIDER
-
-    prompt += NEW_LINE + "Your answer:" + NEW_LINE
+    prompt += "[Statement]" + NEW_LINE
+    prompt += input + NEW_LINE
+    prompt += DIVIDER + NEW_LINE
+    prompt += "Your answer:" + NEW_LINE
 
     return prompt
 
