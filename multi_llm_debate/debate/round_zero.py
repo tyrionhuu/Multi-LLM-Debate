@@ -2,7 +2,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
@@ -14,7 +14,8 @@ logger.setLevel(logging.INFO)
 def run_debate_round_zero(
     prompt: str,
     agents_ensemble: AgentsEnsemble,
-    output_dir: str | Path,
+    output_dir: Union[str, Path],
+    images: Union[str, Path, List[str], List[Path], None] = None,
     json_mode: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -29,7 +30,11 @@ def run_debate_round_zero(
         prompt: The initial prompt/question to start the debate.
         agents_ensemble: Collection of LLM agents participating in the debate.
         output_dir: Directory path where debate responses will be saved.
+        images (Union[str, Path, List[str], List[Path], None]): Optional image file paths
         json_mode: Whether to expect JSON responses from agents.
+        temperature: Sampling temperature for the model.
+        max_tokens: Maximum number of tokens in the response.
+        parallel: Whether to run in parallel.
 
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
@@ -53,6 +58,7 @@ def run_debate_round_zero(
         response_start_time = time.time()
         responses = agents_ensemble.get_responses(
             prompt=prompt,
+            images=images,
             json_mode=json_mode,
             temperature=temperature,
             max_tokens=max_tokens,
