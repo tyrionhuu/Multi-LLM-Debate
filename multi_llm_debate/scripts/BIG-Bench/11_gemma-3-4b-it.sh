@@ -106,14 +106,14 @@ CONFIG='[
 
 # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
-    --sample-size 5 \
     --config-json "$CONFIG"
+    # --sample-size 5 \
 # Run the evaluation using module path with direct JSON config
-# python -m multi_llm_debate.run.big_bench.main \
-#     --config-json "$CONFIG" \
-#     --task-name "big_bench_pruning" \
-#     --quality-pruning \
-#     --diversity-pruning "embedding" \
-#     --pruning-amount 5 \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+    --config-json "$CONFIG" \
+    --task-name "big_bench_pruning" \
+    --quality-pruning \
+    --diversity-pruning "embedding" \
+    --pruning-amount 5 \
 
 cleanup 1
