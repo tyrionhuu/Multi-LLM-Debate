@@ -38,9 +38,7 @@ def call_model(
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Union[
-        str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
-    ] = None,
+    images: Union[str, List[str], None] = None,
     api_key: Optional[str] = None,
 ) -> str:
     """Calls the OpenAI API with the provided parameters and returns the response.
@@ -55,8 +53,8 @@ def call_model(
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request. Defaults to 30.
-        images (Union[str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None]):
-            Image inputs when using vision models.
+        images (Union[str, List[str], None]):
+            Image file paths when using vision models.
         api_key (Optional[str]): The API key to use. Defaults to the one from config.
 
     Returns:
@@ -74,7 +72,7 @@ def call_model(
 
     try:
         # Process images if provided
-        processed_images = []
+        processed_images: List[str] = []
         if images is not None:
             # Convert single items to list
             if not isinstance(images, list):
@@ -86,16 +84,9 @@ def call_model(
                     if not os.path.exists(img):
                         raise ValueError(f"Image file not found: {img}")
                     processed_images.append(img)
-                elif isinstance(img, bytes):
-                    processed_images.append(img)
-                elif isinstance(img, Image.Image):
-                    # Convert PIL Image to bytes
-                    img_byte_arr = io.BytesIO()
-                    img.save(img_byte_arr, format=img.format or "PNG")
-                    processed_images.append(img_byte_arr.getvalue())
                 else:
                     raise ValueError(
-                        f"Invalid image type: {type(img)}. Expected str, bytes, or PIL Image."
+                        f"Invalid image type: {type(img)}. Expected str."
                     )
 
         # Use the API key from arguments or the global one
@@ -162,14 +153,14 @@ def call_model(
 
 def generate_api_messages(
     prompt: str,
-    images: Optional[List[Union[str, bytes]]] = None,
+    images: Optional[List[str]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Prepares the messages payload for the API call with optional images and a prompt.
 
     Args:
         prompt (str): The text prompt for the model.
-        images (Optional[list[str | bytes]]): List of image file paths or bytes objects.
+        images (Optional[List[str]]): List of image file paths.
             If None, returns text-only message format.
 
     Returns:
@@ -179,11 +170,7 @@ def generate_api_messages(
         return [{"role": "user", "content": prompt}]
 
     if len(images) == 1:
-        base64_image = (
-            encode_image(images[0])
-            if isinstance(images[0], str)
-            else base64.b64encode(images[0]).decode("utf-8")
-        )
+        base64_image = encode_image(images[0])
         messages = [
             {
                 "role": "user",
@@ -200,14 +187,7 @@ def generate_api_messages(
             }
         ]
     else:
-        base64_images = [
-            (
-                encode_image(img)
-                if isinstance(img, str)
-                else base64.b64encode(img).decode("utf-8")
-            )
-            for img in images
-        ]
+        base64_images = [encode_image(img) for img in images]
         content = [
             {
                 "type": "text",
