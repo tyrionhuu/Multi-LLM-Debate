@@ -55,7 +55,7 @@ def process_hallu_dial_dataset(
     Raises:
         ValueError: If DataFrame format is invalid
     """
-    required_columns = ["knowledge", "dialogue_history", "response"]
+    required_columns = ["knowledge", "dialogue", "response"]
 
     # Process the dataset for debates
     return process_debate_dataset(
@@ -121,7 +121,7 @@ def process_hallu_dial_entry(
         entry=entry,
         required_columns=[
             "knowledge",
-            "dialogue_history",
+            "dialogue",
             "response",
         ],
         base_dir=base_dir,
@@ -135,7 +135,7 @@ def process_hallu_dial_entry(
         ),
         prompt_params={
             "knowledge": entry["knowledge"],
-            "dialogue_history": entry["dialogue_history"],
+            "dialogue": entry["dialogue"],
             "response": entry["response"],
         },
         extract_func=extract_0_1_answer,
