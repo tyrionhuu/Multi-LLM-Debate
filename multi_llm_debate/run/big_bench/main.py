@@ -14,7 +14,7 @@ if __name__ == "__main__":
         task_name = args.task_name
     print(f"Running evaluation for task: {task_name}")
     # Load the dataset
-    json_data = Path("datasets/BIG-Bench/")
+    json_data = Path("datasets/BIG-Bench/sports_understanding/task.json")
     dataframe = load_big_bench_dataset(
         json_data,
     )

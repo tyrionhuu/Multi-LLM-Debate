@@ -14,7 +14,7 @@ if __name__ == "__main__":
         task_name = args.task_name
     print(f"Running evaluation for task: {task_name}")
     # Load the dataset
-    json_data = Path("datasets/HalluDial/")
+    json_data = Path("datasets/HalluDial/all_train.json")
     dataframe = load_hallu_dial_dataset(
         dataset_path=json_data,
     )
