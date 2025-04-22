@@ -54,15 +54,12 @@ def build_big_bench_round_zero_prompt(
     prompt = "As an assistant, your task is to serve as a response judge.\n" + NEW_LINE
 
     prompt += (
-        "Provided with the related knowledge, a dialogue history and a generated response, "
-        "your objective is to determine if the generated response contains any hallucinated information that:\n"
-        "1. Directly contradicts the given knowledge\n"
-        "2. cannot be verified from the provided knowledge and dialogue context.\n"
+        "Determine whether the following statement is plausible or implausible."
     ) + NEW_LINE
 
     prompt += (
-        "If the response has hallucination, you should rate it as 1.\n"
-        "If the response does not have hallucination, you should rate it as 0.\n"
+        "If the statement is plausible, you should rate it as 1.\n"
+        "If the statement is implausible, you should rate it as 0.\n"
     )
 
     if json_mode:
@@ -86,14 +83,10 @@ def build_big_bench_round_zero_prompt(
             + NEW_LINE
         )
     prompt += DIVIDER + NEW_LINE
-    prompt += "[Knowledge]" + NEW_LINE
-    prompt += knowledge + NEW_LINE
-    prompt += "[Dialogue]" + NEW_LINE
-    prompt += dialogue + NEW_LINE
-    prompt += "[Response]" + NEW_LINE
-    prompt += response + NEW_LINE + DIVIDER
-
-    prompt += NEW_LINE + "Your answer:" + NEW_LINE
+    prompt += "[Statement]" + NEW_LINE
+    prompt += input + NEW_LINE
+    prompt += DIVIDER + NEW_LINE
+    prompt += "Your answer:" + NEW_LINE
 
     return prompt
 
