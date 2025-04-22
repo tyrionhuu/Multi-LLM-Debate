@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
+from pathlib import Path
 
 
 class PromptBuilder:
@@ -10,6 +11,7 @@ class PromptBuilder:
         round_n_fn: Callable[..., str],
         prompt_params: Dict[str, Any],
         query: Optional[str] = None,
+        images: Union[str, Path, List[str], List[Path], None] = None,
     ):
         """
         Args:
@@ -17,11 +19,13 @@ class PromptBuilder:
             round_n_fn: Function to build subsequent round prompts
             prompt_params: Dictionary of parameters needed by prompt functions
             query: Optional query parameter for prompt building
+            images: Optional images parameter for prompt building
         """
         self.round_zero_fn = round_zero_fn
         self.round_n_fn = round_n_fn
         self.prompt_params = prompt_params
         self.query = query
+        self.images = images
 
     def build_round_zero(self) -> str:
         return self.round_zero_fn(**self.prompt_params)
