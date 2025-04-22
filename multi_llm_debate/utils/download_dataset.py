@@ -43,7 +43,10 @@ def _check_dataset_version(dataset_path: Path) -> bool:
 
 
 def load_save_huggingface_dataset(
-    dataset_name: str, dataset_path: Optional[Path] = None, force_download: bool = False
+    dataset_name: str, 
+    dataset_path: Optional[Path] = None, 
+    force_download: bool = False,
+    split: Optional[str] = None,
 ) -> Optional[Dataset]:
     """
     Load and save a Hugging Face dataset to disk.
@@ -53,6 +56,7 @@ def load_save_huggingface_dataset(
         dataset_path (Optional[Path]): The path to save the dataset to. If None,
             dataset will only be loaded without saving.
         force_download (bool): If True, download and replace existing dataset.
+        split (Optional[str]): The specific split of the dataset to load (e.g., 'train', 'test').
 
     Returns:
         Optional[Dataset]: The loaded dataset if successful, None otherwise.
@@ -98,7 +102,11 @@ def load_save_huggingface_dataset(
 
     if dataset is not None:
         try:
-            return dataset["train"]
+            if split:
+                dataset = dataset[split]
+            else:
+                # If no split is specified, return the first split available
+                dataset = next(iter(dataset.values()))  
         except KeyError:
             return dataset
     return None
@@ -108,6 +116,7 @@ def load_save_huggingface_dataset_df(
     dataset_name: str,
     dataset_path: Optional[Path] = None,
     force_download: bool = False,
+    split: Optional[str] = None,
 ) -> Optional[pd.DataFrame]:
     """
     Load and save a Hugging Face dataset to disk as a pandas DataFrame.
@@ -117,7 +126,8 @@ def load_save_huggingface_dataset_df(
         dataset_path (Optional[Path]): The path to save the dataset to. If None,
             dataset will only be loaded without saving.
         force_download (bool): If True, download and replace existing dataset.
-
+        split (Optional[str]): The specific split of the dataset to load (e.g., 'train', 'test').
+        
     Returns:
         Optional[pd.DataFrame]: The loaded dataset as a pandas DataFrame if successful,
         None otherwise.
@@ -127,6 +137,7 @@ def load_save_huggingface_dataset_df(
             dataset_name=dataset_name,
             dataset_path=dataset_path,
             force_download=force_download,
+            split=split,
         )
         if dataset:
             df = dataset.to_pandas()
@@ -142,6 +153,7 @@ def load_save_dataset_df(
     dataset_name: str,
     dataset_path: Optional[Path] = None,
     force_download: bool = False,
+    split: Optional[str] = None,
 ) -> Optional[pd.DataFrame]:
     """
     Load and save a dataset to disk as a pandas DataFrame.
@@ -160,6 +172,7 @@ def load_save_dataset_df(
         dataset_name=dataset_name,
         dataset_path=dataset_path,
         force_download=force_download,
+        split=split,
     )
 
 
