@@ -42,3 +42,8 @@ def load_judge_lm_dataset(
         df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
 
     return df
+
+if __name__ == "__main__":
+    # Example usage
+    dataset = load_judge_lm_dataset()
+    print(dataset.head())
