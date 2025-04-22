@@ -105,7 +105,7 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.big_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
     --sample-size 5 \
     --config-json "$CONFIG"
 # Run the evaluation using module path with direct JSON config
