@@ -1,8 +1,9 @@
 import concurrent.futures
 import logging
 import time
-from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
 from tqdm import tqdm
 
 from ..utils.config_manager import get_models
@@ -323,7 +324,7 @@ class AgentsEnsemble:
             max_tokens: Maximum tokens
             temperature: Temperature setting
             images: Image file paths for vision models.
-            
+
         Returns:
             List of responses from all agents in the group
         """
