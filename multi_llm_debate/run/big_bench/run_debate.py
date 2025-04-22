@@ -8,7 +8,7 @@ from ...llm.prompt_builder import PromptBuilder
 from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ..shared.run import process_debate_dataset, process_single_debate_entry
-from .prompts import build_hallu_dial_round_n_prompt, build_hallu_dial_round_zero_prompt
+from .prompts import build_big_bench_round_n_prompt, build_big_bench_round_zero_prompt
 from .utils import extract_0_1_answer
 
 # Fix the setup_logging call by removing the level parameter
@@ -16,10 +16,10 @@ logger = setup_logging(__name__)
 logger.setLevel(logging.INFO)
 
 
-def process_hallu_dial_dataset(
+def process_big_bench_dataset(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,
-    base_dir: Path = Path("data") / "hallu_dial",
+    base_dir: Path = Path("data") / "big_bench",
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
     max_workers: Optional[int] = 4,
@@ -31,7 +31,7 @@ def process_hallu_dial_dataset(
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
-    """Run the Ice Score task on a DataFrame.
+    """Run the BIG-Bench task on a DataFrame.
 
     Args:
         dataframe: Pandas DataFrame containing input, response, id
@@ -55,19 +55,19 @@ def process_hallu_dial_dataset(
     Raises:
         ValueError: If DataFrame format is invalid
     """
-    required_columns = ["knowledge", "dialogue_history", "response"]
+    required_columns = ["input"]
 
     # Process the dataset for debates
     return process_debate_dataset(
         dataframe=dataframe,
-        process_entry_fn=process_hallu_dial_entry,
+        process_entry_fn=process_big_bench_entry,
         required_columns=required_columns,
         base_dir=base_dir,
         max_rounds=max_rounds,
         model_configs=model_configs,
         overwrite=overwrite,
         max_workers=max_workers,
-        task_name="HalluDial",
+        task_name="BIG-Bench",
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
@@ -78,11 +78,11 @@ def process_hallu_dial_dataset(
     )
 
 
-def process_hallu_dial_entry(
+def process_big_bench_entry(
     entry: pd.Series,
     max_rounds: int = 10,
     model_configs: Optional[List[ModelConfig]] = None,
-    base_dir: Path = Path("data") / "hallu_dial",
+    base_dir: Path = Path("data") / "big_bench",
     overwrite: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -92,7 +92,7 @@ def process_hallu_dial_entry(
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
-    """Process a single entry for the HalluDial task.
+    """Process a single entry for the BIG-Bench task.
 
     Args:
         entry: Pandas Series containing the entry data
@@ -115,28 +115,24 @@ def process_hallu_dial_entry(
     Raises:
         ValueError: If entry format is invalid
     """
-    logger.info(f"Processing entry ID: {entry['id']} for HalluDial task")
+    logger.info(f"Processing entry ID: {entry['id']} for BIG-Bench task")
 
     process_single_debate_entry(
         entry=entry,
         required_columns=[
-            "knowledge",
-            "dialogue_history",
-            "response",
+            "input",
         ],
         base_dir=base_dir,
         max_rounds=max_rounds,
         model_configs=model_configs,
         overwrite=overwrite,
         prompt_builder_fn=lambda prompt_params: PromptBuilder(
-            round_zero_fn=build_hallu_dial_round_zero_prompt,
-            round_n_fn=build_hallu_dial_round_n_prompt,
+            round_zero_fn=build_big_bench_round_zero_prompt,
+            round_n_fn=build_big_bench_round_n_prompt,
             prompt_params=prompt_params,
         ),
         prompt_params={
-            "knowledge": entry["knowledge"],
-            "dialogue_history": entry["dialogue_history"],
-            "response": entry["response"],
+            "input": entry["input"],
         },
         extract_func=extract_0_1_answer,
         temperature=temperature,
