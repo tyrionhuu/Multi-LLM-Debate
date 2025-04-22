@@ -51,7 +51,11 @@ def build_big_bench_round_zero_prompt(
     Returns:
         str: The formatted prompt for plausibility evaluation
     """
-    prompt = "Determine whether the following statement is plausible or implausible." + NEW_LINE + NEW_LINE
+    prompt = (
+        "Determine whether the following statement is plausible or implausible."
+        + NEW_LINE
+        + NEW_LINE
+    )
 
     prompt += "# Statement:" + NEW_LINE
     prompt += statement + NEW_LINE + NEW_LINE
@@ -66,7 +70,7 @@ def build_big_bench_round_zero_prompt(
             + NEW_LINE
         )
     else:
-        prompt += "If the statement is plausible, you MUST ONLY output 1. " 
+        prompt += "If the statement is plausible, you MUST ONLY output 1. "
         prompt += "If it's implausible, you MUST ONLY output 0. "
         prompt += "You SHOULD NOT output anything else!" + NEW_LINE
 
