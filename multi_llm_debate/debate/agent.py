@@ -1,8 +1,8 @@
 import json
 import logging
 import time
-from typing import Any, Dict, Optional
-
+from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
 from ..llm.llm import call_model
 from ..utils.logging_config import setup_logging
 
@@ -61,6 +61,7 @@ class Agent:
     def respond(
         self,
         prompt: str,
+        images: Union[str, Path, List[str], List[Path], None] = None,
         json_mode: bool = False,
         timeout: Optional[int] = None,
         max_retries: int = 0,
@@ -72,6 +73,8 @@ class Agent:
 
         Args:
             prompt (str): The input prompt to send to the language model.
+            images (Union[str, Path, List[str], List[Path], None], optional):
+                Image file paths for vision models. Can be a single path or a list.
             json_mode (bool, optional): Whether to expect JSON response.
                 Defaults to False.
             timeout (Optional[int], optional): Maximum time to wait for response
@@ -110,6 +113,22 @@ class Agent:
         errors = []
         retry_delay = 1.0  # Default retry delay in seconds
 
+        if images:
+            # Convert single image input to list for consistency
+            if not isinstance(images, list):
+                images = [images]
+
+            # Validate all images
+            for img in images:
+                if isinstance(img, (str, Path)):
+                    img_path = Path(img)
+                    if not img_path.exists():
+                        raise ValueError(f"Image file {img_path} does not exist.")
+                else:
+                    raise ValueError(
+                        f"Invalid image type: {type(img)}. Expected str or Path."
+                    )
+                    
         # Try up to max_retries + 1 times (original attempt + retries)
         for attempt in range(max_retries + 1):
             try:
@@ -127,6 +146,7 @@ class Agent:
                     model_name=self.model,
                     base_url=self.base_url,
                     prompt=prompt,
+                    images=images if images else None,
                     json_mode=json_mode,
                     max_tokens=max_tokens,
                     timeout=timeout,
