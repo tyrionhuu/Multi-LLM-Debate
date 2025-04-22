@@ -84,7 +84,7 @@ def debate(
 
     all_responses = []
     images = prompt_builder.images
-    
+
     try:
         for i in range(max_rounds):
             logger.info(f"Starting debate round {i}")
@@ -95,7 +95,7 @@ def debate(
                 round_responses = run_debate_with_retry(
                     max_rounds=max_rounds,
                     prompt=prompt,
-                    images=images,          
+                    images=images,
                     agents_ensemble=agents_ensemble,
                     output_dir=temp_dir,
                     round_num=i,
