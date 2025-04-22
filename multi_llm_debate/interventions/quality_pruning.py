@@ -12,7 +12,7 @@ def quality_pruning(
     responses: List[str],
     input: str,
     selected_amount: int = 5,
-    model: SentenceTransformer = SentenceTransformer("all-MiniLM-L6-v2"),
+    model: SentenceTransformer = None,
     output_dir: Union[str, Path] = None,
     round_number: int = 0,
 ) -> List[str]:
@@ -34,9 +34,7 @@ def quality_pruning(
         A list of selected response strings that are most similar to the input.
     """
     if model is None:
-        raise ValueError(
-            "A SentenceTransformer model must be provided for quality pruning."
-        )
+        model = SentenceTransformer("all-MiniLM-L6-v2")
 
     if input is None or len(input.strip()) == 0:
         return responses
