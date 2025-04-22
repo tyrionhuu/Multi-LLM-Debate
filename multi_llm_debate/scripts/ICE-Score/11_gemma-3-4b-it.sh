@@ -106,14 +106,13 @@ CONFIG='[
 
 # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
-    --sample-size 5 \
-#     --config-json "$CONFIG"
-# # Run the evaluation using module path with direct JSON config
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
-#     --config-json "$CONFIG" \
-#     --task-name "ice_score_pruning" \
-#     --quality-pruning \
-#     --diversity-pruning "embedding" \
-#     --pruning-amount 5 \
+    --config-json "$CONFIG"
+# Run the evaluation using module path with direct JSON config
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
+    --config-json "$CONFIG" \
+    --task-name "ice_score_pruning" \
+    --quality-pruning \
+    --diversity-pruning "embedding" \
+    --pruning-amount 5 \
 
 cleanup 1
