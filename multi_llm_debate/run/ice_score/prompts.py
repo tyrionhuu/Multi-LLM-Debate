@@ -53,6 +53,12 @@ def build_ice_score_round_zero_prompt(
     Returns:
         str: The formatted prompt for judge evaluation
     """
+    # Convert question and response to strings if they are lists (for backward compatibility)
+    if isinstance(question, list):
+        question = NEW_LINE.join(question)
+    if isinstance(response, list):
+        response = NEW_LINE.join(response)
+
     prompt = (
         "You will be given the code snippet for a problem. "
         "Your task is to rate the code snippet only on one metric."
@@ -143,6 +149,12 @@ def build_ice_score_round_n_prompt(
     Returns:
         str: The formatted prompt for judge evaluation
     """
+    # Convert question and response to strings if they are lists (for backward compatibility)
+    if isinstance(question, list):
+        question = NEW_LINE.join(question)
+    if isinstance(response, list):
+        response = NEW_LINE.join(response)
+
     prompt = (
         "Several other judges have provided evaluations of an AI assistant's code "
         "to a problem given by the user. "
