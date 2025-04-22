@@ -65,14 +65,14 @@ if [[ "$GPU" == *","* ]]; then
     if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
         echo "Using tensor parallelism with 2 GPUs"
         # Start VLLM server with tensor parallelism
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --tensor-parallel-size 2 --gpu-memory-utilization 0.95 &
+        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --tensor-parallel-size 2 --gpu-memory-utilization 0.8 &
     else
         echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
         exit 1
     fi
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.95 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.8 &
 fi
 
 SERVER_PID=$!
@@ -105,11 +105,11 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.ice_score.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
     --sample-size 5 \
-    --config-json "$CONFIG"
-# Run the evaluation using module path with direct JSON config
-# python -m multi_llm_debate.run.ice_score.main \
+#     --config-json "$CONFIG"
+# # Run the evaluation using module path with direct JSON config
+# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
 #     --config-json "$CONFIG" \
 #     --task-name "ice_score_pruning" \
 #     --quality-pruning \

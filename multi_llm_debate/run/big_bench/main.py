@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Load the dataset
     json_data = Path("datasets/BIG-Bench/")
     dataframe = load_big_bench_dataset(
-        dataset_path=json_data,
+        json_data,
     )
 
     shared_main(
