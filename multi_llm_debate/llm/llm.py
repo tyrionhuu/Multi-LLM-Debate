@@ -84,9 +84,7 @@ def call_model(
                         raise ValueError(f"Image file not found: {img}")
                     processed_images.append(img)
                 else:
-                    raise ValueError(
-                        f"Invalid image type: {type(img)}. Expected str."
-                    )
+                    raise ValueError(f"Invalid image type: {type(img)}. Expected str.")
 
         # Use the API key from arguments or the global one
         api_key_to_use = api_key or KEY
