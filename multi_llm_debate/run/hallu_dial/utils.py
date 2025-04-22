@@ -16,7 +16,7 @@ def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
 
     Returns:
         pd.DataFrame: DataFrame containing the data from the JSON file,
-            with columns 'id', 'knowledge', 'dialogue_history', 'response',
+            with columns 'id', 'knowledge', 'dialogue', 'response',
             and 'answer'. The 'answer' column is derived from the 'target'
             field using the str_to_bool function. Entries without valid yes/no
             answers are filtered out.
@@ -33,8 +33,10 @@ def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
         df["answer"] = df["target"].apply(str_to_bool)
         # Filter out rows with None in the 'answer' column
         df = df.dropna(subset=["answer"])
+        # Rename 'dialogue_history' to 'dialogue'
+        df = df.rename(columns={"dialogue_history": "dialogue"})
         # Select and reorder columns
-        df = df[["knowledge", "dialogue_history", "response", "answer"]]
+        df = df[["knowledge", "dialogue", "response", "answer"]]
         df.insert(0, "id", range(len(df)))
         return df
     except ValueError as e:
