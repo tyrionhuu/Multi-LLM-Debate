@@ -3,7 +3,7 @@ import csv
 import random
 import time
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
 
@@ -38,7 +38,6 @@ def execute_debate_workflow(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
-    images: Union[str, Path, List[str], List[Path], None] = None,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -59,7 +58,6 @@ def execute_debate_workflow(
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
-        images: Optional image file paths for the debate
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
@@ -100,7 +98,6 @@ def execute_debate_workflow(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
-        images=images,
         quality_pruning_func=quality_pruning_func,
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
@@ -226,7 +223,6 @@ def _process_single_entry_worker(
     max_tokens: int,
     parallel: bool,
     process_entry_fn: Callable,
-    images: Union[str, Path, List[str], List[Path], None] = None,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -244,7 +240,6 @@ def _process_single_entry_worker(
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
         process_entry_fn: Function to process a single entry
-        images: Optional image file paths for the debate
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
@@ -263,7 +258,6 @@ def _process_single_entry_worker(
             temperature=temperature,
             max_tokens=max_tokens,
             parallel=parallel,
-            images=images,
             quality_pruning_func=quality_pruning_func,
             quality_pruning_amount=quality_pruning_amount,
             diversity_pruning_func=diversity_pruning_func,
@@ -287,7 +281,6 @@ def process_debate_dataset(
     required_columns: List[str],
     base_dir: Path,
     max_rounds: int = 10,
-    images: Union[str, Path, List[str], List[Path], None] = None,
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
     max_workers: int = 4,
@@ -308,7 +301,6 @@ def process_debate_dataset(
         required_columns: List of column names required in the dataframe
         base_dir: Base directory for output files
         max_rounds: Maximum number of debate rounds
-        images: Optional image file paths for the debate
         model_configs: Optional list of model configurations
         overwrite: Whether to overwrite existing debate results
         max_workers: Maximum number of concurrent workers
@@ -373,7 +365,6 @@ def process_debate_dataset(
                             max_tokens=max_tokens,
                             parallel=parallel,
                             process_entry_fn=process_entry_fn,
-                            images=images,
                             quality_pruning_func=quality_pruning_func,
                             quality_pruning_amount=quality_pruning_amount,
                             diversity_pruning_func=diversity_pruning_func,
@@ -408,7 +399,6 @@ def process_debate_dataset(
                             temperature=temperature,
                             max_tokens=max_tokens,
                             parallel=parallel,
-                            images=images,
                             quality_pruning_func=quality_pruning_func,
                             quality_pruning_amount=quality_pruning_amount,
                             diversity_pruning_func=diversity_pruning_func,
@@ -471,7 +461,6 @@ def process_single_debate_entry(
     overwrite: bool,
     prompt_builder_fn: Callable[..., PromptBuilder],
     prompt_params: Dict[str, Any],
-    images: Union[str, Path, List[str], List[Path], None] = None,
     extract_func: Optional[Callable[..., Any]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -493,7 +482,6 @@ def process_single_debate_entry(
         overwrite: Whether to overwrite existing files.
         prompt_builder_fn: Function returning a prompt builder.
         prompt_params: Parameters used to build prompts.
-        images: Optional image file paths for the debate.
         extract_func: Optional function for post-processing responses.
         temperature: Temperature for model responses.
         max_tokens: Maximum tokens for model responses.
@@ -536,7 +524,6 @@ def process_single_debate_entry(
         agents_ensemble=agents_ensemble,
         output_dir=output_dir,
         extract_func=extract_func,
-        images=images,
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,

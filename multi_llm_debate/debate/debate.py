@@ -20,7 +20,6 @@ def debate(
     prompt_builder: PromptBuilder,
     agents_ensemble: AgentsEnsemble,
     extract_func: Callable,
-    images: Union[str, Path, List[str], List[Path], None] = None,
     output_dir: Optional[Union[str, Path]] = None,
     json_mode: bool = False,
     max_retries: int = 3,
@@ -43,7 +42,6 @@ def debate(
         max_rounds: Maximum number of debate rounds to run.
         prompt_builder: PromptBuilder instance to generate prompts for each round.
         agents_ensemble: Collection of LLM agents participating in the debate.
-        images: Optional image file paths for vision models.
         output_dir: Directory path where debate responses will be saved.
         json_mode: Whether to use JSON mode for responses.
         extract_func: Function to process answers from responses.
@@ -96,7 +94,6 @@ def debate(
                 round_responses = run_debate_with_retry(
                     max_rounds=max_rounds,
                     prompt=prompt,
-                    images=images,
                     agents_ensemble=agents_ensemble,
                     output_dir=temp_dir,
                     round_num=i,
@@ -127,9 +124,6 @@ def debate(
                     logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
                     raise
 
-                # Initialize pruned_responses with extracted_responses before any pruning
-                pruned_responses = extracted_responses
-
                 # Apply quality pruning if specified
                 if quality_pruning_func:
                     logger.info(
@@ -155,7 +149,7 @@ def debate(
                     pruned_dir.mkdir(parents=True, exist_ok=True)
 
                     pruned_responses = diversity_pruning_func(
-                        responses=pruned_responses,  # Use already pruned responses if quality pruning was applied
+                        responses=extracted_responses,
                         selected_amount=diversity_pruning_amount,
                         extract_func=extract_func,
                         round_number=i,
@@ -168,7 +162,6 @@ def debate(
                 round_responses = run_debate_with_retry(
                     max_rounds=max_rounds,
                     prompt=prompt,
-                    images=images,
                     agents_ensemble=agents_ensemble,
                     output_dir=temp_dir,
                     round_num=i,
@@ -228,7 +221,6 @@ def run_debate_with_retry(
     output_dir: Union[str, Path],
     round_num: int,
     extract_func: Callable,
-    images: Union[str, Path, List[str], List[Path], None] = None,
     json_mode: bool = False,
     max_retries: int = 3,
     temperature: float = 1.0,
@@ -247,7 +239,6 @@ def run_debate_with_retry(
         output_dir: Directory path for saving debate responses.
         round_num: The current round number.
         extract_func: Function to process responses between rounds.
-        images (Union[str, Path, List[str], List[Path], None]): Optional image file paths
         json_mode: Whether to expect JSON responses from agents.
         max_retries: Maximum retry attempts for the round.
         temperature: Sampling temperature for the model.
@@ -295,7 +286,6 @@ def run_debate_with_retry(
             if round_num == 0:
                 responses = run_debate_round_zero(
                     prompt=prompt,
-                    images=images,
                     agents_ensemble=agents_ensemble,
                     output_dir=output_dir,
                     json_mode=json_mode,
@@ -306,7 +296,6 @@ def run_debate_with_retry(
             else:
                 responses = run_debate_round_n(
                     prompt=prompt,
-                    images=images,
                     agents_ensemble=agents_ensemble,
                     output_dir=output_dir,
                     round_num=round_num,
