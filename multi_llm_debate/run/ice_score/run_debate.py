@@ -34,7 +34,7 @@ def process_ice_score_dataset(
     """Run the Ice Score task on a DataFrame.
 
     Args:
-        dataframe: Pandas DataFrame containing input, response, id
+        dataframe: Pandas DataFrame containing question, response, id
         max_rounds: Maximum number of debate rounds
         base_dir: Base directory for output files
         model_configs: Optional list of model configurations. If None,
@@ -56,7 +56,7 @@ def process_ice_score_dataset(
         ValueError: If DataFrame format is invalid
     """
     required_columns = [
-        "input",
+        "question",
         "response",
         "id",
     ]
@@ -124,7 +124,7 @@ def process_ice_score_entry(
     process_single_debate_entry(
         entry=entry,
         required_columns=[
-            "input",
+            "question",
             "response",
             "id",
         ],
@@ -136,10 +136,10 @@ def process_ice_score_entry(
             round_zero_fn=build_ice_score_round_zero_prompt,
             round_n_fn=build_ice_score_round_n_prompt,
             prompt_params=prompt_params,
-            query=entry["input"],
+            query=entry["question"],
         ),
         prompt_params={
-            "input": entry["input"],
+            "question": entry["question"],
             "response": entry["response"],
         },
         extract_func=extract_0_4_answer,

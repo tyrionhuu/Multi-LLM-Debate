@@ -1,7 +1,7 @@
 import json
 import re
 from pathlib import Path
-from typing import Literal, Union
+from typing import Union
 
 import pandas as pd
 
@@ -15,7 +15,7 @@ def load_ice_score_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
 
     Returns:
         pd.DataFrame: DataFrame containing the data from the JSON file,
-            with columns 'id', 'input', 'response', and 'answer'.
+            with columns 'id', 'question', 'response', and 'answer'.
     """
     json_path = Path(json_path)
 
@@ -30,8 +30,8 @@ def load_ice_score_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
             for item in data
         ]
         df = pd.DataFrame(data)
-        df = df.rename(columns={"intent": "input", "snippet": "response"})
-        df = df[["input", "response"]]
+        df = df.rename(columns={"intent": "question", "snippet": "response"})
+        df = df[["question", "response"]]
         df.insert(0, "id", range(len(df)))
         df["answer"] = answers
         return df
