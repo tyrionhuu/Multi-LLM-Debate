@@ -233,14 +233,14 @@ class AgentsEnsemble:
                 for model, agents_group in model_groups.items():
                     future = executor.submit(
                         self._process_agent_group,
-                        agents_group,
-                        prompt,
-                        json_mode,
-                        images,
-                        max_retries,
-                        api_key,
-                        max_tokens,
-                        temperature,
+                        agents=agents_group,
+                        prompt=prompt,
+                        json_mode=json_mode,
+                        images=images,
+                        max_retries=max_retries,
+                        api_key=api_key,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
                     )
                     model_futures[future] = model
 
@@ -275,9 +275,9 @@ class AgentsEnsemble:
                 )
                 try:
                     response = self._get_response_with_retry(
-                        agent,
-                        prompt,
-                        json_mode,
+                        agent=agent,
+                        prompt=prompt,
+                        json_mode=json_mode,
                         images=images,
                         max_retries=max_retries,
                         api_key=api_key,
@@ -337,9 +337,9 @@ class AgentsEnsemble:
         for agent in agents:
             try:
                 response = self._get_response_with_retry(
-                    agent,
-                    prompt,
-                    json_mode,
+                    agent=agent,
+                    prompt=prompt,
+                    json_mode=json_mode,
                     images=images,
                     max_retries=max_retries,
                     api_key=api_key,
