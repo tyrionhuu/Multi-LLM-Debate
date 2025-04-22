@@ -1,8 +1,8 @@
 import concurrent.futures
 import logging
 import time
-from typing import Any, Dict, List, Optional
-
+from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
 from tqdm import tqdm
 
 from ..utils.config_manager import get_models
@@ -122,6 +122,7 @@ class AgentsEnsemble:
         agent: Agent,
         prompt: str,
         json_mode: bool,
+        images: Union[str, Path, List[str], List[Path], None] = None,
         max_retries: Optional[int] = None,
         api_key: Optional[str] = None,
         max_tokens: int = 6400,
@@ -133,6 +134,8 @@ class AgentsEnsemble:
             agent (Agent): The agent to get a response from.
             prompt (str): The input prompt to send to the agent.
             json_mode (bool): Whether to expect JSON response.
+            images (Union[str, Path, List[str], List[Path], None], optional):
+                Image file paths for vision models. Can be a single path or a list.
             max_retries (Optional[int], optional): Maximum number of retry attempts.
                 If None, use the ensemble's default max_retries. Defaults to None.
             api_key (Optional[str], optional): API key to use for this request.
@@ -156,7 +159,8 @@ class AgentsEnsemble:
             # No retries, call agent.respond directly
             logger.debug(f"No retries set for agent {agent.agent_id} ({agent.model})")
             return agent.respond(
-                prompt,
+                prompt=prompt,
+                images=images,
                 json_mode=json_mode,
                 timeout=int(self.timeout),
                 max_retries=0,
@@ -170,7 +174,8 @@ class AgentsEnsemble:
             f"Using {retries} retries for agent {agent.agent_id} ({agent.model})"
         )
         return agent.respond(
-            prompt,
+            prompt=prompt,
+            images=images,
             json_mode=json_mode,
             timeout=int(self.timeout),
             max_retries=retries,
@@ -182,6 +187,7 @@ class AgentsEnsemble:
     def get_responses(
         self,
         prompt: str,
+        images: Union[str, Path, List[str], List[Path], None] = None,
         json_mode: bool = False,
         max_retries: Optional[int] = None,
         api_key: Optional[str] = None,
@@ -193,6 +199,8 @@ class AgentsEnsemble:
 
         Args:
             prompt (str): Prompt to send.
+            images (Union[str, Path, List[str], List[Path], None]): Image file paths
+                for vision models. Can be a single path or a list.
             json_mode (bool): Expect JSON responses.
             max_retries (Optional[int]): Max retries.
             api_key (Optional[str]): API key.
@@ -228,6 +236,7 @@ class AgentsEnsemble:
                         agents_group,
                         prompt,
                         json_mode,
+                        images,
                         max_retries,
                         api_key,
                         max_tokens,
@@ -269,6 +278,7 @@ class AgentsEnsemble:
                         agent,
                         prompt,
                         json_mode,
+                        images=images,
                         max_retries=max_retries,
                         api_key=api_key,
                         max_tokens=max_tokens,
@@ -300,6 +310,7 @@ class AgentsEnsemble:
         api_key: Optional[str],
         max_tokens: int,
         temperature: float,
+        images: Union[str, Path, List[str], List[Path], None] = None,
     ) -> List[Dict[str, Any]]:
         """Process a group of agents with the same model.
 
@@ -311,7 +322,8 @@ class AgentsEnsemble:
             api_key: Optional API key
             max_tokens: Maximum tokens
             temperature: Temperature setting
-
+            images: Image file paths for vision models.
+            
         Returns:
             List of responses from all agents in the group
         """
@@ -328,6 +340,7 @@ class AgentsEnsemble:
                     agent,
                     prompt,
                     json_mode,
+                    images=images,
                     max_retries=max_retries,
                     api_key=api_key,
                     max_tokens=max_tokens,
