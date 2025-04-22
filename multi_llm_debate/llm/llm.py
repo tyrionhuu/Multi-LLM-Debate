@@ -38,7 +38,6 @@ def call_model(
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    vision: bool = False,
     images: Union[
         str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None
     ] = None,
@@ -46,7 +45,7 @@ def call_model(
 ) -> str:
     """Calls the OpenAI API with the provided parameters and returns the response.
 
-    Can handle both text-only and vision models based on the vision parameter.
+    Can handle both text-only and vision models based on the presence of images.
 
     Args:
         model_name (str): The name of the model to use.
@@ -56,7 +55,6 @@ def call_model(
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request. Defaults to 30.
-        vision (bool): Whether to use vision models.
         images (Union[str, List[str], bytes, List[bytes], Image.Image, List[Image.Image], None]):
             Image inputs when using vision models.
         api_key (Optional[str]): The API key to use. Defaults to the one from config.
@@ -77,7 +75,7 @@ def call_model(
     try:
         # Process images if provided
         processed_images = []
-        if vision and images is not None:
+        if images is not None:
             # Convert single items to list
             if not isinstance(images, list):
                 images = [images]
@@ -105,7 +103,7 @@ def call_model(
 
         # Generate API messages
         messages = generate_api_messages(
-            prompt=prompt, images=processed_images if vision else None
+            prompt=prompt, images=processed_images if images is not None else None
         )
 
         # Initialize OpenAI client with timeout and base_url if provided
