@@ -31,7 +31,12 @@ def load_judge_lm_dataset(
     df = None
     dataset_path = Path(dataset_path)
     try:
-        df = load_save_huggingface_dataset_df(dataset_name, dataset_path)
+        df = load_save_huggingface_dataset_df(
+            dataset_name=dataset_name,
+            dataset_path=dataset_path,
+            split="train",
+            force_download=False,
+        )
         logger.info("Loaded JudgeLM dataset from Hugging Face.")
     except Exception as e:
         logger.error(f"Failed to load dataset from Hugging Face: {e}")
@@ -45,5 +50,9 @@ def load_judge_lm_dataset(
 
 if __name__ == "__main__":
     # Example usage
-    dataset = load_judge_lm_dataset()
+    dataset = load_judge_lm_dataset(
+        dataset_name="BAAI/JudgeLM-100K",
+        dataset_path=Path("datasets/JudgeLM"),
+        random_state=42,
+    )
     print(dataset.head())
