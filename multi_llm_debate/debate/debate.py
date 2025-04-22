@@ -124,6 +124,9 @@ def debate(
                     logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
                     raise
 
+                # Initialize pruned_responses with extracted_responses before any pruning
+                pruned_responses = extracted_responses
+
                 # Apply quality pruning if specified
                 if quality_pruning_func:
                     logger.info(
@@ -149,7 +152,7 @@ def debate(
                     pruned_dir.mkdir(parents=True, exist_ok=True)
 
                     pruned_responses = diversity_pruning_func(
-                        responses=extracted_responses,
+                        responses=pruned_responses,  # Use already pruned responses if quality pruning was applied
                         selected_amount=diversity_pruning_amount,
                         extract_func=extract_func,
                         round_number=i,
