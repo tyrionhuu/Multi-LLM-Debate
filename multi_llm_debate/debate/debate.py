@@ -83,7 +83,8 @@ def debate(
     logger.debug(f"Created temporary directory for debate: {temp_dir}")
 
     all_responses = []
-
+    images = prompt_builder.images
+    
     try:
         for i in range(max_rounds):
             logger.info(f"Starting debate round {i}")
@@ -94,6 +95,7 @@ def debate(
                 round_responses = run_debate_with_retry(
                     max_rounds=max_rounds,
                     prompt=prompt,
+                    images=images,          
                     agents_ensemble=agents_ensemble,
                     output_dir=temp_dir,
                     round_num=i,
@@ -162,6 +164,7 @@ def debate(
                 round_responses = run_debate_with_retry(
                     max_rounds=max_rounds,
                     prompt=prompt,
+                    images=images,
                     agents_ensemble=agents_ensemble,
                     output_dir=temp_dir,
                     round_num=i,
@@ -221,6 +224,7 @@ def run_debate_with_retry(
     output_dir: Union[str, Path],
     round_num: int,
     extract_func: Callable,
+    images: Union[str, Path, List[str], List[Path], None] = None,
     json_mode: bool = False,
     max_retries: int = 3,
     temperature: float = 1.0,
@@ -239,6 +243,7 @@ def run_debate_with_retry(
         output_dir: Directory path for saving debate responses.
         round_num: The current round number.
         extract_func: Function to process responses between rounds.
+        images: Optional images for the debate round.
         json_mode: Whether to expect JSON responses from agents.
         max_retries: Maximum retry attempts for the round.
         temperature: Sampling temperature for the model.
@@ -286,6 +291,7 @@ def run_debate_with_retry(
             if round_num == 0:
                 responses = run_debate_round_zero(
                     prompt=prompt,
+                    images=images,
                     agents_ensemble=agents_ensemble,
                     output_dir=output_dir,
                     json_mode=json_mode,
@@ -296,6 +302,7 @@ def run_debate_with_retry(
             else:
                 responses = run_debate_round_n(
                     prompt=prompt,
+                    images=images,
                     agents_ensemble=agents_ensemble,
                     output_dir=output_dir,
                     round_num=round_num,
