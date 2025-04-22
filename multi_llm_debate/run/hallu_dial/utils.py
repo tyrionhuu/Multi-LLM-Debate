@@ -45,7 +45,7 @@ def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
 
 def str_to_bool(input: str) -> Union[Literal["0", "1"], None]:
     """Convert a string to a boolean value.
-    
+
     Args:
         input (str): The input string to convert.
 
