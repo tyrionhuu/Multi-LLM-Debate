@@ -246,7 +246,7 @@ def analyze_rounds_distribution(
                     print(
                         f"  KS statistic: {ks_stat:.4f} (above threshold {ks_threshold})"
                     )
-                    print(f"  Consecutive stable rounds reset to 0")
+                    print("  Consecutive stable rounds reset to 0")
 
         # Calculate expected success probability for next round constraints
         if enforce_increasing_success:
