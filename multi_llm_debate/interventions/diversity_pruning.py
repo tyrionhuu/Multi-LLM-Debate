@@ -11,7 +11,7 @@ from .utils import compute_sentence_embedding, kullback_leibler_approximation_di
 def diversity_pruning_by_embedding(
     responses: List[str],
     selected_amount: int = 5,
-    model: SentenceTransformer = SentenceTransformer("all-MiniLM-L6-v2"),
+    model: SentenceTransformer = None,
     output_dir: Union[str, Path] = None,
     round_number: int = 0,
     **kwargs,
@@ -38,6 +38,8 @@ def diversity_pruning_by_embedding(
         return responses
 
     # Compute embeddings for all responses
+    if model is None:
+        model = SentenceTransformer("all-MiniLM-L6-v2")
     embeddings = [compute_sentence_embedding(model, response) for response in responses]
 
     # Start with the first response
