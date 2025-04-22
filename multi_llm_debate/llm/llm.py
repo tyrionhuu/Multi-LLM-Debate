@@ -1,10 +1,9 @@
-import base64
-import io
 import json
 import logging
 import os
 import random
 import time
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from openai import OpenAI
@@ -37,7 +36,7 @@ def call_model(
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Union[str, List[str], None] = None,
+    images: Union[str, Path, List[str], List[Path], None] = None,
     api_key: Optional[str] = None,
 ) -> str:
     """Calls the OpenAI API with the provided parameters and returns the response.
@@ -52,7 +51,7 @@ def call_model(
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request. Defaults to 30.
-        images (Union[str, List[str], None]):
+        images (Union[str, Path, List[str], List[Path], None]):
             Image file paths when using vision models.
         api_key (Optional[str]): The API key to use. Defaults to the one from config.
 
@@ -79,12 +78,15 @@ def call_model(
 
             # Validate and process all images
             for img in images:
-                if isinstance(img, str):
-                    if not os.path.exists(img):
-                        raise ValueError(f"Image file not found: {img}")
-                    processed_images.append(img)
+                if isinstance(img, (str, Path)):
+                    img_path = Path(img)
+                    if not img_path.exists():
+                        raise ValueError(f"Image file {img_path} does not exist.")
+                    processed_images.append(str(img_path))
                 else:
-                    raise ValueError(f"Invalid image type: {type(img)}. Expected str.")
+                    raise ValueError(
+                        "Images must be a string, Path, or list of strings/Paths."
+                    )
 
         # Use the API key from arguments or the global one
         api_key_to_use = api_key or KEY
@@ -150,14 +152,14 @@ def call_model(
 
 def generate_api_messages(
     prompt: str,
-    images: Optional[List[str]] = None,
+    images: Optional[List[Union[str, Path]]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Prepares the messages payload for the API call with optional images and a prompt.
 
     Args:
         prompt (str): The text prompt for the model.
-        images (Optional[List[str]]): List of image file paths.
+        images (Optional[List[Union[str, Path]]]): List of image file paths.
             If None, returns text-only message format.
 
     Returns:
@@ -166,8 +168,11 @@ def generate_api_messages(
     if not images:
         return [{"role": "user", "content": prompt}]
 
-    if len(images) == 1:
-        base64_image = encode_image(images[0])
+    # Convert Path objects to str
+    image_paths = [str(img) if isinstance(img, Path) else img for img in images]
+
+    if len(image_paths) == 1:
+        base64_image = encode_image(image_paths[0])
         messages = [
             {
                 "role": "user",
@@ -184,7 +189,7 @@ def generate_api_messages(
             }
         ]
     else:
-        base64_images = [encode_image(img) for img in images]
+        base64_images = [encode_image(img) for img in image_paths]
         content = [
             {
                 "type": "text",
