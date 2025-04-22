@@ -9,6 +9,7 @@ import pandas as pd
 def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
     """
     Convert a JSON file to a DataFrame with added 'id' and 'answer' columns.
+    Filters out entries without valid yes/no answers.
 
     Args:
         json_path (Union[str, Path]): Path to the JSON file.
@@ -17,7 +18,8 @@ def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
         pd.DataFrame: DataFrame containing the data from the JSON file,
             with columns 'id', 'knowledge', 'dialogue_history', 'response',
             and 'answer'. The 'answer' column is derived from the 'target'
-            field using the str_to_bool function.
+            field using the str_to_bool function. Entries without valid yes/no
+            answers are filtered out.
     """
     json_path = Path(json_path)
 
@@ -29,6 +31,8 @@ def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
         df = pd.DataFrame(data)
         # Apply str_to_bool to the 'target' column to create the 'answer' column
         df["answer"] = df["target"].apply(str_to_bool)
+        # Filter out rows with None in the 'answer' column
+        df = df.dropna(subset=["answer"])
         # Select and reorder columns
         df = df[["knowledge", "dialogue_history", "response", "answer"]]
         df.insert(0, "id", range(len(df)))
@@ -39,13 +43,15 @@ def load_hallu_dial_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
 
 
-def str_to_bool(input: str) -> Literal["0", "1"]:
+def str_to_bool(input: str) -> Union[Literal["0", "1"], None]:
     """Convert a string to a boolean value.
+    
     Args:
         input (str): The input string to convert.
 
     Returns:
-        Literal["0", "1"]: "0" if the input starts with "no", "1" otherwise.
+        Union[Literal["0", "1"], None]: "0" if the input starts with "no",
+            "1" if input starts with "yes", None otherwise.
     """
     input = input.lower()
     if input.startswith("no"):
@@ -53,9 +59,7 @@ def str_to_bool(input: str) -> Literal["0", "1"]:
     elif input.startswith("yes"):
         return "1"
     else:
-        raise ValueError(
-            "Input string must start with 'yes' or 'no'. " f"Received: {input}"
-        )
+        return None
 
 
 def extract_0_1_answer(
