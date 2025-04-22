@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Load the dataset
     json_data = Path("datasets/HalluDial/all_train.json")
     dataframe = load_hallu_dial_dataset(
-        dataset_path=json_data,
+        json_data,
     )
 
     shared_main(
