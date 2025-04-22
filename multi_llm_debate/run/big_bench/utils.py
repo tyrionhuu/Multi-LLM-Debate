@@ -5,6 +5,7 @@ from typing import Literal, Union
 
 import pandas as pd
 
+
 def load_big_bench_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
     """
     Convert a JSON file to a DataFrame with an added 'id' column.
@@ -24,11 +25,11 @@ def load_big_bench_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
         with json_path.open("r", encoding="utf-8") as file:
             data = json.load(file)["examples"]
         df = pd.DataFrame(data)
-        
+
         df["answer"] = df["target_scores"].apply(
             lambda x: 1 if x["plausible"] == 1 else 0
         )
-        
+
         # Select and reorder columns
         df = df[["input", "answer"]]
         df.insert(0, "id", range(len(df)))
@@ -37,7 +38,7 @@ def load_big_bench_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
     except Exception as e:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
-    
+
 
 def extract_0_1_answer(
     response: str,
@@ -60,7 +61,8 @@ def extract_0_1_answer(
         "No valid answer found in the response. Please ensure the response "
         "contains 'Final Answer: 0' or 'Final Answer: 1'."
     )
-    
+
+
 def compare_big_bench_response(
     response: Literal["0", "1"],
     answer: Union[str, int],
