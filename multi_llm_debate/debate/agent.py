@@ -1,8 +1,9 @@
 import json
 import logging
 import time
-from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
 from ..llm.llm import call_model
 from ..utils.logging_config import setup_logging
 
@@ -128,7 +129,7 @@ class Agent:
                     raise ValueError(
                         f"Invalid image type: {type(img)}. Expected str or Path."
                     )
-                    
+
         # Try up to max_retries + 1 times (original attempt + retries)
         for attempt in range(max_retries + 1):
             try:
