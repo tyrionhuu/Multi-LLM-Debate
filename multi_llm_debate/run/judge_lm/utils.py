@@ -1,12 +1,14 @@
 import logging
 from pathlib import Path
 from typing import Optional, Union
-from multi_llm_debate.utils.download_dataset import load_save_huggingface_dataset_df
 
 import pandas as pd
 
+from multi_llm_debate.utils.download_dataset import load_save_huggingface_dataset_df
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def load_judge_lm_dataset(
     dataset_path: Union[str, Path] = "datasets/JudgeLM",
@@ -34,7 +36,7 @@ def load_judge_lm_dataset(
     except Exception as e:
         logger.error(f"Failed to load dataset from Hugging Face: {e}")
         raise e
-    
+
     # Shuffle the DataFrame if random_state is provided
     if random_state is not None:
         df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
