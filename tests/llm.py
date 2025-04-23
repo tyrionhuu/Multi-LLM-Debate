@@ -19,7 +19,7 @@ def get_gcloud_access_token() -> str:
 
 
 response = call_model(
-    model_name="gemini-2.0-flash-001",
+    model_name="google/gemini-2.0-flash-001",
     prompt="What is the capital of France?",
     api_key=get_gcloud_access_token(),
 )

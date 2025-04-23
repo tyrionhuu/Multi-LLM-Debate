@@ -123,9 +123,9 @@ def call_model(
                     )
 
         # Detect Gemini model
-        if "gemini" in model_name.lower():
+        if "google" in model_name.lower():
             if not project_id:
-                raise ValueError("project_id is required for Gemini models.")
+                raise ValueError("project_id is required for Google models.")
             access_token, gemini_url = _get_google_access_token_and_url(
                 project_id=project_id, location=location, endpoint_id=endpoint_id
             )
