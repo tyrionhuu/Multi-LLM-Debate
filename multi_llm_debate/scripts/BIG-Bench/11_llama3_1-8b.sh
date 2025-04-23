@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="/data/share_weight/gemma-3-4b-it"
+MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
 MODEL_QUANTITY=11
 
 # Parse command line arguments
@@ -54,9 +54,9 @@ trap cleanup SIGINT SIGTERM EXIT
 
 # For port, use the first GPU in case of multiple GPUs
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
-PORT=$((8600 + FIRST_GPU * 10))
+PORT=$((8002 + FIRST_GPU * 10))
 
-# export VLLM_LOGGING_LEVEL=ERROR
+export VLLM_LOGGING_LEVEL=ERROR
 
 # Check if we have multiple GPUs and set tensor parallelism accordingly
 if [[ "$GPU" == *","* ]]; then
@@ -65,14 +65,14 @@ if [[ "$GPU" == *","* ]]; then
     if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
         echo "Using tensor parallelism with 2 GPUs"
         # Start VLLM server with tensor parallelism
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --tensor-parallel-size 2 --gpu-memory-utilization 0.85 &
+        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --tensor-parallel-size 2 &
     else
         echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
         exit 1
     fi
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.85 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 &
 fi
 
 SERVER_PID=$!
@@ -105,17 +105,17 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
-    --config-json "$CONFIG" \
+python -m multi_llm_debate.run.big_bench.main \
     --task-name "big_bench" \
-    
-    # --sample-size 5 \
+    --config-json "$CONFIG" \
+
 # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
     --task-name "big_bench_pruning" \
     --quality-pruning \
     --diversity-pruning "embedding" \
     --pruning-amount 5 \
-
+    
 cleanup 1
+
