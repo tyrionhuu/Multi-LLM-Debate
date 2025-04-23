@@ -22,10 +22,15 @@ class Agent:
         agent_id (int): Unique identifier for the agent.
         model (str): Name of the language model being used.
         base_url (Optional[str]): Base URL for the API calls.
+        api_key (Optional[str]): API key for the agent.
     """
 
     def __init__(
-        self, agent_id: int, model: str, base_url: Optional[str] = None
+        self,
+        agent_id: int,
+        model: str,
+        base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
     ) -> None:
         """Initialize an Agent instance.
 
@@ -34,13 +39,16 @@ class Agent:
             model (str): Name of the language model.
             base_url (Optional[str]): Base URL for the OpenAI API calls.
                 Default is None, which uses the OpenAI default.
+            api_key (Optional[str]): API key for the agent. Default is None.
         """
         self.agent_id = agent_id
         self.model = model
         self.base_url = base_url
+        self.api_key = api_key
         logger.debug(
             f"Initialized Agent {agent_id} with model {model} "
-            f"(base_url: {'custom' if base_url else 'default'})"
+            f"(base_url: {'custom' if base_url else 'default'}, "
+            f"api_key: {'set' if api_key else 'not set'})"
         )
 
     def __str__(self) -> str:
@@ -83,7 +91,7 @@ class Agent:
             max_retries (int, optional): Maximum number of retry attempts if the
                 request fails. Defaults to 0 (no retries).
             api_key (Optional[str], optional): API key to use for this request.
-                Defaults to None, which uses the one from config.
+                Defaults to None, which uses the one from config or agent.
             max_tokens (int, optional): Maximum number of tokens in response.
                 Defaults to 6400.
             temperature (float, optional): Controls randomness in the response.
@@ -151,7 +159,7 @@ class Agent:
                     json_mode=json_mode,
                     max_tokens=max_tokens,
                     timeout=timeout,
-                    api_key=api_key,
+                    api_key=api_key if api_key is not None else self.api_key,
                     temperature=temperature,
                 )
                 api_time = time.time() - api_start

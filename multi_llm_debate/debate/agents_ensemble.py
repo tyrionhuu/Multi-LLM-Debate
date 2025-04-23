@@ -64,22 +64,30 @@ class AgentsEnsemble:
         agent_id = 0
         for model_info in models:
             base_url = None
+            api_key = None  # Add api_key support
 
             # Handle different formats returned by get_models()
             if isinstance(model_info, tuple) and len(model_info) >= 3:
                 # Old format: (model_name, base_url, quantity)
                 model_name, base_url, quantity = model_info[:3]
+                # No api_key in old format
             elif isinstance(model_info, dict):
-                # New format: {"name": model_name, "base_url": url, "quantity": qty}
+                # New format: {"name": model_name, "base_url": url, "quantity": qty, "api_key": ...}
                 model_name = model_info.get("name", "")
                 base_url = model_info.get("base_url")
                 quantity = model_info.get("quantity", 1)
+                api_key = model_info.get("api_key")  # Extract api_key if present
             else:
                 logger.warning(f"Skipping unrecognized model info format: {model_info}")
                 continue
 
             for _ in range(quantity):
-                agent = Agent(agent_id=agent_id, model=model_name, base_url=base_url)
+                agent = Agent(
+                    agent_id=agent_id,
+                    model=model_name,
+                    base_url=base_url,
+                    api_key=api_key,
+                )
                 self.add_agent(agent)
                 agent_id += 1
 
@@ -100,9 +108,15 @@ class AgentsEnsemble:
             base_url = config.get("base_url")
             quantity = config.get("quantity", 1)
             model_name = config["name"]
+            api_key = config.get("api_key")  # Extract api_key if present
 
             for _ in range(quantity):
-                agent = Agent(agent_id=agent_id, model=model_name, base_url=base_url)
+                agent = Agent(
+                    agent_id=agent_id,
+                    model=model_name,
+                    base_url=base_url,
+                    api_key=api_key,  # Pass api_key if present
+                )
                 self.add_agent(agent)
                 agent_id += 1
 
