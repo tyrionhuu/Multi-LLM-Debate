@@ -151,12 +151,12 @@ class Agent:
                 raw_response = call_model(
                     model_name=self.model,
                     base_url=self.base_url,
+                    api_key=self.api_key,
                     prompt=prompt,
                     images=images,
                     json_mode=json_mode,
                     max_tokens=max_tokens,
                     timeout=timeout,
-                    api_key=self.api_key,
                     temperature=temperature,
                 )
                 api_time = time.time() - api_start
