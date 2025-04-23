@@ -23,3 +23,4 @@ response = call_model(
     prompt="What is the capital of France?",
     api_key=get_gcloud_access_token(),
 )
+print(response)
