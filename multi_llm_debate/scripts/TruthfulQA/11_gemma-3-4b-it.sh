@@ -105,7 +105,7 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.truthfual_qa.main \
+python -m multi_llm_debate.run.truthful_qa.main \
     --task-name "truthful_qa" \
     --config-json "$CONFIG"
 
