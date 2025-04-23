@@ -37,7 +37,7 @@ def run_debate_round_zero(
         max_tokens: Maximum number of tokens in the response.
         parallel: Whether to run in parallel.
         api_key: API key for LLM agent access (if required).
-        
+
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
 

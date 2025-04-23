@@ -43,8 +43,8 @@ def _check_dataset_version(dataset_path: Path) -> bool:
 
 
 def load_save_huggingface_dataset(
-    dataset_name: str, 
-    dataset_path: Optional[Path] = None, 
+    dataset_name: str,
+    dataset_path: Optional[Path] = None,
     force_download: bool = False,
     split: Optional[str] = None,
 ) -> Optional[Dataset]:
@@ -106,7 +106,7 @@ def load_save_huggingface_dataset(
                 dataset = dataset[split]
             else:
                 # If no split is specified, return the first split available
-                dataset = next(iter(dataset.values()))  
+                dataset = next(iter(dataset.values()))
         except KeyError:
             return dataset
     return None
@@ -127,7 +127,7 @@ def load_save_huggingface_dataset_df(
             dataset will only be loaded without saving.
         force_download (bool): If True, download and replace existing dataset.
         split (Optional[str]): The specific split of the dataset to load (e.g., 'train', 'test').
-        
+
     Returns:
         Optional[pd.DataFrame]: The loaded dataset as a pandas DataFrame if successful,
         None otherwise.
