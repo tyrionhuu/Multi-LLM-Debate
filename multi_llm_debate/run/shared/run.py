@@ -106,7 +106,6 @@ def execute_debate_workflow(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        api_key=api_key,
     )
 
     # Print execution summary
