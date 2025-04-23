@@ -3,7 +3,7 @@ import logging
 import random
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import google.auth
 import google.auth.transport.requests
@@ -176,9 +176,7 @@ def call_model(
     except Timeout:
         elapsed = time.time() - start_time
         logger.error(f"Timeout error calling {model_name} after {elapsed:.2f}s")
-        raise ConnectionError(
-            f"Timeout error with service after {timeout} seconds"
-        )
+        raise ConnectionError(f"Timeout error with service after {timeout} seconds")
     except ConnectionError as e:
         elapsed = time.time() - start_time
         logger.error(
