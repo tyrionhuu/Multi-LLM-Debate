@@ -125,7 +125,9 @@ def debate(
                 except Exception as e:
                     logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
                     raise
-
+                
+                pruned_responses = extracted_responses
+                
                 # Apply quality pruning if specified
                 if quality_pruning_func:
                     logger.info(
