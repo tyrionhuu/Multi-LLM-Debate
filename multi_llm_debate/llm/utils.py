@@ -11,6 +11,8 @@ from requests.exceptions import ConnectionError
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+_vllm_models = {}  # type: dict  # Added to ensure _vllm_models is defined
+
 
 class ThreadSafeTimeout:
     """A thread-safe timeout handler that uses threading.Timer instead of signals.
@@ -259,8 +261,6 @@ def shutdown_vllm_models() -> None:
     This function ensures all distributed resources are properly released,
     preventing resource leaks and warnings about destroy_process_group().
     """
-    global _vllm_models
-
     if not _vllm_models:
         return
 
