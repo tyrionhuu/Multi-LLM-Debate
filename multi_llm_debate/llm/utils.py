@@ -11,6 +11,9 @@ from requests.exceptions import ConnectionError
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+# Dictionary to store loaded vLLM model instances
+_vllm_models = {}
+
 
 class ThreadSafeTimeout:
     """A thread-safe timeout handler that uses threading.Timer instead of signals.
