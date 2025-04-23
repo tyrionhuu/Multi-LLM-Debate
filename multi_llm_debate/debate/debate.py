@@ -30,7 +30,6 @@ def debate(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
-    api_key: Optional[str] = None,
 ) -> List[List[dict]]:
     """Run a full debate with multiple rounds using the given prompts and agents.
 
@@ -54,7 +53,6 @@ def debate(
         quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning.
         diversity_pruning_amount: int = 5,
-        api_key: Optional[str]: API key for authentication.
 
     Returns:
         List[List[dict]]: List of responses from each round, where each round's
@@ -107,7 +105,6 @@ def debate(
                     temperature=temperature,
                     max_tokens=max_tokens,
                     parallel=parallel,
-                    api_key=api_key,
                 )
             else:
                 extracted_responses = [
@@ -180,7 +177,6 @@ def debate(
                     temperature=temperature,
                     max_tokens=max_tokens,
                     parallel=parallel,
-                    api_key=api_key,
                 )
             all_responses.append(round_responses)
             logger.info(
@@ -237,7 +233,6 @@ def run_debate_with_retry(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
-    api_key: Optional[str] = None,
 ) -> List[Dict]:
     """Run a debate round with retry capabilities.
 
@@ -307,7 +302,6 @@ def run_debate_with_retry(
                     temperature=temperature,
                     max_tokens=max_tokens,
                     parallel=parallel,
-                    api_key=api_key,
                 )
             else:
                 responses = run_debate_round_n(
@@ -320,7 +314,6 @@ def run_debate_with_retry(
                     temperature=temperature,
                     max_tokens=max_tokens,
                     parallel=parallel,
-                    api_key=api_key,
                 )
 
             try:
