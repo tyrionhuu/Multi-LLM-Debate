@@ -262,8 +262,6 @@ def shutdown_vllm_models() -> None:
     This function ensures all distributed resources are properly released,
     preventing resource leaks and warnings about destroy_process_group().
     """
-    global _vllm_models
-
     if not _vllm_models:
         return
 
