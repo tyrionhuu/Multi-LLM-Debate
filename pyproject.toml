@@ -33,6 +33,7 @@ backoff = "^2.2.1"
 black = {extras = ["jupyter"], version = "^25.1.0"}
 torch = "^2.6.0"
 vllm = "^0.8.2"
+google-auth = "^2.39.0"
 
 [[tool.poetry.source]]
 name = "mirrors"

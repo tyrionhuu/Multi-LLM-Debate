@@ -3,8 +3,10 @@ import logging
 import random
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Tuple
 
+import google.auth
+import google.auth.transport.requests
 from openai import OpenAI
 from requests.exceptions import ConnectionError, Timeout
 
@@ -27,6 +29,33 @@ if KEY.strip() == "":
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
+def _get_google_access_token_and_url(
+    project_id: str = "multi-llm-debate",
+    location: str = "us-central1",
+    endpoint_id: str = "openapi",
+) -> Tuple[str, str]:
+    """Get Google Cloud access token and Gemini endpoint URL.
+
+    Args:
+        project_id (str): Google Cloud project ID.
+        location (str): Region for the endpoint.
+        endpoint_id (str): Endpoint ID ("openapi" for Gemini).
+
+    Returns:
+        Tuple[str, str]: (access_token, base_url)
+    """
+    credentials, _ = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    credentials.refresh(google.auth.transport.requests.Request())
+    access_token = credentials.token
+    base_url = (
+        f"https://{location}-aiplatform.googleapis.com/v1/projects/"
+        f"{project_id}/locations/{location}/endpoints/{endpoint_id}"
+    )
+    return access_token, base_url
+
+
 def call_model(
     model_name: str = "gpt-4",
     base_url: str = None,
@@ -37,14 +66,17 @@ def call_model(
     timeout: Optional[int] = 30,
     images: Union[str, Path, List[str], List[Path], None] = None,
     api_key: Optional[str] = None,
+    project_id: Optional[str] = "multi-llm-debate",
+    location: str = "us-central1",
+    endpoint_id: str = "openapi",
 ) -> str:
-    """Calls the OpenAI API with the provided parameters and returns the response.
+    """Calls the OpenAI API or Gemini API with the provided parameters.
 
     Can handle both text-only and vision models based on the presence of images.
 
     Args:
         model_name (str): The name of the model to use.
-        base_url (Optional[str]): The base URL for the OpenAI API.
+        base_url (Optional[str]): The base URL for the API.
         prompt (str): The text prompt for the model.
         temperature (float): Sampling temperature for the model.
         max_tokens (int): Maximum number of tokens in the response.
@@ -53,6 +85,9 @@ def call_model(
         images (Union[str, Path, List[str], List[Path], None]):
             Image file paths when using vision models.
         api_key (Optional[str]): The API key to use. Defaults to the one from config.
+        project_id (Optional[str]): GCP project ID for Gemini.
+        location (str): GCP region for Gemini.
+        endpoint_id (str): Gemini endpoint ID.
 
     Returns:
         str: The generated response from the model.
@@ -63,7 +98,7 @@ def call_model(
     """
     start_time = time.time()
     logger.info(
-        f"Calling OpenAI {model_name} (timeout={timeout}s, json={json_mode}, "
+        f"Calling {model_name} (timeout={timeout}s, json={json_mode}, "
         f"base_url={'custom' if base_url else 'default'})"
     )
 
@@ -87,8 +122,20 @@ def call_model(
                         "Images must be a string, Path, or list of strings/Paths."
                     )
 
-        # Use the API key from arguments or the global one
-        api_key_to_use = api_key or KEY
+        # Detect Gemini model
+        if "gemini" in model_name.lower():
+            if not project_id:
+                raise ValueError("project_id is required for Gemini models.")
+            access_token, gemini_url = _get_google_access_token_and_url(
+                project_id=project_id, location=location, endpoint_id=endpoint_id
+            )
+            api_key_to_use = access_token
+            base_url_to_use = base_url or gemini_url
+        else:
+            api_key_to_use = api_key or KEY
+            if not base_url:
+                raise ValueError("Base URL is required for OpenAI API calls.")
+            base_url_to_use = base_url
 
         # Generate API messages
         messages = generate_api_messages(
@@ -97,10 +144,7 @@ def call_model(
 
         # Initialize OpenAI client with timeout and base_url if provided
         client_kwargs = {"api_key": api_key_to_use, "timeout": timeout}
-
-        if not base_url:
-            raise ValueError("Base URL is required for OpenAI API calls.")
-        client_kwargs["base_url"] = base_url
+        client_kwargs["base_url"] = base_url_to_use
 
         client = OpenAI(**client_kwargs)
 
@@ -126,27 +170,27 @@ def call_model(
                 return response_str
 
         elapsed = time.time() - start_time
-        logger.info(f"Call to OpenAI/{model_name} completed in {elapsed:.2f}s")
+        logger.info(f"Call to {model_name} completed in {elapsed:.2f}s")
         return response_str
 
     except Timeout:
         elapsed = time.time() - start_time
         logger.error(f"Timeout error calling {model_name} after {elapsed:.2f}s")
         raise ConnectionError(
-            f"Timeout error with OpenAI service after {timeout} seconds"
+            f"Timeout error with service after {timeout} seconds"
         )
     except ConnectionError as e:
         elapsed = time.time() - start_time
         logger.error(
             f"Connection error calling {model_name} after {elapsed:.2f}s: {str(e)}"
         )
-        raise ConnectionError(f"Connection error with OpenAI service: {str(e)}")
+        raise ConnectionError(f"Connection error with service: {str(e)}")
     except Exception as e:
         elapsed = time.time() - start_time
         logger.error(
-            f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=False
+            f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=True
         )
-        raise ValueError(f"Error with OpenAI service: {str(e)}")
+        raise ValueError(f"Error with service: {str(e)}")
 
 
 def generate_api_messages(
