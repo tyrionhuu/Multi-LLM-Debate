@@ -34,7 +34,7 @@ def execute_debate_workflow(
             "quantity": 6,
         }
     ],
-    random_seed: int = random.randint(0, 2**32 - 1),
+    random_seed: int = 42,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
