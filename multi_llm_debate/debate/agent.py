@@ -74,7 +74,6 @@ class Agent:
         json_mode: bool = False,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        api_key: Optional[str] = None,
         max_tokens: int = 6400,
         temperature: float = 1.0,
     ) -> Dict[str, Any]:
@@ -90,8 +89,6 @@ class Agent:
                 in seconds. Defaults to None, which uses the API's default timeout.
             max_retries (int, optional): Maximum number of retry attempts if the
                 request fails. Defaults to 0 (no retries).
-            api_key (Optional[str], optional): API key to use for this request.
-                Defaults to None, which uses the one from config or agent.
             max_tokens (int, optional): Maximum number of tokens in response.
                 Defaults to 6400.
             temperature (float, optional): Controls randomness in the response.
@@ -159,7 +156,7 @@ class Agent:
                     json_mode=json_mode,
                     max_tokens=max_tokens,
                     timeout=timeout,
-                    api_key=api_key if api_key is not None else self.api_key,
+                    api_key=self.api_key,
                     temperature=temperature,
                 )
                 api_time = time.time() - api_start
