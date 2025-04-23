@@ -115,7 +115,7 @@ class AgentsEnsemble:
                     agent_id=agent_id,
                     model=model_name,
                     base_url=base_url,
-                    api_key=api_key,  # Pass api_key if present
+                    api_key=api_key,
                 )
                 self.add_agent(agent)
                 agent_id += 1
@@ -139,7 +139,6 @@ class AgentsEnsemble:
         json_mode: bool,
         images: Union[str, Path, List[str], List[Path], None] = None,
         max_retries: Optional[int] = None,
-        api_key: Optional[str] = None,
         max_tokens: int = 6400,
         temperature: float = 1.0,
     ) -> Dict[str, Any]:
@@ -179,7 +178,6 @@ class AgentsEnsemble:
                 json_mode=json_mode,
                 timeout=int(self.timeout),
                 max_retries=0,
-                api_key=api_key,
                 max_tokens=max_tokens,
                 temperature=temperature,
             )
@@ -194,7 +192,6 @@ class AgentsEnsemble:
             json_mode=json_mode,
             timeout=int(self.timeout),
             max_retries=retries,
-            api_key=api_key,
             max_tokens=max_tokens,
             temperature=temperature,
         )
@@ -205,7 +202,6 @@ class AgentsEnsemble:
         images: Union[str, Path, List[str], List[Path], None] = None,
         json_mode: bool = False,
         max_retries: Optional[int] = None,
-        api_key: Optional[str] = None,
         max_tokens: int = 6400,
         temperature: float = 1.0,
         parallel: bool = False,
@@ -218,7 +214,6 @@ class AgentsEnsemble:
                 for vision models. Can be a single path or a list.
             json_mode (bool): Expect JSON responses.
             max_retries (Optional[int]): Max retries.
-            api_key (Optional[str]): API key.
             max_tokens (int): Max tokens.
             temperature (float): Response randomness.
             parallel (bool): Whether to process in parallel.
@@ -253,7 +248,6 @@ class AgentsEnsemble:
                         json_mode=json_mode,
                         images=images,
                         max_retries=max_retries,
-                        api_key=api_key,
                         max_tokens=max_tokens,
                         temperature=temperature,
                     )
@@ -295,7 +289,6 @@ class AgentsEnsemble:
                         json_mode=json_mode,
                         images=images,
                         max_retries=max_retries,
-                        api_key=api_key,
                         max_tokens=max_tokens,
                         temperature=temperature,
                     )
@@ -322,7 +315,6 @@ class AgentsEnsemble:
         prompt: str,
         json_mode: bool,
         max_retries: Optional[int],
-        api_key: Optional[str],
         max_tokens: int,
         temperature: float,
         images: Union[str, Path, List[str], List[Path], None] = None,
@@ -357,7 +349,6 @@ class AgentsEnsemble:
                     json_mode=json_mode,
                     images=images,
                     max_retries=max_retries,
-                    api_key=api_key,
                     max_tokens=max_tokens,
                     temperature=temperature,
                 )
