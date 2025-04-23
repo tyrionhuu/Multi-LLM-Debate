@@ -155,7 +155,7 @@ def call_model(
             max_tokens=max_tokens,
             temperature=temperature,
             response_format={"type": "json_object"} if json_mode else None,
-            seed=random.randint(0, 2**32 - 1),
+            seed=random.randint(0, 2**10 - 1),
         )
         logger.debug(f"API response: {response}")
         # Extract response content
