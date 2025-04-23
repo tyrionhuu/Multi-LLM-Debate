@@ -42,7 +42,6 @@ def execute_debate_workflow(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
-    api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Execute debate evaluation with the given configuration.
 
@@ -231,7 +230,6 @@ def _process_single_entry_worker(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
-    api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Process a single entry for multiprocessing.
 
@@ -268,7 +266,6 @@ def _process_single_entry_worker(
             quality_pruning_amount=quality_pruning_amount,
             diversity_pruning_func=diversity_pruning_func,
             diversity_pruning_amount=diversity_pruning_amount,
-            api_key=api_key,
         )
         return {"success": True, "entry_id": entry_data.get("id", "unknown")}
     except Exception as e:
@@ -299,7 +296,6 @@ def process_debate_dataset(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
-    api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Run a debate task on all entries in a dataframe.
 
@@ -378,7 +374,6 @@ def process_debate_dataset(
                             quality_pruning_amount=quality_pruning_amount,
                             diversity_pruning_func=diversity_pruning_func,
                             diversity_pruning_amount=diversity_pruning_amount,
-                            api_key=api_key,
                         )
                         futures.append(future)
 
@@ -413,7 +408,6 @@ def process_debate_dataset(
                             quality_pruning_amount=quality_pruning_amount,
                             diversity_pruning_func=diversity_pruning_func,
                             diversity_pruning_amount=diversity_pruning_amount,
-                            api_key=api_key,
                         )
                         processed_count += 1
                     except Exception as e:
@@ -480,7 +474,6 @@ def process_single_debate_entry(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
     diversity_pruning_amount: int = 5,
-    api_key: Optional[str] = None,
 ) -> None:
     """Run a single entry's debate logic in a generic way.
 
@@ -529,7 +522,7 @@ def process_single_debate_entry(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     prompt_builder = prompt_builder_fn(prompt_params=prompt_params)
-    agents_ensemble = AgentsEnsemble(config_list=model_configs, api_key=api_key)
+    agents_ensemble = AgentsEnsemble(config_list=model_configs)
 
     debate(
         max_rounds=max_rounds,
