@@ -71,7 +71,9 @@ def execute_debate_workflow(
     start_time = time.time()
 
     model_config_str = model_configs_to_string(model_configs)
-    output_path = report_path / model_config_str.replace(" ", "_").replace(".", "_").replace("/", "_")
+    output_path = report_path / model_config_str.replace(" ", "_").replace(
+        ".", "_"
+    ).replace("/", "_")
     logger.info(f"Starting {task_name} task with {model_config_str}")
 
     # Process the DataFrame if needed
