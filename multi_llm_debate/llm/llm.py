@@ -1,8 +1,6 @@
-import os
-
-
 import json
 import logging
+import os
 import random
 import time
 from pathlib import Path
@@ -16,6 +14,7 @@ from requests.exceptions import ConnectionError, Timeout
 from ..utils.config_manager import get_api_key
 from ..utils.logging_config import setup_logging
 from .utils import encode_image
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # Set up logger
