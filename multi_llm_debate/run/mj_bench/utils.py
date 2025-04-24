@@ -34,9 +34,7 @@ def load_mj_bench_dataset(
     dataset_path = Path(dataset_path)
     try:
         df = load_save_huggingface_dataset_df(
-            dataset_name=dataset_name, 
-            dataset_path=dataset_path,
-            split="alignment"
+            dataset_name=dataset_name, dataset_path=dataset_path, split="alignment"
         )
         logger.info("Loaded MJ-Bench dataset from Hugging Face.")
     except Exception as e:
@@ -75,9 +73,9 @@ def preprocess_mj_bench_dataframe(
     if "id" not in df.columns:
         df["id"] = df.index + 1
 
-    return df[
-        ["caption", "image0", "image1", "label"]
-    ].rename(columns={"label": "answer"})
+    return df[["caption", "image0", "image1", "label"]].rename(
+        columns={"label": "answer"}
+    )
 
 
 def extract_0_1_answer(
