@@ -113,9 +113,10 @@ python -m multi_llm_debate.run.llm_bar.main \
 python -m multi_llm_debate.run.llm_bar.main \
     --config-json "$CONFIG" \
     --task-name "llm_bar_pruning" \
-    --quality-pruning \
     --diversity-pruning "embedding" \
-    --pruning-amount 5 \
+    --diversity-pruning-amount 7 \
+    --quality-pruning \
+    --quality-pruning-amount 5 \
     
 cleanup 1
 
