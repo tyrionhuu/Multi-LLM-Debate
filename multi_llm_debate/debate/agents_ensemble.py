@@ -1,7 +1,7 @@
 import concurrent.futures
 import logging
-import time
 import random
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -186,7 +186,7 @@ class AgentsEnsemble:
                     )
                     raise
                 # Exponential backoff with jitter
-                delay = min(max_delay, base_delay * (2 ** attempt))
+                delay = min(max_delay, base_delay * (2**attempt))
                 jitter = random.uniform(0, delay / 2)
                 total_delay = delay + jitter
                 logger.warning(
