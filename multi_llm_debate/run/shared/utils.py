@@ -1,10 +1,11 @@
 import argparse
 import glob
+import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
-import logging
+
 from multi_llm_debate.interventions.diversity_pruning import (
     diversity_pruning_by_answer,
     diversity_pruning_by_embedding,
@@ -13,6 +14,7 @@ from multi_llm_debate.interventions.quality_pruning import quality_pruning
 from multi_llm_debate.utils.model_config import ModelConfig
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Args:
