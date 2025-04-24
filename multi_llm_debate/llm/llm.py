@@ -1,6 +1,5 @@
 import os
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 import json
 import logging
@@ -17,6 +16,7 @@ from requests.exceptions import ConnectionError, Timeout
 from ..utils.config_manager import get_api_key
 from ..utils.logging_config import setup_logging
 from .utils import encode_image
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # Set up logger
 logger = setup_logging(__name__)
