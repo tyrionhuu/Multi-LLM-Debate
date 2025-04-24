@@ -113,8 +113,9 @@ CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
     --config-json "$CONFIG" \
     --task-name "ice_score_pruning" \
-    --quality-pruning \
     --diversity-pruning "embedding" \
-    --pruning-amount 5 \
+    --diversity-pruning-amount 7 \
+    --quality-pruning \
+    --quality-pruning-amount 5 \
 
 cleanup 1

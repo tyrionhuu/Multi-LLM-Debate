@@ -106,15 +106,17 @@ CONFIG='[
 
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.ice_score.main \
-    --config-json "$CONFIG"
+    --config-json "$CONFIG" \
+    --task-name "ice_score" \
 
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.ice_score.main \
     --config-json "$CONFIG" \
     --task-name "ice_score_pruning" \
-    --quality-pruning \
     --diversity-pruning "embedding" \
-    --pruning-amount 5 \
+    --diversity-pruning-amount 7 \
+    --quality-pruning \
+    --quality-pruning-amount 5 \
     
 cleanup 1
 
