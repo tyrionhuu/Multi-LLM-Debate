@@ -11,8 +11,7 @@ from .agents_ensemble import AgentsEnsemble
 from .round_n import run_debate_round_n
 from .round_zero import run_debate_round_zero
 
-logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def debate(
