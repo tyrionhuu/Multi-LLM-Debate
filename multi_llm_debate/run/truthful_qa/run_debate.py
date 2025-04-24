@@ -15,8 +15,7 @@ from .prompts import (
 from .utils import extract_caption_a_b_c_answer
 
 # Fix the setup_logging call by removing the level parameter
-logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def process_truthful_qa_dataset(

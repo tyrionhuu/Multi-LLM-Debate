@@ -12,8 +12,7 @@ from .prompts import build_hallu_dial_round_n_prompt, build_hallu_dial_round_zer
 from .utils import extract_0_1_answer
 
 # Fix the setup_logging call by removing the level parameter
-logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def process_hallu_dial_dataset(

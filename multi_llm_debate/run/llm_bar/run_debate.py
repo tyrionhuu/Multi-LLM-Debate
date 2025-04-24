@@ -12,8 +12,7 @@ from .prompts import build_llm_bar_round_n_prompt, build_llm_bar_round_zero_prom
 from .utils import extract_1_2_answer
 
 # Fix the setup_logging call by removing the level parameter
-logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def process_llm_bar_dataset(
