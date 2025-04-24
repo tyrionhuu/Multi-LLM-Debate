@@ -72,7 +72,7 @@ if [[ "$GPU" == *","* ]]; then
     fi
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.85 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.98 &
 fi
 
 SERVER_PID=$!
@@ -108,12 +108,14 @@ CONFIG='[
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.hallu_dial.main \
     --config-json "$CONFIG" \
     --task-name "hallu_dial" \
+
 # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.hallu_dial.main \
     --config-json "$CONFIG" \
     --task-name "hallu_dial_pruning" \
-    --quality-pruning \
     --diversity-pruning "embedding" \
-    --pruning-amount 5 \
+    --diversity-pruning-amount 7 \
+    --quality-pruning \
+    --quality-pruning-amount 5 \
 
 cleanup 1

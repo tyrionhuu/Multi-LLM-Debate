@@ -113,7 +113,6 @@ CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
     --task-name "big_bench_pruning" \
-    --quality-pruning \
     --diversity-pruning "embedding" \
     --diversity-pruning-amount 7 \
     --quality-pruning \
