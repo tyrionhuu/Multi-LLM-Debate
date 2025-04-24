@@ -105,17 +105,19 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.big_bench.main \
-    --task-name "big_bench" \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
+    --task-name "big_bench" \
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.big_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
     --task-name "big_bench_pruning" \
     --quality-pruning \
     --diversity-pruning "embedding" \
-    --pruning-amount 5 \
+    --diversity-pruning-amount 7 \
+    --quality-pruning \
+    --quality-pruning-amount 5 \
     
 cleanup 1
 
