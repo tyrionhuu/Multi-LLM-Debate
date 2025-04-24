@@ -37,3 +37,5 @@ if __name__ == "__main__":
     # Example usage
     df = load_prm800k_dataset()
     print(df.info())
+    # Print the complete first line as a JSON string
+    print(json.dumps(df.iloc[0].to_dict(), indent=4))
