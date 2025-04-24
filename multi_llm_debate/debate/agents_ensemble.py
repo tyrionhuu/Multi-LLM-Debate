@@ -1,5 +1,4 @@
 import concurrent.futures
-import logging
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -13,7 +12,6 @@ from .agent import Agent
 
 # Use setup_logging to ensure consistent logging
 logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)
 
 
 class AgentsEnsemble:
