@@ -7,13 +7,11 @@ from typing import Any, Dict, List, Optional, Union
 from tqdm import tqdm
 
 from ..utils.config_manager import get_models
-from ..utils.logging_config import setup_logging
 from ..utils.model_config import ModelConfig
 from .agent import Agent
 
 # Use setup_logging to ensure consistent logging
-logger = setup_logging(__name__)
-logger.setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class AgentsEnsemble:

@@ -4,7 +4,6 @@ import time
 from pathlib import Path
 from typing import List, Union
 
-from ..utils.logging_config import setup_logging
 from .agents_ensemble import AgentsEnsemble
 
 logger = logging.getLogger(__name__)

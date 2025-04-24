@@ -5,7 +5,6 @@ from typing import Any, Callable, Dict, List, Optional
 import pandas as pd
 
 from ...llm.prompt_builder import PromptBuilder
-from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ..shared.run import process_debate_dataset, process_single_debate_entry
 from .prompts import build_big_bench_round_n_prompt, build_big_bench_round_zero_prompt

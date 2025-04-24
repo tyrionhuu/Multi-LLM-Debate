@@ -12,7 +12,6 @@ from openai import OpenAI
 from requests.exceptions import ConnectionError, Timeout
 
 from ..utils.config_manager import get_api_key
-from ..utils.logging_config import setup_logging
 from .utils import encode_image
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"

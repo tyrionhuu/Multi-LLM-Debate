@@ -10,7 +10,6 @@ import pandas as pd
 from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.debate import debate
 from ...llm.prompt_builder import PromptBuilder
-from ...utils.logging_config import setup_logging
 from ...utils.model_config import ModelConfig
 from ...utils.progress import progress
 from .evaluate import EvaluationResults

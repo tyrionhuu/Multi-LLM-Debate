@@ -5,11 +5,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from ..llm.llm import call_model
-from ..utils.logging_config import setup_logging
 
 # Set up logger
-logger = setup_logging(__name__)
-logger.setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class Agent:
