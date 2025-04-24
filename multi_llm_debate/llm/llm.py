@@ -100,7 +100,7 @@ def call_model(
     start_time = time.time()
     logger.info(
         f"Calling {model_name} (timeout={timeout}s, json={json_mode}, "
-        f"base_url={'custom' if base_url else 'default'})"
+        f"base_url={base_url})"
     )
 
     try:
