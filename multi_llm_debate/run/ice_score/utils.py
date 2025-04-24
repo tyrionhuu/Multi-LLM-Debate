@@ -91,6 +91,7 @@ def compare_ice_score_response(
     """
     return abs(float(response) - float(answer)) < 1.5
 
+
 if __name__ == "__main__":
     # Example usage
     json_data = Path("datasets/ICE-Score/conala_grade.json")
