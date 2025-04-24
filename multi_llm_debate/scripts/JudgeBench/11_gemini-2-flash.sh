@@ -20,9 +20,9 @@ python -m multi_llm_debate.run.judge_bench.main \
     --task-name "judge_bench" 
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.judge_bench.main \
-    --config-json "$CONFIG" \
-    --task-name "judge_bench_pruning" \
-    --quality-pruning \
-    --diversity-pruning "embedding" \
-    --pruning-amount 5 \
+# python -m multi_llm_debate.run.judge_bench.main \
+#     --config-json "$CONFIG" \
+#     --task-name "judge_bench_pruning" \
+#     --quality-pruning \
+#     --diversity-pruning "embedding" \
+    
