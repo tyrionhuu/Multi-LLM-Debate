@@ -25,4 +25,3 @@ python -m multi_llm_debate.run.llm_bar.main \
     --task-name "llm_bar_pruning" \
     --quality-pruning \
     --diversity-pruning "embedding" \
-    --pruning-amount 5 \
