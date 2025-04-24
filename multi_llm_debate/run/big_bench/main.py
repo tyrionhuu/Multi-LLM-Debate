@@ -1,12 +1,14 @@
 if __name__ == "__main__":
     from pathlib import Path
-
     from ..shared.main import main as shared_main
     from ..shared.utils import Parser
     from .evaluate import evaluate_all_big_bench
     from .run_debate import process_big_bench_dataset
     from .utils import load_big_bench_dataset
-
+    from multi_llm_debate.utils.logging_config import setup_logging
+    import logging
+    logger = setup_logging(__name__)
+    logger.setLevel(logging.INFO)
     args = Parser(description="Run BIG_Bench evaluation").parse_args()
     if args.task_name is None:
         task_name = "big_bench"

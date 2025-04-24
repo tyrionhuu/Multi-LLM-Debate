@@ -6,6 +6,10 @@ if __name__ == "__main__":
     from .evaluate import evaluate_all_hallu_dial
     from .run_debate import process_hallu_dial_dataset
     from .utils import load_hallu_dial_dataset
+    from multi_llm_debate.utils.logging_config import setup_logging
+    import logging
+    logger = setup_logging(__name__)
+    logger.setLevel(logging.INFO)
 
     args = Parser(description="Run HalluDial evaluation").parse_args()
     if args.task_name is None:

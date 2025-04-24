@@ -5,12 +5,9 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 
-from multi_llm_debate.utils.logging_config import setup_logging
-
 from .run import execute_debate_workflow
 
-logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def main(
