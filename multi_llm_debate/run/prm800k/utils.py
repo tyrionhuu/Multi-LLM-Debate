@@ -36,7 +36,7 @@ def preprocess_prm800k_dataset(
     dataframe: pd.DataFrame,
     random_state: Optional[int] = None,
 ) -> pd.DataFrame:
-    """Preprocess the PRM800K DataFrame to extract 'question' and 'answer'.
+    """Preprocess the PRM800K DataFrame to extract 'question', 'answer', and 'steps'.
 
     Args:
         dataframe: Input DataFrame from PRM800K dataset.
@@ -44,33 +44,37 @@ def preprocess_prm800k_dataset(
             randomized differently each time.
 
     Returns:
-        pd.DataFrame: DataFrame with columns ['question', 'answer'].
+        pd.DataFrame: DataFrame with columns ['question', 'answer', 'steps'].
     """
-
-    def extract_answer(label: Dict) -> List:
-        """Extracts the answer list from the label dict."""
+    def extract_answer_and_steps(label: dict) -> tuple[list, list]:
+        """Extracts the answer list and used_texts from the label dict."""
         answers = []
+        used_texts = []
         for step in label.get("steps", []):
+            used_text = None
             used_rating = None
             for text in step.get("completions", []):
                 if text.get("rating") is not None:
+                    used_text = text["text"]
                     used_rating = text["rating"]
                     break
-            if used_rating is None and step.get("completions"):
+            if used_text is None and step.get("completions"):
+                used_text = step["completions"][-1]["text"]
                 used_rating = step["completions"][-1].get("rating")
+            used_texts.append(used_text)
             if used_rating is None:
                 answers.append(None)
             elif used_rating > -1:
                 answers.append(1)
             else:
                 answers.append(0)
-        return answers
+        return answers, used_texts
 
     processed = []
     for _, row in dataframe.iterrows():
         question = row["question"]["problem"]
-        answer = extract_answer(row["label"])
-        processed.append({"question": question, "answer": answer})
+        answer, steps = extract_answer_and_steps(row["label"])
+        processed.append({"question": question, "answer": answer, "steps": steps})
 
     df = pd.DataFrame(processed)
 
