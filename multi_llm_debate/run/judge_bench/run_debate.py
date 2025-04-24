@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
@@ -16,7 +15,6 @@ from .utils import extract_caption_a_b_answer
 
 # Fix the setup_logging call by removing the level parameter
 logger = setup_logging(__name__)
-logger.setLevel(logging.INFO)
 
 
 def process_judge_bench_dataset(
