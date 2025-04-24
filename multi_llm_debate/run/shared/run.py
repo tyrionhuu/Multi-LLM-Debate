@@ -1,9 +1,10 @@
 import concurrent.futures
 import csv
+import logging
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
-import logging
+
 import pandas as pd
 
 from ...debate.agents_ensemble import AgentsEnsemble
@@ -16,6 +17,7 @@ from .evaluate import EvaluationResults
 from .utils import format_time, model_configs_to_string
 
 logger = logging.getLogger(__name__)
+
 
 def execute_debate_workflow(
     dataframe: pd.DataFrame,
