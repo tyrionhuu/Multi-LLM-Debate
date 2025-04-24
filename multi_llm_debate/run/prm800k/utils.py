@@ -46,6 +46,7 @@ def preprocess_prm800k_dataset(
     Returns:
         pd.DataFrame: DataFrame with columns ['question', 'answer', 'steps'].
     """
+
     def extract_answer_and_steps(label: dict) -> tuple[list, list]:
         """Extracts the answer list and used_texts from the label dict."""
         answers = []
