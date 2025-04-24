@@ -10,6 +10,7 @@ from .utils import setup_logging
 
 logger = setup_logging(__name__)
 logger.setLevel(logging.INFO)
+logger.propagate = False
 
 
 def main(
