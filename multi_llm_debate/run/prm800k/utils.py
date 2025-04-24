@@ -32,10 +32,54 @@ def load_prm800k_dataset(
     except Exception as e:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
 
+def preprocess_prm800k_dataset(
+    dataframe: pd.DataFrame,
+    random_state: Optional[int] = None,
+) -> pd.DataFrame:
+    """Preprocess the PRM800K DataFrame to extract 'question' and 'answer'.
+
+    Args:
+        dataframe: Input DataFrame from PRM800K dataset.
+        random_state: Random seed for shuffling. If None, the dataset will be
+            randomized differently each time.
+
+    Returns:
+        pd.DataFrame: DataFrame with columns ['question', 'answer'].
+    """
+    def extract_answer(label: dict) -> list:
+        """Extracts the answer list from the label dict."""
+        answers = []
+        for step in label.get("steps", []):
+            used_rating = None
+            for text in step.get("completions", []):
+                if text.get("rating") is not None:
+                    used_rating = text["rating"]
+                    break
+            if used_rating is None and step.get("completions"):
+                used_rating = step["completions"][-1].get("rating")
+            if used_rating is None:
+                answers.append(None)
+            elif used_rating > -1:
+                answers.append(1)
+            else:
+                answers.append(0)
+        return answers
+
+    processed = []
+    for _, row in dataframe.iterrows():
+        question = row["question"]["problem"]
+        answer = extract_answer(row["label"])
+        processed.append({"question": question, "answer": answer})
+
+    df = pd.DataFrame(processed)
+
+    if random_state is not None:
+        df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
+
+    return df
 
 if __name__ == "__main__":
     # Example usage
     df = load_prm800k_dataset()
-    print(df.info())
-    # Print the complete first line as a JSON string
-    print(json.dumps(df.iloc[0].to_dict(), indent=4))
+    processed_df = preprocess_prm800k_dataset(df, random_state=42)
+    print(processed_df.head())
