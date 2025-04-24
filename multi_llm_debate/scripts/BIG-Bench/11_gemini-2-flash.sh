@@ -27,4 +27,5 @@ python -m multi_llm_debate.run.big_bench.main \
     --diversity-pruning-amount 7 \
     --quality-pruning \
     --quality-pruning-amount 5 \
-    
+
+echo "BIG-Bench Gemini-2 Flash evaluation completed. "
