@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 
 import pandas as pd
 
@@ -47,7 +47,7 @@ def preprocess_prm800k_dataset(
         pd.DataFrame: DataFrame with columns ['question', 'answer', 'steps'].
     """
 
-    def extract_answer_and_steps(label: dict) -> tuple[list, list]:
+    def extract_answer_and_steps(label: Dict) -> Tuple[List, List]:
         """Extracts the answer list and used_texts from the label dict."""
         answers = []
         used_texts = []
