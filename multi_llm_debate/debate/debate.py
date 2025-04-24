@@ -86,7 +86,6 @@ def debate(
 
     try:
         for i in range(max_rounds):
-            logger.info(f"Starting debate round {i}")
             if i == 0:
                 logger.info("Running round 0 (initial statements)")
                 prompt = prompt_builder.build_round_zero()
