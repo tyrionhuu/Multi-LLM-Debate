@@ -1,6 +1,5 @@
 import concurrent.futures
 import csv
-import random
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -17,7 +16,6 @@ from .evaluate import EvaluationResults
 from .utils import format_time, model_configs_to_string
 
 logger = setup_logging(__name__)
-logger.setLevel("INFO")
 
 
 def execute_debate_workflow(
