@@ -1,7 +1,7 @@
 import json
 import re
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -32,6 +32,7 @@ def load_prm800k_dataset(
     except Exception as e:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
 
+
 def preprocess_prm800k_dataset(
     dataframe: pd.DataFrame,
     random_state: Optional[int] = None,
@@ -46,7 +47,8 @@ def preprocess_prm800k_dataset(
     Returns:
         pd.DataFrame: DataFrame with columns ['question', 'answer'].
     """
-    def extract_answer(label: dict) -> list:
+
+    def extract_answer(label: Dict) -> List:
         """Extracts the answer list from the label dict."""
         answers = []
         for step in label.get("steps", []):
@@ -77,6 +79,7 @@ def preprocess_prm800k_dataset(
         df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
 
     return df
+
 
 if __name__ == "__main__":
     # Example usage
