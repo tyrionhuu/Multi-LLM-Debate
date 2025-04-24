@@ -1,13 +1,15 @@
 if __name__ == "__main__":
+    import logging
     from pathlib import Path
+
+    from multi_llm_debate.utils.logging_config import setup_logging
 
     from ..shared.main import main as shared_main
     from ..shared.utils import Parser
     from .evaluate import evaluate_all_hallu_dial
     from .run_debate import process_hallu_dial_dataset
     from .utils import load_hallu_dial_dataset
-    from multi_llm_debate.utils.logging_config import setup_logging
-    import logging
+
     logger = setup_logging(__name__)
     logger.setLevel(logging.INFO)
 

@@ -1,8 +1,11 @@
 if __name__ == "__main__":
+    import logging
     import os
     from pathlib import Path
 
     import pandas as pd
+
+    from multi_llm_debate.utils.logging_config import setup_logging
 
     from ..shared.main import main as shared_main
     from ..shared.utils import Parser
@@ -10,8 +13,6 @@ if __name__ == "__main__":
     from .run_debate import process_truthful_qa_dataset
     from .utils import load_truthful_qa_dataset, preprocess_truthful_qa_dataframe
 
-    from multi_llm_debate.utils.logging_config import setup_logging
-    import logging
     logger = setup_logging(__name__)
     logger.setLevel(logging.INFO)
 
