@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -8,6 +9,7 @@ from ..utils.logging_config import setup_logging
 
 # Set up logger
 logger = setup_logging(__name__)
+logger.setLevel(logging.WARNING)
 
 
 class Agent:
