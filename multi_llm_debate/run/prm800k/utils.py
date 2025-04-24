@@ -1,12 +1,9 @@
 import json
-import random
 import re
 from pathlib import Path
 from typing import Literal, Optional, Union
 
 import pandas as pd
-
-from multi_llm_debate.utils.download_dataset import load_save_huggingface_dataset_df
 
 
 def load_prm800k_dataset(
@@ -39,4 +36,4 @@ def load_prm800k_dataset(
 if __name__ == "__main__":
     # Example usage
     df = load_prm800k_dataset()
-    print(df.describe())
+    print(df.info())
