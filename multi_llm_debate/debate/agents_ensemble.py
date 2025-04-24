@@ -1,6 +1,7 @@
 import concurrent.futures
 import logging
 import time
+import random
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -150,8 +151,6 @@ class AgentsEnsemble:
                 Image file paths for vision models. Can be a single path or a list.
             max_retries (Optional[int], optional): Maximum number of retry attempts.
                 If None, use the ensemble's default max_retries. Defaults to None.
-            api_key (Optional[str], optional): API key to use for this request.
-                Defaults to None, which uses the one from config.
             max_tokens (int, optional): Maximum number of tokens in response.
                 Defaults to 6400.
             temperature (float, optional): Controls randomness in the response.
@@ -164,35 +163,38 @@ class AgentsEnsemble:
             ConnectionError: If there's a network or timeout issue after all retries.
             Exception: If some other error occurs after all retries.
         """
-        # Use ensemble's default if max_retries not specified
         retries = self.max_retries if max_retries is None else max_retries
+        base_delay = 1.0  # seconds
+        max_delay = 16.0  # seconds
 
-        if retries <= 0:
-            # No retries, call agent.respond directly
-            logger.debug(f"No retries set for agent {agent.agent_id} ({agent.model})")
-            return agent.respond(
-                prompt=prompt,
-                images=images,
-                json_mode=json_mode,
-                timeout=int(self.timeout),
-                max_retries=0,
-                max_tokens=max_tokens,
-                temperature=temperature,
-            )
-
-        # Use the agent's built-in retry mechanism
-        logger.debug(
-            f"Using {retries} retries for agent {agent.agent_id} ({agent.model})"
-        )
-        return agent.respond(
-            prompt=prompt,
-            images=images,
-            json_mode=json_mode,
-            timeout=int(self.timeout),
-            max_retries=retries,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
+        attempt = 0
+        while True:
+            try:
+                return agent.respond(
+                    prompt=prompt,
+                    images=images,
+                    json_mode=json_mode,
+                    timeout=int(self.timeout),
+                    max_retries=0,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                )
+            except (ConnectionError, Exception) as e:
+                if attempt >= retries:
+                    logger.error(
+                        f"All retries failed for agent {agent.agent_id} ({agent.model})"
+                    )
+                    raise
+                # Exponential backoff with jitter
+                delay = min(max_delay, base_delay * (2 ** attempt))
+                jitter = random.uniform(0, delay / 2)
+                total_delay = delay + jitter
+                logger.warning(
+                    f"Retry {attempt+1}/{retries} for agent {agent.agent_id} "
+                    f"({agent.model}) after {total_delay:.2f}s due to error: {e}"
+                )
+                time.sleep(total_delay)
+                attempt += 1
 
     def get_responses(
         self,
