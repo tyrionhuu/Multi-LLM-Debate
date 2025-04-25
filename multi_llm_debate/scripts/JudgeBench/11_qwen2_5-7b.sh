@@ -105,12 +105,12 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.judge_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
     --task-name "judge_bench" 
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.judge_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
     --task-name "judge_bench_pruning" \
     --diversity-pruning "embedding" \
