@@ -15,12 +15,12 @@ CONFIG='[
 
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.ice_score.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
     --config-json "$CONFIG" \
     --task-name "ice_score" \
     
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.ice_score.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
     --config-json "$CONFIG" \
     --task-name "ice_score_pruning" \
     --diversity-pruning "embedding" \
