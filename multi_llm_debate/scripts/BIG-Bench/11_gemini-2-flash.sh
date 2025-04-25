@@ -23,7 +23,7 @@ python -m multi_llm_debate.run.big_bench.main \
 python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
     --task-name "big_bench_pruning" \
-    --diversity-pruning "embedding" \
+    --diversity-pruning "answer" \
     --diversity-pruning-amount 7 \
 
 echo "BIG-Bench Gemini-2 Flash evaluation completed. "
