@@ -22,7 +22,5 @@ python -m multi_llm_debate.run.truthful_qa.main \
 python -m multi_llm_debate.run.truthful_qa.main \
     --config-json "$CONFIG" \
     --task-name "truthful_qa_pruning" \
-    --diversity-pruning "embedding" \
+    --diversity-pruning "answer" \
     --diversity-pruning-amount 7 \
-    --quality-pruning \
-    --quality-pruning-amount 5 \
