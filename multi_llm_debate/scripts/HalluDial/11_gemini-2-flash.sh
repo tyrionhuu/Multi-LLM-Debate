@@ -25,8 +25,6 @@ python -m multi_llm_debate.run.hallu_dial.main \
     --config-json "$CONFIG" \
     --sample-size 1000 \
     --task-name "hallu_dial_pruning" \
-    --diversity-pruning "embedding" \
+    --diversity-pruning "answer" \
     --diversity-pruning-amount 7 \
-    --quality-pruning \
-    --quality-pruning-amount 5 \
     
