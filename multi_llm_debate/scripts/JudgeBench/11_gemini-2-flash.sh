@@ -23,8 +23,6 @@ python -m multi_llm_debate.run.judge_bench.main \
 python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
     --task-name "judge_bench_pruning" \
-    --diversity-pruning "embedding" \
+    --diversity-pruning "answer" \
     --diversity-pruning-amount 7 \
-    --quality-pruning \
-    --quality-pruning-amount 5 \
     
