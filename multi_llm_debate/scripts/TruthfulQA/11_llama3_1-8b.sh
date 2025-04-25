@@ -105,12 +105,12 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.truthful_qa.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
     --task-name "truthful_qa" \
     --config-json "$CONFIG"
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.truthful_qa.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
     --config-json "$CONFIG" \
     --task-name "truthful_qa_pruning" \
     --diversity-pruning "embedding" \
