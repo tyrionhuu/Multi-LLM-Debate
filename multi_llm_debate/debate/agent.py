@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class Agent:
     """A class representing an individual LLM agent.
-    
+
     DEPRECATED: This class is deprecated and will be removed in a future version.
     Use the AgentsEnsemble class directly instead, which now includes all agent
     functionality.
@@ -47,9 +47,9 @@ class Agent:
         warnings.warn(
             "The Agent class is deprecated. Use AgentsEnsemble directly instead.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
-        
+
         self.agent_id = agent_id
         self.model = model
         self.base_url = base_url
@@ -302,16 +302,16 @@ class Agent:
         if images is not None:
             if len(images) != len(prompts):
                 raise ValueError("Length of images must match length of prompts")
-            
+
             # Validate all images
             for img_set in images:
                 if img_set is None:
                     continue
-                    
+
                 # Convert single image to list for consistency
                 if not isinstance(img_set, list):
                     img_set = [img_set]
-                    
+
                 for img in img_set:
                     if isinstance(img, (str, Path)):
                         img_path = Path(img)
@@ -329,7 +329,9 @@ class Agent:
         for attempt in range(max_retries + 1):
             try:
                 if attempt > 0:
-                    logger.info(f"Retry #{attempt} for agent {self.agent_id} batch request")
+                    logger.info(
+                        f"Retry #{attempt} for agent {self.agent_id} batch request"
+                    )
                     # Exponential backoff for retry delay
                     current_delay = retry_delay * (2 ** (attempt - 1))
                     logger.info(f"Waiting {current_delay:.2f}s before retry")
@@ -371,11 +373,13 @@ class Agent:
                         except (json.JSONDecodeError, TypeError):
                             parsed_response = str(raw_response)
 
-                    processed_responses.append({
-                        "agent_id": self.agent_id,
-                        "model": self.model,
-                        "response": parsed_response,
-                    })
+                    processed_responses.append(
+                        {
+                            "agent_id": self.agent_id,
+                            "model": self.model,
+                            "response": parsed_response,
+                        }
+                    )
 
                 total_time = time.time() - start_time
                 logger.info(

@@ -20,22 +20,23 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AgentInfo:
     """Simple data class to store agent information.
-    
+
     Attributes:
         agent_id (int): Unique identifier for the agent.
         model (str): Name of the language model being used.
         base_url (Optional[str]): Base URL for the API calls.
         api_key (Optional[str]): API key for the agent.
     """
+
     agent_id: int
     model: str
     base_url: Optional[str] = None
     api_key: Optional[str] = None
-    
+
     def __str__(self) -> str:
         """Return a string representation of the agent."""
         return f"Agent {self.agent_id} ({self.model})"
-    
+
     def __repr__(self) -> str:
         """Return a string representation of the agent."""
         return str(self)
@@ -46,7 +47,7 @@ class AgentsEnsemble:
 
     This class manages multiple agents and provides methods to interact with them
     collectively. It can be initialized automatically from configuration or built manually.
-    
+
     Agent functionality is directly integrated into this class instead of using
     a separate Agent class, simplifying the architecture.
 
@@ -168,11 +169,11 @@ class AgentsEnsemble:
         self, agent_info: AgentInfo, raw_response: Any
     ) -> Dict[str, Any]:
         """Process the raw response from the LLM API.
-        
+
         Args:
             agent_info (AgentInfo): Information about the agent.
             raw_response: The raw response from the API.
-            
+
         Returns:
             Dict[str, Any]: Processed response with agent information.
         """
@@ -203,7 +204,7 @@ class AgentsEnsemble:
             "model": agent_info.model,
             "response": parsed_response,
         }
-        
+
         return response
 
     def _respond(
@@ -282,7 +283,9 @@ class AgentsEnsemble:
 
                 # Make the actual API call
                 api_start = time.time()
-                logger.info(f"Agent {agent_info.agent_id} ({agent_info.model}) sending request")
+                logger.info(
+                    f"Agent {agent_info.agent_id} ({agent_info.model}) sending request"
+                )
                 raw_response = call_model(
                     model_name=agent_info.model,
                     base_url=agent_info.base_url,
@@ -393,16 +396,16 @@ class AgentsEnsemble:
         if images is not None:
             if len(images) != len(prompts):
                 raise ValueError("Length of images must match length of prompts")
-            
+
             # Validate all images
             for img_set in images:
                 if img_set is None:
                     continue
-                    
+
                 # Convert single image to list for consistency
                 if not isinstance(img_set, list):
                     img_set = [img_set]
-                    
+
                 for img in img_set:
                     if isinstance(img, (str, Path)):
                         img_path = Path(img)
@@ -420,7 +423,9 @@ class AgentsEnsemble:
         for attempt in range(max_retries + 1):
             try:
                 if attempt > 0:
-                    logger.info(f"Retry #{attempt} for agent {agent_info.agent_id} batch request")
+                    logger.info(
+                        f"Retry #{attempt} for agent {agent_info.agent_id} batch request"
+                    )
                     # Exponential backoff for retry delay
                     current_delay = retry_delay * (2 ** (attempt - 1))
                     logger.info(f"Waiting {current_delay:.2f}s before retry")
@@ -452,7 +457,9 @@ class AgentsEnsemble:
                 # Process each response
                 processed_responses = []
                 for raw_response in raw_responses:
-                    processed_response = self._process_response(agent_info, raw_response)
+                    processed_response = self._process_response(
+                        agent_info, raw_response
+                    )
                     processed_responses.append(processed_response)
 
                 total_time = time.time() - start_time
@@ -517,7 +524,7 @@ class AgentsEnsemble:
             max_retries (Optional[int]): Max retries.
             max_tokens (int): Max tokens.
             temperature (float): Response randomness.
-            parallel (bool): Whether to process in parallel. Automatically 
+            parallel (bool): Whether to process in parallel. Automatically
                 disabled if only one model type is present as it adds
                 unnecessary overhead.
             batch (bool): If True, process the input as a batch of prompts.
@@ -542,11 +549,11 @@ class AgentsEnsemble:
             batch_images = None
             if images is not None:
                 if not isinstance(images, list) or len(images) != len(prompt):
-                     raise ValueError(
-                         "In batch mode, 'images' must be a list matching the "
-                         "length of 'prompts'."
-                     )
-                batch_images = images # Use the provided list directly
+                    raise ValueError(
+                        "In batch mode, 'images' must be a list matching the "
+                        "length of 'prompts'."
+                    )
+                batch_images = images  # Use the provided list directly
 
             logger.info(f"Getting responses in batch mode for {len(prompt)} prompts")
             # Use the batch processing method
@@ -566,17 +573,19 @@ class AgentsEnsemble:
                 for prompt_responses in batch_responses_nested
                 for response in prompt_responses
             ]
-            logger.info(f"Returning {len(flattened_responses)} total responses from batch mode")
+            logger.info(
+                f"Returning {len(flattened_responses)} total responses from batch mode"
+            )
             return flattened_responses
 
         if not isinstance(prompt, str):
-             raise ValueError("When batch=False, prompt must be a single string")
+            raise ValueError("When batch=False, prompt must be a single string")
 
         responses = []
-        
+
         unique_models = set(agent.model for agent in self.agents)
         use_parallel = parallel and len(unique_models) > 1
-        
+
         if use_parallel:
             logger.info("Getting responses in parallel mode")
             start_time = time.time()
@@ -623,14 +632,14 @@ class AgentsEnsemble:
         else:
             if parallel and len(unique_models) <= 1:
                 logger.info("Parallel processing disabled: only one model type present")
-                
+
             retries = self.max_retries if max_retries is None else max_retries
             retry_msg = f"{retries} retries" if retries > 0 else "no retries"
             logger.info(
                 f"Getting responses from {len(self.agents)} agents sequentially with {retry_msg}"
             )
             start_time = time.time()
-            
+
             for i, agent_info in enumerate(
                 tqdm(self.agents, desc="Processing Agents", unit="agent")
             ):
@@ -705,12 +714,14 @@ class AgentsEnsemble:
             raise ValueError("Length of images must match length of prompts")
 
         all_agent_responses_flat = []
-        
+
         unique_models = set(agent.model for agent in self.agents)
         use_parallel = parallel and len(unique_models) > 1
-        
+
         if use_parallel:
-            logger.info(f"Getting batch responses in parallel mode for {len(prompts)} prompts")
+            logger.info(
+                f"Getting batch responses in parallel mode for {len(prompts)} prompts"
+            )
             start_time = time.time()
 
             model_groups = {}
@@ -743,9 +754,7 @@ class AgentsEnsemble:
                     try:
                         model_responses = future.result()
                         all_agent_responses_flat.extend(model_responses)
-                        logger.info(
-                            f"Completed batch processing for model {model}"
-                        )
+                        logger.info(f"Completed batch processing for model {model}")
                     except Exception as e:
                         logger.error(f"Error batch processing model {model}: {str(e)}")
                         raise
@@ -757,8 +766,8 @@ class AgentsEnsemble:
             )
         else:
             if parallel and len(unique_models) <= 1:
-                logger.info("Parallel processing disabled: only one model type present") 
-            
+                logger.info("Parallel processing disabled: only one model type present")
+
             retries = self.max_retries if max_retries is None else max_retries
             retry_msg = f"{retries} retries" if retries > 0 else "no retries"
             logger.info(
@@ -795,20 +804,24 @@ class AgentsEnsemble:
                     )
                     failed_responses = []
                     for p_idx in range(len(prompts)):
-                         failed_responses.append({
-                            "agent_id": agent_info.agent_id,
-                            "model": agent_info.model,
-                            "response": f"Error: Failed after retries - {str(e)}",
-                            "error": str(e),
-                            "prompt_index": p_idx
-                         })
+                        failed_responses.append(
+                            {
+                                "agent_id": agent_info.agent_id,
+                                "model": agent_info.model,
+                                "response": f"Error: Failed after retries - {str(e)}",
+                                "error": str(e),
+                                "prompt_index": p_idx,
+                            }
+                        )
                     agent_results_list.append(failed_responses)
 
                 if self.job_delay > 0 and i < len(self.agents) - 1:
                     logger.debug(f"Waiting {self.job_delay}s before next agent")
                     time.sleep(self.job_delay)
 
-            all_agent_responses_flat = [resp for agent_resps in agent_results_list for resp in agent_resps]
+            all_agent_responses_flat = [
+                resp for agent_resps in agent_results_list for resp in agent_resps
+            ]
 
             elapsed = time.time() - start_time
             logger.info(
@@ -816,35 +829,44 @@ class AgentsEnsemble:
                 f"for {len(prompts)} prompts in {elapsed:.2f}s (sequential)"
             )
 
-        responses_by_prompt: List[List[Dict[str, Any]]] = [[] for _ in range(len(prompts))]
+        responses_by_prompt: List[List[Dict[str, Any]]] = [
+            [] for _ in range(len(prompts))
+        ]
         agent_ids_order = {agent.agent_id: idx for idx, agent in enumerate(self.agents)}
 
         for response in all_agent_responses_flat:
             p_idx = response.get("prompt_index", -1)
             if 0 <= p_idx < len(prompts):
-                 agent_order_idx = agent_ids_order.get(response["agent_id"], -1)
-                 if agent_order_idx != -1:
-                     while len(responses_by_prompt[p_idx]) <= agent_order_idx:
-                         responses_by_prompt[p_idx].append({})
-                     responses_by_prompt[p_idx][agent_order_idx] = response
+                agent_order_idx = agent_ids_order.get(response["agent_id"], -1)
+                if agent_order_idx != -1:
+                    while len(responses_by_prompt[p_idx]) <= agent_order_idx:
+                        responses_by_prompt[p_idx].append({})
+                    responses_by_prompt[p_idx][agent_order_idx] = response
             else:
-                 logger.warning(f"Response missing or has invalid prompt_index: {response}")
+                logger.warning(
+                    f"Response missing or has invalid prompt_index: {response}"
+                )
 
         for p_idx in range(len(prompts)):
             for agent_idx, agent_info in enumerate(self.agents):
-                if agent_idx >= len(responses_by_prompt[p_idx]) or not responses_by_prompt[p_idx][agent_idx]:
-                     logger.warning(f"Missing response for prompt {p_idx} from agent {agent_info.agent_id}")
-                     placeholder = {
-                         "agent_id": agent_info.agent_id,
-                         "model": agent_info.model,
-                         "response": "Error: Missing response",
-                         "error": "Response not generated or collected",
-                         "prompt_index": p_idx
-                     }
-                     if agent_idx >= len(responses_by_prompt[p_idx]):
-                         responses_by_prompt[p_idx].append(placeholder)
-                     else:
-                         responses_by_prompt[p_idx][agent_idx] = placeholder
+                if (
+                    agent_idx >= len(responses_by_prompt[p_idx])
+                    or not responses_by_prompt[p_idx][agent_idx]
+                ):
+                    logger.warning(
+                        f"Missing response for prompt {p_idx} from agent {agent_info.agent_id}"
+                    )
+                    placeholder = {
+                        "agent_id": agent_info.agent_id,
+                        "model": agent_info.model,
+                        "response": "Error: Missing response",
+                        "error": "Response not generated or collected",
+                        "prompt_index": p_idx,
+                    }
+                    if agent_idx >= len(responses_by_prompt[p_idx]):
+                        responses_by_prompt[p_idx].append(placeholder)
+                    else:
+                        responses_by_prompt[p_idx][agent_idx] = placeholder
 
         return responses_by_prompt
 
@@ -1071,10 +1093,10 @@ class AgentsEnsemble:
                     max_tokens=max_tokens,
                     temperature=temperature,
                 )
-                
+
                 for i, response in enumerate(agent_responses):
                     response["prompt_index"] = i
-                
+
                 all_responses.extend(agent_responses)
 
                 if self.job_delay > 0 and agent_info != agents[-1]:
