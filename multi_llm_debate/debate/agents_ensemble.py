@@ -566,9 +566,9 @@ class AgentsEnsemble:
         """Get responses from all agents.
 
         Args:
-            prompt (str): Prompt to send. If batch=True,
+            prompt (str): Prompt to send. If batch=False,
                 this must be a list of prompts.
-            images: Image file paths for vision models. If batch=True, this
+            images: Image file paths for vision models. If batch=False, this
                 should be a list matching the prompts list length, where each
                 element corresponds to a prompt's images.
             json_mode (bool): Expect JSON responses.
@@ -583,11 +583,11 @@ class AgentsEnsemble:
                 all responses from all prompts. Defaults to False.
 
         Returns:
-            List[Dict[str, Any]]: Agent responses. If batch=True, this is a
+            List[Dict[str, Any]]: Agent responses. If batch=False, this is a
                 flat list containing responses for all prompts from all agents.
 
         Raises:
-            ValueError: If batch=True and prompt is not a list, or if images
+            ValueError: If batch=False and prompt is not a list, or if images
                 are provided in batch mode but don't match prompt length.
         """
         if batch:
@@ -730,7 +730,7 @@ class AgentsEnsemble:
         """Get batch responses from all agents for multiple prompts.
 
         Note: This method returns responses grouped by prompt. If you need a
-        flat list of all responses, use get_responses(batch=True) instead.
+        flat list of all responses, use get_responses(batch=False) instead.
 
         Args:
             prompts (List[str]): List of prompts to send to each agent.
