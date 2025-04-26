@@ -15,9 +15,9 @@ CONFIG='[
 
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.llm_bar.main \
-    --config-json "$CONFIG" \
-    --task-name "llm_bar" \
+# python -m multi_llm_debate.run.llm_bar.main \
+#     --config-json "$CONFIG" \
+#     --task-name "llm_bar" \
 
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.llm_bar.main \
