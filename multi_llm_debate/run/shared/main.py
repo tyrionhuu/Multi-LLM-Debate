@@ -24,7 +24,7 @@ def main(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
-    batch: bool = True,
+    batch: bool = False,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
