@@ -494,6 +494,360 @@ class AgentsEnsemble:
                         f"Failed after {max_retries+1} attempts: {'; '.join(errors)}"
                     )
 
+    def get_responses(
+        self,
+        prompt: Union[str, List[str]],
+        images: Union[str, Path, List[str], List[Path], None] = None,
+        json_mode: bool = False,
+        max_retries: Optional[int] = None,
+        max_tokens: int = 6400,
+        temperature: float = 1.0,
+        parallel: bool = False,
+        batch: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Get responses from all agents.
+
+        Args:
+            prompt (Union[str, List[str]]): Prompt to send. If batch=True,
+                this must be a list of prompts.
+            images: Image file paths for vision models. If batch=True, this
+                should be a list matching the prompts list length, where each
+                element corresponds to a prompt's images.
+            json_mode (bool): Expect JSON responses.
+            max_retries (Optional[int]): Max retries.
+            max_tokens (int): Max tokens.
+            temperature (float): Response randomness.
+            parallel (bool): Whether to process in parallel. Automatically 
+                disabled if only one model type is present as it adds
+                unnecessary overhead.
+            batch (bool): If True, process the input as a batch of prompts.
+                'prompt' must be a list of strings. Returns a flat list of
+                all responses from all prompts. Defaults to False.
+
+        Returns:
+            List[Dict[str, Any]]: Agent responses. If batch=True, this is a
+                flat list containing responses for all prompts from all agents.
+
+        Raises:
+            ValueError: If batch=True and prompt is not a list, or if images
+                are provided in batch mode but don't match prompt length.
+        """
+        if batch:
+            if not isinstance(prompt, list):
+                raise ValueError("When batch=True, prompt must be a list of strings")
+            if not prompt:
+                raise ValueError("When batch=True, prompt list cannot be empty")
+
+            # Validate images for batch mode
+            batch_images = None
+            if images is not None:
+                if not isinstance(images, list) or len(images) != len(prompt):
+                     raise ValueError(
+                         "In batch mode, 'images' must be a list matching the "
+                         "length of 'prompts'."
+                     )
+                batch_images = images # Use the provided list directly
+
+            logger.info(f"Getting responses in batch mode for {len(prompt)} prompts")
+            # Use the batch processing method
+            batch_responses_nested = self.get_responses_batch(
+                prompts=prompt,
+                images=batch_images,
+                json_mode=json_mode,
+                max_retries=max_retries,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                parallel=parallel,
+            )
+
+            # Flatten the results: List[List[Dict]] -> List[Dict]
+            flattened_responses = [
+                response
+                for prompt_responses in batch_responses_nested
+                for response in prompt_responses
+            ]
+            logger.info(f"Returning {len(flattened_responses)} total responses from batch mode")
+            return flattened_responses
+
+        if not isinstance(prompt, str):
+             raise ValueError("When batch=False, prompt must be a single string")
+
+        responses = []
+        
+        unique_models = set(agent.model for agent in self.agents)
+        use_parallel = parallel and len(unique_models) > 1
+        
+        if use_parallel:
+            logger.info("Getting responses in parallel mode")
+            start_time = time.time()
+
+            model_groups = {}
+            for agent in self.agents:
+                if agent.model not in model_groups:
+                    model_groups[agent.model] = []
+                model_groups[agent.model].append(agent)
+
+            logger.info(f"Processing {len(model_groups)} unique models in parallel")
+
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=len(model_groups)
+            ) as executor:
+                model_futures = {}
+                for model, agents_group in model_groups.items():
+                    future = executor.submit(
+                        self._process_agent_group,
+                        agents=agents_group,
+                        prompt=prompt,
+                        json_mode=json_mode,
+                        images=images,
+                        max_retries=max_retries,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                    model_futures[future] = model
+
+                for future in concurrent.futures.as_completed(model_futures):
+                    model = model_futures[future]
+                    try:
+                        model_responses = future.result()
+                        responses.extend(model_responses)
+                        logger.info(
+                            f"Completed processing {len(model_responses)} agents for model {model}"
+                        )
+                    except Exception as e:
+                        logger.error(f"Error processing model {model}: {str(e)}")
+                        raise
+
+            elapsed = time.time() - start_time
+            logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
+        else:
+            if parallel and len(unique_models) <= 1:
+                logger.info("Parallel processing disabled: only one model type present")
+                
+            retries = self.max_retries if max_retries is None else max_retries
+            retry_msg = f"{retries} retries" if retries > 0 else "no retries"
+            logger.info(
+                f"Getting responses from {len(self.agents)} agents sequentially with {retry_msg}"
+            )
+            start_time = time.time()
+            
+            for i, agent_info in enumerate(
+                tqdm(self.agents, desc="Processing Agents", unit="agent")
+            ):
+                logger.info(
+                    f"Requesting response from agent {i+1}/{len(self.agents)}: {agent_info.agent_id}"
+                )
+                try:
+                    response = self._get_response_with_retry(
+                        agent_info=agent_info,
+                        prompt=prompt,
+                        json_mode=json_mode,
+                        images=images,
+                        max_retries=max_retries,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                except (ConnectionError, Exception) as e:
+                    logger.error(
+                        f"All retries failed for agent {agent_info.agent_id}, aborting."
+                    )
+                    raise RuntimeError(str(e)) from e
+
+                responses.append(response)
+
+                if self.job_delay > 0 and i < len(self.agents) - 1:
+                    logger.debug(f"Waiting {self.job_delay}s before next agent")
+                    time.sleep(self.job_delay)
+
+            elapsed = time.time() - start_time
+            logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
+
+        return responses
+
+    def get_responses_batch(
+        self,
+        prompts: List[str],
+        images: Optional[List[Union[str, Path, List[str], List[Path], None]]] = None,
+        json_mode: bool = False,
+        max_retries: Optional[int] = None,
+        max_tokens: int = 6400,
+        temperature: float = 1.0,
+        parallel: bool = False,
+    ) -> List[List[Dict[str, Any]]]:
+        """Get batch responses from all agents for multiple prompts.
+
+        Note: This method returns responses grouped by prompt. If you need a
+        flat list of all responses, use get_responses(batch=True) instead.
+
+        Args:
+            prompts (List[str]): List of prompts to send to each agent.
+            images: Optional list of images for each prompt. Must match length
+                of prompts or be None. Each element corresponds to a prompt.
+            json_mode (bool): Whether to expect JSON responses.
+            max_retries (Optional[int]): Maximum number of retry attempts.
+            max_tokens (int): Maximum number of tokens in responses.
+            temperature (float): Controls randomness in the responses.
+            parallel (bool): Whether to process in parallel across different models.
+                Automatically disabled if only one model type is present.
+
+        Returns:
+            List[List[Dict[str, Any]]]: List where each element is a list
+            containing responses from all agents for a single prompt. The outer
+            list corresponds to the input prompts order.
+
+        Raises:
+            ValueError: If prompts is empty or if images length mismatches prompts.
+        """
+        if not prompts:
+            raise ValueError("Prompts list cannot be empty")
+
+        if images is not None and len(images) != len(prompts):
+            raise ValueError("Length of images must match length of prompts")
+
+        all_agent_responses_flat = []
+        
+        unique_models = set(agent.model for agent in self.agents)
+        use_parallel = parallel and len(unique_models) > 1
+        
+        if use_parallel:
+            logger.info(f"Getting batch responses in parallel mode for {len(prompts)} prompts")
+            start_time = time.time()
+
+            model_groups = {}
+            for agent in self.agents:
+                if agent.model not in model_groups:
+                    model_groups[agent.model] = []
+                model_groups[agent.model].append(agent)
+
+            logger.info(f"Processing {len(model_groups)} unique models in parallel")
+
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=len(model_groups)
+            ) as executor:
+                model_futures = {}
+                for model, agents_group in model_groups.items():
+                    future = executor.submit(
+                        self._process_agent_group_batch,
+                        agents=agents_group,
+                        prompts=prompts,
+                        json_mode=json_mode,
+                        images=images,
+                        max_retries=max_retries,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                    model_futures[future] = model
+
+                for future in concurrent.futures.as_completed(model_futures):
+                    model = model_futures[future]
+                    try:
+                        model_responses = future.result()
+                        all_agent_responses_flat.extend(model_responses)
+                        logger.info(
+                            f"Completed batch processing for model {model}"
+                        )
+                    except Exception as e:
+                        logger.error(f"Error batch processing model {model}: {str(e)}")
+                        raise
+
+            elapsed = time.time() - start_time
+            logger.info(
+                f"Received batch responses from {len(self.agents)} agents "
+                f"for {len(prompts)} prompts in {elapsed:.2f}s (parallel)"
+            )
+        else:
+            if parallel and len(unique_models) <= 1:
+                logger.info("Parallel processing disabled: only one model type present") 
+            
+            retries = self.max_retries if max_retries is None else max_retries
+            retry_msg = f"{retries} retries" if retries > 0 else "no retries"
+            logger.info(
+                f"Getting batch responses from {len(self.agents)} agents sequentially "
+                f"for {len(prompts)} prompts with {retry_msg}"
+            )
+            start_time = time.time()
+
+            agent_results_list = []
+            for i, agent_info in enumerate(
+                tqdm(self.agents, desc="Processing Agents", unit="agent")
+            ):
+                logger.info(
+                    f"Requesting batch responses from agent {i+1}/{len(self.agents)}: "
+                    f"{agent_info.agent_id} for {len(prompts)} prompts"
+                )
+                try:
+                    agent_responses = self._get_response_batch_with_retry(
+                        agent_info=agent_info,
+                        prompts=prompts,
+                        json_mode=json_mode,
+                        images=images,
+                        max_retries=max_retries,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                    for p_idx, resp in enumerate(agent_responses):
+                        resp["prompt_index"] = p_idx
+                    agent_results_list.append(agent_responses)
+
+                except (ConnectionError, Exception) as e:
+                    logger.error(
+                        f"All retries failed for agent {agent_info.agent_id} batch request, aborting."
+                    )
+                    failed_responses = []
+                    for p_idx in range(len(prompts)):
+                         failed_responses.append({
+                            "agent_id": agent_info.agent_id,
+                            "model": agent_info.model,
+                            "response": f"Error: Failed after retries - {str(e)}",
+                            "error": str(e),
+                            "prompt_index": p_idx
+                         })
+                    agent_results_list.append(failed_responses)
+
+                if self.job_delay > 0 and i < len(self.agents) - 1:
+                    logger.debug(f"Waiting {self.job_delay}s before next agent")
+                    time.sleep(self.job_delay)
+
+            all_agent_responses_flat = [resp for agent_resps in agent_results_list for resp in agent_resps]
+
+            elapsed = time.time() - start_time
+            logger.info(
+                f"Received batch responses from {len(self.agents)} agents "
+                f"for {len(prompts)} prompts in {elapsed:.2f}s (sequential)"
+            )
+
+        responses_by_prompt: List[List[Dict[str, Any]]] = [[] for _ in range(len(prompts))]
+        agent_ids_order = {agent.agent_id: idx for idx, agent in enumerate(self.agents)}
+
+        for response in all_agent_responses_flat:
+            p_idx = response.get("prompt_index", -1)
+            if 0 <= p_idx < len(prompts):
+                 agent_order_idx = agent_ids_order.get(response["agent_id"], -1)
+                 if agent_order_idx != -1:
+                     while len(responses_by_prompt[p_idx]) <= agent_order_idx:
+                         responses_by_prompt[p_idx].append({})
+                     responses_by_prompt[p_idx][agent_order_idx] = response
+            else:
+                 logger.warning(f"Response missing or has invalid prompt_index: {response}")
+
+        for p_idx in range(len(prompts)):
+            for agent_idx, agent_info in enumerate(self.agents):
+                if agent_idx >= len(responses_by_prompt[p_idx]) or not responses_by_prompt[p_idx][agent_idx]:
+                     logger.warning(f"Missing response for prompt {p_idx} from agent {agent_info.agent_id}")
+                     placeholder = {
+                         "agent_id": agent_info.agent_id,
+                         "model": agent_info.model,
+                         "response": "Error: Missing response",
+                         "error": "Response not generated or collected",
+                         "prompt_index": p_idx
+                     }
+                     if agent_idx >= len(responses_by_prompt[p_idx]):
+                         responses_by_prompt[p_idx].append(placeholder)
+                     else:
+                         responses_by_prompt[p_idx][agent_idx] = placeholder
+
+        return responses_by_prompt
+
     def _get_response_with_retry(
         self,
         agent_info: AgentInfo,
@@ -546,7 +900,6 @@ class AgentsEnsemble:
                         f"All retries failed for agent {agent_info.agent_id} ({agent_info.model})"
                     )
                     raise
-                # Exponential backoff with jitter
                 delay = min(max_delay, base_delay * (2**attempt))
                 jitter = random.uniform(0, delay / 2)
                 total_delay = delay + jitter
@@ -610,7 +963,6 @@ class AgentsEnsemble:
                         f"({agent_info.model}) batch request"
                     )
                     raise
-                # Exponential backoff with jitter
                 delay = min(max_delay, base_delay * (2**attempt))
                 jitter = random.uniform(0, delay / 2)
                 total_delay = delay + jitter
@@ -621,277 +973,6 @@ class AgentsEnsemble:
                 )
                 time.sleep(total_delay)
                 attempt += 1
-
-    def get_responses(
-        self,
-        prompt: str,
-        images: Union[str, Path, List[str], List[Path], None] = None,
-        json_mode: bool = False,
-        max_retries: Optional[int] = None,
-        max_tokens: int = 6400,
-        temperature: float = 1.0,
-        parallel: bool = False,
-    ) -> List[Dict[str, Any]]:
-        """Get responses from all agents.
-
-        Args:
-            prompt (str): Prompt to send.
-            images: Image file paths for vision models.
-            json_mode (bool): Expect JSON responses.
-            max_retries (Optional[int]): Max retries.
-            max_tokens (int): Max tokens.
-            temperature (float): Response randomness.
-            parallel (bool): Whether to process in parallel.
-
-        Returns:
-            List[Dict[str, Any]]: Agent responses.
-        """
-        responses = []
-        if parallel:
-            logger.info("Getting responses in parallel mode")
-            start_time = time.time()
-
-            # Group agents by model type
-            model_groups = {}
-            for agent in self.agents:
-                if agent.model not in model_groups:
-                    model_groups[agent.model] = []
-                model_groups[agent.model].append(agent)
-
-            logger.info(f"Processing {len(model_groups)} unique models in parallel")
-
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=len(model_groups)
-            ) as executor:
-                # Submit one job per model type
-                model_futures = {}
-                for model, agents_group in model_groups.items():
-                    future = executor.submit(
-                        self._process_agent_group,
-                        agents=agents_group,
-                        prompt=prompt,
-                        json_mode=json_mode,
-                        images=images,
-                        max_retries=max_retries,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                    )
-                    model_futures[future] = model
-
-                # Collect results
-                for future in concurrent.futures.as_completed(model_futures):
-                    model = model_futures[future]
-                    try:
-                        model_responses = future.result()
-                        responses.extend(model_responses)
-                        logger.info(
-                            f"Completed processing {len(model_responses)} agents for model {model}"
-                        )
-                    except Exception as e:
-                        logger.error(f"Error processing model {model}: {str(e)}")
-                        raise
-
-            elapsed = time.time() - start_time
-            logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
-        else:
-            retries = self.max_retries if max_retries is None else max_retries
-            retry_msg = f"{retries} retries" if retries > 0 else "no retries"
-            logger.info(
-                f"Getting responses from {len(self.agents)} agents sequentially with {retry_msg}"
-            )
-            start_time = time.time()
-
-            for i, agent_info in enumerate(
-                tqdm(self.agents, desc="Processing Agents", unit="agent")
-            ):
-                logger.info(
-                    f"Requesting response from agent {i+1}/{len(self.agents)}: {agent_info.agent_id}"
-                )
-                try:
-                    response = self._get_response_with_retry(
-                        agent_info=agent_info,
-                        prompt=prompt,
-                        json_mode=json_mode,
-                        images=images,
-                        max_retries=max_retries,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                    )
-                except (ConnectionError, Exception) as e:
-                    logger.error(
-                        f"All retries failed for agent {agent_info.agent_id}, aborting."
-                    )
-                    raise RuntimeError(str(e)) from e
-
-                responses.append(response)
-
-                if self.job_delay > 0 and i < len(self.agents) - 1:
-                    logger.debug(f"Waiting {self.job_delay}s before next agent")
-                    time.sleep(self.job_delay)
-
-            elapsed = time.time() - start_time
-            logger.info(f"Received {len(responses)} responses in {elapsed:.2f}s")
-
-        return responses
-
-    def get_responses_batch(
-        self,
-        prompts: List[str],
-        images: Optional[List[Union[str, Path, List[str], List[Path], None]]] = None,
-        json_mode: bool = False,
-        max_retries: Optional[int] = None,
-        max_tokens: int = 6400,
-        temperature: float = 1.0,
-        parallel: bool = False,
-    ) -> List[List[Dict[str, Any]]]:
-        """Get batch responses from all agents for multiple prompts.
-
-        Args:
-            prompts (List[str]): List of prompts to send to each agent.
-            images: Optional list of images for each prompt.
-            json_mode (bool): Whether to expect JSON responses.
-            max_retries (Optional[int]): Maximum number of retry attempts.
-            max_tokens (int): Maximum number of tokens in responses.
-            temperature (float): Controls randomness in the responses.
-            parallel (bool): Whether to process in parallel across different models.
-
-        Returns:
-            List[List[Dict[str, Any]]]: List where each element contains responses 
-            from all agents for a single prompt.
-
-        Raises:
-            ValueError: If prompts is empty.
-        """
-        if not prompts:
-            raise ValueError("Prompts list cannot be empty")
-
-        # Validate images if provided
-        if images is not None and len(images) != len(prompts):
-            raise ValueError("Length of images must match length of prompts")
-
-        # Initialize responses container - we'll reorganize at the end
-        all_agent_responses = []
-        
-        if parallel:
-            logger.info(f"Getting batch responses in parallel mode for {len(prompts)} prompts")
-            start_time = time.time()
-
-            # Group agents by model type
-            model_groups = {}
-            for agent in self.agents:
-                if agent.model not in model_groups:
-                    model_groups[agent.model] = []
-                model_groups[agent.model].append(agent)
-
-            logger.info(f"Processing {len(model_groups)} unique models in parallel")
-
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=len(model_groups)
-            ) as executor:
-                # Submit one job per model type
-                model_futures = {}
-                for model, agents_group in model_groups.items():
-                    future = executor.submit(
-                        self._process_agent_group_batch,
-                        agents=agents_group,
-                        prompts=prompts,
-                        json_mode=json_mode,
-                        images=images,
-                        max_retries=max_retries,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                    )
-                    model_futures[future] = model
-
-                # Collect results
-                for future in concurrent.futures.as_completed(model_futures):
-                    model = model_futures[future]
-                    try:
-                        model_responses = future.result()
-                        all_agent_responses.extend(model_responses)
-                        logger.info(
-                            f"Completed batch processing {len(model_responses)} agents for model {model}"
-                        )
-                    except Exception as e:
-                        logger.error(f"Error batch processing model {model}: {str(e)}")
-                        raise
-
-            elapsed = time.time() - start_time
-            logger.info(
-                f"Received batch responses from {len(all_agent_responses)} agents "
-                f"for {len(prompts)} prompts in {elapsed:.2f}s"
-            )
-        else:
-            retries = self.max_retries if max_retries is None else max_retries
-            retry_msg = f"{retries} retries" if retries > 0 else "no retries"
-            logger.info(
-                f"Getting batch responses from {len(self.agents)} agents sequentially "
-                f"for {len(prompts)} prompts with {retry_msg}"
-            )
-            start_time = time.time()
-
-            for i, agent_info in enumerate(
-                tqdm(self.agents, desc="Processing Agents", unit="agent")
-            ):
-                logger.info(
-                    f"Requesting batch responses from agent {i+1}/{len(self.agents)}: "
-                    f"{agent_info.agent_id} for {len(prompts)} prompts"
-                )
-                try:
-                    agent_responses = self._get_response_batch_with_retry(
-                        agent_info=agent_info,
-                        prompts=prompts,
-                        json_mode=json_mode,
-                        images=images,
-                        max_retries=max_retries,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                    )
-                    all_agent_responses.append(agent_responses)
-                except (ConnectionError, Exception) as e:
-                    logger.error(
-                        f"All retries failed for agent {agent_info.agent_id} batch request, aborting."
-                    )
-                    raise RuntimeError(str(e)) from e
-
-                if self.job_delay > 0 and i < len(self.agents) - 1:
-                    logger.debug(f"Waiting {self.job_delay}s before next agent")
-                    time.sleep(self.job_delay)
-
-            elapsed = time.time() - start_time
-            logger.info(
-                f"Received batch responses from {len(all_agent_responses)} agents "
-                f"for {len(prompts)} prompts in {elapsed:.2f}s"
-            )
-
-        # Reorganize responses by prompt - agent_responses[prompt_index][agent_index]
-        responses_by_prompt = []
-        for p_idx in range(len(prompts)):
-            prompt_responses = []
-            for agent_idx in range(len(self.agents)):
-                try:
-                    # In parallel mode, structure is different
-                    if parallel:
-                        agent_response = next(
-                            resp for resp in all_agent_responses 
-                            if resp["agent_id"] == self.agents[agent_idx].agent_id
-                            and resp.get("prompt_index", 0) == p_idx
-                        )
-                    else:
-                        agent_response = all_agent_responses[agent_idx][p_idx]
-                    prompt_responses.append(agent_response)
-                except (IndexError, StopIteration):
-                    logger.warning(f"Missing response for prompt {p_idx} from agent {agent_idx}")
-                    # Add placeholder for missing response
-                    prompt_responses.append({
-                        "agent_id": self.agents[agent_idx].agent_id,
-                        "model": self.agents[agent_idx].model,
-                        "response": "Error: Missing response",
-                        "error": "Response not available" 
-                    })
-            responses_by_prompt.append(prompt_responses)
-
-        return responses_by_prompt
 
     def _process_agent_group(
         self,
@@ -937,7 +1018,6 @@ class AgentsEnsemble:
                 )
                 group_responses.append(response)
 
-                # Apply job delay between requests to the same model
                 if self.job_delay > 0 and agent_info != agents[-1]:
                     time.sleep(self.job_delay)
 
@@ -992,13 +1072,11 @@ class AgentsEnsemble:
                     temperature=temperature,
                 )
                 
-                # Track which prompt each response belongs to
                 for i, response in enumerate(agent_responses):
                     response["prompt_index"] = i
                 
                 all_responses.extend(agent_responses)
 
-                # Apply job delay between requests to the same model
                 if self.job_delay > 0 and agent_info != agents[-1]:
                     time.sleep(self.job_delay)
 

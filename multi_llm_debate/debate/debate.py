@@ -249,7 +249,6 @@ def run_debate_with_retry(
         temperature: Sampling temperature for the model.
         max_tokens: Maximum number of tokens in the response.
         parallel: Whether to run agents in parallel.
-        api_key: Optional[str]: API key for authentication.
 
     Returns:
         List[Dict]: List of agent responses from the round.
