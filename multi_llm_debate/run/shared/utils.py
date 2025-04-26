@@ -81,6 +81,12 @@ class Parser:
             help="Enable parallel processing",
         )
         self.parser.add_argument(
+            "--batch",
+            action="store_true",
+            default=False,
+            help="Enable batch processing",
+        )
+        self.parser.add_argument(
             "--diversity-pruning",
             type=str,
             choices=["embedding", "answer"],
