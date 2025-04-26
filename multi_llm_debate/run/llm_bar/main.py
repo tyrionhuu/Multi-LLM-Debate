@@ -6,7 +6,7 @@ if __name__ == "__main__":
 
     from ..shared.main import main as shared_main
     from ..shared.utils import Parser
-    from .evaluate import evaluate_llm_bar_responses
+    from .evaluate import evaluate_all_llm_bar
     from .run_debate import process_llm_bar_dataset
     from .utils import load_llm_bar_dataset, preprocess_llm_bar_dataframe
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     shared_main(
         dataframe=dataframe,
         run_debate_fn=process_llm_bar_dataset,
-        evaluate_fn=evaluate_llm_bar_responses,
+        evaluate_fn=evaluate_all_llm_bar,
         task_name=task_name,
         sample_size=args.sample_size,
         config_json=args.config_json,
