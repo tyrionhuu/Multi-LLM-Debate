@@ -1,9 +1,9 @@
+import asyncio
 import json
 import logging
 import os
 import random
 import time
-import asyncio
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -272,7 +272,7 @@ async def call_model_async(
     endpoint_id: str = "openapi",
 ) -> str:
     """Async version of call_model.
-    
+
     Args:
         model_name (str): The name of the model to use.
         base_url (Optional[str]): The base URL for the API.
@@ -350,7 +350,7 @@ async def call_model_batch(
     """
     if not prompts:
         raise ValueError("prompts must be a non-empty list of strings")
-    
+
     # Validate images if provided
     if images is not None:
         if len(images) != len(prompts):
@@ -360,7 +360,7 @@ async def call_model_batch(
     else:
         # Set to None for each prompt when not provided
         images = [None] * len(prompts)
-    
+
     # Create tasks for each prompt
     tasks = []
     for i, prompt in enumerate(prompts):
@@ -382,13 +382,13 @@ async def call_model_batch(
             )
         )
         tasks.append(task)
-    
+
     logger.info(f"Processing batch of {len(prompts)} prompts with model {model_name}")
     start_time = time.time()
-    
+
     # Wait for all tasks to complete
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     # Process results - convert exceptions to error messages
     processed_results = []
     for i, result in enumerate(results):
@@ -397,10 +397,10 @@ async def call_model_batch(
             processed_results.append(f"Error: {str(result)}")
         else:
             processed_results.append(result)
-    
+
     elapsed = time.time() - start_time
     logger.info(
         f"Batch processing completed in {elapsed:.2f}s for {len(prompts)} prompts"
     )
-    
+
     return processed_results
