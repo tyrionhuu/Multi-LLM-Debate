@@ -177,6 +177,7 @@ def debate(
                     temperature=temperature,
                     max_tokens=max_tokens,
                     parallel=parallel,
+                    batch=batch,
                 )
             all_responses.append(round_responses)
             logger.info(
