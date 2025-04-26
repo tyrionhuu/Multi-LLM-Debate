@@ -35,7 +35,7 @@ def run_debate_round_n(
         max_tokens (int): Maximum number of tokens in the response.
         parallel (bool): Whether to run in parallel.
         batch (bool): Whether to run in batch mode.
-        
+
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
 
