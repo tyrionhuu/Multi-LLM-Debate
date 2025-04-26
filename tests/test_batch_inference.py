@@ -24,16 +24,16 @@ async def main() -> None:
         "Describe the process of photosynthesis.",
         "What is the significance of the number e in mathematics?",
     ]
-    
+
     # Gemini model configuration
     model_name = "google/gemini-2.0-flash-001"
     base_url = None  # Will be constructed using project_id and location
     project_id = "multi-llm-debate"  # Replace with your actual project ID
     location = "us-central1"  # Use the appropriate region
-    
+
     logger.info(f"Starting batch inference with {len(prompts)} prompts")
     start_time = time.time()
-    
+
     try:
         # Execute batch inference
         results = await call_model_batch(
@@ -47,26 +47,24 @@ async def main() -> None:
             endpoint_id="openapi",
             timeout=60,  # Increasing timeout for batch processing
         )
-        
+
         # Display results
         logger.info(f"Batch processing completed successfully")
         for i, (prompt, result) in enumerate(zip(prompts, results)):
             logger.info(f"\n--- Result {i+1} ---")
             logger.info(f"Prompt: {prompt[:50]}...")
-            
+
             # Check if result is an error message
             if result.startswith("Error:"):
                 logger.error(f"Error in response {i+1}: {result}")
             else:
                 # Truncate long responses for display
-                display_result = (
-                    f"{result[:200]}..." if len(result) > 200 else result
-                )
+                display_result = f"{result[:200]}..." if len(result) > 200 else result
                 logger.info(f"Response: {display_result}")
-        
+
     except Exception as e:
         logger.error(f"Error during batch inference: {str(e)}", exc_info=True)
-    
+
     elapsed = time.time() - start_time
     logger.info(f"Total execution time: {elapsed:.2f} seconds")
 
