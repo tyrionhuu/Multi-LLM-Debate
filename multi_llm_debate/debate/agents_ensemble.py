@@ -411,7 +411,7 @@ class AgentsEnsemble:
         temperature: float = 1.0,
     ) -> List[Dict[str, Any]]:
         """Generate batch responses to a single prompt for a specific agent.
-        
+
         This method creates a list of identical prompts internally and uses
         call_model_batch for efficient processing.
 
@@ -435,7 +435,7 @@ class AgentsEnsemble:
         start_time = time.time()
         batch_size = len(self.agents)  # Create a batch with identical prompts
         prompts = [prompt] * batch_size
-        
+
         logger.debug(
             f"Agent {agent_info.agent_id} ({agent_info.model}) starting batch request with "
             f"{batch_size} identical prompts (timeout: {timeout}s, json_mode: {json_mode}, "
@@ -448,7 +448,7 @@ class AgentsEnsemble:
             # Convert single image to list for consistency
             if not isinstance(images, list):
                 images = [images]
-                
+
             # Validate all images
             for img in images:
                 if isinstance(img, (str, Path)):
@@ -459,7 +459,7 @@ class AgentsEnsemble:
                     raise ValueError(
                         f"Invalid image type: {type(img)}. Expected str or Path."
                     )
-            
+
             # Create a list of identical image sets for each prompt
             batch_images = [images] * batch_size
 
