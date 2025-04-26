@@ -1,9 +1,9 @@
+import asyncio
 import concurrent.futures
 import json
 import logging
 import random
 import time
-import asyncio
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -485,20 +485,22 @@ class AgentsEnsemble:
                     f"Agent {agent_info.agent_id} ({agent_info.model}) sending batch request "
                     f"with {batch_size} identical prompts"
                 )
-                
+
                 # Use asyncio.run() to properly handle the async call_model_batch function
-                raw_responses = asyncio.run(call_model_batch(
-                    model_name=agent_info.model,
-                    base_url=agent_info.base_url,
-                    api_key=agent_info.api_key,
-                    prompts=prompts,
-                    images=batch_images,
-                    json_mode=json_mode,
-                    max_tokens=max_tokens,
-                    timeout=timeout,
-                    temperature=temperature,
-                ))
-                
+                raw_responses = asyncio.run(
+                    call_model_batch(
+                        model_name=agent_info.model,
+                        base_url=agent_info.base_url,
+                        api_key=agent_info.api_key,
+                        prompts=prompts,
+                        images=batch_images,
+                        json_mode=json_mode,
+                        max_tokens=max_tokens,
+                        timeout=timeout,
+                        temperature=temperature,
+                    )
+                )
+
                 api_time = time.time() - api_start
                 logger.info(
                     f"Agent {agent_info.agent_id} ({agent_info.model}) "
