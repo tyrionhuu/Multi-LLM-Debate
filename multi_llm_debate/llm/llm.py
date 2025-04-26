@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import time
+import asyncio
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -254,3 +255,152 @@ def generate_api_messages(
             }
         ]
     return messages
+
+
+async def call_model_async(
+    model_name: str = "gpt-4",
+    base_url: str = None,
+    prompt: str = "",
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    json_mode: bool = False,
+    timeout: Optional[int] = 30,
+    images: Union[str, Path, List[str], List[Path], None] = None,
+    api_key: Optional[str] = None,
+    project_id: Optional[str] = "multi-llm-debate",
+    location: str = "us-central1",
+    endpoint_id: str = "openapi",
+) -> str:
+    """Async version of call_model.
+    
+    Args:
+        model_name (str): The name of the model to use.
+        base_url (Optional[str]): The base URL for the API.
+        prompt (str): The text prompt for the model.
+        temperature (float): Sampling temperature for the model.
+        max_tokens (int): Maximum number of tokens in the response.
+        json_mode (bool): Whether the response should be in JSON format.
+        timeout (Optional[int]): Timeout in seconds for the request.
+        images (Union[str, Path, List[str], List[Path], None]):
+            Image file paths when using vision models.
+        api_key (Optional[str]): The API key to use.
+        project_id (Optional[str]): GCP project ID for Gemini.
+        location (str): GCP region for Gemini.
+        endpoint_id (str): Gemini endpoint ID.
+
+    Returns:
+        str: The generated response from the model.
+    """
+    # Use asyncio to run the synchronous call_model in a separate thread
+    return await asyncio.to_thread(
+        call_model,
+        model_name=model_name,
+        base_url=base_url,
+        prompt=prompt,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        json_mode=json_mode,
+        timeout=timeout,
+        images=images,
+        api_key=api_key,
+        project_id=project_id,
+        location=location,
+        endpoint_id=endpoint_id,
+    )
+
+
+async def call_model_batch(
+    model_name: str = "gpt-4",
+    base_url: str = None,
+    prompts: List[str] = None,
+    temperature: float = 1.0,
+    max_tokens: int = 6400,
+    json_mode: bool = False,
+    timeout: Optional[int] = 30,
+    images: Union[List[Union[str, Path, List[str], List[Path], None]], None] = None,
+    api_key: Optional[str] = None,
+    project_id: Optional[str] = "multi-llm-debate",
+    location: str = "us-central1",
+    endpoint_id: str = "openapi",
+) -> List[str]:
+    """Calls the OpenAI API or Gemini API with multiple prompts asynchronously.
+
+    Args:
+        model_name (str): The name of the model to use.
+        base_url (Optional[str]): The base URL for the API.
+        prompts (List[str]): List of text prompts for the model.
+        temperature (float): Sampling temperature for the model.
+        max_tokens (int): Maximum number of tokens in the response.
+        json_mode (bool): Whether the response should be in JSON format.
+        timeout (Optional[int]): Timeout in seconds for the request.
+        images (List[Union[str, Path, List[str], List[Path], None]], optional):
+            List of image file paths or lists of paths when using vision models.
+            Should match the length of prompts or be None.
+        api_key (Optional[str]): The API key to use.
+        project_id (Optional[str]): GCP project ID for Gemini.
+        location (str): GCP region for Gemini.
+        endpoint_id (str): Gemini endpoint ID.
+
+    Returns:
+        List[str]: The generated responses from the model.
+
+    Raises:
+        ValueError: If prompts is None or empty, or if images is provided but length
+            doesn't match prompts.
+    """
+    if not prompts:
+        raise ValueError("prompts must be a non-empty list of strings")
+    
+    # Validate images if provided
+    if images is not None:
+        if len(images) != len(prompts):
+            raise ValueError(
+                "If images is provided, it must have the same length as prompts"
+            )
+    else:
+        # Set to None for each prompt when not provided
+        images = [None] * len(prompts)
+    
+    # Create tasks for each prompt
+    tasks = []
+    for i, prompt in enumerate(prompts):
+        img = images[i]
+        task = asyncio.create_task(
+            call_model_async(
+                model_name=model_name,
+                base_url=base_url,
+                prompt=prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                json_mode=json_mode,
+                timeout=timeout,
+                images=img,
+                api_key=api_key,
+                project_id=project_id,
+                location=location,
+                endpoint_id=endpoint_id,
+            )
+        )
+        tasks.append(task)
+    
+    logger.info(f"Processing batch of {len(prompts)} prompts with model {model_name}")
+    start_time = time.time()
+    
+    # Wait for all tasks to complete
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # Process results - convert exceptions to error messages
+    processed_results = []
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            logger.error(f"Error with prompt {i}: {str(result)}")
+            processed_results.append(f"Error: {str(result)}")
+        else:
+            processed_results.append(result)
+    
+    elapsed = time.time() - start_time
+    logger.info(
+        f"Batch processing completed in {elapsed:.2f}s for {len(prompts)} prompts"
+    )
+    
+    return processed_results
