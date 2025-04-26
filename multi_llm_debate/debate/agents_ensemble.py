@@ -37,10 +37,6 @@ class AgentInfo:
         """Return a string representation of the agent."""
         return f"Agent {self.agent_id} ({self.model})"
 
-    def __repr__(self) -> str:
-        """Return a string representation of the agent."""
-        return str(self)
-
 
 class AgentsEnsemble:
     """A collection of LLM agents that can be used together.
@@ -164,6 +160,59 @@ class AgentsEnsemble:
     def _count_unique_models(self) -> int:
         """Return the number of unique models among agents."""
         return len({agent.model for agent in self.agents})
+
+    def _group_agents_by_model(self) -> Dict[str, List[AgentInfo]]:
+        """Group agents by their model name.
+
+        Returns:
+            Dict[str, List[AgentInfo]]: Mapping from model name to list of agents.
+        """
+        model_groups: Dict[str, List[AgentInfo]] = {}
+        for agent in self.agents:
+            model_groups.setdefault(agent.model, []).append(agent)
+        return model_groups
+
+    def _retry_with_backoff(
+        self,
+        func,
+        *args,
+        retries: int,
+        base_delay: float = 1.0,
+        max_delay: float = 16.0,
+        **kwargs,
+    ):
+        """Generic retry logic with exponential backoff and jitter.
+
+        Args:
+            func: Function to call.
+            *args: Positional arguments for func.
+            retries (int): Number of retries.
+            base_delay (float): Initial delay.
+            max_delay (float): Maximum delay.
+            **kwargs: Keyword arguments for func.
+
+        Returns:
+            Result of func(*args, **kwargs).
+
+        Raises:
+            Exception: If all retries fail.
+        """
+        attempt = 0
+        while True:
+            try:
+                return func(*args, **kwargs)
+            except (ConnectionError, Exception) as e:
+                if attempt >= retries:
+                    logger.error(f"All retries failed for {func.__name__}")
+                    raise
+                delay = min(max_delay, base_delay * (2**attempt))
+                jitter = random.uniform(0, delay / 2)
+                total_delay = delay + jitter
+                logger.warning(
+                    f"Retry {attempt+1}/{retries} for {func.__name__} after {total_delay:.2f}s due to error: {e}"
+                )
+                time.sleep(total_delay)
+                attempt += 1
 
     def _process_response(
         self, agent_info: AgentInfo, raw_response: Any
@@ -590,12 +639,7 @@ class AgentsEnsemble:
             logger.info("Getting responses in parallel mode")
             start_time = time.time()
 
-            model_groups = {}
-            for agent in self.agents:
-                if agent.model not in model_groups:
-                    model_groups[agent.model] = []
-                model_groups[agent.model].append(agent)
-
+            model_groups = self._group_agents_by_model()
             logger.info(f"Processing {len(model_groups)} unique models in parallel")
 
             with concurrent.futures.ThreadPoolExecutor(
@@ -608,10 +652,10 @@ class AgentsEnsemble:
                         agents=agents_group,
                         prompt=prompt,
                         json_mode=json_mode,
-                        images=images,
                         max_retries=max_retries,
                         max_tokens=max_tokens,
                         temperature=temperature,
+                        images=images,
                     )
                     model_futures[future] = model
 
@@ -647,14 +691,17 @@ class AgentsEnsemble:
                     f"Requesting response from agent {i+1}/{len(self.agents)}: {agent_info.agent_id}"
                 )
                 try:
-                    response = self._get_response_with_retry(
-                        agent_info=agent_info,
-                        prompt=prompt,
-                        json_mode=json_mode,
+                    response = self._retry_with_backoff(
+                        self._respond,
+                        agent_info,
+                        prompt,
                         images=images,
-                        max_retries=max_retries,
+                        json_mode=json_mode,
+                        timeout=int(self.timeout),
+                        max_retries=0,
                         max_tokens=max_tokens,
                         temperature=temperature,
+                        retries=retries,
                     )
                 except (ConnectionError, Exception) as e:
                     logger.error(
@@ -724,12 +771,7 @@ class AgentsEnsemble:
             )
             start_time = time.time()
 
-            model_groups = {}
-            for agent in self.agents:
-                if agent.model not in model_groups:
-                    model_groups[agent.model] = []
-                model_groups[agent.model].append(agent)
-
+            model_groups = self._group_agents_by_model()
             logger.info(f"Processing {len(model_groups)} unique models in parallel")
 
             with concurrent.futures.ThreadPoolExecutor(
@@ -742,10 +784,10 @@ class AgentsEnsemble:
                         agents=agents_group,
                         prompts=prompts,
                         json_mode=json_mode,
-                        images=images,
                         max_retries=max_retries,
                         max_tokens=max_tokens,
                         temperature=temperature,
+                        images=images,
                     )
                     model_futures[future] = model
 
@@ -785,14 +827,17 @@ class AgentsEnsemble:
                     f"{agent_info.agent_id} for {len(prompts)} prompts"
                 )
                 try:
-                    agent_responses = self._get_response_batch_with_retry(
-                        agent_info=agent_info,
-                        prompts=prompts,
-                        json_mode=json_mode,
+                    agent_responses = self._retry_with_backoff(
+                        self._respond_batch,
+                        agent_info,
+                        prompts,
                         images=images,
-                        max_retries=max_retries,
+                        json_mode=json_mode,
+                        timeout=int(self.timeout),
+                        max_retries=0,
                         max_tokens=max_tokens,
                         temperature=temperature,
+                        retries=retries,
                     )
                     for p_idx, resp in enumerate(agent_responses):
                         resp["prompt_index"] = p_idx
@@ -870,132 +915,6 @@ class AgentsEnsemble:
 
         return responses_by_prompt
 
-    def _get_response_with_retry(
-        self,
-        agent_info: AgentInfo,
-        prompt: str,
-        json_mode: bool,
-        images: Union[str, Path, List[str], List[Path], None] = None,
-        max_retries: Optional[int] = None,
-        max_tokens: int = 6400,
-        temperature: float = 1.0,
-    ) -> Dict[str, Any]:
-        """Attempt to get a response with retry logic.
-
-        Args:
-            agent_info (AgentInfo): The agent info to get a response from.
-            prompt (str): The input prompt to send to the agent.
-            json_mode (bool): Whether to expect JSON response.
-            images: Image file paths for vision models.
-            max_retries (Optional[int]): Maximum number of retry attempts.
-                If None, use the ensemble's default max_retries.
-            max_tokens (int): Maximum number of tokens in response.
-            temperature (float): Controls randomness in the response.
-
-        Returns:
-            Dict[str, Any]: Response from the agent.
-
-        Raises:
-            ConnectionError: If there's a network or timeout issue after all retries.
-            Exception: If some other error occurs after all retries.
-        """
-        retries = self.max_retries if max_retries is None else max_retries
-        base_delay = 1.0  # seconds
-        max_delay = 16.0  # seconds
-
-        attempt = 0
-        while True:
-            try:
-                return self._respond(
-                    agent_info=agent_info,
-                    prompt=prompt,
-                    images=images,
-                    json_mode=json_mode,
-                    timeout=int(self.timeout),
-                    max_retries=0,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                )
-            except (ConnectionError, Exception) as e:
-                if attempt >= retries:
-                    logger.error(
-                        f"All retries failed for agent {agent_info.agent_id} ({agent_info.model})"
-                    )
-                    raise
-                delay = min(max_delay, base_delay * (2**attempt))
-                jitter = random.uniform(0, delay / 2)
-                total_delay = delay + jitter
-                logger.warning(
-                    f"Retry {attempt+1}/{retries} for agent {agent_info.agent_id} "
-                    f"({agent_info.model}) after {total_delay:.2f}s due to error: {e}"
-                )
-                time.sleep(total_delay)
-                attempt += 1
-
-    def _get_response_batch_with_retry(
-        self,
-        agent_info: AgentInfo,
-        prompts: List[str],
-        json_mode: bool,
-        images: Optional[List[Union[str, Path, List[str], List[Path], None]]] = None,
-        max_retries: Optional[int] = None,
-        max_tokens: int = 6400,
-        temperature: float = 1.0,
-    ) -> List[Dict[str, Any]]:
-        """Attempt to get batch responses with retry logic.
-
-        Args:
-            agent_info (AgentInfo): The agent info to get responses from.
-            prompts (List[str]): The input prompts to send to the agent.
-            json_mode (bool): Whether to expect JSON responses.
-            images: Optional list of images for each prompt.
-            max_retries (Optional[int]): Maximum number of retry attempts.
-                If None, use the ensemble's default max_retries.
-            max_tokens (int): Maximum number of tokens in responses.
-            temperature (float): Controls randomness in the responses.
-
-        Returns:
-            List[Dict[str, Any]]: Responses from the agent.
-
-        Raises:
-            ConnectionError: If there's a network or timeout issue after all retries.
-            Exception: If some other error occurs after all retries.
-        """
-        retries = self.max_retries if max_retries is None else max_retries
-        base_delay = 1.0  # seconds
-        max_delay = 16.0  # seconds
-
-        attempt = 0
-        while True:
-            try:
-                return self._respond_batch(
-                    agent_info=agent_info,
-                    prompts=prompts,
-                    images=images,
-                    json_mode=json_mode,
-                    timeout=int(self.timeout),
-                    max_retries=0,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                )
-            except (ConnectionError, Exception) as e:
-                if attempt >= retries:
-                    logger.error(
-                        f"All retries failed for agent {agent_info.agent_id} "
-                        f"({agent_info.model}) batch request"
-                    )
-                    raise
-                delay = min(max_delay, base_delay * (2**attempt))
-                jitter = random.uniform(0, delay / 2)
-                total_delay = delay + jitter
-                logger.warning(
-                    f"Retry {attempt+1}/{retries} for agent {agent_info.agent_id} "
-                    f"({agent_info.model}) batch request after {total_delay:.2f}s "
-                    f"due to error: {e}"
-                )
-                time.sleep(total_delay)
-                attempt += 1
-
     def _process_agent_group(
         self,
         agents: List[AgentInfo],
@@ -1029,14 +948,16 @@ class AgentsEnsemble:
 
         for agent_info in agents:
             try:
-                response = self._get_response_with_retry(
-                    agent_info=agent_info,
-                    prompt=prompt,
+                response = self._retry_with_backoff(
+                    self._respond,
+                    agent_info,
+                    prompt,
                     json_mode=json_mode,
                     images=images,
                     max_retries=max_retries,
                     max_tokens=max_tokens,
                     temperature=temperature,
+                    retries=self.max_retries,
                 )
                 group_responses.append(response)
 
@@ -1084,14 +1005,16 @@ class AgentsEnsemble:
 
         for agent_info in agents:
             try:
-                agent_responses = self._get_response_batch_with_retry(
-                    agent_info=agent_info,
-                    prompts=prompts,
+                agent_responses = self._retry_with_backoff(
+                    self._respond_batch,
+                    agent_info,
+                    prompts,
                     json_mode=json_mode,
                     images=images,
                     max_retries=max_retries,
                     max_tokens=max_tokens,
                     temperature=temperature,
+                    retries=self.max_retries,
                 )
 
                 for i, response in enumerate(agent_responses):
