@@ -57,7 +57,7 @@ def execute_debate_workflow(
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
-        batch: Whether to run in batch mode.    
+        batch: Whether to run in batch mode.
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
