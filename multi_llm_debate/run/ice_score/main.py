@@ -33,6 +33,7 @@ if __name__ == "__main__":
         temperature=args.temperature,
         max_tokens=args.max_tokens,
         parallel=args.parallel,
+        batch=args.batch,
         quality_pruning_amount=args.quality_pruning_amount,
         quality_pruning_func=args.quality_pruning_func,
         diversity_pruning_func=args.diversity_pruning_func,
