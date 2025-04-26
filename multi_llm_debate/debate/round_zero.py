@@ -18,6 +18,7 @@ def run_debate_round_zero(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    batch: bool = False,
 ) -> List[dict]:
     """Run the initial round (round zero) of a debate.
 
@@ -33,7 +34,8 @@ def run_debate_round_zero(
         temperature: Sampling temperature for the model.
         max_tokens: Maximum number of tokens in the response.
         parallel: Whether to run in parallel.
-
+        batch: Whether to run in batch mode.
+        
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
 
@@ -61,6 +63,7 @@ def run_debate_round_zero(
             temperature=temperature,
             max_tokens=max_tokens,
             parallel=parallel,
+            batch=batch,
         )
         response_time = time.time() - response_start_time
         logger.info(f"All agent responses received in {response_time:.2f} seconds")
