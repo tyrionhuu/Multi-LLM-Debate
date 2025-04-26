@@ -24,6 +24,7 @@ def main(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    batch: bool = False,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -46,6 +47,7 @@ def main(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel
+        batch: Whether to run in batch mode
         quality_pruning_func: Function for quality pruning
         quality_pruning_amount: Amount of pruning to apply
         diversity_pruning_func: Function for diversity pruning
@@ -94,6 +96,7 @@ def main(
                     temperature=temperature,
                     max_tokens=max_tokens,
                     parallel=parallel,
+                    batch=batch,
                     quality_pruning_func=quality_pruning_func,
                     quality_pruning_amount=quality_pruning_amount,
                     diversity_pruning_func=diversity_pruning_func,
