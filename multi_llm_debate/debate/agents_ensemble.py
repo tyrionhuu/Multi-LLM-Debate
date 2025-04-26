@@ -402,20 +402,23 @@ class AgentsEnsemble:
     def _respond_batch(
         self,
         agent_info: AgentInfo,
-        prompts: List[str],
-        images: Optional[List[Union[str, Path, List[str], List[Path], None]]] = None,
+        prompt: str,
+        images: Union[str, Path, List[str], List[Path], None] = None,
         json_mode: bool = False,
         timeout: Optional[int] = None,
         max_retries: int = 0,
         max_tokens: int = 6400,
         temperature: float = 1.0,
     ) -> List[Dict[str, Any]]:
-        """Generate responses to multiple prompts for a specific agent.
+        """Generate batch responses to a single prompt for a specific agent.
+        
+        This method creates a list of identical prompts internally and uses
+        call_model_batch for efficient processing.
 
         Args:
             agent_info (AgentInfo): The agent information.
-            prompts (List[str]): List of input prompts.
-            images: Optional list of images for each prompt.
+            prompt (str): Input prompt to send.
+            images: Image file path(s) for vision models.
             json_mode (bool): Whether to expect JSON responses.
             timeout (Optional[int]): Maximum time to wait for response.
             max_retries (int): Maximum number of retry attempts.
@@ -426,44 +429,39 @@ class AgentsEnsemble:
             List[Dict[str, Any]]: List of response dictionaries.
 
         Raises:
-            ValueError: If prompts is empty.
             ConnectionError: If there's a network or timeout issue after all retries.
             Exception: If some other error occurs after all retries.
         """
-        if not prompts:
-            raise ValueError("Prompts list cannot be empty")
-
         start_time = time.time()
-        prompt_count = len(prompts)
+        batch_size = len(self.agents)  # Create a batch with identical prompts
+        prompts = [prompt] * batch_size
+        
         logger.debug(
             f"Agent {agent_info.agent_id} ({agent_info.model}) starting batch request with "
-            f"{prompt_count} prompts (timeout: {timeout}s, json_mode: {json_mode}, "
+            f"{batch_size} identical prompts (timeout: {timeout}s, json_mode: {json_mode}, "
             f"max_retries: {max_retries}, temperature: {temperature})"
         )
 
-        # Validate image inputs if provided
+        # Process images to match the batch size
+        batch_images = None
         if images is not None:
-            if len(images) != len(prompts):
-                raise ValueError("Length of images must match length of prompts")
-
+            # Convert single image to list for consistency
+            if not isinstance(images, list):
+                images = [images]
+                
             # Validate all images
-            for img_set in images:
-                if img_set is None:
-                    continue
-
-                # Convert single image to list for consistency
-                if not isinstance(img_set, list):
-                    img_set = [img_set]
-
-                for img in img_set:
-                    if isinstance(img, (str, Path)):
-                        img_path = Path(img)
-                        if not img_path.exists():
-                            raise ValueError(f"Image file {img_path} does not exist.")
-                    else:
-                        raise ValueError(
-                            f"Invalid image type: {type(img)}. Expected str or Path."
-                        )
+            for img in images:
+                if isinstance(img, (str, Path)):
+                    img_path = Path(img)
+                    if not img_path.exists():
+                        raise ValueError(f"Image file {img_path} does not exist.")
+                else:
+                    raise ValueError(
+                        f"Invalid image type: {type(img)}. Expected str or Path."
+                    )
+            
+            # Create a list of identical image sets for each prompt
+            batch_images = [images] * batch_size
 
         errors = []
         retry_delay = 1.0  # Default retry delay in seconds
@@ -484,14 +482,14 @@ class AgentsEnsemble:
                 api_start = time.time()
                 logger.info(
                     f"Agent {agent_info.agent_id} ({agent_info.model}) sending batch request "
-                    f"with {prompt_count} prompts"
+                    f"with {batch_size} identical prompts"
                 )
                 raw_responses = call_model_batch(
                     model_name=agent_info.model,
                     base_url=agent_info.base_url,
                     api_key=agent_info.api_key,
                     prompts=prompts,
-                    images=images,
+                    images=batch_images,
                     json_mode=json_mode,
                     max_tokens=max_tokens,
                     timeout=timeout,
@@ -552,7 +550,7 @@ class AgentsEnsemble:
 
     def get_responses(
         self,
-        prompt: Union[str, List[str]],
+        prompt: str,
         images: Union[str, Path, List[str], List[Path], None] = None,
         json_mode: bool = False,
         max_retries: Optional[int] = None,
@@ -564,7 +562,7 @@ class AgentsEnsemble:
         """Get responses from all agents.
 
         Args:
-            prompt (Union[str, List[str]]): Prompt to send. If batch=True,
+            prompt (str): Prompt to send. If batch=True,
                 this must be a list of prompts.
             images: Image file paths for vision models. If batch=True, this
                 should be a list matching the prompts list length, where each
@@ -589,11 +587,6 @@ class AgentsEnsemble:
                 are provided in batch mode but don't match prompt length.
         """
         if batch:
-            if not isinstance(prompt, list):
-                raise ValueError("When batch=True, prompt must be a list of strings")
-            if not prompt:
-                raise ValueError("When batch=True, prompt list cannot be empty")
-
             # Validate images for batch mode
             batch_images = None
             if images is not None:
@@ -607,7 +600,7 @@ class AgentsEnsemble:
             logger.info(f"Getting responses in batch mode for {len(prompt)} prompts")
             # Use the batch processing method
             batch_responses_nested = self.get_responses_batch(
-                prompts=prompt,
+                prompt=prompt,
                 images=batch_images,
                 json_mode=json_mode,
                 max_retries=max_retries,
@@ -722,8 +715,8 @@ class AgentsEnsemble:
 
     def get_responses_batch(
         self,
-        prompts: List[str],
-        images: Optional[List[Union[str, Path, List[str], List[Path], None]]] = None,
+        prompt: str,
+        images: Union[str, Path, List[str], List[Path], None] = None,
         json_mode: bool = False,
         max_retries: Optional[int] = None,
         max_tokens: int = 6400,
@@ -754,20 +747,14 @@ class AgentsEnsemble:
         Raises:
             ValueError: If prompts is empty or if images length mismatches prompts.
         """
-        if not prompts:
-            raise ValueError("Prompts list cannot be empty")
-
-        if images is not None and len(images) != len(prompts):
-            raise ValueError("Length of images must match length of prompts")
-
         all_agent_responses_flat = []
 
         unique_models = set(agent.model for agent in self.agents)
         use_parallel = parallel and len(unique_models) > 1
 
-        if use_parallel:
+        if use_parallel and len(unique_models) > 1:
             logger.info(
-                f"Getting batch responses in parallel mode for {len(prompts)} prompts"
+                f"Getting batch responses in parallel mode for {len(self.agents)} agents "
             )
             start_time = time.time()
 
@@ -782,7 +769,7 @@ class AgentsEnsemble:
                     future = executor.submit(
                         self._process_agent_group_batch,
                         agents=agents_group,
-                        prompts=prompts,
+                        prompt=prompt,
                         json_mode=json_mode,
                         max_retries=max_retries,
                         max_tokens=max_tokens,
@@ -803,8 +790,7 @@ class AgentsEnsemble:
 
             elapsed = time.time() - start_time
             logger.info(
-                f"Received batch responses from {len(self.agents)} agents "
-                f"for {len(prompts)} prompts in {elapsed:.2f}s (parallel)"
+                f"Received batch responses from {len(self.agents)} agents in {elapsed:.2f}s (parallel)"
             )
         else:
             if parallel and len(unique_models) <= 1:
@@ -814,7 +800,7 @@ class AgentsEnsemble:
             retry_msg = f"{retries} retries" if retries > 0 else "no retries"
             logger.info(
                 f"Getting batch responses from {len(self.agents)} agents sequentially "
-                f"for {len(prompts)} prompts with {retry_msg}"
+                f"with {retry_msg}"
             )
             start_time = time.time()
 
@@ -824,13 +810,13 @@ class AgentsEnsemble:
             ):
                 logger.info(
                     f"Requesting batch responses from agent {i+1}/{len(self.agents)}: "
-                    f"{agent_info.agent_id} for {len(prompts)} prompts"
+                    f"{agent_info.agent_id}"
                 )
                 try:
                     agent_responses = self._retry_with_backoff(
                         self._respond_batch,
                         agent_info,
-                        prompts,
+                        prompt=prompt,
                         images=images,
                         json_mode=json_mode,
                         timeout=int(self.timeout),
@@ -848,7 +834,7 @@ class AgentsEnsemble:
                         f"All retries failed for agent {agent_info.agent_id} batch request, aborting."
                     )
                     failed_responses = []
-                    for p_idx in range(len(prompts)):
+                    for p_idx in range(len(self.agents)):
                         failed_responses.append(
                             {
                                 "agent_id": agent_info.agent_id,
@@ -870,18 +856,17 @@ class AgentsEnsemble:
 
             elapsed = time.time() - start_time
             logger.info(
-                f"Received batch responses from {len(self.agents)} agents "
-                f"for {len(prompts)} prompts in {elapsed:.2f}s (sequential)"
+                f"Received batch responses from {len(self.agents)} agents in {elapsed:.2f}s (sequential)"
             )
 
         responses_by_prompt: List[List[Dict[str, Any]]] = [
-            [] for _ in range(len(prompts))
+            [] for _ in range(len(self.agents))
         ]
         agent_ids_order = {agent.agent_id: idx for idx, agent in enumerate(self.agents)}
 
         for response in all_agent_responses_flat:
             p_idx = response.get("prompt_index", -1)
-            if 0 <= p_idx < len(prompts):
+            if 0 <= p_idx < len(self.agents):
                 agent_order_idx = agent_ids_order.get(response["agent_id"], -1)
                 if agent_order_idx != -1:
                     while len(responses_by_prompt[p_idx]) <= agent_order_idx:
@@ -892,14 +877,14 @@ class AgentsEnsemble:
                     f"Response missing or has invalid prompt_index: {response}"
                 )
 
-        for p_idx in range(len(prompts)):
+        for p_idx in range(len(self.agents)):
             for agent_idx, agent_info in enumerate(self.agents):
                 if (
                     agent_idx >= len(responses_by_prompt[p_idx])
                     or not responses_by_prompt[p_idx][agent_idx]
                 ):
                     logger.warning(
-                        f"Missing response for prompt {p_idx} from agent {agent_info.agent_id}"
+                        f"Missing response for agent {agent_info.agent_id} in prompt {p_idx}"
                     )
                     placeholder = {
                         "agent_id": agent_info.agent_id,
@@ -975,18 +960,18 @@ class AgentsEnsemble:
     def _process_agent_group_batch(
         self,
         agents: List[AgentInfo],
-        prompts: List[str],
+        prompt: str,
         json_mode: bool,
         max_retries: Optional[int],
         max_tokens: int,
         temperature: float,
-        images: Optional[List[Union[str, Path, List[str], List[Path], None]]] = None,
+        images: Union[str, Path, List[str], List[Path], None] = None,
     ) -> List[Dict[str, Any]]:
         """Process a group of agents with the same model for batch requests.
 
         Args:
             agents: List of agents with the same model
-            prompts: List of prompts to send
+            prompt: List of prompts to send
             json_mode: Whether to use JSON mode
             max_retries: Maximum retries
             max_tokens: Maximum tokens
@@ -1008,7 +993,7 @@ class AgentsEnsemble:
                 agent_responses = self._retry_with_backoff(
                     self._respond_batch,
                     agent_info,
-                    prompts,
+                    prompt,
                     json_mode=json_mode,
                     images=images,
                     max_retries=max_retries,
