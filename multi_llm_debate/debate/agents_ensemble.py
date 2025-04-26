@@ -16,7 +16,7 @@ from ..utils.model_config import ModelConfig
 
 # Use setup_logging to ensure consistent logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # Set to DEBUG for detailed output
+# logger.setLevel(logging.DEBUG)  # Set to DEBUG for detailed output
 
 
 @dataclass
