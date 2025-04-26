@@ -7,7 +7,6 @@ from typing import Literal, Optional, Union
 
 import pandas as pd
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
