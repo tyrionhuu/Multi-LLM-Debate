@@ -18,6 +18,7 @@ from ..utils.model_config import ModelConfig
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Set to DEBUG for detailed output
 
+
 @dataclass
 class AgentInfo:
     """Simple data class to store agent information.
