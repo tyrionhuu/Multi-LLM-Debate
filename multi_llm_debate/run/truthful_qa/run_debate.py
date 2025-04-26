@@ -27,6 +27,7 @@ def process_truthful_qa_dataset(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    batch: bool = False,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -46,6 +47,7 @@ def process_truthful_qa_dataset(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel (default: False)
+        batch: Whether to run in batch mode (default: False)
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
@@ -79,6 +81,7 @@ def process_truthful_qa_dataset(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        batch=batch,
         quality_pruning_func=quality_pruning_func,
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
@@ -95,6 +98,7 @@ def process_truthful_qa_entry(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     parallel: bool = False,
+    batch: bool = False,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -111,6 +115,7 @@ def process_truthful_qa_entry(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel
+        batch: Whether to run in batch mode
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
@@ -149,6 +154,7 @@ def process_truthful_qa_entry(
         temperature=temperature,
         max_tokens=max_tokens,
         parallel=parallel,
+        batch=batch,
         quality_pruning_func=quality_pruning_func,
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
