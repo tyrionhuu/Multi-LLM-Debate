@@ -54,7 +54,7 @@ trap cleanup SIGINT SIGTERM EXIT
 
 # For port, use the first GPU in case of multiple GPUs
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
-PORT=$((8002 + FIRST_GPU * 10))
+PORT=$((8902 + FIRST_GPU * 10))
 
 export VLLM_LOGGING_LEVEL=ERROR
 
@@ -65,14 +65,14 @@ if [[ "$GPU" == *","* ]]; then
     if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
         echo "Using tensor parallelism with 2 GPUs"
         # Start VLLM server with tensor parallelism
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --tensor-parallel-size 2 &
+        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 32768 --tensor-parallel-size 2 &
     else
         echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
         exit 1
     fi
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 32768 --gpu-memory-utilization 0.95 &
 fi
 
 SERVER_PID=$!
@@ -117,6 +117,6 @@ CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.hallu_dial.main \
     --task-name "hallu_dial_pruning" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 7 \
-    
+
 cleanup 1
 
