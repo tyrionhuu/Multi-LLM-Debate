@@ -108,7 +108,6 @@ CONFIG='[
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
     --task-name "truthful_qa" \
     --config-json "$CONFIG" \
-    --batch
 
 # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
@@ -116,7 +115,6 @@ CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
     --task-name "truthful_qa_pruning" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 7 \
-    --batch
     
 cleanup 1
 
