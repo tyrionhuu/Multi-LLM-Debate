@@ -10,7 +10,7 @@ if __name__ == "__main__":
     from .run_debate import process_big_bench_dataset
     from .utils import load_big_bench_dataset
 
-    logger = setup_logging(__name__, log_level=logging.DEBUG)
+    logger = setup_logging(__name__, log_level=logging.INFO)
 
     args = Parser(description="Run BIG_Bench evaluation").parse_args()
     if args.task_name is None:
