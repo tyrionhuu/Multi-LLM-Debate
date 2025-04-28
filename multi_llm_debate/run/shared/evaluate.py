@@ -192,7 +192,7 @@ def evaluate_ensemble_df(
         answer_entry: Column name for the correct answer in the DataFrame.
         id_entry: Column name for the unique identifier in the DataFrame.
         response_entry: Column name for the response in the DataFrame.
-        
+
     Returns:
         float: Accuracy score using majority vote from first round responses.
     """
@@ -263,7 +263,9 @@ def evaluate_ensemble_df(
             logger.debug(f"Corresponding raw response: {majority_raw}")
 
             # Compare with correct answer using the raw response
-            is_correct = evaluation_func([{response_entry: majority_raw}], entry[answer_entry])
+            is_correct = evaluation_func(
+                [{response_entry: majority_raw}], entry[answer_entry]
+            )
             valid_count += 1
             if is_correct:
                 correct_count += 1
