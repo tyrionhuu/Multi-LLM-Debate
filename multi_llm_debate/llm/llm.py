@@ -150,15 +150,18 @@ def call_model(
 
         client = OpenAI(**client_kwargs)
 
-        # Make the API call
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            response_format={"type": "json_object"} if json_mode else None,
-            seed=random.randint(0, 2**10 - 1),
-        )
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                response_format={"type": "json_object"} if json_mode else None,
+                seed=random.randint(0, 2**10 - 1),
+            )
+        except Exception as e:
+            logger.error(f"Error calling {model_name}: {str(e)}", exc_info=True)
+            raise ValueError(f"Error with service: {str(e)}")
         logger.debug(f"API response: {response}")
         # Extract response content
         response_str = response.choices[0].message.content
