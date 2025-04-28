@@ -6,6 +6,7 @@ import random
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+
 import google.auth
 import google.auth.transport.requests
 from openai import OpenAI
@@ -364,16 +365,16 @@ async def call_model_batch(
 
     logger.info(f"Processing batch of {len(prompts)} prompts with model {model_name}")
     start_time = time.time()
-    
+
     # Process prompts in batches of batch_size
     results = []
     for i in range(0, len(prompts), batch_size):
         batch_end = min(i + batch_size, len(prompts))
         batch_prompts = prompts[i:batch_end]
         batch_images = images[i:batch_end]
-        
+
         logger.info(f"Processing batch {i//batch_size + 1}: {i} to {batch_end-1}")
-        
+
         # Create tasks for current batch
         tasks = []
         for j, prompt in enumerate(batch_prompts):
