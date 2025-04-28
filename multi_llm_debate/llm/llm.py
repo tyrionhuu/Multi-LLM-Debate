@@ -399,6 +399,9 @@ async def call_model_batch(
                 logger.error(
                     f"Error in batch {i//batch_size + 1}, prompt {i+idx}: {result}"
                 )
+                raise ValueError(
+                    f"Error processing prompt {i+idx}: {str(result)}"
+                )
         results.extend(batch_results)
 
     # Process results - convert exceptions to error messages
