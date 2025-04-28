@@ -15,6 +15,7 @@ INPUT_PATHS = [
 ]
 ANSWER_PATHS = "datasets/COMP-Analysis/turn_level_texts/turn_overall_ratings.json"
 
+
 def load_comp_analysis_dataset(
     input_paths: Union[str, Path, List[Union[str, Path]]] = INPUT_PATHS,
     answer_path: Union[str, Path] = ANSWER_PATHS,
@@ -58,16 +59,20 @@ def load_comp_analysis_dataset(
 
     # Load ground truth
     ground_truth = []
-    with open(answer_path, 'r', encoding="utf-8") as f:
+    with open(answer_path, "r", encoding="utf-8") as f:
         file = json.load(f)
         for key in [
-            "conture-turn", "fed-turn", "dailydialog-zhao",
-            "persona-zhao", "topical-usr", "persona-usr"
+            "conture-turn",
+            "fed-turn",
+            "dailydialog-zhao",
+            "persona-zhao",
+            "topical-usr",
+            "persona-usr",
         ]:
             ground_truth.extend(file[key])
 
     # Add ground truth column
-    df["ground_truth"] = ground_truth[:len(df)]
+    df["ground_truth"] = ground_truth[: len(df)]
 
     return df
 
@@ -92,10 +97,10 @@ def extract_1_to_5_answer(
     raise ValueError(
         f"Invalid response format. Expected 'Final Answer: x' where x is between 1 and 5, got: {response}"
     )
+
+
 def compare_comp_analysis_response(
-    response: Union[str, int],
-    answer: Union[str, int, float],
-    threshold: float = 1.5
+    response: Union[str, int], answer: Union[str, int, float], threshold: float = 1.5
 ) -> bool:
     """Compare the response with the answer.
 
@@ -113,6 +118,7 @@ def compare_comp_analysis_response(
         return abs(response_value - answer_value) <= threshold
     except ValueError:
         raise ValueError(f"Invalid response or answer format: {response}, {answer}")
+
 
 if __name__ == "__main__":
     data = load_comp_analysis_dataset()

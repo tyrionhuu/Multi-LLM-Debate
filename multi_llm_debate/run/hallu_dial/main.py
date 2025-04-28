@@ -12,7 +12,6 @@ if __name__ == "__main__":
 
     logger = setup_logging(__name__, log_level=logging.INFO)
 
-
     args = Parser(description="Run HalluDial evaluation").parse_args()
     if args.task_name is None:
         task_name = "hallu_dial"
