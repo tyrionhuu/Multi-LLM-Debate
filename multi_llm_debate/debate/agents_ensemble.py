@@ -143,8 +143,8 @@ class AgentsEnsemble:
         func,
         *args,
         retries: int,
-        base_delay: float = 1.0,
-        max_delay: float = 16.0,
+        base_delay: float = 2.0,
+        max_delay: float = 32.0,
         **kwargs,
     ):
         """Generic retry logic with exponential backoff and jitter.
