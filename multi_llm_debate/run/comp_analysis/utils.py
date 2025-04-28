@@ -52,6 +52,7 @@ def load_comp_analysis_dataset(
     # Optionally, split into 'input' and 'response' columns if needed
     df[["input", "response"]] = df["input_response"].str.split("\t", n=1, expand=True)
     df = df.drop(columns=["input_response"])
+    df.insert(0, "id", range(len(df)))  # Add id column as the first column
     return df
 
 
