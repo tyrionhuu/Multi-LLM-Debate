@@ -406,13 +406,18 @@ async def call_model_batch(
 
         # Wait for all tasks in this batch to complete
         batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Error handling: log and convert exceptions to error messages
+        for idx, result in enumerate(batch_results):
+            if isinstance(result, Exception):
+                logger.error(
+                    f"Error in batch {i//batch_size + 1}, prompt {i+idx}: {result}"
+                )
         results.extend(batch_results)
 
     # Process results - convert exceptions to error messages
     processed_results = []
     for i, result in enumerate(results):
         if isinstance(result, Exception):
-            logger.error(f"Error with prompt {i}: {str(result)}")
             processed_results.append(f"Error: {str(result)}")
         else:
             processed_results.append(result)
