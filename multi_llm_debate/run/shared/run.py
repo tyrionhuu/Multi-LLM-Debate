@@ -539,6 +539,9 @@ def process_single_debate_entry(
 
     # Skip if directory has content and overwrite is False
     if directory_has_content and not overwrite:
+        logger.info(
+            f"Skipping entry {entry_id} as data already exists."
+        )
         return
 
     output_dir.mkdir(parents=True, exist_ok=True)
