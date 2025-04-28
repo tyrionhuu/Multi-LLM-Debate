@@ -34,6 +34,8 @@ Step 3: third step of your reasoning
 ...
 Final Answer: x
 """
+
+
 def build_comp_analysis_round_zero_prompt(
     input: str,
     response: str,
@@ -52,7 +54,7 @@ def build_comp_analysis_round_zero_prompt(
         str: The formatted prompt for judge evaluation
     """
     prompt = "As an assistant, your task is to serve as a response judge.\n" + NEW_LINE
-    
+
     prompt += (
         "You will be given an input and a response from an AI assistant.\n"
         "Your task is to rate the response based on the input.\n"
@@ -63,14 +65,11 @@ def build_comp_analysis_round_zero_prompt(
         "And x should be an integer between 1 and 5.\n"
     ) + NEW_LINE
 
-
-
-
     if json_mode:
         prompt += "You MUST output your response in JSON format.\n"
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
-            + "Note that the 'Final Answer' MUST be placed at the end of your response, "
+            +"Note that the 'Final Answer' MUST be placed at the end of your response, "
             + "and the value x must be only an integer between 1 and 5.\n"
             + "Do not include any other text after 'Final Answer: x'."
             + NEW_LINE
@@ -86,11 +85,11 @@ def build_comp_analysis_round_zero_prompt(
             + NEW_LINE
         )
     prompt += DIVIDER + NEW_LINE
-    
+
     prompt += "[Input]" + NEW_LINE
     prompt += input + NEW_LINE + DIVIDER + NEW_LINE
     prompt += "[Response]" + NEW_LINE
     prompt += response + NEW_LINE + DIVIDER + NEW_LINE
-    
+
     prompt += "Your answer:" + NEW_LINE
     return prompt
