@@ -34,7 +34,6 @@ if __name__ == "__main__":
         config_json=args.config_json,
         temperature=args.temperature,
         max_tokens=args.max_tokens,
-        parallel=args.parallel,
         batch=args.batch,
         quality_pruning_amount=args.quality_pruning_amount,
         quality_pruning_func=args.quality_pruning_func,

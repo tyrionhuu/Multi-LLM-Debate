@@ -18,7 +18,6 @@ def run_debate_round_n(
     json_mode: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     batch_size: int = 11,
 ) -> List[Dict]:
@@ -34,9 +33,8 @@ def run_debate_round_n(
         json_mode (bool): Whether to expect JSON responses from agents.
         temperature (float): Sampling temperature for the model.
         max_tokens (int): Maximum number of tokens in the response.
-        parallel (bool): Whether to run in parallel.
         batch (bool): Whether to run in batch mode.
-        batch_size (int): Size of the batch for parallel processing.
+        batch_size (int): Size of the batch for  processing.
 
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
@@ -70,7 +68,6 @@ def run_debate_round_n(
             json_mode=json_mode,
             temperature=temperature,
             max_tokens=max_tokens,
-            parallel=parallel,
             batch=batch,
             batch_size=batch_size,
         )

@@ -25,7 +25,6 @@ class Args:
     config_json: Optional[str]
     temperature: float = 1.0
     max_tokens: int = 6400
-    parallel: bool = False
     batch: bool = False
     batch_size: int = 11
     quality_pruning: bool = False
@@ -78,11 +77,6 @@ class Parser:
             default=6400,
         )
         self.parser.add_argument(
-            "--parallel",
-            action="store_true",
-            help="Enable parallel processing",
-        )
-        self.parser.add_argument(
             "--batch",
             action="store_true",
             default=False,
@@ -91,7 +85,7 @@ class Parser:
         self.parser.add_argument(
             "--batch-size",
             type=int,
-            help="Size of the batch for parallel processing",
+            help="Size of the batch",
             default=11,
         )
         self.parser.add_argument(

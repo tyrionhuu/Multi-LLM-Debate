@@ -17,15 +17,16 @@ CONFIG='[
 python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
     --task-name "big_bench" \
+    --sample-size 5 \
     --batch \
     --batch-size 11 \
     # --sample-size 5 \
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.big_bench.main \
-    --config-json "$CONFIG" \
-    --task-name "big_bench_pruning" \
-    --diversity-pruning "answer" \
-    --diversity-pruning-amount 7 \
-    --batch-size 11 \
+# python -m multi_llm_debate.run.big_bench.main \
+#     --config-json "$CONFIG" \
+#     --task-name "big_bench_pruning" \
+#     --diversity-pruning "answer" \
+#     --diversity-pruning-amount 7 \
+#     --batch-size 11 \
 
 echo "BIG-Bench Gemini-2 Flash evaluation completed. "

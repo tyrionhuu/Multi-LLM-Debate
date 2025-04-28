@@ -26,7 +26,6 @@ def process_judge_bench_dataset(
     max_workers: Optional[int] = 4,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
@@ -46,7 +45,6 @@ def process_judge_bench_dataset(
         max_workers: Maximum number of concurrent workers (default: 4)
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
-        parallel: Whether to run in parallel (default: False)
         batch: Whether to run in batch mode (default: False)
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: Amount for pruning quality
@@ -73,7 +71,6 @@ def process_judge_bench_dataset(
         task_name="JudgeBench task",
         temperature=temperature,
         max_tokens=max_tokens,
-        parallel=parallel,
         batch=batch,
         quality_pruning_func=quality_pruning_func,
         quality_pruning_amount=quality_pruning_amount,
@@ -90,7 +87,6 @@ def process_judge_bench_entry(
     overwrite: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
@@ -107,7 +103,6 @@ def process_judge_bench_entry(
         overwrite: Whether to overwrite existing debate results
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
-        parallel: Whether to run in parallel
         batch: Whether to run in batch mode
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: Amount for pruning quality
@@ -135,7 +130,6 @@ def process_judge_bench_entry(
         extract_func=extract_caption_a_b_answer,
         temperature=temperature,
         max_tokens=max_tokens,
-        parallel=parallel,
         batch=batch,
         quality_pruning_func=quality_pruning_func,
         quality_pruning_amount=quality_pruning_amount,
