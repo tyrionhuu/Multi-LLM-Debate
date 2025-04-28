@@ -487,20 +487,58 @@ class AgentsEnsemble:
                     f"with {batch_size} identical prompts"
                 )
 
-                # Use asyncio.run() to properly handle the async call_model_batch function
-                raw_responses = asyncio.run(
-                    call_model_batch(
-                        model_name=agent_info.model,
-                        base_url=agent_info.base_url,
-                        api_key=agent_info.api_key,
-                        prompts=prompts,
-                        images=batch_images,
-                        json_mode=json_mode,
-                        max_tokens=max_tokens,
-                        timeout=timeout,
-                        temperature=temperature,
+                # Use a safer approach to run the async function without creating new event loops
+                try:
+                    # Try to get the current event loop
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        # We're already in an async context, but we can't use await here
+                        # Use a Future object to get the result from the current thread
+                        future = asyncio.run_coroutine_threadsafe(
+                            call_model_batch(
+                                model_name=agent_info.model,
+                                base_url=agent_info.base_url,
+                                api_key=agent_info.api_key,
+                                prompts=prompts,
+                                images=batch_images,
+                                json_mode=json_mode,
+                                max_tokens=max_tokens,
+                                timeout=timeout,
+                                temperature=temperature,
+                            ),
+                            loop
+                        )
+                        raw_responses = future.result(timeout=timeout or 60)
+                    else:
+                        # There's a loop but it's not running, use run_until_complete
+                        raw_responses = loop.run_until_complete(
+                            call_model_batch(
+                                model_name=agent_info.model,
+                                base_url=agent_info.base_url,
+                                api_key=agent_info.api_key,
+                                prompts=prompts,
+                                images=batch_images,
+                                json_mode=json_mode,
+                                max_tokens=max_tokens,
+                                timeout=timeout,
+                                temperature=temperature,
+                            )
+                        )
+                except RuntimeError:
+                    # No event loop exists, create a new one just for this call
+                    raw_responses = asyncio.run(
+                        call_model_batch(
+                            model_name=agent_info.model,
+                            base_url=agent_info.base_url,
+                            api_key=agent_info.api_key,
+                            prompts=prompts,
+                            images=batch_images,
+                            json_mode=json_mode,
+                            max_tokens=max_tokens,
+                            timeout=timeout,
+                            temperature=temperature,
+                        )
                     )
-                )
 
                 api_time = time.time() - api_start
                 logger.info(
