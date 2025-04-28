@@ -195,7 +195,7 @@ def call_model(
     except Exception as e:
         elapsed = time.time() - start_time
         logger.error(
-            f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=True
+            f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=False
         )
         raise ValueError(f"Error with service: {str(e)}")
 
