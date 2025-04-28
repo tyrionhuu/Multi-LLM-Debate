@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
-
+from openai import RateLimitError
 from tqdm import tqdm
 
 from ..llm.llm import call_model, call_model_batch
@@ -168,6 +168,16 @@ class AgentsEnsemble:
             try:
                 return func(*args, **kwargs)
             except Exception as e:
+                # Check for openai.RateLimitError
+                if RateLimitError is not None and isinstance(e, RateLimitError):
+                    delay = min(max_delay, base_delay * (2**attempt))
+                    jitter = random.uniform(0, delay / 2)
+                    total_delay = delay + jitter
+                    logger.error(
+                        f"RateLimitError encountered. Backing off for {total_delay:.2f}s and stopping further attempts."
+                    )
+                    time.sleep(total_delay)
+                    raise  # Stop immediately after backoff
                 if attempt >= retries:
                     logger.error(f"All retries failed for {func.__name__}")
                     raise

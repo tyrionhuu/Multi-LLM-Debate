@@ -11,6 +11,7 @@ import google.auth
 import google.auth.transport.requests
 from openai import OpenAI
 from requests.exceptions import ConnectionError, Timeout
+from openai import RateLimitError  # <-- add this import
 
 from ..utils.config_manager import get_api_key
 from .utils import encode_image
@@ -159,8 +160,11 @@ def call_model(
                 response_format={"type": "json_object"} if json_mode else None,
                 seed=random.randint(0, 2**10 - 1),
             )
+        except RateLimitError as e:
+            logger.error(f"Rate limit error calling {model_name}: {str(e)}", exc_info=False)
+            raise ValueError(f"Rate limit error with service: {str(e)}")
         except Exception as e:
-            logger.error(f"Error calling {model_name}: {str(e)}", exc_info=True)
+            logger.error(f"Error calling {model_name}: {str(e)}", exc_info=False)
             raise ValueError(f"Error with service: {str(e)}")
         logger.debug(f"API response: {response}")
         # Extract response content
