@@ -55,6 +55,7 @@ def load_comp_analysis_dataset(
     df.insert(0, "id", range(len(df)))  # Add id column as the first column
     return df
 
+
 def extract_1_to_5_answer(
     response: str,
 ) -> Literal["1", "2", "3", "4", "5"]:
@@ -75,6 +76,7 @@ def extract_1_to_5_answer(
     raise ValueError(
         f"Invalid response format. Expected 'Final Answer: x' where x is between 1 and 5, got: {response}"
     )
+
 
 if __name__ == "__main__":
     data = load_comp_analysis_dataset()
