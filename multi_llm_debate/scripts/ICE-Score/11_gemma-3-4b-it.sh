@@ -56,7 +56,7 @@ trap cleanup SIGINT SIGTERM EXIT
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
 PORT=$((8200 + FIRST_GPU * 10))
 
-# export VLLM_LOGGING_LEVEL=ERROR
+export VLLM_LOGGING_LEVEL=ERROR
 
 # Check if we have multiple GPUs and set tensor parallelism accordingly
 if [[ "$GPU" == *","* ]]; then
@@ -108,12 +108,12 @@ CONFIG='[
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
     --config-json "$CONFIG" \
     --task-name "ice_score" \
-    
+    # --batch
 # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
     --config-json "$CONFIG" \
     --task-name "ice_score_pruning" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 7 \
-
+    # --batch
 cleanup 1
