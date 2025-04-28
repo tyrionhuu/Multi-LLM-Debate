@@ -168,8 +168,8 @@ class AgentsEnsemble:
             except Exception as e:
                 # Check for openai.RateLimitError
                 if RateLimitError is not None and isinstance(e, RateLimitError):
-                    
-                    delay = min(max_delay, 2.0 * (3 ** attempt))
+
+                    delay = min(max_delay, 2.0 * (3**attempt))
                     logger.error(
                         f"RateLimitError encountered. Backing off for {delay:.2f}s and stopping further attempts."
                     )
@@ -178,7 +178,7 @@ class AgentsEnsemble:
                 if attempt >= retries:
                     logger.error(f"All retries failed for {func.__name__}")
                     raise
-                delay = min(max_delay, 2.0 * (3 ** attempt))
+                delay = min(max_delay, 2.0 * (3**attempt))
                 logger.warning(
                     f"Retry {attempt+1}/{retries} for {func.__name__} after {delay:.2f}s due to error: {e}"
                 )
