@@ -294,6 +294,7 @@ class AgentsEnsemble:
                         timeout=timeout,
                         max_tokens=max_tokens,
                         temperature=temperature,
+                        retries=max_retries,  # <-- add this for consistency
                     )
                     logger.info(
                         f"Agent {agent.agent_id} response received in {time.time() - agent_time:.2f}s"
@@ -340,6 +341,7 @@ class AgentsEnsemble:
                         max_tokens=max_tokens,
                         temperature=temperature,
                         batch_size=batch_size,
+                        retries=max_retries,  # <-- fix: add this argument
                     )
                     logger.info(
                         f"Batch {i+1} response received in {time.time() - agent_time:.2f}s"
