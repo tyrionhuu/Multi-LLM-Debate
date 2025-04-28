@@ -27,6 +27,7 @@ class Args:
     max_tokens: int = 6400
     parallel: bool = False
     batch: bool = False
+    batch_size: int = 11
     quality_pruning: bool = False
     quality_pruning_amount: int = 5
     quality_pruning_func: Callable = None
@@ -86,6 +87,12 @@ class Parser:
             action="store_true",
             default=False,
             help="Enable batch processing",
+        )
+        self.parser.add_argument(
+            "--batch-size",
+            type=int,
+            help="Size of the batch for parallel processing",
+            default=11,
         )
         self.parser.add_argument(
             "--diversity-pruning",
