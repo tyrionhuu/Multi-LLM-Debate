@@ -138,58 +138,6 @@ class AgentsEnsemble:
             model_groups.setdefault(agent.model, []).append(agent)
         return model_groups
 
-    def _retry_with_backoff(
-        self,
-        func,
-        *args,
-        retries: int,
-        base_delay: float = 1.0,
-        max_delay: float = 16.0,
-        **kwargs,
-    ):
-        """Generic retry logic with exponential backoff and jitter.
-
-        Args:
-            func: Function to call.
-            *args: Positional arguments for func.
-            retries (int): Number of retries.
-            base_delay (float): Initial delay.
-            max_delay (float): Maximum delay.
-            **kwargs: Keyword arguments for func.
-
-        Returns:
-            Result of func(*args, **kwargs).
-
-        Raises:
-            Exception: If all retries fail.
-        """
-        attempt = 0
-        while True:
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                # Check for openai.RateLimitError
-                if RateLimitError is not None and isinstance(e, RateLimitError):
-                    delay = min(max_delay, base_delay * (2**attempt))
-                    jitter = random.uniform(0, delay / 2)
-                    total_delay = delay + jitter
-                    logger.error(
-                        f"RateLimitError encountered. Backing off for {total_delay:.2f}s and stopping further attempts."
-                    )
-                    time.sleep(total_delay)
-                    raise  # Stop immediately after backoff
-                if attempt >= retries:
-                    logger.error(f"All retries failed for {func.__name__}")
-                    raise
-                delay = min(max_delay, base_delay * (2**attempt))
-                jitter = random.uniform(0, delay / 2)
-                total_delay = delay + jitter
-                logger.warning(
-                    f"Retry {attempt+1}/{retries} for {func.__name__} after {total_delay:.2f}s due to error: {e}"
-                )
-                time.sleep(total_delay)
-                attempt += 1
-
     def _parse_response(self, agent: Agent, raw_response: Any) -> Dict[str, Any]:
         """Process the raw response from the LLM API.
 
@@ -292,9 +240,8 @@ class AgentsEnsemble:
                 try:
                     agent_time = time.time()
                     logger.info(f"Calling model for Agent {agent.agent_id}")
-                    raw_response = self._retry_with_backoff(
-                        call_model,
-                        model=model_name,
+                    raw_response = call_model(
+                        model_name=model_name,
                         prompt=prompt,
                         images=images,
                         json_mode=json_mode,
@@ -303,7 +250,7 @@ class AgentsEnsemble:
                         timeout=timeout,
                         max_tokens=max_tokens,
                         temperature=temperature,
-                        retries=max_retries,  # <-- add this for consistency
+                        retries=max_retries,  # pass as retries
                     )
                     logger.info(
                         f"Agent {agent.agent_id} response received in {time.time() - agent_time:.2f}s"
@@ -336,21 +283,20 @@ class AgentsEnsemble:
                 try:
                     agent_time = time.time()
                     logger.info(f"Calling model for batch {i+1}/{num_batches}")
-                    raw_responses = self._retry_with_backoff(
-                        lambda *args, **kwargs: asyncio.run(
-                            call_model_batch(*args, **kwargs)
-                        ),
-                        model_name=model_name,
-                        base_url=base_url,
-                        api_key=api_key,
-                        prompts=[prompt] * len(batch_agents),
-                        images=[images] * len(batch_agents) if images else None,
-                        json_mode=json_mode,
-                        timeout=timeout,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                        batch_size=batch_size,
-                        retries=max_retries,  # <-- fix: add this argument
+                    raw_responses = asyncio.run(
+                        call_model_batch(
+                            model_name=model_name,
+                            base_url=base_url,
+                            api_key=api_key,
+                            prompts=[prompt] * len(batch_agents),
+                            images=[images] * len(batch_agents) if images else None,
+                            json_mode=json_mode,
+                            timeout=timeout,
+                            max_tokens=max_tokens,
+                            temperature=temperature,
+                            batch_size=batch_size,
+                            retries=max_retries,  # pass as retries
+                        )
                     )
                     logger.info(
                         f"Batch {i+1} response received in {time.time() - agent_time:.2f}s"
