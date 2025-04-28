@@ -1,4 +1,3 @@
-import concurrent.futures
 import csv
 import logging
 import time
@@ -35,7 +34,6 @@ def execute_debate_workflow(
     random_seed: int = 42,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     batch_size: int = 11,
     quality_pruning_func: Callable = None,
@@ -57,9 +55,8 @@ def execute_debate_workflow(
         random_seed: Random seed for sampling
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
-        parallel: Whether to run in parallel
         batch: Whether to run in batch mode
-        batch_size: Size of the batch for parallel processing.
+        batch_size: Size of the batch.
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
@@ -102,7 +99,6 @@ def execute_debate_workflow(
         model_configs=model_configs,
         temperature=temperature,
         max_tokens=max_tokens,
-        parallel=parallel,
         batch=batch,
         batch_size=batch_size,
         quality_pruning_func=quality_pruning_func,
@@ -228,7 +224,6 @@ def _process_single_entry_worker(
     overwrite: bool,
     temperature: float,
     max_tokens: int,
-    parallel: bool,
     process_entry_fn: Callable,
     batch: bool = False,
     batch_size: int = 11,
@@ -247,9 +242,8 @@ def _process_single_entry_worker(
         overwrite: Whether to overwrite existing debate results
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
-        parallel: Whether to run in parallel
         batch: Whether to run in batch mode
-        batch_size: Size of the batch for parallel processing
+        batch_size: Size of the batch
         process_entry_fn: Function to process a single entry
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: int = 5,
@@ -269,7 +263,6 @@ def _process_single_entry_worker(
             overwrite=overwrite,
             temperature=temperature,
             max_tokens=max_tokens,
-            parallel=parallel,
             batch=batch,
             batch_size=batch_size,
             quality_pruning_func=quality_pruning_func,
@@ -301,7 +294,6 @@ def process_debate_dataset(
     task_name: str = "debate task",
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     batch_size: int = 11,
     quality_pruning_func: Callable = None,
@@ -323,7 +315,6 @@ def process_debate_dataset(
         task_name: Name of the task for logging purposes
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
-        parallel: Whether to run in parallel
         batch: bool = False,
         batch_size: int = 11,
         quality_pruning_func: Optional function for quality pruning
@@ -364,82 +355,37 @@ def process_debate_dataset(
         with progress.main_bar(
             total=len(dataframe), desc=f"Running {task_name}", unit="debate"
         ) as pbar:
-            if parallel and max_workers > 1:
-                logger.info(f"Running in parallel with {max_workers} workers")
-                # Use ThreadPoolExecutor instead of ProcessPoolExecutor to avoid pickling issues
-                with concurrent.futures.ThreadPoolExecutor(
-                    max_workers=max_workers
-                ) as executor:
-                    # Submit all tasks with required parameters
-                    futures = []
-                    for _, entry in dataframe.iterrows():
-                        future = executor.submit(
-                            _process_single_entry_worker,
-                            entry_data=entry,
-                            max_rounds=max_rounds,
-                            base_dir=base_dir,
-                            model_configs=model_configs,
-                            overwrite=overwrite,
-                            temperature=temperature,
-                            max_tokens=max_tokens,
-                            parallel=parallel,
-                            batch=batch,
-                            batch_size=batch_size,
-                            process_entry_fn=process_entry_fn,
-                            quality_pruning_func=quality_pruning_func,
-                            quality_pruning_amount=quality_pruning_amount,
-                            diversity_pruning_func=diversity_pruning_func,
-                            diversity_pruning_amount=diversity_pruning_amount,
-                        )
-                        futures.append(future)
-
-                    # Process results as they complete
-                    for future in concurrent.futures.as_completed(futures):
-                        result = future.result()
-                        if result["success"]:
-                            processed_count += 1
-                        else:
-                            failed_entries.append(
-                                {
-                                    "id": result["entry_id"],
-                                    "error": result["error"],
-                                    "question": result["question"],
-                                }
-                            )
-                        pbar.update(1)
-            else:
-                # Sequential processing (original implementation)
-                for _, entry in dataframe.iterrows():
-                    try:
-                        process_entry_fn(
-                            entry=entry,
-                            max_rounds=max_rounds,
-                            base_dir=base_dir,
-                            model_configs=model_configs,
-                            overwrite=overwrite,
-                            temperature=temperature,
-                            max_tokens=max_tokens,
-                            parallel=parallel,
-                            batch=batch,
-                            batch_size=batch_size,
-                            quality_pruning_func=quality_pruning_func,
-                            quality_pruning_amount=quality_pruning_amount,
-                            diversity_pruning_func=diversity_pruning_func,
-                            diversity_pruning_amount=diversity_pruning_amount,
-                        )
-                        processed_count += 1
-                    except Exception as e:
-                        entry_id = entry.get("id", "unknown")
-                        logger.error(f"Error processing entry {entry_id}: {str(e)}")
-                        failed_entries.append(
-                            {
-                                "id": entry_id,
-                                "error": str(e),
-                                "question": entry.get("question", ""),
-                            }
-                        )
-                    finally:
-                        pbar.update(1)
+            # Always process sequentially
+            for _, entry in dataframe.iterrows():
+                try:
+                    process_entry_fn(
+                        entry=entry,
+                        max_rounds=max_rounds,
+                        base_dir=base_dir,
+                        model_configs=model_configs,
+                        overwrite=overwrite,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        batch=batch,
+                        batch_size=batch_size,
+                        quality_pruning_func=quality_pruning_func,
+                        quality_pruning_amount=quality_pruning_amount,
+                        diversity_pruning_func=diversity_pruning_func,
+                        diversity_pruning_amount=diversity_pruning_amount,
+                    )
+                    processed_count += 1
+                except Exception as e:
+                    entry_id = entry.get("id", "unknown")
+                    logger.error(f"Error processing entry {entry_id}: {str(e)}")
+                    failed_entries.append(
+                        {
+                            "id": entry_id,
+                            "error": str(e),
+                            "question": entry.get("question", ""),
+                        }
+                    )
+                finally:
+                    pbar.update(1)
 
     except Exception as e:
         logger.error(f"Global execution error: {str(e)}", exc_info=True)
@@ -487,7 +433,6 @@ def process_single_debate_entry(
     extract_func: Optional[Callable[..., Any]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     batch_size: int = 11,
     quality_pruning_func: Callable = None,
@@ -510,9 +455,8 @@ def process_single_debate_entry(
         extract_func: Optional function for post-processing responses.
         temperature: Temperature for model responses.
         max_tokens: Maximum tokens for model responses.
-        parallel: Whether to run in parallel.
         batch: Whether to run in batch mode.
-        batch_size: Size of the batch for parallel processing.
+        batch_size: Size of the batch.
         quality_pruning_func: Optional function for quality pruning.
         quality_pruning_amount: Amount for pruning quality.
         diversity_pruning_func: Optional function for diversity pruning.
@@ -539,6 +483,7 @@ def process_single_debate_entry(
 
     # Skip if directory has content and overwrite is False
     if directory_has_content and not overwrite:
+        logger.info(f"Skipping entry {entry_id} as data already exists.")
         return
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -554,7 +499,6 @@ def process_single_debate_entry(
         extract_func=extract_func,
         temperature=temperature,
         max_tokens=max_tokens,
-        parallel=parallel,
         batch=batch,
         batch_size=batch_size,
         quality_pruning_func=quality_pruning_func,

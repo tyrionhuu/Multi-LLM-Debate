@@ -23,7 +23,6 @@ def process_big_bench_dataset(
     max_workers: Optional[int] = 4,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     batch_size: int = 11,
     quality_pruning_func: Callable = None,
@@ -43,9 +42,8 @@ def process_big_bench_dataset(
         max_workers: Maximum number of concurrent workers (default: 4)
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
-        parallel: Whether to run in parallel (default: False)
         batch: Whether to run in batch mode (default: False)
-        batch_size: Size of the batch for parallel processing (default: 11)
+        batch_size: Size of the batch (default: 11)
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
@@ -72,7 +70,6 @@ def process_big_bench_dataset(
         task_name="BIG-Bench",
         temperature=temperature,
         max_tokens=max_tokens,
-        parallel=parallel,
         batch=batch,
         batch_size=batch_size,
         quality_pruning_func=quality_pruning_func,
@@ -90,7 +87,6 @@ def process_big_bench_entry(
     overwrite: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     batch_size: int = 11,
     quality_pruning_func: Callable = None,
@@ -109,9 +105,8 @@ def process_big_bench_entry(
         overwrite: Whether to overwrite existing debate results (default: False)
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
-        parallel: Whether to run in parallel (default: False)
         batch: Whether to run in batch mode (default: False)
-        batch_size: Size of the batch for parallel processing (default: 11)
+        batch_size: Size of the batch (default: 11)
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
@@ -145,7 +140,6 @@ def process_big_bench_entry(
         extract_func=extract_0_1_answer,
         temperature=temperature,
         max_tokens=max_tokens,
-        parallel=parallel,
         batch=batch,
         batch_size=batch_size,
         quality_pruning_func=quality_pruning_func,

@@ -23,7 +23,6 @@ def main(
     run_debate: bool = True,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     batch_size: int = 11,
     quality_pruning_func: Callable = None,
@@ -47,9 +46,8 @@ def main(
         run_debate: Whether to run the debate or just evaluate existing results
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
-        parallel: Whether to run in parallel
         batch: Whether to run in batch mode
-        batch_size: Size of the batch for parallel processing.
+        batch_size: Size of the batch.
         quality_pruning_func: Function for quality pruning
         quality_pruning_amount: Amount of pruning to apply
         diversity_pruning_func: Function for diversity pruning
@@ -97,7 +95,6 @@ def main(
                     random_seed=random_seed,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    parallel=parallel,
                     batch=batch,
                     batch_size=batch_size,
                     quality_pruning_func=quality_pruning_func,

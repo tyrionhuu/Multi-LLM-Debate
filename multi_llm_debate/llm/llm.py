@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import google.auth
 import google.auth.transport.requests
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 from requests.exceptions import ConnectionError, Timeout
 
 from ..utils.config_manager import get_api_key
@@ -33,7 +33,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 def _get_google_access_token_and_url(
     project_id: str = "multi-llm-debate",
-    location: str = "us-south1",
+    location: str = "us-central1",
     endpoint_id: str = "openapi",
 ) -> Tuple[str, str]:
     """Get Google Cloud access token and Gemini endpoint URL.
@@ -108,11 +108,8 @@ def call_model(
         # Process images if provided
         processed_images: List[str] = []
         if images is not None:
-            # Convert single items to list
             if not isinstance(images, list):
                 images = [images]
-
-            # Validate and process all images
             for img in images:
                 if isinstance(img, (str, Path)):
                     img_path = Path(img)
@@ -139,18 +136,14 @@ def call_model(
                 raise ValueError("Base URL is required for OpenAI API calls.")
             base_url_to_use = base_url
 
-        # Generate API messages
         messages = generate_api_messages(
             prompt=prompt, images=processed_images if images is not None else None
         )
 
-        # Initialize OpenAI client with timeout and base_url if provided
         client_kwargs = {"api_key": api_key_to_use, "timeout": timeout}
         client_kwargs["base_url"] = base_url_to_use
-
         client = OpenAI(**client_kwargs)
 
-        # Make the API call
         response = client.chat.completions.create(
             model=model_name,
             messages=messages,
@@ -160,10 +153,8 @@ def call_model(
             seed=random.randint(0, 2**10 - 1),
         )
         logger.debug(f"API response: {response}")
-        # Extract response content
         response_str = response.choices[0].message.content
 
-        # Process JSON response if needed
         if json_mode:
             try:
                 return json.dumps(json.loads(response_str))
@@ -175,6 +166,9 @@ def call_model(
         logger.info(f"Call to {model_name} completed in {elapsed:.2f}s")
         return response_str
 
+    except RateLimitError as e:
+        logger.error(f"Rate limit error calling {model_name}: {str(e)}", exc_info=False)
+        raise ValueError(f"Rate limit error with service: {str(e)}")
     except Timeout:
         elapsed = time.time() - start_time
         logger.error(f"Timeout error calling {model_name} after {elapsed:.2f}s")
@@ -188,7 +182,7 @@ def call_model(
     except Exception as e:
         elapsed = time.time() - start_time
         logger.error(
-            f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=True
+            f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=False
         )
         raise ValueError(f"Error with service: {str(e)}")
 
@@ -399,13 +393,19 @@ async def call_model_batch(
 
         # Wait for all tasks in this batch to complete
         batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Error handling: log and convert exceptions to error messages
+        for idx, result in enumerate(batch_results):
+            if isinstance(result, Exception):
+                logger.error(
+                    f"Error in batch {i//batch_size + 1}, prompt {i+idx}: {result}"
+                )
+                raise ValueError(f"Error processing prompt {i+idx}: {str(result)}")
         results.extend(batch_results)
 
     # Process results - convert exceptions to error messages
     processed_results = []
     for i, result in enumerate(results):
         if isinstance(result, Exception):
-            logger.error(f"Error with prompt {i}: {str(result)}")
             processed_results.append(f"Error: {str(result)}")
         else:
             processed_results.append(result)

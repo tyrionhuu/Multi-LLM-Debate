@@ -23,7 +23,6 @@ def debate(
     max_retries: int = 3,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     batch_size: int = 11,
     quality_pruning_func: Callable = None,
@@ -48,9 +47,8 @@ def debate(
         max_retries: Maximum retry attempts for each round. Defaults to 3.
         temperature: Sampling temperature for the model. Defaults to 1.0.
         max_tokens: Maximum number of tokens in the response. Defaults to 6400.
-        parallel: Whether to run agents in parallel.
         batch: Whether to run in batch mode.
-        batch_size: Size of the batch for parallel processing.
+        batch_size: Size of the batch.
         quality_pruning_func: Optional function for quality pruning.
         quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning.
@@ -105,7 +103,6 @@ def debate(
                     max_retries=max_retries,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    parallel=parallel,
                     batch=batch,
                     batch_size=batch_size,
                 )
@@ -179,7 +176,6 @@ def debate(
                     max_retries=max_retries,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    parallel=parallel,
                     batch=batch,
                     batch_size=batch_size,
                 )
@@ -239,7 +235,6 @@ def run_debate_with_retry(
     max_retries: int = 3,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
 ) -> List[Dict]:
     """Run a debate round with retry capabilities.
 
@@ -256,11 +251,10 @@ def run_debate_with_retry(
         images: Optional images for the debate round.
         json_mode: Whether to expect JSON responses from agents.
         batch: Whether to run in batch mode.
-        batch_size: Size of the batch for parallel processing.
+        batch_size: Size of the batch.
         max_retries: Maximum retry attempts for the round.
         temperature: Sampling temperature for the model.
         max_tokens: Maximum number of tokens in the response.
-        parallel: Whether to run agents in parallel.
 
     Returns:
         List[Dict]: List of agent responses from the round.
@@ -309,7 +303,6 @@ def run_debate_with_retry(
                     json_mode=json_mode,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    parallel=parallel,
                     batch=batch,
                     batch_size=batch_size,
                 )
@@ -323,7 +316,6 @@ def run_debate_with_retry(
                     json_mode=json_mode,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    parallel=parallel,
                     batch=batch,
                     batch_size=batch_size,
                 )

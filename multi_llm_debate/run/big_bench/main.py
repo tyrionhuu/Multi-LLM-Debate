@@ -10,14 +10,15 @@ if __name__ == "__main__":
     from .run_debate import process_big_bench_dataset
     from .utils import load_big_bench_dataset
 
-    logger = setup_logging(__name__)
-    logger.setLevel(logging.INFO)
+    logger = setup_logging(__name__, log_level=logging.INFO)
+
     args = Parser(description="Run BIG_Bench evaluation").parse_args()
     if args.task_name is None:
         task_name = "big_bench"
     else:
         task_name = args.task_name
     print(f"Running evaluation for task: {task_name}")
+    logger.info(f"Running evaluation for task: {task_name}")
     # Load the dataset
     json_data = Path("datasets/BIG-Bench/sports_understanding/task.json")
     dataframe = load_big_bench_dataset(
@@ -33,7 +34,6 @@ if __name__ == "__main__":
         config_json=args.config_json,
         temperature=args.temperature,
         max_tokens=args.max_tokens,
-        parallel=args.parallel,
         batch=args.batch,
         batch_size=args.batch_size,
         quality_pruning_amount=args.quality_pruning_amount,

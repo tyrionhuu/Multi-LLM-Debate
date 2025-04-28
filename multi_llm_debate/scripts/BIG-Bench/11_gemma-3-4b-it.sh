@@ -108,13 +108,17 @@ CONFIG='[
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
     --task-name "big_bench" \
-    
-    # --sample-size 5 \
+    --batch \
+    --batch-size 11 \
+    --sample-size 1000 \
+
 # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
+    --sample-size 1000 \
     --task-name "big_bench_pruning" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 7 \
-
+    --batch \
+    --batch-size 11 \
 cleanup 1

@@ -17,7 +17,6 @@ def run_debate_round_zero(
     json_mode: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
-    parallel: bool = False,
     batch: bool = False,
     batch_size: int = 11,
 ) -> List[dict]:
@@ -34,9 +33,8 @@ def run_debate_round_zero(
         json_mode: Whether to expect JSON responses from agents.
         temperature: Sampling temperature for the model.
         max_tokens: Maximum number of tokens in the response.
-        parallel: Whether to run in parallel.
         batch: Whether to run in batch mode.
-        batch_size: Size of the batch for parallel processing.
+        batch_size: Size of the batch.
 
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
@@ -64,15 +62,14 @@ def run_debate_round_zero(
             json_mode=json_mode,
             temperature=temperature,
             max_tokens=max_tokens,
-            parallel=parallel,
             batch=batch,
             batch_size=batch_size,
         )
         response_time = time.time() - response_start_time
         logger.info(f"All agent responses received in {response_time:.2f} seconds")
     except Exception as e:
-        logger.error(f"Error in round zero: {str(e)}", exc_info=True)
-        logger.error(
+        logger.error(f"Error in round zero: {str(e)}", exc_info=False)
+        logger.debug(
             f"Failed prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}"
         )
         raise

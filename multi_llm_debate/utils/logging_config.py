@@ -20,7 +20,12 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
-def setup_logging(module_name: str, log_level: Optional[int] = None) -> logging.Logger:
+def setup_logging(
+    module_name: str,
+    log_level: Optional[int] = None,
+    propagate: bool = True,
+    root_logger_name: str = "multi_llm_debate",
+) -> logging.Logger:
     """Set up logging configuration for a module.
 
     Configures both file and console handlers with formatted output.
@@ -29,11 +34,15 @@ def setup_logging(module_name: str, log_level: Optional[int] = None) -> logging.
     Args:
         module_name: Name of the module requesting logging setup.
             Used as the logger name for hierarchical logging.
-        log_level: Optional log level to set for the logger.
+        log_level: Optional log level to set for the logger. Defaults to
+            logging.WARNING if not specified.
+        propagate: Whether to propagate log messages to parent loggers.
+            Defaults to True.
+        root_logger_name: Name of the root logger for the project. Defaults to
+            "multi_llm_debate".
 
     Returns:
-        logging.Logger: Configured logger instance with both file and console handlers.
-            Will reuse existing logger if one exists for the module name.
+        logging.Logger: Configured logger instance with proper hierarchy setup.
 
     Raises:
         OSError: If unable to create logs directory or log file.
@@ -51,27 +60,43 @@ def setup_logging(module_name: str, log_level: Optional[int] = None) -> logging.
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
-    # File handler
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setFormatter(formatter)
+    # Set up the root logger
+    root_logger = logging.getLogger(root_logger_name)
 
-    # Console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
+    # Only add handlers to the root logger if they haven't been added
+    if not root_logger.handlers:
+        # File handler
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
 
-    # Get logger
-    logger = logging.getLogger(module_name)
+        # Console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        root_logger.addHandler(console_handler)
 
-    # Set default log level to INFO if not specified
-    log_level = log_level or logging.WARNING
-    logger.setLevel(log_level)
+        # Set the root logger level
+        root_logger.setLevel(log_level or logging.WARNING)
 
-    # Add handlers if they haven't been added already
-    if not logger.handlers:
-        logger.addHandler(file_handler)
-        logger.addHandler(console_handler)
+        # Set up global exception handler
+        sys.excepthook = handle_exception
 
-    # Set up global exception handler
-    sys.excepthook = handle_exception
+    # Get or create the module's logger, making it a child of the root logger
+    if module_name == root_logger_name:
+        logger = root_logger
+    else:
+        qualified_name = (
+            f"{root_logger_name}.{module_name}"
+            if not module_name.startswith(f"{root_logger_name}.")
+            else module_name
+        )
+        logger = logging.getLogger(qualified_name)
+
+        # Set module-specific log level if provided
+        if log_level is not None:
+            logger.setLevel(log_level)
+
+        # Control propagation
+        logger.propagate = propagate
 
     return logger
