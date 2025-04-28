@@ -34,7 +34,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 def _get_google_access_token_and_url(
     project_id: str = "multi-llm-debate",
-    location: str = "us-south1",
+    location: str = "us-central1",
     endpoint_id: str = "openapi",
 ) -> Tuple[str, str]:
     """Get Google Cloud access token and Gemini endpoint URL.
