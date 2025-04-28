@@ -26,6 +26,8 @@ def evaluate_comp_analysis_responses(
         )
         for response in responses
     )
+
+
 def evaluate_all_comp_analysis(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
