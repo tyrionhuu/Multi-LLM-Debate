@@ -21,7 +21,7 @@ if __name__ == "__main__":
     print(f"Running evaluation for task: {task_name}")
     # Load the dataset
     json_data = Path("datasets/ICE-Score/conala_grade.json")
-    dataframe = load_ice_score_dataset(json_data)
+    dataframe = load_ice_score_dataset(json_path=json_data)
 
     shared_main(
         dataframe=dataframe,
