@@ -178,6 +178,9 @@ def evaluate_ensemble_df(
     dataframe: pd.DataFrame,
     extract_func: Callable,
     evaluation_func: Callable,
+    answer_entry: str = "answer",
+    id_entry: str = "id",
+    response_entry: str = "response",
 ) -> float:
     """Evaluate using majority vote from first round responses.
 
@@ -186,7 +189,10 @@ def evaluate_ensemble_df(
         dataframe: Pandas DataFrame containing question, answer, passage and id.
         extract_func: Function to extract and normalize response strings.
         evaluation_func: Function to evaluate if response matches answer.
-
+        answer_entry: Column name for the correct answer in the DataFrame.
+        id_entry: Column name for the unique identifier in the DataFrame.
+        response_entry: Column name for the response in the DataFrame.
+        
     Returns:
         float: Accuracy score using majority vote from first round responses.
     """
@@ -200,8 +206,8 @@ def evaluate_ensemble_df(
             logger.info(f"Processing entry {i}/{len(dataframe)}")
 
         try:
-            answer = entry["answer"]
-            id_ = str(entry["id"])
+            answer = entry[answer_entry]
+            id_ = str(entry[id_entry])
 
             logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
 
@@ -220,7 +226,7 @@ def evaluate_ensemble_df(
                 continue
 
             # Get all responses and their normalized answers
-            raw_responses = [response["response"] for response in responses]
+            raw_responses = [response[response_entry] for response in responses]
 
             # Create a list of (normalized_response, raw_response) pairs
             response_pairs = []
@@ -257,7 +263,7 @@ def evaluate_ensemble_df(
             logger.debug(f"Corresponding raw response: {majority_raw}")
 
             # Compare with correct answer using the raw response
-            is_correct = evaluation_func([{"response": majority_raw}], answer)
+            is_correct = evaluation_func([{response_entry: majority_raw}], entry[answer_entry])
             valid_count += 1
             if is_correct:
                 correct_count += 1
@@ -287,6 +293,9 @@ def evaluate_all(
     extract_func: Callable,
     evaluation_func: Callable,
     multiple_models: bool = False,
+    answer_entry: str = "answer",
+    id_entry: str = "id",
+    response_entry: str = "response",
 ) -> EvaluationResults:
     """Run all evaluation methods and return their results.
 
@@ -322,6 +331,9 @@ def evaluate_all(
         dataframe,
         extract_func=extract_func,
         evaluation_func=evaluation_func,
+        answer_entry=answer_entry,
+        id_entry=id_entry,
+        response_entry=response_entry,
     )
 
     logger.info("Summary of all evaluation methods:")
