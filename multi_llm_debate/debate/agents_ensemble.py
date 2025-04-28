@@ -2,13 +2,11 @@ import asyncio
 import concurrent.futures
 import json
 import logging
-import random
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
-from openai import RateLimitError
 from tqdm import tqdm
 
 from ..llm.llm import call_model, call_model_batch
