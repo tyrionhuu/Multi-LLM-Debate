@@ -7,6 +7,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
 import openai
 from tqdm import tqdm
 
@@ -471,9 +472,7 @@ class AgentsEnsemble:
         for attempt in range(max_retries + 1):
             try:
                 if attempt > 0:
-                    logger.info(
-                        f"Retry #{attempt} for batch request"
-                    )
+                    logger.info(f"Retry #{attempt} for batch request")
                     # Exponential backoff for retry delay
                     current_delay = retry_delay * (2 ** (attempt - 1))
                     logger.info(f"Waiting {current_delay:.2f}s before retry")
@@ -501,12 +500,8 @@ class AgentsEnsemble:
                         )
                     )
                 except openai.RateLimitError as e:
-                    logger.error(
-                        f"Rate limit exceeded for agents: {str(e)}"
-                    )
-                    raise ConnectionError(
-                        f"Rate limit exceeded: {str(e)}"
-                    ) from e
+                    logger.error(f"Rate limit exceeded for agents: {str(e)}")
+                    raise ConnectionError(f"Rate limit exceeded: {str(e)}") from e
                 api_time = time.time() - api_start
                 logger.info(
                     f"Agents received {len(raw_responses)} raw responses in {api_time:.2f}s"
@@ -534,8 +529,7 @@ class AgentsEnsemble:
                 error_msg = f"Connection error on attempt {attempt+1}: {str(e)}"
                 errors.append(error_msg)
                 logger.error(
-                    f"Agents connection error "
-                    f"after {elapsed:.2f}s: {str(e)}"
+                    f"Agents connection error " f"after {elapsed:.2f}s: {str(e)}"
                 )
                 # If this was the last attempt, re-raise the exception
                 if attempt == max_retries:
@@ -549,8 +543,7 @@ class AgentsEnsemble:
                 error_msg = f"Error on attempt {attempt+1}: {str(e)}"
                 errors.append(error_msg)
                 logger.error(
-                    f"Agents unexpected error "
-                    f"after {elapsed:.2f}s: {str(e)}",
+                    f"Agents unexpected error " f"after {elapsed:.2f}s: {str(e)}",
                     exc_info=True,
                 )
                 # If this was the last attempt, re-raise the exception
@@ -601,7 +594,9 @@ class AgentsEnsemble:
                 are provided in batch mode but don't match prompt length.
         """
         if batch:
-            logger.info(f"Getting responses in batch mode for {len(self.agents)} agents")
+            logger.info(
+                f"Getting responses in batch mode for {len(self.agents)} agents"
+            )
             logger.debug(
                 f"Batch size set to {batch_size}, processing prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}"
             )
@@ -734,28 +729,28 @@ class AgentsEnsemble:
     ) -> List[List[Dict[str, Any]]]:
         """Get batch responses from all agents for multiple prompts.
 
-t. If you need a
-        flat list of all responses, use get_responses(batch=False) instead.
+        t. If you need a
+                flat list of all responses, use get_responses(batch=False) instead.
 
-        Args:
-            prompts (List[str]): List of prompts to send to each agent.
-            images: Optional list of images for each prompt. Must match length
-                of prompts or be None. Each element corresponds to a prompt.
-            json_mode (bool): Whether to expect JSON responses.
-            max_retries (Optional[int]): Maximum number of retry attempts.
-            max_tokens (int): Maximum number of tokens in responses.
-            temperature (float): Controls randomness in the responses.
-            parallel (bool): Whether to process in parallel across different models.
-                Automatically disabled if only one model type is present.
-            batch_size (int): Number of prompts to process in a single batch.
+                Args:
+                    prompts (List[str]): List of prompts to send to each agent.
+                    images: Optional list of images for each prompt. Must match length
+                        of prompts or be None. Each element corresponds to a prompt.
+                    json_mode (bool): Whether to expect JSON responses.
+                    max_retries (Optional[int]): Maximum number of retry attempts.
+                    max_tokens (int): Maximum number of tokens in responses.
+                    temperature (float): Controls randomness in the responses.
+                    parallel (bool): Whether to process in parallel across different models.
+                        Automatically disabled if only one model type is present.
+                    batch_size (int): Number of prompts to process in a single batch.
 
-        Returns:
-            List[List[Dict[str, Any]]]: List where each element is a list
-            containing responses from all agents for a single prompt. The outer
-            list corresponds to the input prompts order.
+                Returns:
+                    List[List[Dict[str, Any]]]: List where each element is a list
+                    containing responses from all agents for a single prompt. The outer
+                    list corresponds to the input prompts order.
 
-        Raises:
-            ValueError: If prompts is empty or if images length mismatches prompts.
+                Raises:
+                    ValueError: If prompts is empty or if images length mismatches prompts.
         """
         all_agent_responses_flat = []
 
@@ -770,7 +765,7 @@ t. If you need a
 
             model_groups = self._group_agents_by_model()
             logger.info(f"Processing {len(model_groups)} unique models in parallel")
-            
+
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=len(model_groups)
             ) as executor:

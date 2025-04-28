@@ -11,7 +11,7 @@ if __name__ == "__main__":
     from .utils import load_big_bench_dataset
 
     logger = setup_logging(__name__, log_level=logging.DEBUG)
-    
+
     args = Parser(description="Run BIG_Bench evaluation").parse_args()
     if args.task_name is None:
         task_name = "big_bench"

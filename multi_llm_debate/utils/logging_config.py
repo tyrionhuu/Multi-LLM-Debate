@@ -21,10 +21,10 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
 
 def setup_logging(
-    module_name: str, 
+    module_name: str,
     log_level: Optional[int] = None,
     propagate: bool = True,
-    root_logger_name: str = "multi_llm_debate"
+    root_logger_name: str = "multi_llm_debate",
 ) -> logging.Logger:
     """Set up logging configuration for a module.
 
@@ -62,22 +62,22 @@ def setup_logging(
 
     # Set up the root logger
     root_logger = logging.getLogger(root_logger_name)
-    
+
     # Only add handlers to the root logger if they haven't been added
     if not root_logger.handlers:
         # File handler
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)
-        
+
         # Console handler
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
         root_logger.addHandler(console_handler)
-        
+
         # Set the root logger level
         root_logger.setLevel(log_level or logging.WARNING)
-        
+
         # Set up global exception handler
         sys.excepthook = handle_exception
 
@@ -85,13 +85,17 @@ def setup_logging(
     if module_name == root_logger_name:
         logger = root_logger
     else:
-        qualified_name = f"{root_logger_name}.{module_name}" if not module_name.startswith(f"{root_logger_name}.") else module_name
+        qualified_name = (
+            f"{root_logger_name}.{module_name}"
+            if not module_name.startswith(f"{root_logger_name}.")
+            else module_name
+        )
         logger = logging.getLogger(qualified_name)
-        
+
         # Set module-specific log level if provided
         if log_level is not None:
             logger.setLevel(log_level)
-            
+
         # Control propagation
         logger.propagate = propagate
 

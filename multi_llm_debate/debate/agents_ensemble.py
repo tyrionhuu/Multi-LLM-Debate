@@ -6,7 +6,8 @@ import random
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 from tqdm import tqdm
 
 from ..llm.llm import call_model, call_model_batch
@@ -16,6 +17,7 @@ from ..utils.model_config import ModelConfig
 # Use setup_logging to ensure consistent logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
 
 @dataclass
 class Agent:
@@ -36,7 +38,8 @@ class Agent:
     def __str__(self) -> str:
         """Return a string representation of the agent."""
         return f"Agent {self.agent_id} ({self.model})"
-    
+
+
 class AgentsEnsemble:
     """A collection of LLM agents that can be used together.
 
@@ -52,6 +55,7 @@ class AgentsEnsemble:
         timeout (float): Maximum time in seconds to wait for agent responses.
         max_retries (int): Maximum number of retry attempts for failed requests.
     """
+
     def __init__(
         self,
         config_list: Optional[List[ModelConfig]] = None,
@@ -72,8 +76,10 @@ class AgentsEnsemble:
         self.max_retries = max_retries
         self.agents: List[Agent] = []  # List to hold agent information
         self._initialize_from_config(config_list)
-        
-    def _initialize_from_config(self, config_list: Optional[List[ModelConfig]] = None) -> None:
+
+    def _initialize_from_config(
+        self, config_list: Optional[List[ModelConfig]] = None
+    ) -> None:
         """Initialize agents from configuration.
 
         Loads model configurations and creates agents accordingly.
@@ -104,6 +110,7 @@ class AgentsEnsemble:
                 )
                 self._add_agent(agent)
                 agent_id += 1
+
     def _add_agent(self, agent: Agent) -> None:
         """Add an agent to the ensemble.
 
@@ -116,6 +123,7 @@ class AgentsEnsemble:
             f"(base_url: {'custom' if agent.base_url else 'default'}, "
             f"api_key: {'set' if agent.api_key else 'not set'})"
         )
+
     def _count_unique_models(self) -> int:
         """Return the number of unique models among agents."""
         return len({agent.model for agent in self.agents})
@@ -130,6 +138,7 @@ class AgentsEnsemble:
         for agent in self.agents:
             model_groups.setdefault(agent.model, []).append(agent)
         return model_groups
+
     def _retry_with_backoff(
         self,
         func,
@@ -171,9 +180,8 @@ class AgentsEnsemble:
                 )
                 time.sleep(total_delay)
                 attempt += 1
-    def _parse_response(
-        self, agent: Agent, raw_response: Any
-    ) -> Dict[str, Any]:
+
+    def _parse_response(self, agent: Agent, raw_response: Any) -> Dict[str, Any]:
         """Process the raw response from the LLM API.
 
         Args:
@@ -185,9 +193,7 @@ class AgentsEnsemble:
         """
         # If it's already a dictionary, use it directly
         if isinstance(raw_response, Dict):
-            logger.debug(
-                f"Agent {agent.agent_id} response was already a dictionary"
-            )
+            logger.debug(f"Agent {agent.agent_id} response was already a dictionary")
             parsed_response = raw_response
         else:
             # Try to parse as JSON, but keep as string if parsing fails
@@ -224,7 +230,7 @@ class AgentsEnsemble:
         max_tokens: int = 6400,
         temperature: float = 1.0,
         batch: bool = False,
-        batch_size: int = 11,        
+        batch_size: int = 11,
     ) -> List[Dict[str, Any]]:
         """Call the LLM API for a given prompt using the specified agents.
 
@@ -266,7 +272,7 @@ class AgentsEnsemble:
         logger.debug(f"Prompt: {prompt[:50]}...")  # Log first 50 chars of prompt
         logger.debug(f"Images: {images if images else 'None'}")
         logger.debug(f"Batch mode: {batch}, Batch size: {batch_size}")
-        model_name = agents[0].model 
+        model_name = agents[0].model
         base_url = agents[0].base_url
         api_key = agents[0].api_key
         if not batch:
@@ -298,7 +304,7 @@ class AgentsEnsemble:
                     error_message = f"Max retries {max_retries} exceeded for Agent {agent.agent_id}: {str(e)}"
                     logger.error(error_message, exc_info=True)
                     errors.append({"agent_id": agent.agent_id, "error": error_message})
-                    
+
             elapsed = time.time() - start_time
             logger.info(
                 f"Response generation completed in {elapsed:.2f}s for {len(agents)} agents"
@@ -321,7 +327,9 @@ class AgentsEnsemble:
                     agent_time = time.time()
                     logger.info(f"Calling model for batch {i+1}/{num_batches}")
                     raw_responses = self._retry_with_backoff(
-                        lambda *args, **kwargs: asyncio.run(call_model_batch(*args, **kwargs)),
+                        lambda *args, **kwargs: asyncio.run(
+                            call_model_batch(*args, **kwargs)
+                        ),
                         model_name=model_name,
                         base_url=base_url,
                         api_key=api_key,
@@ -340,7 +348,9 @@ class AgentsEnsemble:
                         response = self._parse_response(agent, raw_responses[j])
                         responses.append(response)
                 except Exception as e:
-                    error_message = f"Max retries {max_retries} exceeded for batch {i+1}: {str(e)}"
+                    error_message = (
+                        f"Max retries {max_retries} exceeded for batch {i+1}: {str(e)}"
+                    )
                     logger.error(error_message, exc_info=True)
                     errors.append({"batch": i + 1, "error": error_message})
 
@@ -353,7 +363,7 @@ class AgentsEnsemble:
                 for error in errors:
                     logger.error(f"Batch {error['batch']} error: {error['error']}")
             return responses
-        
+
     def get_responses(
         self,
         prompt: str,
@@ -364,7 +374,7 @@ class AgentsEnsemble:
         max_tokens: int = 6400,
         temperature: float = 1.0,
         batch: bool = False,
-        batch_size: int = 11,        
+        batch_size: int = 11,
     ) -> List[Dict[str, Any]]:
         """Get responses from all agents for a given prompt.
 
@@ -406,12 +416,14 @@ class AgentsEnsemble:
                 if agent.agent_id in response_map:
                     all_responses.append(response_map[agent.agent_id])
                 else:
-                    all_responses.append({
-                        "agent_id": agent.agent_id,
-                        "model": agent.model,
-                        "response": "Error: Missing response",
-                        "error": "Response not generated or collected",
-                    })
+                    all_responses.append(
+                        {
+                            "agent_id": agent.agent_id,
+                            "model": agent.model,
+                            "response": "Error: Missing response",
+                            "error": "Response not generated or collected",
+                        }
+                    )
         else:
             # Multiple models, process each group parallelly
             logger.info(f"Processing {len(groups)} unique models in parallel")
@@ -445,28 +457,33 @@ class AgentsEnsemble:
                             if agent.agent_id in response_map:
                                 all_responses.append(response_map[agent.agent_id])
                             else:
-                                all_responses.append({
-                                    "agent_id": agent.agent_id,
-                                    "model": agent.model,
-                                    "response": "Error: Missing response",
-                                    "error": "Response not generated or collected",
-                                })
+                                all_responses.append(
+                                    {
+                                        "agent_id": agent.agent_id,
+                                        "model": agent.model,
+                                        "response": "Error: Missing response",
+                                        "error": "Response not generated or collected",
+                                    }
+                                )
                     except Exception as e:
                         logger.error(
                             f"Error processing model {model_name}: {str(e)}",
                             exc_info=True,
                         )
                         for agent in agents:
-                            all_responses.append({
-                                "agent_id": agent.agent_id,
-                                "model": agent.model,
-                                "response": "Error: Missing response",
-                                "error": "Response not generated or collected",
-                            })
+                            all_responses.append(
+                                {
+                                    "agent_id": agent.agent_id,
+                                    "model": agent.model,
+                                    "response": "Error: Missing response",
+                                    "error": "Response not generated or collected",
+                                }
+                            )
         logger.info(
             f"Total responses collected: {len(all_responses)} from {len(self.agents)} agents"
         )
         return all_responses
+
     def __str__(self) -> str:
         """Return a string representation of the AgentsEnsemble."""
         unique_models = self._count_unique_models()
@@ -474,6 +491,7 @@ class AgentsEnsemble:
             f"AgentsEnsemble with {len(self.agents)} agents "
             f"across {unique_models} unique models."
         )
+
     def __repr__(self) -> str:
         """Return a detailed string representation of the AgentsEnsemble."""
         return (
