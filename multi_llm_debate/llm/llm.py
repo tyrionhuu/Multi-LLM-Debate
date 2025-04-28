@@ -9,9 +9,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import google.auth
 import google.auth.transport.requests
+from openai import RateLimitError  # <-- add this import
 from openai import OpenAI
 from requests.exceptions import ConnectionError, Timeout
-from openai import RateLimitError  # <-- add this import
 
 from ..utils.config_manager import get_api_key
 from .utils import encode_image
@@ -153,6 +153,7 @@ def call_model(
         ConnectionError: If there's a timeout or connection issue
         ValueError: If there's an issue with the parameters
     """
+
     def _call():
         start_time = time.time()
         logger.info(
@@ -216,7 +217,9 @@ def call_model(
                     seed=random.randint(0, 2**10 - 1),
                 )
             except RateLimitError as e:
-                logger.error(f"Rate limit error calling {model_name}: {str(e)}", exc_info=False)
+                logger.error(
+                    f"Rate limit error calling {model_name}: {str(e)}", exc_info=False
+                )
                 raise ValueError(f"Rate limit error with service: {str(e)}")
             except Exception as e:
                 logger.error(f"Error calling {model_name}: {str(e)}", exc_info=False)
@@ -250,7 +253,8 @@ def call_model(
         except Exception as e:
             elapsed = time.time() - start_time
             logger.error(
-                f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=False
+                f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}",
+                exc_info=False,
             )
             raise ValueError(f"Error with service: {str(e)}")
 
