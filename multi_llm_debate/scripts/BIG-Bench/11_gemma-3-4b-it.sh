@@ -56,7 +56,7 @@ trap cleanup SIGINT SIGTERM EXIT
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
 PORT=$((8600 + FIRST_GPU * 10))
 
-# export VLLM_LOGGING_LEVEL=ERROR
+export VLLM_LOGGING_LEVEL=ERROR
 
 # Check if we have multiple GPUs and set tensor parallelism accordingly
 if [[ "$GPU" == *","* ]]; then
@@ -121,5 +121,5 @@ CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
     --diversity-pruning-amount 7 \
     --batch \
     --batch-size 11 \
-    
+
 cleanup 1
