@@ -13,8 +13,8 @@ if __name__ == "__main__":
     from .run_debate import process_truthful_qa_dataset
     from .utils import load_truthful_qa_dataset, preprocess_truthful_qa_dataframe
 
-    logger = setup_logging(__name__)
-    logger.setLevel(logging.INFO)
+    logger = setup_logging(__name__, log_level=logging.INFO)
+
 
     args = Parser(description="Run Truthful QA evaluation").parse_args()
     logger.info("Parsed arguments: %s", args)
