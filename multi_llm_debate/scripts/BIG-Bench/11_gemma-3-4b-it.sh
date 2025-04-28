@@ -121,4 +121,5 @@ CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
     --diversity-pruning-amount 7 \
     --batch \
     --batch-size 11 \
+    
 cleanup 1
