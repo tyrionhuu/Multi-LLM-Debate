@@ -323,6 +323,7 @@ class AgentsEnsemble:
                 logger.warning(f"Errors encountered: {len(errors)}")
                 for error in errors:
                     logger.error(f"Agent {error['agent_id']} error: {error['error']}")
+                raise 
             return responses
         else:
             # Process agents in batches
@@ -373,6 +374,7 @@ class AgentsEnsemble:
                 logger.warning(f"Errors encountered: {len(errors)}")
                 for error in errors:
                     logger.error(f"Batch {error['batch']} error: {error['error']}")
+                raise Exception("Errors occurred during batch processing")
             return responses
 
     def get_responses(
