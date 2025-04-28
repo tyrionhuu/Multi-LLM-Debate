@@ -5,7 +5,7 @@ from typing import List, Literal, Union
 
 import pandas as pd
 
-DATA_PATHS = [
+INPUT_PATHS = [
     "datasets/COMP-Analysis/turn_level_texts/conture-turn_text.txt",
     "datasets/COMP-Analysis/turn_level_texts/fed-turn_text.txt",
     "datasets/COMP-Analysis/turn_level_texts/dailydialog-zhao_text.txt",
@@ -13,29 +13,32 @@ DATA_PATHS = [
     "datasets/COMP-Analysis/turn_level_texts/topical-usr_text.txt",
     "datasets/COMP-Analysis/turn_level_texts/persona-usr_text.txt",
 ]
-
+ANSWER_PATHS = "datasets/COMP-Analysis/turn_level_texts/turn_overall_ratings.json"
 
 def load_comp_analysis_dataset(
-    data_paths: Union[str, Path, List[Union[str, Path]]] = DATA_PATHS,
+    input_paths: Union[str, Path, List[Union[str, Path]]] = INPUT_PATHS,
+    answer_path: Union[str, Path] = ANSWER_PATHS,
     template: str = "{}\t{}",
 ) -> pd.DataFrame:
     """
     Load multiple text files into a DataFrame, processing each line by extracting
-    the last two tab-separated fields and formatting them.
+    the last two tab-separated fields and formatting them. Optionally, add
+    correctness columns for each answer file.
 
     Args:
-        data_paths (Union[str, Path, List[Union[str, Path]]]): Path(s) to the text files.
+        input_paths (Union[str, Path, List[Union[str, Path]]]): Path(s) to the text files.
+        answer_path (Union[str, Path]): Path to the ground truth JSON file.
         template (str): Template string to format the extracted fields.
 
     Returns:
         pd.DataFrame: DataFrame containing the processed data from the text files,
-            with columns 'input' and 'answer'.
+            with columns 'id', 'input', 'response', and optionally correctness columns.
     """
-    if isinstance(data_paths, (str, Path)):
-        data_paths = [data_paths]
+    if isinstance(input_paths, (str, Path)):
+        input_paths = [input_paths]
 
     data = []
-    for path in data_paths:
+    for path in input_paths:
         path = Path(path)
         if not path.is_file():
             raise FileNotFoundError(f"File not found: {path}")
@@ -49,10 +52,23 @@ def load_comp_analysis_dataset(
                     data.append(formatted)
 
     df = pd.DataFrame(data, columns=["input_response"])
-    # Optionally, split into 'input' and 'response' columns if needed
     df[["input", "response"]] = df["input_response"].str.split("\t", n=1, expand=True)
     df = df.drop(columns=["input_response"])
     df.insert(0, "id", range(len(df)))  # Add id column as the first column
+
+    # Load ground truth
+    ground_truth = []
+    with open(answer_path, 'r', encoding="utf-8") as f:
+        file = json.load(f)
+        for key in [
+            "conture-turn", "fed-turn", "dailydialog-zhao",
+            "persona-zhao", "topical-usr", "persona-usr"
+        ]:
+            ground_truth.extend(file[key])
+
+    # Add ground truth column
+    df["ground_truth"] = ground_truth[:len(df)]
+
     return df
 
 
@@ -76,7 +92,27 @@ def extract_1_to_5_answer(
     raise ValueError(
         f"Invalid response format. Expected 'Final Answer: x' where x is between 1 and 5, got: {response}"
     )
+def compare_comp_analysis_response(
+    response: Union[str, int],
+    answer: Union[str, int, float],
+    threshold: float = 1.5
+) -> bool:
+    """Compare the response with the answer.
 
+    Args:
+        response (Union[str, int]): The response from the LLM.
+        answer (Union[str, int, float]): The ground truth answer.
+        threshold (float): The threshold for comparison.
+
+    Returns:
+        bool: True if the response is within the threshold of the answer, False otherwise.
+    """
+    try:
+        response_value = float(response)
+        answer_value = float(answer)
+        return abs(response_value - answer_value) <= threshold
+    except ValueError:
+        raise ValueError(f"Invalid response or answer format: {response}, {answer}")
 
 if __name__ == "__main__":
     data = load_comp_analysis_dataset()
