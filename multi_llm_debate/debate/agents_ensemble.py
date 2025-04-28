@@ -506,7 +506,7 @@ class AgentsEnsemble:
                                 timeout=timeout,
                                 temperature=temperature,
                             ),
-                            loop
+                            loop,
                         )
                         raw_responses = future.result(timeout=timeout or 60)
                     else:
