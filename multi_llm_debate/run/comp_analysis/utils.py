@@ -72,7 +72,7 @@ def load_comp_analysis_dataset(
             ground_truth.extend(file[key])
 
     # Add ground truth column
-    df["ground_truth"] = ground_truth[: len(df)]
+    df["answer"] = ground_truth[: len(df)]
 
     return df
 
