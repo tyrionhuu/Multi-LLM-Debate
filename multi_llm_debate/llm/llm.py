@@ -9,9 +9,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import google.auth
 import google.auth.transport.requests
-from openai import RateLimitError  # <-- add this import
 from openai import OpenAI
 from requests.exceptions import ConnectionError, Timeout
+from openai import RateLimitError  # <-- add this import
 
 from ..utils.config_manager import get_api_key
 from .utils import encode_image
@@ -59,58 +59,6 @@ def _get_google_access_token_and_url(
     return access_token, base_url
 
 
-def _retry_with_backoff(
-    func,
-    *args,
-    retries: int,
-    base_delay: float = 1.0,
-    max_delay: float = 16.0,
-    **kwargs,
-):
-    """Generic retry logic with exponential backoff and jitter.
-
-    Args:
-        func: Function to call.
-        *args: Positional arguments for func.
-        retries (int): Number of retries.
-        base_delay (float): Initial delay.
-        max_delay (float): Maximum delay.
-        **kwargs: Keyword arguments for func.
-
-    Returns:
-        Result of func(*args, **kwargs).
-
-    Raises:
-        Exception: If all retries fail.
-    """
-    attempt = 0
-    while True:
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            # Check for openai.RateLimitError
-            if RateLimitError is not None and isinstance(e, RateLimitError):
-                delay = min(max_delay, base_delay * (2**attempt))
-                jitter = random.uniform(0, delay / 2)
-                total_delay = delay + jitter
-                logger.error(
-                    f"RateLimitError encountered. Backing off for {total_delay:.2f}s and stopping further attempts."
-                )
-                time.sleep(total_delay)
-                raise  # Stop immediately after backoff
-            if attempt >= retries:
-                logger.error(f"All retries failed for {func.__name__}")
-                raise
-            delay = min(max_delay, base_delay * (2**attempt))
-            jitter = random.uniform(0, delay / 2)
-            total_delay = delay + jitter
-            logger.warning(
-                f"Retry {attempt+1}/{retries} for {func.__name__} after {total_delay:.2f}s due to error: {e}"
-            )
-            time.sleep(total_delay)
-            attempt += 1
-
-
 def call_model(
     model_name: str = "gpt-4",
     base_url: str = None,
@@ -124,7 +72,6 @@ def call_model(
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",
     endpoint_id: str = "openapi",
-    retries: int = 3,
 ) -> str:
     """Calls the OpenAI API or Gemini API with the provided parameters.
 
@@ -144,7 +91,6 @@ def call_model(
         project_id (Optional[str]): GCP project ID for Gemini.
         location (str): GCP region for Gemini.
         endpoint_id (str): Gemini endpoint ID.
-        retries (int): Number of retries for the API call.
 
     Returns:
         str: The generated response from the model.
@@ -153,113 +99,105 @@ def call_model(
         ConnectionError: If there's a timeout or connection issue
         ValueError: If there's an issue with the parameters
     """
+    start_time = time.time()
+    logger.info(
+        f"Calling {model_name} (timeout={timeout}s, json={json_mode}, "
+        f"base_url={base_url})"
+    )
 
-    def _call():
-        start_time = time.time()
-        logger.info(
-            f"Calling {model_name} (timeout={timeout}s, json={json_mode}, "
-            f"base_url={base_url})"
+    try:
+        # Process images if provided
+        processed_images: List[str] = []
+        if images is not None:
+            # Convert single items to list
+            if not isinstance(images, list):
+                images = [images]
+
+            # Validate and process all images
+            for img in images:
+                if isinstance(img, (str, Path)):
+                    img_path = Path(img)
+                    if not img_path.exists():
+                        raise ValueError(f"Image file {img_path} does not exist.")
+                    processed_images.append(str(img_path))
+                else:
+                    raise ValueError(
+                        "Images must be a string, Path, or list of strings/Paths."
+                    )
+
+        # Detect Gemini model
+        if "google" in model_name.lower():
+            if not project_id:
+                raise ValueError("project_id is required for Google models.")
+            access_token, gemini_url = _get_google_access_token_and_url(
+                project_id=project_id, location=location, endpoint_id=endpoint_id
+            )
+            api_key_to_use = access_token
+            base_url_to_use = base_url or gemini_url
+        else:
+            api_key_to_use = api_key or KEY
+            if not base_url:
+                raise ValueError("Base URL is required for OpenAI API calls.")
+            base_url_to_use = base_url
+
+        # Generate API messages
+        messages = generate_api_messages(
+            prompt=prompt, images=processed_images if images is not None else None
         )
 
+        # Initialize OpenAI client with timeout and base_url if provided
+        client_kwargs = {"api_key": api_key_to_use, "timeout": timeout}
+        client_kwargs["base_url"] = base_url_to_use
+
+        client = OpenAI(**client_kwargs)
+
         try:
-            # Process images if provided
-            processed_images: List[str] = []
-            images_to_process = images
-            if images_to_process is not None:
-                # Convert single items to list
-                if not isinstance(images_to_process, list):
-                    images_to_process = [images_to_process]
-
-                # Validate and process all images
-                for img in images_to_process:
-                    if isinstance(img, (str, Path)):
-                        img_path = Path(img)
-                        if not img_path.exists():
-                            raise ValueError(f"Image file {img_path} does not exist.")
-                        processed_images.append(str(img_path))
-                    else:
-                        raise ValueError(
-                            "Images must be a string, Path, or list of strings/Paths."
-                        )
-
-            # Detect Gemini model
-            if "google" in model_name.lower():
-                if not project_id:
-                    raise ValueError("project_id is required for Google models.")
-                access_token, gemini_url = _get_google_access_token_and_url(
-                    project_id=project_id, location=location, endpoint_id=endpoint_id
-                )
-                api_key_to_use = access_token
-                base_url_to_use = base_url or gemini_url
-            else:
-                api_key_to_use = api_key or KEY
-                if not base_url:
-                    raise ValueError("Base URL is required for OpenAI API calls.")
-                base_url_to_use = base_url
-
-            # Generate API messages
-            messages = generate_api_messages(
-                prompt=prompt, images=processed_images if images is not None else None
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                response_format={"type": "json_object"} if json_mode else None,
+                seed=random.randint(0, 2**10 - 1),
             )
-
-            # Initialize OpenAI client with timeout and base_url if provided
-            client_kwargs = {"api_key": api_key_to_use, "timeout": timeout}
-            client_kwargs["base_url"] = base_url_to_use
-
-            client = OpenAI(**client_kwargs)
-
-            try:
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    response_format={"type": "json_object"} if json_mode else None,
-                    seed=random.randint(0, 2**10 - 1),
-                )
-            except RateLimitError as e:
-                logger.error(
-                    f"Rate limit error calling {model_name}: {str(e)}", exc_info=False
-                )
-                raise ValueError(f"Rate limit error with service: {str(e)}")
-            except Exception as e:
-                logger.error(f"Error calling {model_name}: {str(e)}", exc_info=False)
-                raise ValueError(f"Error with service: {str(e)}")
-            logger.debug(f"API response: {response}")
-            # Extract response content
-            response_str = response.choices[0].message.content
-
-            # Process JSON response if needed
-            if json_mode:
-                try:
-                    return json.dumps(json.loads(response_str))
-                except json.JSONDecodeError:
-                    logger.warning("API returned invalid JSON despite json_mode=True")
-                    return response_str
-
-            elapsed = time.time() - start_time
-            logger.info(f"Call to {model_name} completed in {elapsed:.2f}s")
-            return response_str
-
-        except Timeout:
-            elapsed = time.time() - start_time
-            logger.error(f"Timeout error calling {model_name} after {elapsed:.2f}s")
-            raise ConnectionError(f"Timeout error with service after {timeout} seconds")
-        except ConnectionError as e:
-            elapsed = time.time() - start_time
-            logger.error(
-                f"Connection error calling {model_name} after {elapsed:.2f}s: {str(e)}"
-            )
-            raise ConnectionError(f"Connection error with service: {str(e)}")
+        except RateLimitError as e:
+            logger.error(f"Rate limit error calling {model_name}: {str(e)}", exc_info=False)
+            raise ValueError(f"Rate limit error with service: {str(e)}")
         except Exception as e:
-            elapsed = time.time() - start_time
-            logger.error(
-                f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}",
-                exc_info=False,
-            )
+            logger.error(f"Error calling {model_name}: {str(e)}", exc_info=False)
             raise ValueError(f"Error with service: {str(e)}")
+        logger.debug(f"API response: {response}")
+        # Extract response content
+        response_str = response.choices[0].message.content
 
-    return _retry_with_backoff(_call, retries=retries)
+        # Process JSON response if needed
+        if json_mode:
+            try:
+                return json.dumps(json.loads(response_str))
+            except json.JSONDecodeError:
+                logger.warning("API returned invalid JSON despite json_mode=True")
+                return response_str
+
+        elapsed = time.time() - start_time
+        logger.info(f"Call to {model_name} completed in {elapsed:.2f}s")
+        return response_str
+
+    except Timeout:
+        elapsed = time.time() - start_time
+        logger.error(f"Timeout error calling {model_name} after {elapsed:.2f}s")
+        raise ConnectionError(f"Timeout error with service after {timeout} seconds")
+    except ConnectionError as e:
+        elapsed = time.time() - start_time
+        logger.error(
+            f"Connection error calling {model_name} after {elapsed:.2f}s: {str(e)}"
+        )
+        raise ConnectionError(f"Connection error with service: {str(e)}")
+    except Exception as e:
+        elapsed = time.time() - start_time
+        logger.error(
+            f"Error calling {model_name} after {elapsed:.2f}s: {str(e)}", exc_info=False
+        )
+        raise ValueError(f"Error with service: {str(e)}")
 
 
 def generate_api_messages(
@@ -339,7 +277,6 @@ async def call_model_async(
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",
     endpoint_id: str = "openapi",
-    retries: int = 3,
 ) -> str:
     """Async version of call_model.
 
@@ -357,11 +294,11 @@ async def call_model_async(
         project_id (Optional[str]): GCP project ID for Gemini.
         location (str): GCP region for Gemini.
         endpoint_id (str): Gemini endpoint ID.
-        retries (int): Number of retries for the API call.
 
     Returns:
         str: The generated response from the model.
     """
+    # Use asyncio to run the synchronous call_model in a separate thread
     return await asyncio.to_thread(
         call_model,
         model_name=model_name,
@@ -376,7 +313,6 @@ async def call_model_async(
         project_id=project_id,
         location=location,
         endpoint_id=endpoint_id,
-        retries=retries,
     )
 
 
@@ -394,7 +330,6 @@ async def call_model_batch(
     location: str = "us-central1",
     endpoint_id: str = "openapi",
     batch_size: int = 5,
-    retries: int = 3,
 ) -> List[str]:
     """Calls the OpenAI API or Gemini API with multiple prompts asynchronously.
 
@@ -414,7 +349,6 @@ async def call_model_batch(
         location (str): GCP region for Gemini.
         endpoint_id (str): Gemini endpoint ID.
         batch_size (int): Maximum number of concurrent API calls. Defaults to 5.
-        retries (int): Number of retries for each API call.
 
     Returns:
         List[str]: The generated responses from the model.
@@ -466,7 +400,6 @@ async def call_model_batch(
                     project_id=project_id,
                     location=location,
                     endpoint_id=endpoint_id,
-                    retries=retries,
                 )
             )
             tasks.append(task)
