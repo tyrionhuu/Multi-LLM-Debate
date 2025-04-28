@@ -2,7 +2,6 @@ import asyncio
 import concurrent.futures
 import json
 import logging
-import random
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -144,17 +143,15 @@ class AgentsEnsemble:
         func,
         *args,
         retries: int,
-        base_delay: float = 2.0,
         max_delay: float = 32.0,
         **kwargs,
     ):
-        """Generic retry logic with exponential backoff and jitter.
+        """Generic retry logic with exponential backoff (no jitter).
 
         Args:
             func: Function to call.
             *args: Positional arguments for func.
             retries (int): Number of retries.
-            base_delay (float): Initial delay.
             max_delay (float): Maximum delay.
             **kwargs: Keyword arguments for func.
 
@@ -171,24 +168,21 @@ class AgentsEnsemble:
             except Exception as e:
                 # Check for openai.RateLimitError
                 if RateLimitError is not None and isinstance(e, RateLimitError):
-                    delay = min(max_delay, base_delay * (2**attempt))
-                    jitter = random.uniform(0, delay / 2)
-                    total_delay = delay + jitter
+                    
+                    delay = min(max_delay, 2.0 * (3 ** attempt))
                     logger.error(
-                        f"RateLimitError encountered. Backing off for {total_delay:.2f}s and stopping further attempts."
+                        f"RateLimitError encountered. Backing off for {delay:.2f}s and stopping further attempts."
                     )
-                    time.sleep(total_delay)
+                    time.sleep(delay)
                     raise  # Stop immediately after backoff
                 if attempt >= retries:
                     logger.error(f"All retries failed for {func.__name__}")
                     raise
-                delay = min(max_delay, base_delay * (2**attempt))
-                jitter = random.uniform(0, delay / 2)
-                total_delay = delay + jitter
+                delay = min(max_delay, 2.0 * (3 ** attempt))
                 logger.warning(
-                    f"Retry {attempt+1}/{retries} for {func.__name__} after {total_delay:.2f}s due to error: {e}"
+                    f"Retry {attempt+1}/{retries} for {func.__name__} after {delay:.2f}s due to error: {e}"
                 )
-                time.sleep(total_delay)
+                time.sleep(delay)
                 attempt += 1
 
     def _parse_response(self, agent: Agent, raw_response: Any) -> Dict[str, Any]:
@@ -313,7 +307,7 @@ class AgentsEnsemble:
                     responses.append(response)
                 except Exception as e:
                     error_message = f"Max retries {max_retries} exceeded for Agent {agent.agent_id}: {str(e)}"
-                    logger.error(error_message, exc_info=True)
+                    logger.error(error_message, exc_info=False)
                     errors.append({"agent_id": agent.agent_id, "error": error_message})
 
             elapsed = time.time() - start_time
@@ -352,7 +346,7 @@ class AgentsEnsemble:
                         max_tokens=max_tokens,
                         temperature=temperature,
                         batch_size=batch_size,
-                        retries=max_retries,  # <-- fix: add this argument
+                        retries=max_retries,
                     )
                     logger.info(
                         f"Batch {i+1} response received in {time.time() - agent_time:.2f}s"
