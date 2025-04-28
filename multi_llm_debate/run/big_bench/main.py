@@ -13,11 +13,12 @@ if __name__ == "__main__":
     logger = setup_logging(__name__, log_level=logging.INFO)
 
     args = Parser(description="Run BIG_Bench evaluation").parse_args()
+    
     if args.task_name is None:
         task_name = "big_bench"
     else:
         task_name = args.task_name
-    print(f"Running evaluation for task: {task_name}")
+        
     logger.info(f"Running evaluation for task: {task_name}")
     # Load the dataset
     json_data = Path("datasets/BIG-Bench/sports_understanding/task.json")
