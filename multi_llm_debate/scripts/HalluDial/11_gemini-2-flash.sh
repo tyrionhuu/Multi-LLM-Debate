@@ -19,7 +19,8 @@ python -m multi_llm_debate.run.hallu_dial.main \
     --config-json "$CONFIG" \
     --task-name "hallu_dial" \
     --sample-size 1000 \
-
+    --batch \
+    --batch-size 11 \
 # # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.hallu_dial.main \
     --config-json "$CONFIG" \
@@ -27,7 +28,8 @@ python -m multi_llm_debate.run.hallu_dial.main \
     --task-name "hallu_dial_pruning" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 7 \
-    
+    --batch \
+    --batch-size 11 \
 # python -m multi_llm_debate.run.hallu_dial.main \
 #     --config-json "$CONFIG" \
 #     --task-name "hallu_dial" \
