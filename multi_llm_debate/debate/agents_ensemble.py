@@ -411,6 +411,7 @@ class AgentsEnsemble:
         max_retries: int = 0,
         max_tokens: int = 6400,
         temperature: float = 1.0,
+        batch_size: int = 5,
     ) -> List[Dict[str, Any]]:
         """Generate batch responses to a single prompt for a specific agent.
 
@@ -426,6 +427,7 @@ class AgentsEnsemble:
             max_retries (int): Maximum number of retry attempts.
             max_tokens (int): Maximum number of tokens in responses.
             temperature (float): Controls randomness in the responses.
+            batch_size (int): Number of prompts to process in a single batch.
 
         Returns:
             List[Dict[str, Any]]: List of response dictionaries.
@@ -435,12 +437,12 @@ class AgentsEnsemble:
             Exception: If some other error occurs after all retries.
         """
         start_time = time.time()
-        batch_size = len(self.agents)  # Create a batch with identical prompts
-        prompts = [prompt] * batch_size
+        batch_size_local = len(self.agents)  # Create a batch with identical prompts
+        prompts = [prompt] * batch_size_local
 
         logger.debug(
             f"Agent {agent_info.agent_id} ({agent_info.model}) starting batch request with "
-            f"{batch_size} identical prompts (timeout: {timeout}s, json_mode: {json_mode}, "
+            f"{batch_size_local} identical prompts (timeout: {timeout}s, json_mode: {json_mode}, "
             f"max_retries: {max_retries}, temperature: {temperature})"
         )
 
@@ -463,7 +465,7 @@ class AgentsEnsemble:
                     )
 
             # Create a list of identical image sets for each prompt
-            batch_images = [images] * batch_size
+            batch_images = [images] * batch_size_local
 
         errors = []
         retry_delay = 1.0  # Default retry delay in seconds
@@ -484,7 +486,7 @@ class AgentsEnsemble:
                 api_start = time.time()
                 logger.info(
                     f"Agent {agent_info.agent_id} ({agent_info.model}) sending batch request "
-                    f"with {batch_size} identical prompts"
+                    f"with {batch_size_local} identical prompts"
                 )
 
                 # Use a safer approach to run the async function without creating new event loops
@@ -505,6 +507,7 @@ class AgentsEnsemble:
                                 max_tokens=max_tokens,
                                 timeout=timeout,
                                 temperature=temperature,
+                                batch_size=batch_size,
                             ),
                             loop,
                         )
@@ -522,6 +525,7 @@ class AgentsEnsemble:
                                 max_tokens=max_tokens,
                                 timeout=timeout,
                                 temperature=temperature,
+                                batch_size=batch_size,
                             )
                         )
                 except RuntimeError:
@@ -537,6 +541,7 @@ class AgentsEnsemble:
                             max_tokens=max_tokens,
                             timeout=timeout,
                             temperature=temperature,
+                            batch_size=batch_size,
                         )
                     )
 
@@ -603,6 +608,7 @@ class AgentsEnsemble:
         temperature: float = 1.0,
         parallel: bool = False,
         batch: bool = False,
+        batch_size: int = 5,
     ) -> List[Dict[str, Any]]:
         """Get responses from all agents.
 
@@ -622,6 +628,7 @@ class AgentsEnsemble:
             batch (bool): If True, process the input as a batch of prompts.
                 'prompt' must be a list of strings. Returns a flat list of
                 all responses from all prompts. Defaults to False.
+            batch_size (int): Number of prompts to process in a single batch.
 
         Returns:
             List[Dict[str, Any]]: Agent responses. If batch=False, this is a
@@ -652,6 +659,7 @@ class AgentsEnsemble:
                 max_tokens=max_tokens,
                 temperature=temperature,
                 parallel=parallel,
+                batch_size=batch_size,
             )
 
             # Flatten the results: List[List[Dict]] -> List[Dict]
@@ -767,6 +775,7 @@ class AgentsEnsemble:
         max_tokens: int = 6400,
         temperature: float = 1.0,
         parallel: bool = False,
+        batch_size: int = 5,
     ) -> List[List[Dict[str, Any]]]:
         """Get batch responses from all agents for multiple prompts.
 
@@ -783,6 +792,7 @@ class AgentsEnsemble:
             temperature (float): Controls randomness in the responses.
             parallel (bool): Whether to process in parallel across different models.
                 Automatically disabled if only one model type is present.
+            batch_size (int): Number of prompts to process in a single batch.
 
         Returns:
             List[List[Dict[str, Any]]]: List where each element is a list
@@ -820,6 +830,7 @@ class AgentsEnsemble:
                         max_tokens=max_tokens,
                         temperature=temperature,
                         images=images,
+                        batch_size=batch_size,
                     )
                     model_futures[future] = model
 
@@ -869,6 +880,7 @@ class AgentsEnsemble:
                         max_tokens=max_tokens,
                         temperature=temperature,
                         retries=retries,
+                        batch_size=batch_size,
                     )
                     for p_idx, resp in enumerate(agent_responses):
                         resp["prompt_index"] = p_idx
@@ -1011,6 +1023,7 @@ class AgentsEnsemble:
         max_tokens: int,
         temperature: float,
         images: Union[str, Path, List[str], List[Path], None] = None,
+        batch_size: int = 5,
     ) -> List[Dict[str, Any]]:
         """Process a group of agents with the same model for batch requests.
 
@@ -1022,6 +1035,7 @@ class AgentsEnsemble:
             max_tokens: Maximum tokens
             temperature: Temperature setting
             images: Optional list of images for each prompt
+            batch_size: Number of prompts to process in a single batch.
 
         Returns:
             List of all agent responses for all prompts
@@ -1045,6 +1059,7 @@ class AgentsEnsemble:
                     max_tokens=max_tokens,
                     temperature=temperature,
                     retries=self.max_retries,
+                    batch_size=batch_size,
                 )
 
                 for i, response in enumerate(agent_responses):
