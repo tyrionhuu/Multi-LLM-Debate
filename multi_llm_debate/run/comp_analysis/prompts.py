@@ -133,7 +133,7 @@ def build_comp_analysis_round_n_prompt(
         prompt += "You MUST output your response in JSON format.\n"
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
-            +"Note that the 'Final Answer' MUST be placed at the end of your response, "
+            + "Note that the 'Final Answer' MUST be placed at the end of your response, "
             + "and the value x must be only an integer between 1 and 5.\n"
             + "Do not include any other text after 'Final Answer: x'."
             + NEW_LINE
@@ -169,5 +169,15 @@ if __name__ == "__main__":
     # Example usage
     input_text = "This is an example input for the judge evaluation."
     response_text = "This is an example response from the AI assistant."
-    prompt = build_comp_analysis_round_zero_prompt(input_text, response_text)
+    previous_responses = [
+        "Judge 1: The response is relevant and specific.",
+        "Judge 2: The response is interesting but lacks clarity.",
+    ]
+    prompt = build_comp_analysis_round_n_prompt(
+        input=input_text,
+        response=response_text,
+        responses=previous_responses,
+        use_cot=True,
+        json_mode=True
+    )
     print(prompt)
