@@ -164,13 +164,14 @@ def call_model(
         try:
             # Process images if provided
             processed_images: List[str] = []
-            if images is not None:
+            images_to_process = images
+            if images_to_process is not None:
                 # Convert single items to list
-                if not isinstance(images, list):
-                    images = [images]
+                if not isinstance(images_to_process, list):
+                    images_to_process = [images_to_process]
 
                 # Validate and process all images
-                for img in images:
+                for img in images_to_process:
                     if isinstance(img, (str, Path)):
                         img_path = Path(img)
                         if not img_path.exists():
