@@ -55,6 +55,26 @@ def load_comp_analysis_dataset(
     df.insert(0, "id", range(len(df)))  # Add id column as the first column
     return df
 
+def extract_1_to_5_answer(
+    response: str,
+) -> Literal["1", "2", "3", "4", "5"]:
+    """Extract the answer from the response string.
+
+    Args:
+        response (str): The response string from the LLM.
+
+    Returns:
+        Literal["1", "2", "3", "4", "5"]: Answer between 1 and 5.
+
+    Raises:
+        ValueError: If no valid answer is found in the response.
+    """
+    match = re.search(r"Final Answer:\s*([1-5])", response)
+    if match:
+        return match.group(1)
+    raise ValueError(
+        f"Invalid response format. Expected 'Final Answer: x' where x is between 1 and 5, got: {response}"
+    )
 
 if __name__ == "__main__":
     data = load_comp_analysis_dataset()
