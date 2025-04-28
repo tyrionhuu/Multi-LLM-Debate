@@ -11,18 +11,18 @@ if __name__ == "__main__":
     from .utils import load_comp_analysis_dataset
 
     logger = setup_logging(__name__, log_level=logging.INFO)
-    
+
     args = Parser(description="Run COMP-Analysis evaluation").parse_args()
-    
+
     if args.task_name is None:
         task_name = "comp_analysis"
     else:
         task_name = args.task_name
-        
+
     logger.info(f"Running evaluation for task: {task_name}")
     # Load the dataset
     dataframe = load_comp_analysis_dataset()
-    
+
     shared_main(
         dataframe=dataframe,
         run_debate_fn=process_comp_analysis_dataset,

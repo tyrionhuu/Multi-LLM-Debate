@@ -15,7 +15,6 @@ if __name__ == "__main__":
 
     logger = setup_logging(__name__, log_level=logging.INFO)
 
-
     args = Parser(description="Run Truthful QA evaluation").parse_args()
     logger.info("Parsed arguments: %s", args)
     df_path = Path("output/truthful_qa/processed_data.csv")
