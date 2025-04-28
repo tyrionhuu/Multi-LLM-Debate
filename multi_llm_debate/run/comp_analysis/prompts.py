@@ -93,6 +93,8 @@ def build_comp_analysis_round_zero_prompt(
 
     prompt += "Your answer:" + NEW_LINE
     return prompt
+
+
 if __name__ == "__main__":
     # Example usage
     input_text = "This is an example input for the judge evaluation."
