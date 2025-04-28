@@ -7,6 +7,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
 from openai import RateLimitError
 from tqdm import tqdm
 
@@ -323,7 +324,7 @@ class AgentsEnsemble:
                 logger.warning(f"Errors encountered: {len(errors)}")
                 for error in errors:
                     logger.error(f"Agent {error['agent_id']} error: {error['error']}")
-                raise 
+                raise
             return responses
         else:
             # Process agents in batches

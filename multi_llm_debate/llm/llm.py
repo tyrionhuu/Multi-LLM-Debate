@@ -9,9 +9,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import google.auth
 import google.auth.transport.requests
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 from requests.exceptions import ConnectionError, Timeout
-from openai import RateLimitError
 
 from ..utils.config_manager import get_api_key
 from .utils import encode_image
