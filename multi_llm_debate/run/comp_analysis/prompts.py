@@ -133,7 +133,7 @@ def build_comp_analysis_round_n_prompt(
         prompt += "You MUST output your response in JSON format.\n"
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
-            + "Note that the 'Final Answer' MUST be placed at the end of your response, "
+            "Note that the 'Final Answer' MUST be placed at the end of your response, "
             + "and the value x must be only an integer between 1 and 5.\n"
             + "Do not include any other text after 'Final Answer: x'."
             + NEW_LINE
