@@ -173,7 +173,7 @@ class AgentsEnsemble:
                     )
                     time.sleep(delay)
                     raise  # Stop immediately after backoff
-                if attempt >= retries: 
+                if attempt >= retries:
                     logger.error(f"All retries failed for {func.__name__}")
                     raise
                 delay = 3.0 * (2**attempt)
