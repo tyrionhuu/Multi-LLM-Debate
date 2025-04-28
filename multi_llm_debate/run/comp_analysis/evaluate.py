@@ -5,6 +5,8 @@ import pandas as pd
 
 from ..shared.evaluate import EvaluationResults, evaluate_all
 from .utils import compare_comp_analysis_response, extract_1_to_5_answer
+
+
 def evaluate_comp_analysis_responses(
     responses: List[Dict],
     answer: str,
@@ -19,6 +21,8 @@ def evaluate_comp_analysis_responses(
         bool: True if all responses are the same and match the answer, False otherwise.
     """
     return all(
-        compare_comp_analysis_response(extract_1_to_5_answer(response["response"]), answer)
+        compare_comp_analysis_response(
+            extract_1_to_5_answer(response["response"]), answer
+        )
         for response in responses
     )
