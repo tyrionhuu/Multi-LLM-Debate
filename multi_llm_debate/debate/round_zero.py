@@ -37,7 +37,7 @@ def run_debate_round_zero(
         parallel: Whether to run in parallel.
         batch: Whether to run in batch mode.
         batch_size: Size of the batch for parallel processing.
-        
+
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
 

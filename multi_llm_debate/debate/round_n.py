@@ -37,7 +37,7 @@ def run_debate_round_n(
         parallel (bool): Whether to run in parallel.
         batch (bool): Whether to run in batch mode.
         batch_size (int): Size of the batch for parallel processing.
-        
+
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
 
