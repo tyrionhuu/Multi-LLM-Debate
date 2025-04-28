@@ -15,7 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def main() -> None:
+def main() -> None:
     """Run a batch inference test with Gemini models."""
     # Sample prompts for batch processing
     prompts: List[str] = [
@@ -43,7 +43,7 @@ async def main() -> None:
 
     try:
         # Execute batch inference
-        results = await call_model_batch(
+        results = asyncio.run(call_model_batch(
             model_name=model_name,
             base_url=base_url,
             prompts=prompts,
@@ -54,7 +54,7 @@ async def main() -> None:
             endpoint_id="openapi",
             timeout=60,  # Increasing timeout for batch processing
             batch_size=11,  # Adjust batch size as needed
-        )
+        ))
 
         # Display results
         logger.info(f"Batch processing completed successfully")
@@ -79,4 +79,4 @@ async def main() -> None:
 
 if __name__ == "__main__":
     # Run the async main function
-    asyncio.run(main())
+    main()
