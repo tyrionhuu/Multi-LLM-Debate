@@ -164,7 +164,7 @@ class AgentsEnsemble:
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                delay = max(30, 3.0 * (4**attempt))
+                delay = min(30, 3.0 * (4**attempt))
                 # Check for openai.RateLimitError
                 if RateLimitError is not None and isinstance(e, RateLimitError):
                     logger.error(
