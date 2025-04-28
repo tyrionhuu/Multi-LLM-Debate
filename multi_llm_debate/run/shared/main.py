@@ -25,6 +25,7 @@ def main(
     max_tokens: int = 6400,
     parallel: bool = False,
     batch: bool = False,
+    batch_size: int = 11,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -48,6 +49,7 @@ def main(
         max_tokens: Maximum number of tokens for model responses
         parallel: Whether to run in parallel
         batch: Whether to run in batch mode
+        batch_size: Size of the batch for parallel processing.
         quality_pruning_func: Function for quality pruning
         quality_pruning_amount: Amount of pruning to apply
         diversity_pruning_func: Function for diversity pruning
@@ -97,6 +99,7 @@ def main(
                     max_tokens=max_tokens,
                     parallel=parallel,
                     batch=batch,
+                    batch_size=batch_size,
                     quality_pruning_func=quality_pruning_func,
                     quality_pruning_amount=quality_pruning_amount,
                     diversity_pruning_func=diversity_pruning_func,

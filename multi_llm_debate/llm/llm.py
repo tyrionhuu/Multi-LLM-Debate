@@ -322,6 +322,7 @@ async def call_model_batch(
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",
     endpoint_id: str = "openapi",
+    batch_size: int = 5,
 ) -> List[str]:
     """Calls the OpenAI API or Gemini API with multiple prompts asynchronously.
 
@@ -340,6 +341,7 @@ async def call_model_batch(
         project_id (Optional[str]): GCP project ID for Gemini.
         location (str): GCP region for Gemini.
         endpoint_id (str): Gemini endpoint ID.
+        batch_size (int): Maximum number of concurrent API calls. Defaults to 5.
 
     Returns:
         List[str]: The generated responses from the model.
@@ -361,33 +363,43 @@ async def call_model_batch(
         # Set to None for each prompt when not provided
         images = [None] * len(prompts)
 
-    # Create tasks for each prompt
-    tasks = []
-    for i, prompt in enumerate(prompts):
-        img = images[i]
-        task = asyncio.create_task(
-            call_model_async(
-                model_name=model_name,
-                base_url=base_url,
-                prompt=prompt,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                json_mode=json_mode,
-                timeout=timeout,
-                images=img,
-                api_key=api_key,
-                project_id=project_id,
-                location=location,
-                endpoint_id=endpoint_id,
-            )
-        )
-        tasks.append(task)
-
     logger.info(f"Processing batch of {len(prompts)} prompts with model {model_name}")
     start_time = time.time()
 
-    # Wait for all tasks to complete
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    # Process prompts in batches of batch_size
+    results = []
+    for i in range(0, len(prompts), batch_size):
+        batch_end = min(i + batch_size, len(prompts))
+        batch_prompts = prompts[i:batch_end]
+        batch_images = images[i:batch_end]
+
+        logger.info(f"Processing batch {i//batch_size + 1}: {i} to {batch_end-1}")
+
+        # Create tasks for current batch
+        tasks = []
+        for j, prompt in enumerate(batch_prompts):
+            img = batch_images[j]
+            task = asyncio.create_task(
+                call_model_async(
+                    model_name=model_name,
+                    base_url=base_url,
+                    prompt=prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    json_mode=json_mode,
+                    timeout=timeout,
+                    images=img,
+                    api_key=api_key,
+                    project_id=project_id,
+                    location=location,
+                    endpoint_id=endpoint_id,
+                )
+            )
+            tasks.append(task)
+
+        # Wait for all tasks in this batch to complete
+        batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+        results.extend(batch_results)
 
     # Process results - convert exceptions to error messages
     processed_results = []

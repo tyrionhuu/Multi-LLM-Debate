@@ -20,6 +20,7 @@ def run_debate_round_n(
     max_tokens: int = 6400,
     parallel: bool = False,
     batch: bool = False,
+    batch_size: int = 11,
 ) -> List[Dict]:
     """Run a subsequent round of debate with the given prompt and agents.
 
@@ -35,6 +36,7 @@ def run_debate_round_n(
         max_tokens (int): Maximum number of tokens in the response.
         parallel (bool): Whether to run in parallel.
         batch (bool): Whether to run in batch mode.
+        batch_size (int): Size of the batch for parallel processing.
 
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
@@ -70,6 +72,7 @@ def run_debate_round_n(
             max_tokens=max_tokens,
             parallel=parallel,
             batch=batch,
+            batch_size=batch_size,
         )
         response_time = time.time() - response_start_time
         logger.info(

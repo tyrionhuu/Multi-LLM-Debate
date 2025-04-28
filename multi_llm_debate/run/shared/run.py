@@ -37,6 +37,7 @@ def execute_debate_workflow(
     max_tokens: int = 6400,
     parallel: bool = False,
     batch: bool = False,
+    batch_size: int = 11,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -57,7 +58,8 @@ def execute_debate_workflow(
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
-        batch: Whether to run in batch mode.
+        batch: Whether to run in batch mode
+        batch_size: Size of the batch for parallel processing.
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
@@ -102,6 +104,7 @@ def execute_debate_workflow(
         max_tokens=max_tokens,
         parallel=parallel,
         batch=batch,
+        batch_size=batch_size,
         quality_pruning_func=quality_pruning_func,
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
@@ -228,6 +231,7 @@ def _process_single_entry_worker(
     parallel: bool,
     process_entry_fn: Callable,
     batch: bool = False,
+    batch_size: int = 11,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -245,12 +249,13 @@ def _process_single_entry_worker(
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
         batch: Whether to run in batch mode
+        batch_size: Size of the batch for parallel processing
         process_entry_fn: Function to process a single entry
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
         diversity_pruning_amount: int = 5,
-        api_key: Optional API key for LLM providers
+        api_key: Optional[str] = None
 
     Returns:
         Dict with processing results and status
@@ -266,6 +271,7 @@ def _process_single_entry_worker(
             max_tokens=max_tokens,
             parallel=parallel,
             batch=batch,
+            batch_size=batch_size,
             quality_pruning_func=quality_pruning_func,
             quality_pruning_amount=quality_pruning_amount,
             diversity_pruning_func=diversity_pruning_func,
@@ -297,6 +303,7 @@ def process_debate_dataset(
     max_tokens: int = 6400,
     parallel: bool = False,
     batch: bool = False,
+    batch_size: int = 11,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -318,6 +325,7 @@ def process_debate_dataset(
         max_tokens: Maximum tokens for model responses
         parallel: Whether to run in parallel
         batch: bool = False,
+        batch_size: int = 11,
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: int = 5,
         diversity_pruning_func: Optional function for diversity pruning
@@ -376,6 +384,7 @@ def process_debate_dataset(
                             max_tokens=max_tokens,
                             parallel=parallel,
                             batch=batch,
+                            batch_size=batch_size,
                             process_entry_fn=process_entry_fn,
                             quality_pruning_func=quality_pruning_func,
                             quality_pruning_amount=quality_pruning_amount,
@@ -412,6 +421,7 @@ def process_debate_dataset(
                             max_tokens=max_tokens,
                             parallel=parallel,
                             batch=batch,
+                            batch_size=batch_size,
                             quality_pruning_func=quality_pruning_func,
                             quality_pruning_amount=quality_pruning_amount,
                             diversity_pruning_func=diversity_pruning_func,
@@ -479,6 +489,7 @@ def process_single_debate_entry(
     max_tokens: int = 6400,
     parallel: bool = False,
     batch: bool = False,
+    batch_size: int = 11,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -501,6 +512,7 @@ def process_single_debate_entry(
         max_tokens: Maximum tokens for model responses.
         parallel: Whether to run in parallel.
         batch: Whether to run in batch mode.
+        batch_size: Size of the batch for parallel processing.
         quality_pruning_func: Optional function for quality pruning.
         quality_pruning_amount: Amount for pruning quality.
         diversity_pruning_func: Optional function for diversity pruning.
@@ -544,6 +556,7 @@ def process_single_debate_entry(
         max_tokens=max_tokens,
         parallel=parallel,
         batch=batch,
+        batch_size=batch_size,
         quality_pruning_func=quality_pruning_func,
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,

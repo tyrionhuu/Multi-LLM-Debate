@@ -23,6 +23,13 @@ async def main() -> None:
         "What are the main differences between Python and JavaScript?",
         "Describe the process of photosynthesis.",
         "What is the significance of the number e in mathematics?",
+        "How does blockchain technology work?",
+        "What are the key features of the latest iPhone model?",
+        "Can you summarize the plot of 'To Kill a Mockingbird'?",
+        "What are the benefits of meditation for mental health?",
+        "Explain the theory of relativity in layman's terms.",
+        "What are the implications of artificial intelligence on society?",
+        "Discuss the impact of climate change on global ecosystems.",
     ]
 
     # Gemini model configuration
@@ -46,6 +53,7 @@ async def main() -> None:
             location=location,
             endpoint_id="openapi",
             timeout=60,  # Increasing timeout for batch processing
+            batch_size=11,  # Adjust batch size as needed
         )
 
         # Display results
