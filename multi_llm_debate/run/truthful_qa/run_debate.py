@@ -27,6 +27,7 @@ def process_truthful_qa_dataset(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
+    batch_size: int = 11,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -46,6 +47,7 @@ def process_truthful_qa_dataset(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         batch: Whether to run in batch mode (default: False)
+        batch_size: Number of entries to process in a single batch (default: 11)
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
@@ -79,6 +81,7 @@ def process_truthful_qa_dataset(
         temperature=temperature,
         max_tokens=max_tokens,
         batch=batch,
+        batch_size=batch_size,
         quality_pruning_func=quality_pruning_func,
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
@@ -95,6 +98,7 @@ def process_truthful_qa_entry(
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
+    batch_size: int = 11,
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
@@ -111,6 +115,7 @@ def process_truthful_qa_entry(
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         batch: Whether to run in batch mode
+        batch_size: Number of entries to process in a single batch
         quality_pruning_func: Optional function for quality pruning
         quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
@@ -149,6 +154,7 @@ def process_truthful_qa_entry(
         temperature=temperature,
         max_tokens=max_tokens,
         batch=batch,
+        batch_size=batch_size,
         quality_pruning_func=quality_pruning_func,
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
