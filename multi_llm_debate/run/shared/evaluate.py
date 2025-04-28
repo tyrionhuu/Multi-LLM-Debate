@@ -7,9 +7,8 @@ import pandas as pd
 
 from .utils import get_latest_round_file
 
-# Set up logger with proper configuration
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
 
 
 class EvaluationResults(NamedTuple):
