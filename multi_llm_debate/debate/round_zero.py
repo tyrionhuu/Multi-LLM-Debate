@@ -68,8 +68,8 @@ def run_debate_round_zero(
         response_time = time.time() - response_start_time
         logger.info(f"All agent responses received in {response_time:.2f} seconds")
     except Exception as e:
-        logger.error(f"Error in round zero: {str(e)}", exc_info=True)
-        logger.error(
+        logger.error(f"Error in round zero: {str(e)}", exc_info=False)
+        logger.debug(
             f"Failed prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}"
         )
         raise

@@ -143,7 +143,6 @@ class AgentsEnsemble:
         func,
         *args,
         retries: int,
-        max_delay: float = 32.0,
         **kwargs,
     ):
         """Generic retry logic with exponential backoff (no jitter).
@@ -152,7 +151,6 @@ class AgentsEnsemble:
             func: Function to call.
             *args: Positional arguments for func.
             retries (int): Number of retries.
-            max_delay (float): Maximum delay.
             **kwargs: Keyword arguments for func.
 
         Returns:
@@ -169,16 +167,16 @@ class AgentsEnsemble:
                 # Check for openai.RateLimitError
                 if RateLimitError is not None and isinstance(e, RateLimitError):
 
-                    delay = min(max_delay, 2.0 * (3**attempt))
+                    delay = 3.0 * (2**attempt)
                     logger.error(
                         f"RateLimitError encountered. Backing off for {delay:.2f}s and stopping further attempts."
                     )
                     time.sleep(delay)
                     raise  # Stop immediately after backoff
-                if attempt >= retries:
+                if attempt >= retries: 
                     logger.error(f"All retries failed for {func.__name__}")
                     raise
-                delay = min(max_delay, 2.0 * (3**attempt))
+                delay = 3.0 * (2**attempt)
                 logger.warning(
                     f"Retry {attempt+1}/{retries} for {func.__name__} after {delay:.2f}s due to error: {e}"
                 )
@@ -358,7 +356,7 @@ class AgentsEnsemble:
                     error_message = (
                         f"Max retries {max_retries} exceeded for batch {i+1}: {str(e)}"
                     )
-                    logger.error(error_message, exc_info=True)
+                    logger.error(error_message, exc_info=False)
                     errors.append({"batch": i + 1, "error": error_message})
 
             elapsed = time.time() - start_time
@@ -476,7 +474,7 @@ class AgentsEnsemble:
                     except Exception as e:
                         logger.error(
                             f"Error processing model {model_name}: {str(e)}",
-                            exc_info=True,
+                            exc_info=False,
                         )
                         for agent in agents:
                             all_responses.append(
