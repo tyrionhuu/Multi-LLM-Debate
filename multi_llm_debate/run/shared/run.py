@@ -356,80 +356,37 @@ def process_debate_dataset(
         with progress.main_bar(
             total=len(dataframe), desc=f"Running {task_name}", unit="debate"
         ) as pbar:
-            if max_workers > 1:
-                logger.info(f"Running in parallel with {max_workers} workers")
-                # Use ThreadPoolExecutor instead of ProcessPoolExecutor to avoid pickling issues
-                with concurrent.futures.ThreadPoolExecutor(
-                    max_workers=max_workers
-                ) as executor:
-                    # Submit all tasks with required parameters
-                    futures = []
-                    for _, entry in dataframe.iterrows():
-                        future = executor.submit(
-                            _process_single_entry_worker,
-                            entry_data=entry,
-                            max_rounds=max_rounds,
-                            base_dir=base_dir,
-                            model_configs=model_configs,
-                            overwrite=overwrite,
-                            temperature=temperature,
-                            max_tokens=max_tokens,
-                            process_entry_fn=process_entry_fn,
-                            batch=batch,
-                            batch_size=batch_size,
-                            quality_pruning_func=quality_pruning_func,
-                            quality_pruning_amount=quality_pruning_amount,
-                            diversity_pruning_func=diversity_pruning_func,
-                            diversity_pruning_amount=diversity_pruning_amount,
-                        )
-                        futures.append(future)
-
-                    # Process results as they complete
-                    for future in concurrent.futures.as_completed(futures):
-                        result = future.result()
-                        if result["success"]:
-                            processed_count += 1
-                        else:
-                            failed_entries.append(
-                                {
-                                    "id": result["entry_id"],
-                                    "error": result["error"],
-                                    "question": result["question"],
-                                }
-                            )
-                        pbar.update(1)
-            else:
-                # Sequential processing (original implementation)
-                for _, entry in dataframe.iterrows():
-                    try:
-                        process_entry_fn(
-                            entry=entry,
-                            max_rounds=max_rounds,
-                            base_dir=base_dir,
-                            model_configs=model_configs,
-                            overwrite=overwrite,
-                            temperature=temperature,
-                            max_tokens=max_tokens,
-                            batch=batch,
-                            batch_size=batch_size,
-                            quality_pruning_func=quality_pruning_func,
-                            quality_pruning_amount=quality_pruning_amount,
-                            diversity_pruning_func=diversity_pruning_func,
-                            diversity_pruning_amount=diversity_pruning_amount,
-                        )
-                        processed_count += 1
-                    except Exception as e:
-                        entry_id = entry.get("id", "unknown")
-                        logger.error(f"Error processing entry {entry_id}: {str(e)}")
-                        failed_entries.append(
-                            {
-                                "id": entry_id,
-                                "error": str(e),
-                                "question": entry.get("question", ""),
-                            }
-                        )
-                    finally:
-                        pbar.update(1)
+            # Always process sequentially
+            for _, entry in dataframe.iterrows():
+                try:
+                    process_entry_fn(
+                        entry=entry,
+                        max_rounds=max_rounds,
+                        base_dir=base_dir,
+                        model_configs=model_configs,
+                        overwrite=overwrite,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        batch=batch,
+                        batch_size=batch_size,
+                        quality_pruning_func=quality_pruning_func,
+                        quality_pruning_amount=quality_pruning_amount,
+                        diversity_pruning_func=diversity_pruning_func,
+                        diversity_pruning_amount=diversity_pruning_amount,
+                    )
+                    processed_count += 1
+                except Exception as e:
+                    entry_id = entry.get("id", "unknown")
+                    logger.error(f"Error processing entry {entry_id}: {str(e)}")
+                    failed_entries.append(
+                        {
+                            "id": entry_id,
+                            "error": str(e),
+                            "question": entry.get("question", ""),
+                        }
+                    )
+                finally:
+                    pbar.update(1)
 
     except Exception as e:
         logger.error(f"Global execution error: {str(e)}", exc_info=True)
