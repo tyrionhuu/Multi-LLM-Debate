@@ -12,7 +12,10 @@ from .prompts import (
     build_comp_analysis_round_zero_prompt,
 )
 from .utils import extract_1_to_5_answer
+
 logger = logging.getLogger(__name__)
+
+
 def process_comp_analysis_dataset(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,
@@ -76,7 +79,8 @@ def process_comp_analysis_dataset(
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
-    
+
+
 def process_single_comp_analysis_entry(
     entry: pd.Series,
     max_rounds: int = 10,
