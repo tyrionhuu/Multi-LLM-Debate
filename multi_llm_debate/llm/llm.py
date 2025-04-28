@@ -11,7 +11,7 @@ import google.auth
 import google.auth.transport.requests
 from openai import OpenAI
 from requests.exceptions import ConnectionError, Timeout
-from openai import RateLimitError  # <-- add this import
+from openai import RateLimitError
 
 from ..utils.config_manager import get_api_key
 from .utils import encode_image
@@ -109,11 +109,8 @@ def call_model(
         # Process images if provided
         processed_images: List[str] = []
         if images is not None:
-            # Convert single items to list
             if not isinstance(images, list):
                 images = [images]
-
-            # Validate and process all images
             for img in images:
                 if isinstance(img, (str, Path)):
                     img_path = Path(img)
@@ -140,37 +137,25 @@ def call_model(
                 raise ValueError("Base URL is required for OpenAI API calls.")
             base_url_to_use = base_url
 
-        # Generate API messages
         messages = generate_api_messages(
             prompt=prompt, images=processed_images if images is not None else None
         )
 
-        # Initialize OpenAI client with timeout and base_url if provided
         client_kwargs = {"api_key": api_key_to_use, "timeout": timeout}
         client_kwargs["base_url"] = base_url_to_use
-
         client = OpenAI(**client_kwargs)
 
-        try:
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                response_format={"type": "json_object"} if json_mode else None,
-                seed=random.randint(0, 2**10 - 1),
-            )
-        except RateLimitError as e:
-            logger.error(f"Rate limit error calling {model_name}: {str(e)}", exc_info=False)
-            raise ValueError(f"Rate limit error with service: {str(e)}")
-        except Exception as e:
-            logger.error(f"Error calling {model_name}: {str(e)}", exc_info=False)
-            raise ValueError(f"Error with service: {str(e)}")
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            response_format={"type": "json_object"} if json_mode else None,
+            seed=random.randint(0, 2**10 - 1),
+        )
         logger.debug(f"API response: {response}")
-        # Extract response content
         response_str = response.choices[0].message.content
 
-        # Process JSON response if needed
         if json_mode:
             try:
                 return json.dumps(json.loads(response_str))
@@ -182,6 +167,9 @@ def call_model(
         logger.info(f"Call to {model_name} completed in {elapsed:.2f}s")
         return response_str
 
+    except RateLimitError as e:
+        logger.error(f"Rate limit error calling {model_name}: {str(e)}", exc_info=False)
+        raise ValueError(f"Rate limit error with service: {str(e)}")
     except Timeout:
         elapsed = time.time() - start_time
         logger.error(f"Timeout error calling {model_name} after {elapsed:.2f}s")
