@@ -19,6 +19,7 @@ def run_debate_round_zero(
     max_tokens: int = 6400,
     parallel: bool = False,
     batch: bool = False,
+    batch_size: int = 11,
 ) -> List[dict]:
     """Run the initial round (round zero) of a debate.
 
@@ -35,7 +36,8 @@ def run_debate_round_zero(
         max_tokens: Maximum number of tokens in the response.
         parallel: Whether to run in parallel.
         batch: Whether to run in batch mode.
-
+        batch_size: Size of the batch for parallel processing.
+        
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
 
@@ -64,6 +66,7 @@ def run_debate_round_zero(
             max_tokens=max_tokens,
             parallel=parallel,
             batch=batch,
+            batch_size=batch_size,
         )
         response_time = time.time() - response_start_time
         logger.info(f"All agent responses received in {response_time:.2f} seconds")
