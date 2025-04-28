@@ -1,7 +1,7 @@
 import json
 import re
 from pathlib import Path
-from typing import Literal, Union, List
+from typing import List, Literal, Union
 
 import pandas as pd
 
@@ -14,9 +14,10 @@ DATA_PATHS = [
     "datasets/COMP-Analysis/turn_level_texts/persona-usr_text.txt",
 ]
 
+
 def load_comp_analysis_dataset(
     data_paths: Union[str, Path, List[Union[str, Path]]] = DATA_PATHS,
-    template: str = "{}\t{}"
+    template: str = "{}\t{}",
 ) -> pd.DataFrame:
     """
     Load multiple text files into a DataFrame, processing each line by extracting
@@ -41,7 +42,7 @@ def load_comp_analysis_dataset(
         with path.open("r", encoding="utf-8") as file:
             for line in file:
                 if line.strip():
-                    fields = line.strip().split('\t')
+                    fields = line.strip().split("\t")
                     if len(fields) < 2:
                         continue  # skip lines that don't have at least two fields
                     formatted = template.format(fields[-2], fields[-1])
@@ -49,9 +50,10 @@ def load_comp_analysis_dataset(
 
     df = pd.DataFrame(data, columns=["input_response"])
     # Optionally, split into 'input' and 'response' columns if needed
-    df[["input", "response"]] = df["input_response"].str.split('\t', n=1, expand=True)
+    df[["input", "response"]] = df["input_response"].str.split("\t", n=1, expand=True)
     df = df.drop(columns=["input_response"])
     return df
+
 
 if __name__ == "__main__":
     data = load_comp_analysis_dataset()
