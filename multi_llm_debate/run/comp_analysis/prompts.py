@@ -93,6 +93,8 @@ def build_comp_analysis_round_zero_prompt(
 
     prompt += "Your answer:" + NEW_LINE
     return prompt
+
+
 def build_comp_analysis_round_n_prompt(
     input: str,
     response: str,
@@ -113,12 +115,12 @@ def build_comp_analysis_round_n_prompt(
         str: The formatted prompt for judge evaluation
     """
     prompt = "As an assistant, your task is to serve as a response judge.\n" + NEW_LINE
-    
+
     prompt += (
         "Several other judges have provided evaluations of an AI assistant's response. "
         "Review their assessments and provide your own independent evaluation.\n"
     ) + NEW_LINE
-    
+
     prompt += (
         "You will be given an input and a response from an AI assistant.\n"
         "Your task is to rate the response based on the input.\n"
@@ -149,21 +151,22 @@ def build_comp_analysis_round_n_prompt(
             + NEW_LINE
         )
     prompt += DIVIDER + NEW_LINE
-    
+
     prompt += "Previous judge responses:\n"
     for i, judge_response in enumerate(responses, 1):
         prompt += f"Judge {i} Response:" + NEW_LINE
-        prompt += judge_response + NEW_LINE 
-        
+        prompt += judge_response + NEW_LINE
+
     prompt += DIVIDER + NEW_LINE
     prompt += "[Input]" + NEW_LINE
-    
+
     prompt += input + NEW_LINE + DIVIDER + NEW_LINE
     prompt += "[Response]" + NEW_LINE
-    
+
     prompt += response + NEW_LINE + DIVIDER + NEW_LINE
     prompt += "Your answer:" + NEW_LINE
     return prompt
+
 
 if __name__ == "__main__":
     # Example usage
@@ -178,6 +181,6 @@ if __name__ == "__main__":
         response=response_text,
         responses=previous_responses,
         use_cot=True,
-        json_mode=True
+        json_mode=True,
     )
     print(prompt)
