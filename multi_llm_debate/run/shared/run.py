@@ -308,7 +308,7 @@ def process_debate_dataset(
                     processed_count += 1
                 except Exception as e:
                     entry_id = entry.get("id", "unknown")
-                    logger.error(f"Error processing entry {entry_id}: {str(e)}")
+                    logger.error(f"Error processing entry {entry_id}: {str(e)}", exc_info=True)
                     failed_entries.append(
                         {
                             "id": entry_id,
