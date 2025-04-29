@@ -2,7 +2,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal, Union
 
 import pandas as pd
 
@@ -24,6 +24,8 @@ LLM_BAR_DATASET_FILES: list[str] = [
     "Processed/MT-Bench/dataset.json",
 ]
 DATASET_PATH = "datasets/LLMBar"
+
+
 def load_llm_bar_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
 ) -> pd.DataFrame:
