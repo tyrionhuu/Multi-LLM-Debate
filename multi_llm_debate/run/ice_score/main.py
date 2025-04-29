@@ -10,8 +10,8 @@ if __name__ == "__main__":
     from .run_debate import process_ice_score_dataset
     from .utils import load_ice_score_dataset
 
-    logger = setup_logging(__name__)
-    logger.setLevel(logging.INFO)
+    logger = setup_logging(__name__, log_level=logging.INFO)
+
 
     args = Parser(description="Run ICE-Score evaluation").parse_args()
     if args.task_name is None:
