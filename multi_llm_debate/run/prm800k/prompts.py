@@ -5,7 +5,7 @@ DIVIDER = "#" * 80
 JSON_FORMAT = """
 {
     "reasoning": "your reasoning based on the passage",
-    "Final Answer": "[x, y, ...]"
+    "Final Answer": "[1, -1, ...]"
 }
 """
 
@@ -17,13 +17,13 @@ JSON_FORMAT_COT = """
         "step_3": "third step of your reasoning",
         "...": "continue with as many steps as needed"
     },
-    "Final Answer": "[x, y, ...]"
+    "Final Answer": "[1, -1, ...]"
 }
 """
 
 NON_JSON_FORMAT = """
 Reasoning: your reasoning based on the passage
-Final Answer: [x, y, ...]
+Final Answer: [1, -1, ...]
 """
 
 NON_JSON_FORMAT_COT = """
@@ -32,7 +32,7 @@ Step 1: first step of your reasoning
 Step 2: second step of your reasoning
 Step 3: third step of your reasoning
 ...
-Final Answer: [x, y, ...]
+Final Answer: [1, -1, ...]
 """
 
 
@@ -62,7 +62,7 @@ def build_prm800k_round_zero_prompt(
         "If you think a step is correct, give it a 1; if you think a step is wrong, give it a -1.\n"
         "No other values are allowed.\n"
         "You should output your final answer in the format: 'Final Answer: [x,y,...]'.\n"
-        "And x,y,... should be integers, where each value is either 1 or -1, corresponding to the steps provided.\n"
+        "And x,y,... must be either 1 or -1, corresponding to the steps provided.\n"
     ) + NEW_LINE
 
     if json_mode:
@@ -70,8 +70,8 @@ def build_prm800k_round_zero_prompt(
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
             "Note that the 'Final Answer' MUST be placed at the end of your response, "
-            + "and the value [x,y,...] must be a list of integers, where each value is either 1 or -1.\n"
-            + "Do not include any other text after 'Final Answer: [x, y, ...]'."
+            + "and the value in the list must be either 1 or -1.\n"
+            + "Do not include any other text after 'Final Answer: [...]'."
             + NEW_LINE
         )
     else:
@@ -80,8 +80,8 @@ def build_prm800k_round_zero_prompt(
         prompt += (
             NEW_LINE
             + "Note that the 'Final Answer' MUST be placed at the end of your response, "
-            + "and the value [x,y,...] must be a list of integers, where each value is either 1 or -1.\n"
-            + "Do not include any other text after 'Final Answer: [x, y, ...]'."
+            + "and the value in the list must be either 1 or -1.\n"
+            + "Do not include any other text after 'Final Answer: [...]'."
             + NEW_LINE
         )
     prompt += DIVIDER + NEW_LINE
@@ -130,7 +130,7 @@ def build_prm800k_round_n_prompt(
         "If you think a step is correct, give it a 1; if you think a step is wrong, give it a -1.\n"
         "No other values are allowed.\n"
         "You should output your final answer in the format: 'Final Answer: [x,y,...]'.\n"
-        "And x,y,... should be integers, where each value is either 1 or -1, corresponding to the steps provided.\n"
+        "And x,y,... MUST be either 1 or -1, corresponding to the steps provided.\n"
     ) + NEW_LINE
 
     if json_mode:
@@ -138,8 +138,8 @@ def build_prm800k_round_n_prompt(
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
         prompt += (
             "Note that the 'Final Answer' MUST be placed at the end of your response, "
-            + "and the value [x,y,...] must be a list of integers, where each value is either 1 or -1.\n"
-            + "Do not include any other text after 'Final Answer: [x, y, ...]'."
+            + "and the value in the list MUST be either 1 or -1.\n"
+            + "Do not include any other text after 'Final Answer: [...]'."
             + NEW_LINE
         )
     else:
@@ -148,8 +148,8 @@ def build_prm800k_round_n_prompt(
         prompt += (
             NEW_LINE
             + "Note that the 'Final Answer' MUST be placed at the end of your response, "
-            + "and the value [x,y,...] must be a list of integers, where each value is either 1 or -1.\n"
-            + "Do not include any other text after 'Final Answer: [x, y, ...]'."
+            + "and the value in the list MUST be either 1 or -1.\n"
+            + "Do not include any other text after 'Final Answer: [...]'."
             + NEW_LINE
         )
     prompt += DIVIDER + NEW_LINE
