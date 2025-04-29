@@ -125,3 +125,6 @@ def compare_hallu_dial_response(
     if isinstance(answer, int):
         answer = str(answer)
     return response == answer
+if __name__ == "__main__":
+    df = load_hallu_dial_dataset(sample_size=100)
+    print(df.head())
