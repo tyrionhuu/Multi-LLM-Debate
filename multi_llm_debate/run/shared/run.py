@@ -224,7 +224,6 @@ def process_debate_dataset(
     max_rounds: int = 10,
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
-    max_workers: int = 4,
     task_name: str = "debate task",
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -245,7 +244,6 @@ def process_debate_dataset(
         max_rounds: Maximum number of debate rounds
         model_configs: Optional list of model configurations
         overwrite: Whether to overwrite existing debate results
-        max_workers: Maximum number of concurrent workers
         task_name: Name of the task for logging purposes
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
