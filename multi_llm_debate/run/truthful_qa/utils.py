@@ -10,12 +10,12 @@ from multi_llm_debate.utils.download_dataset import load_save_huggingface_datase
 
 logger = logging.getLogger(__name__)
 DATASET_PATH = "datasets/TruthfulQA"
-
+RANDOM_STATE = 42
+random.seed(RANDOM_STATE)
 
 def load_truthful_qa_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
     dataset_name: str = "domenicrosati/TruthfulQA",
-    random_state: int = 42,
 ) -> pd.DataFrame:
     """Load and preprocess the TruthfulQA dataset.
 
@@ -23,7 +23,6 @@ def load_truthful_qa_dataset(
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
         dataset_name: Name of the dataset to load from Hugging Face.
-        random_state: Random seed for shuffling and answer assignment.
 
     Returns:
         pd.DataFrame: Processed DataFrame with all required columns and
@@ -43,7 +42,8 @@ def load_truthful_qa_dataset(
         raise ValueError("Input DataFrame is None. Please load the dataset first.")
 
     df = df.copy()
-    random.seed(random_state)
+    # Shuffle the DataFrame by RANDOM_STATE
+    df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
 
     # Create ID column if missing
     if "id" not in df.columns:
