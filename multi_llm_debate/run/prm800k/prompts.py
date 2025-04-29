@@ -78,7 +78,8 @@ def build_prm800k_round_zero_prompt(
         prompt += "You MUST output your response in the following format:\n"
         prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
         prompt += (
-            "Note that the 'Final Answer' MUST be placed at the end of your response, "
+            NEW_LINE
+            + "Note that the 'Final Answer' MUST be placed at the end of your response, "
             + "and the value [x,y,...] must be a list of integers, where each value is either 1 or -1.\n"
             + "Do not include any other text after 'Final Answer: [x, y, ...]'."
             + NEW_LINE
@@ -94,3 +95,14 @@ def build_prm800k_round_zero_prompt(
 
     prompt += "Your answer:\n"
     return prompt
+if __name__ == "__main__":
+    # Example usage
+    question = "What is the capital of France?"
+    steps = [
+        "Identify the country in question.",
+        "Recall the capital city of that country.",
+        "Confirm the answer based on knowledge."
+    ]
+    
+    prompt = build_prm800k_round_zero_prompt(question, steps)
+    print(prompt)  # This will print the formatted prompt for PRM800K evaluation.
