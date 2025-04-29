@@ -75,7 +75,6 @@ def main(
                     dataframe=dataframe,
                     run_debate_fn=run_debate_fn,
                     evaluate_fn=evaluate_fn,
-                    process_df_fn=process_df_fn,
                     task_name=task_name,
                     report_path=Path(f"data/{task_name}"),
                     model_configs=model_configs,
