@@ -8,14 +8,16 @@ import pandas as pd
 
 def load_prm800k_dataset(
     json_path: Union[str, Path] = "datasets/PRM800K/data/phase2_test.jsonl",
+    random_state: Optional[int] = None,
 ) -> pd.DataFrame:
-    """Load the PRM800K dataset from a JSONL file.
+    """Load and preprocess the PRM800K dataset from a JSONL file.
 
     Args:
         json_path: Path to the JSONL file.
+        random_state: Random seed for shuffling.
 
     Returns:
-        pd.DataFrame: DataFrame containing the PRM800K data.
+        pd.DataFrame: DataFrame with columns ['question', 'answer', 'steps'].
     """
     json_path = Path(json_path)
 
@@ -26,27 +28,10 @@ def load_prm800k_dataset(
         with json_path.open("r", encoding="utf-8") as file:
             data = [json.loads(line) for line in file]
         df = pd.DataFrame(data)
-        return df
     except ValueError as e:
         raise ValueError(f"Error reading JSONL file {json_path}: {e}")
     except Exception as e:
         raise Exception(f"An error occurred while processing {json_path}: {e}")
-
-
-def preprocess_prm800k_dataset(
-    dataframe: pd.DataFrame,
-    random_state: Optional[int] = None,
-) -> pd.DataFrame:
-    """Preprocess the PRM800K DataFrame to extract 'question', 'answer', and 'steps'.
-
-    Args:
-        dataframe: Input DataFrame from PRM800K dataset.
-        random_state: Random seed for shuffling. If None, the dataset will be
-            randomized differently each time.
-
-    Returns:
-        pd.DataFrame: DataFrame with columns ['question', 'answer', 'steps'].
-    """
 
     def extract_answer_and_steps(label: Dict) -> Tuple[List, List]:
         """Extracts the answer list and used_texts from the label dict."""
@@ -73,7 +58,7 @@ def preprocess_prm800k_dataset(
         return answers, used_texts
 
     processed = []
-    for _, row in dataframe.iterrows():
+    for _, row in df.iterrows():
         question = row["question"]["problem"]
         answer, steps = extract_answer_and_steps(row["label"])
         processed.append({"question": question, "answer": answer, "steps": steps})
@@ -136,6 +121,5 @@ def compare_prm800k_response(
 
 if __name__ == "__main__":
     # Example usage
-    df = load_prm800k_dataset()
-    processed_df = preprocess_prm800k_dataset(df, random_state=42)
-    print(processed_df.info())
+    df = load_prm800k_dataset(random_state=42)
+    print(df.info())
