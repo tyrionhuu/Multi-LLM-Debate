@@ -23,7 +23,6 @@ def process_judge_bench_dataset(
     base_dir: Path = Path("data") / "judge_bench",
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
-    max_workers: Optional[int] = 4,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
@@ -42,7 +41,6 @@ def process_judge_bench_dataset(
         model_configs: Optional list of model configurations. If None,
                     default configs will be used.
         overwrite: Whether to overwrite existing debate results (default: False)
-        max_workers: Maximum number of concurrent workers (default: 4)
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
         batch: Whether to run in batch mode (default: False)
@@ -67,7 +65,6 @@ def process_judge_bench_dataset(
         max_rounds=max_rounds,
         model_configs=model_configs,
         overwrite=overwrite,
-        max_workers=max_workers,
         task_name="JudgeBench task",
         temperature=temperature,
         max_tokens=max_tokens,
