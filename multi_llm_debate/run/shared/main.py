@@ -16,7 +16,6 @@ def main(
     evaluate_fn: Callable[..., Any],
     process_df_fn: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None,
     task_name: str = "debate",
-    sample_size: Optional[int] = None,
     config: Optional[Union[Path, List[Dict]]] = None,
     config_json: Optional[str] = None,
     random_seed: Optional[int] = 42,
@@ -39,7 +38,6 @@ def main(
         process_df_fn: Optional function to preprocess DataFrame. If None,
             the dataframe will be used without preprocessing.
         task_name: Name of the debate task
-        sample_size: Optional number of samples to process
         config: Path to JSON config file or list of model configurations
         config_json: JSON string containing model configurations
         random_seed: Random seed for sampling
@@ -89,7 +87,6 @@ def main(
                     evaluate_fn=evaluate_fn,
                     process_df_fn=process_df_fn,
                     task_name=task_name,
-                    sample_size=sample_size,
                     report_path=Path(f"data/{task_name}"),
                     model_configs=model_configs,
                     random_seed=random_seed,

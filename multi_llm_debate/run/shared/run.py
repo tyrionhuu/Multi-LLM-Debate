@@ -22,9 +22,7 @@ def execute_debate_workflow(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable,
     evaluate_fn: Callable,
-    process_df_fn: Optional[Callable] = None,
     task_name: str = "debate",
-    sample_size: Optional[int] = None,
     report_path: Path = Path("data"),
     model_configs: List[ModelConfig] = [
         {
@@ -32,7 +30,6 @@ def execute_debate_workflow(
             "quantity": 6,
         }
     ],
-    random_seed: Optional[int] = 42,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
@@ -50,10 +47,8 @@ def execute_debate_workflow(
         evaluate_fn: Function to evaluate results
         process_df_fn: Optional function to preprocess the dataframe
         task_name: Name of the task for logging
-        sample_size: Optional number of samples to use
         report_path: Path to save results
         model_configs: List of model configurations
-        random_seed: Random seed for sampling
         temperature: Temperature for model responses
         max_tokens: Maximum tokens for model responses
         batch: Whether to run in batch mode
@@ -75,29 +70,11 @@ def execute_debate_workflow(
     ).replace("/", "_")
     logger.info(f"Starting {task_name} task with {model_config_str}")
 
-    # Process the DataFrame if needed
-    if process_df_fn:
-        logger.info("Preprocessing input dataframe")
-        processed_dataframe = process_df_fn(dataframe)
-    else:
-        processed_dataframe = dataframe
-
-    if sample_size and len(processed_dataframe) > sample_size:
-        logger.info(
-            f"Sampling {sample_size} entries from dataset (random seed: {random_seed})"
-        )
-        processed_dataframe = processed_dataframe.head(sample_size).reset_index(
-            drop=True
-        )
-        if random_seed is not None:
-            processed_dataframe = processed_dataframe.sample(
-                n=sample_size, random_state=random_seed
-            ).reset_index(drop=True)
-
     # Run the debate task
     logger.info(f"Executing debate function for {task_name}")
+    
     execution_report = run_debate_fn(
-        dataframe=processed_dataframe,
+        dataframe=dataframe,
         base_dir=output_path,
         model_configs=model_configs,
         temperature=temperature,
@@ -126,7 +103,7 @@ def execute_debate_workflow(
     # Evaluate using provided evaluation function
     logger.info("Running evaluation")
     try:
-        results: EvaluationResults = evaluate_fn(output_path, processed_dataframe)
+        results: EvaluationResults = evaluate_fn(output_path, dataframe)
 
         # Calculate running time
         running_time = time.time() - start_time

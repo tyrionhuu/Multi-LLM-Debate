@@ -127,5 +127,4 @@ def compare_prm800k_response(
 if __name__ == "__main__":
     # Example usage
     df = load_prm800k_dataset()
-    print(df.info())
-    print(df.head())
+    print(df.iloc[7])
