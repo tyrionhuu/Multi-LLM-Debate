@@ -32,7 +32,7 @@ if __name__ == "__main__":
         df.to_csv(df_path, index=False)
     else:
         df = pd.read_csv(df_path)
-    
+
     shared_main(
         dataframe=df,
         run_debate_fn=process_truthful_qa_dataset,

@@ -72,7 +72,9 @@ def load_truthful_qa_dataset(
     df["answer"] = random.choices(["A", "B", "C"], k=len(df))
 
     # Map answers to options
-    def _map_options(row: pd.Series) -> tuple[Optional[str], Optional[str], Optional[str]]:
+    def _map_options(
+        row: pd.Series,
+    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
         opts = {"A": None, "B": None, "C": None}
         opts[row["answer"]] = row["correct_ans"]
         others = [o for o in opts if o != row["answer"]]
