@@ -4,8 +4,8 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from ...debate.agents_ensemble import AgentsEnsemble
 from ...debate.debate import debate
@@ -402,6 +402,7 @@ def process_single_debate_entry(
         ValueError: If required columns are missing.
         RuntimeError: If debate execution fails.
     """
+
     def is_missing(val):
         # Check for missing scalar or empty/fully-NA array-like
         if isinstance(val, (list, np.ndarray, pd.Series)):
@@ -410,7 +411,9 @@ def process_single_debate_entry(
             return all(pd.isna(x) for x in val)
         return pd.isna(val)
 
-    missing_cols = [c for c in required_columns if c not in entry or is_missing(entry[c])]
+    missing_cols = [
+        c for c in required_columns if c not in entry or is_missing(entry[c])
+    ]
     if missing_cols:
         raise ValueError(f"Missing required columns: {missing_cols}")
 
