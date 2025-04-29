@@ -24,7 +24,6 @@ if __name__ == "__main__":
         run_debate_fn=process_prm800k_dataset,
         evaluate_fn=evaluate_all_prm800k,
         task_name=task_name,
-        sample_size=args.sample_size,
         config_json=args.config_json,
         temperature=args.temperature,
         max_tokens=args.max_tokens,
