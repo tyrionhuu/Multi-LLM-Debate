@@ -58,10 +58,15 @@ def load_prm800k_dataset(
         return answers, used_texts
 
     processed = []
-    for _, row in df.iterrows():
+    for idx, (_, row) in enumerate(df.iterrows()):
         question = row["question"]["problem"]
         answer, steps = extract_answer_and_steps(row["label"])
-        processed.append({"question": question, "answer": answer, "steps": steps})
+        processed.append({
+            "id": idx,
+            "question": question,
+            "answer": answer,
+            "steps": steps
+        })
 
     df = pd.DataFrame(processed)
 
