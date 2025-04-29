@@ -1,9 +1,6 @@
 if __name__ == "__main__":
     import logging
-    import os
-    from pathlib import Path
 
-    import pandas as pd
 
     from multi_llm_debate.utils.logging_config import setup_logging
 
@@ -17,7 +14,6 @@ if __name__ == "__main__":
 
     args = Parser(description="Run Truthful QA evaluation").parse_args()
     logger.info("Parsed arguments: %s", args)
-    df_path = Path("output/truthful_qa/processed_data.csv")
 
     if args.task_name is None:
         task_name = "truthful_qa"
@@ -26,12 +22,7 @@ if __name__ == "__main__":
 
     print(f"Running evaluation for task: {task_name}")
 
-    if not df_path.exists():
-        df = load_truthful_qa_dataset(dataset_path="datasets/TruthfulQA")
-        os.makedirs("output/truthful_qa", exist_ok=True)
-        df.to_csv(df_path, index=False)
-    else:
-        df = pd.read_csv(df_path)
+    df = load_truthful_qa_dataset()
 
     shared_main(
         dataframe=df,
