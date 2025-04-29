@@ -1,6 +1,5 @@
 if __name__ == "__main__":
     import logging
-    from pathlib import Path
 
     from multi_llm_debate.utils.logging_config import setup_logging
 
@@ -19,15 +18,13 @@ if __name__ == "__main__":
         task_name = args.task_name
     print(f"Running evaluation for task: {task_name}")
     # Load the dataset
-    dataset_path = Path("datasets/JudgeBench")
-    dataframe = load_judge_bench_dataset()
+    dataframe = load_judge_bench_dataset(sample_size=args.sample_size)
 
     shared_main(
         dataframe=dataframe,
         run_debate_fn=process_judge_bench_dataset,
         evaluate_fn=evaluate_all_judge_bench,
         task_name=task_name,
-        sample_size=args.sample_size,
         config_json=args.config_json,
         temperature=args.temperature,
         max_tokens=args.max_tokens,
