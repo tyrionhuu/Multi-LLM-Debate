@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     print(f"Running evaluation for task: {task_name}")
 
-    df = load_truthful_qa_dataset()
+    df = load_truthful_qa_dataset(sample_size=args.sample_size)
 
     shared_main(
         dataframe=df,
