@@ -6,6 +6,7 @@ import pandas as pd
 from ..shared.evaluate import EvaluationResults, evaluate_all
 from .utils import compare_prm800k_response, extract_int_list
 
+
 def evaluate_prm800k_responses(
     responses: List[Dict],
     answer: List[int],
@@ -26,6 +27,8 @@ def evaluate_prm800k_responses(
         )
         and len(responses) > 0
     )
+
+
 def evaluate_all_prm800k(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
