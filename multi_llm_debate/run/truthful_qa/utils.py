@@ -53,7 +53,7 @@ def load_truthful_qa_dataset(
             cache_dir=str(dataset_path),
             split="train",
         )
-        if dataset is None: # pragma: no cover
+        if dataset is None:  # pragma: no cover
             raise ValueError(
                 f"Failed to load the TruthfulQA dataset from Hugging Face: {DATASET_NAME}"
             )
@@ -65,7 +65,7 @@ def load_truthful_qa_dataset(
 
     # Add an ID column
     df["id"] = range(len(df))
-    
+
     # If the DataFrame has a column of dictionaries, expand it
     first_col = df.columns[0]
     if df[first_col].apply(lambda x: isinstance(x, dict)).all():
