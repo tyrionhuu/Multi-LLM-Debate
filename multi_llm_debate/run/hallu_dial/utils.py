@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import Literal, Union
 
 import pandas as pd
+
 JSON_PATH = "datasets/HalluDial/all_train.json"
+
 
 def load_hallu_dial_dataset(json_path: Union[str, Path] = JSON_PATH) -> pd.DataFrame:
     """
