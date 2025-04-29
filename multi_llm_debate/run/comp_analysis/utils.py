@@ -141,5 +141,5 @@ def compare_comp_analysis_response(
 
 
 if __name__ == "__main__":
-    df = load_comp_analysis_dataset()
-    print(df.info())
+    df = load_comp_analysis_dataset(sample_size=10)
+    print(df.head())

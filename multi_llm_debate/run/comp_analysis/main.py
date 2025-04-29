@@ -20,14 +20,13 @@ if __name__ == "__main__":
 
     logger.info(f"Running evaluation for task: {task_name}")
     # Load the dataset
-    dataframe = load_comp_analysis_dataset()
+    dataframe = load_comp_analysis_dataset(sample_size=args.sample_size)
 
     shared_main(
         dataframe=dataframe,
         run_debate_fn=process_comp_analysis_dataset,
         evaluate_fn=evaluate_all_comp_analysis,
         task_name=task_name,
-        sample_size=args.sample_size,
         config_json=args.config_json,
         temperature=args.temperature,
         max_tokens=args.max_tokens,
