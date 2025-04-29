@@ -103,3 +103,10 @@ def compare_big_bench_response(
     if isinstance(answer, int):
         answer = str(answer)
     return response == answer
+
+
+if __name__ == "__main__":
+    # Example usage
+    df = load_big_bench_dataset(sample_size=100)
+    print(df.head())
+    print(df.info())
