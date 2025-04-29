@@ -171,8 +171,9 @@ def compare_truthful_qa_response(
 
 def main() -> None:
     """Main function for loading and processing the TruthfulQA dataset."""
-    df = load_truthful_qa_dataset()
+    df = load_truthful_qa_dataset(sample_size=800)
     print(df.info())
+    print(df.head())
 
 
 if __name__ == "__main__":
