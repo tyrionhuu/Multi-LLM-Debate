@@ -160,7 +160,7 @@ def compare_truthful_qa_response(
 def main() -> None:
     """Main function for loading and processing the TruthfulQA dataset."""
     df = load_truthful_qa_dataset()
-    print(df.head())
+    print(df.info())
 
 
 if __name__ == "__main__":
