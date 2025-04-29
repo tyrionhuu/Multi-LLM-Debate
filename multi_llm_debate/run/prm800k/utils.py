@@ -1,7 +1,8 @@
 import json
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
-import re
+
 import pandas as pd
 
 
@@ -84,6 +85,7 @@ def preprocess_prm800k_dataset(
 
     return df
 
+
 def extract_int_list(
     response: str,
 ) -> List[int]:
@@ -104,13 +106,12 @@ def extract_int_list(
         numbers = [int(x.strip()) for x in match.group(1).split(",")]
         if all(x in (1, -1) for x in numbers):
             return numbers
-        raise ValueError(
-            f"Answer list must only contain 1 or -1, got: {numbers}"
-        )
+        raise ValueError(f"Answer list must only contain 1 or -1, got: {numbers}")
     raise ValueError(
         "Invalid response format. Expected 'Final Answer: [x,y,...]' "
         "where x,y,... are 1 or -1, got: {}".format(response)
     )
+
 
 if __name__ == "__main__":
     # Example usage
