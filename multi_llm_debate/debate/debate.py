@@ -373,7 +373,9 @@ def check_convergence(
         ]
         is_converged = len(set(hashable_answers)) == 1
         if is_converged:
-            logger.info(f"Debate has converged on answer: {list(set(hashable_answers))[0]}")
+            logger.info(
+                f"Debate has converged on answer: {list(set(hashable_answers))[0]}"
+            )
         return is_converged
     except Exception as e:
         logger.error(f"Error checking convergence: {str(e)}", exc_info=False)
