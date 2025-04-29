@@ -33,7 +33,12 @@ def load_truthful_qa_dataset(
     df = None
     dataset_path = Path(dataset_path)
     try:
-        df = load_save_huggingface_dataset_df(dataset_name, dataset_path)
+        df = load_save_huggingface_dataset_df(
+            dataset_name=dataset_name,
+            dataset_path=dataset_path,
+            force_download=False,
+            split="train",
+        )
         logger.info(
             f"Loaded TruthfulQA dataset from Hugging Face. "
             f"Type: {type(df)}, Shape: {getattr(df, 'shape', None)}"

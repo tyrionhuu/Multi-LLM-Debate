@@ -96,6 +96,7 @@ def load_save_huggingface_dataset(
                     logger.info(
                         f"Successfully downloaded and saved dataset to {dataset_path}"
                     )
+                    raise
         except Exception as e:
             logger.error(f"Error handling dataset {dataset_name}: {str(e)}")
             raise
@@ -151,7 +152,6 @@ def load_save_huggingface_dataset_df(
     except Exception as e:
         logger.error(f"Error loading dataset: {str(e)}")
         raise
-    return None
 
 
 def load_save_dataset_df(
