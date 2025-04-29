@@ -11,6 +11,7 @@ from multi_llm_debate.utils.download_dataset import load_save_huggingface_datase
 logger = logging.getLogger(__name__)
 DATASET_PATH = "datasets/TruthfulQA"
 
+
 def load_truthful_qa_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
     dataset_name: str = "domenicrosati/TruthfulQA",
