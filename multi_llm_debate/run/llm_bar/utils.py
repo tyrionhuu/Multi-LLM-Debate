@@ -76,7 +76,7 @@ def load_llm_bar_dataset(
                 f"Sample size {sample_size} is larger than dataset size {len(df)}. Using full dataset."
             )
             sample_size = len(df)
-            
+
         df = df.head(sample_size)
 
     logger.info(f"Loaded LLMBar dataset with {len(df)} samples from {dataset_path}.")

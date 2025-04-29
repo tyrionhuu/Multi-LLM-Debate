@@ -87,7 +87,7 @@ def load_prm800k_dataset(
             )
             sample_size = len(df)
         df = df.head(sample_size)
-        
+
     logger.info(f"Loaded PRM800K dataset with {len(df)} samples.")
     return df
 

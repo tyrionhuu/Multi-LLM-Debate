@@ -1,17 +1,19 @@
+import logging
 import os
+import random
 import re
-from typing import Literal
+from typing import Literal, Optional
 
 import pandas as pd
-import logging
+
 from datasets import load_dataset, load_from_disk
-import random
-from typing import Optional
+
 DATASET_PATH = "datasets/JudgeBench"
 
 RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
 logger = logging.getLogger(__name__)
+
 
 def load_judge_bench_dataset(
     dataset_path: str = DATASET_PATH,
@@ -23,7 +25,7 @@ def load_judge_bench_dataset(
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
         sample_size: Optional; if provided, the DataFrame will be sampled to this size.
-        
+
     Returns:
         pd.DataFrame: DataFrame containing the JudgeBench data with randomized order.
     """
@@ -84,14 +86,14 @@ def load_judge_bench_dataset(
     # Drop unnecessary columns
     df = df.drop(columns=["original_id", "source"], errors="ignore")
     df["id"] = range(len(df))
-    
+
     if sample_size is not None:
         if sample_size > len(df):
             logger.warning(
                 f"Sample size {sample_size} is larger than dataset size {len(df)}. Using full dataset."
             )
             sample_size = len(df)
-            
+
         df = df.head(sample_size)
     return df
 
