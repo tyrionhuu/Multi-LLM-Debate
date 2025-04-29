@@ -1,15 +1,18 @@
 import json
-import re
-from pathlib import Path
-from typing import Literal, Union, Optional
 import logging
 import random
+import re
+from pathlib import Path
+from typing import Literal, Optional, Union
+
 import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 JSON_PATH = "datasets/HalluDial/all_train.json"
 RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
+
 
 def load_hallu_dial_dataset(
     json_path: Union[str, Path] = JSON_PATH,
@@ -22,7 +25,7 @@ def load_hallu_dial_dataset(
     Args:
         json_path (Union[str, Path]): Path to the JSON file.
         sample_size (Optional[int]): If provided, the DataFrame will be sampled to this size.
-        
+
     Returns:
         pd.DataFrame: DataFrame containing the data from the JSON file,
             with columns 'id', 'knowledge', 'dialogue', 'response',
