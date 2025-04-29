@@ -2,10 +2,10 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Literal, Union
+from typing import Literal, Union, Optional
 
 import pandas as pd
-
+import random
 logger = logging.getLogger(__name__)
 
 LLM_BAR_DATASET_FILES: list[str] = [
@@ -25,16 +25,19 @@ LLM_BAR_DATASET_FILES: list[str] = [
 ]
 DATASET_PATH = "datasets/LLMBar"
 
-
+RANDOM_STATE = 42
+random.seed(RANDOM_STATE)
 def load_llm_bar_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
+    sample_size: Optional[int] = None,
 ) -> pd.DataFrame:
     """Load and preprocess the LLMBar dataset.
 
     Args:
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
-
+        sample_size: Optional; if provided, the DataFrame will be sampled to this size.
+        
     Returns:
         pd.DataFrame: Preprocessed DataFrame with required columns.
     """
@@ -54,6 +57,7 @@ def load_llm_bar_dataset(
 
     # Preprocess: add id column and rename columns
     df = df.copy()
+    df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
     df["id"] = range(len(df))
     column_mapping = {
         "input": "question",
@@ -63,7 +67,18 @@ def load_llm_bar_dataset(
     }
     df = df.rename(columns=column_mapping)
 
-    return df.reset_index(drop=True)
+    if sample_size is not None:
+        if sample_size > len(df):
+            logger.warning(
+                f"Sample size {sample_size} is larger than dataset size {len(df)}. Using full dataset."
+            )
+            sample_size = len(df)
+            df = df.head(sample_size)
+    
+    logger.info(
+        f"Loaded LLMBar dataset with {len(df)} samples from {dataset_path}."
+    )
+    return df
 
 
 def extract_1_2_answer(
