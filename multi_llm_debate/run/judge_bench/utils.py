@@ -3,21 +3,27 @@ import re
 from typing import Literal
 
 import pandas as pd
-
+import logging
 from datasets import load_dataset, load_from_disk
-
+import random
+from typing import Optional
 DATASET_PATH = "datasets/JudgeBench"
 
+RANDOM_STATE = 42
+random.seed(RANDOM_STATE)
+logger = logging.getLogger(__name__)
 
 def load_judge_bench_dataset(
     dataset_path: str = DATASET_PATH,
+    sample_size: Optional[int] = None,
 ) -> pd.DataFrame:
     """Load the JudgeBench dataset.
 
     Args:
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
-
+        sample_size: Optional; if provided, the DataFrame will be sampled to this size.
+        
     Returns:
         pd.DataFrame: DataFrame containing the JudgeBench data with randomized order.
     """
@@ -77,7 +83,16 @@ def load_judge_bench_dataset(
     df = df.rename(columns={"pair_id": "id", "label": "answer"})
     # Drop unnecessary columns
     df = df.drop(columns=["original_id", "source"], errors="ignore")
-
+    df["id"] = range(len(df))
+    
+    if sample_size is not None:
+        if sample_size > len(df):
+            logger.warning(
+                f"Sample size {sample_size} is larger than dataset size {len(df)}. Using full dataset."
+            )
+            sample_size = len(df)
+            
+        df = df.head(sample_size)
     return df
 
 
@@ -148,9 +163,8 @@ def compare_judge_bench_response(
 
 
 def main() -> None:
-    response = "Reasoning:\nStep 1: Both assistants followed the user's instructions and explained the steps to solve the problem.\nStep 2: Both assistants correctly used the ideal gas law and the polytropic relation to calculate the work done.\nStep 3: However, Assistant B provided a more direct and simplified expression for the work done in terms of P\u2081, V\u2081, and k, which made the calculation more straightforward and less prone to errors.\n\nFinal Answer: B"
-    extracted_answer = extract_caption_a_b_answer(response)
-    print(f"Extracted answer: {extracted_answer}")
+    df = load_judge_bench_dataset()
+    print(df.head())
 
 
 if __name__ == "__main__":

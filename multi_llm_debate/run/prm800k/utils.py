@@ -86,7 +86,8 @@ def load_prm800k_dataset(
                 f"Sample size {sample_size} exceeds dataset size {len(df)}. Using full dataset."
             )
             sample_size = len(df)
-            df = df.head(sample_size)
+        df = df.head(sample_size)
+        
     logger.info(f"Loaded PRM800K dataset with {len(df)} samples.")
     return df
 
