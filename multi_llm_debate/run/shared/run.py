@@ -32,7 +32,7 @@ def execute_debate_workflow(
             "quantity": 6,
         }
     ],
-    random_seed: int = 42,
+    random_seed: Optional[int] = 42,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
@@ -80,17 +80,17 @@ def execute_debate_workflow(
         logger.info("Preprocessing input dataframe")
         processed_dataframe = process_df_fn(dataframe)
     else:
-        processed_dataframe = dataframe.sample(
-            frac=1, random_state=random_seed
-        ).reset_index(drop=True)
+        processed_dataframe = dataframe
 
     if sample_size and len(processed_dataframe) > sample_size:
         logger.info(
             f"Sampling {sample_size} entries from dataset (random seed: {random_seed})"
         )
-        processed_dataframe = processed_dataframe.sample(
-            sample_size, random_state=random_seed
-        )
+        processed_dataframe = processed_dataframe.head(sample_size).reset_index(drop=True)
+        if random_seed is not None:
+            processed_dataframe = processed_dataframe.sample(
+                n=sample_size, random_state=random_seed
+            ).reset_index(drop=True)
 
     # Run the debate task
     logger.info(f"Executing debate function for {task_name}")
