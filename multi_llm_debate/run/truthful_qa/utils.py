@@ -9,12 +9,11 @@ import pandas as pd
 from multi_llm_debate.utils.download_dataset import load_save_huggingface_dataset_df
 
 logger = logging.getLogger(__name__)
-
+DATASET_PATH = "datasets/TruthfulQA"
 
 def load_truthful_qa_dataset(
-    dataset_path: Union[str, Path] = "datasets/TruthfulQA",
+    dataset_path: Union[str, Path] = DATASET_PATH,
     dataset_name: str = "domenicrosati/TruthfulQA",
-    random_state: Optional[int] = None,
 ) -> pd.DataFrame:
     """Load the TruthfulQA dataset.
 
@@ -22,8 +21,6 @@ def load_truthful_qa_dataset(
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
         dataset_name: Name of the dataset to load from Hugging Face.
-        random_state: Random seed for shuffling. If None, the dataset will be
-            randomized differently each time.
 
     Returns:
         pd.DataFrame: DataFrame containing the TruthfulQA data with randomized order.
@@ -37,10 +34,6 @@ def load_truthful_qa_dataset(
     except Exception as e:
         logger.error(f"Failed to load dataset from Hugging Face: {e}")
         raise e
-
-    # Shuffle the DataFrame if random_state is provided
-    if random_state is not None:
-        df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
 
     return df
 
