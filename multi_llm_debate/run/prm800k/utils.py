@@ -112,6 +112,25 @@ def extract_int_list(
         "where x,y,... are 1 or -1, got: {}".format(response)
     )
 
+def compare_prm800k_response(
+    response: Union[str, List[int]],
+    answer: Union[str, List[int]],
+) -> bool:
+    """Compare the response with the answer.
+
+    Args:
+        response (Union[str, List[int]]): The response from the LLM.
+        answer (Union[str, List[int]]): The ground truth answer.
+
+    Returns:
+        bool: True if the response matches the answer, False otherwise.
+    """
+    if isinstance(response, str):
+        response = extract_int_list(response)
+    if isinstance(answer, str):
+        answer = json.loads(answer)  # Assuming answer is a JSON string
+
+    return response == answer
 
 if __name__ == "__main__":
     # Example usage
