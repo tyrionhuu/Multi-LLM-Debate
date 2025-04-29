@@ -13,6 +13,7 @@ DATASET_PATH = "datasets/TruthfulQA"
 RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
 
+
 def load_truthful_qa_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
     dataset_name: str = "domenicrosati/TruthfulQA",
