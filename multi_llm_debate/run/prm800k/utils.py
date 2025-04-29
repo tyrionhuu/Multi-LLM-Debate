@@ -112,6 +112,7 @@ def extract_int_list(
         "where x,y,... are 1 or -1, got: {}".format(response)
     )
 
+
 def compare_prm800k_response(
     response: Union[str, List[int]],
     answer: Union[str, List[int]],
@@ -131,6 +132,7 @@ def compare_prm800k_response(
         answer = json.loads(answer)  # Assuming answer is a JSON string
 
     return response == answer
+
 
 if __name__ == "__main__":
     # Example usage
