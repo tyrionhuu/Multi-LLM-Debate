@@ -6,17 +6,17 @@ from typing import Literal, Optional, Union
 
 import pandas as pd
 
-from multi_llm_debate.utils.download_dataset import load_save_huggingface_dataset_df
+from datasets import load_dataset, load_from_disk
 
 logger = logging.getLogger(__name__)
 DATASET_PATH = "datasets/TruthfulQA"
+DATASET_NAME = "domenicrosati/TruthfulQA"
 RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
 
 
 def load_truthful_qa_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
-    dataset_name: str = "domenicrosati/TruthfulQA",
 ) -> pd.DataFrame:
     """Load and preprocess the TruthfulQA dataset.
 
@@ -32,34 +32,27 @@ def load_truthful_qa_dataset(
     # Initialize empty DataFrame
     df = None
     dataset_path = Path(dataset_path)
-    try:
-        df = load_save_huggingface_dataset_df(
-            dataset_name=dataset_name,
-            dataset_path=dataset_path,
-            force_download=False,
+    
+    if dataset_path.exists():
+        try:
+            # Try to load the dataset from disk
+            dataset = load_from_disk(str(dataset_path))
+            logger.info(f"Loaded dataset from disk: {dataset_path}")
+            df = pd.DataFrame(dataset)
+        except Exception as e:
+            logger.error(f"Failed to load dataset from disk: {e}")
+            df = None
+    
+    if df is None:
+        # If loading from disk failed, download the dataset from Hugging Face
+        logger.info(f"Dataset path {dataset_path} does not exist. Downloading from Hugging Face.")
+        dataset = load_dataset(
+            DATASET_NAME,
+            cache_dir=str(dataset_path),
             split="train",
         )
-        logger.info(
-            f"Loaded TruthfulQA dataset from Hugging Face. "
-            f"Type: {type(df)}, Shape: {getattr(df, 'shape', None)}"
-        )
-    except Exception as e:
-        logger.error(f"Failed to load dataset from Hugging Face: {e}")
-        raise e
 
-    if df is None:
-        logger.error(
-            f"load_save_huggingface_dataset_df returned None for dataset_name={dataset_name}, "
-            f"dataset_path={dataset_path}"
-        )
-        raise ValueError("Input DataFrame is None. Please load the dataset first.")
-
-    if isinstance(df, pd.DataFrame) and df.empty:
-        logger.error(
-            f"Loaded DataFrame is empty for dataset_name={dataset_name}, "
-            f"dataset_path={dataset_path}"
-        )
-        raise ValueError("Loaded DataFrame is empty. Please check the dataset source.")
+        df = pd.DataFrame(dataset)
 
     df = df.copy()
     # Shuffle the DataFrame by RANDOM_STATE
