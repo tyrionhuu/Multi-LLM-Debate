@@ -2,12 +2,14 @@ import json
 import re
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
+import random
 
 import pandas as pd
 
 JSON_PATH = "datasets/PRM800K/data/phase2_test.jsonl"
 
-
+RANDOM_STATE = 42
+random.seed(RANDOM_STATE)
 def load_prm800k_dataset(
     json_path: Union[str, Path] = JSON_PATH,
 ) -> pd.DataFrame:
@@ -66,7 +68,9 @@ def load_prm800k_dataset(
         )
 
     df = pd.DataFrame(processed)
-
+    df = df.copy()
+    df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
+    df["id"] = range(len(df))  # Add an ID column
     return df
 
 
@@ -120,5 +124,5 @@ def compare_prm800k_response(
 
 if __name__ == "__main__":
     # Example usage
-    df = load_prm800k_dataset(random_state=42)
+    df = load_prm800k_dataset()
     print(df.info())
