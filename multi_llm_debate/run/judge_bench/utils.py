@@ -5,10 +5,10 @@ from typing import Literal
 import pandas as pd
 
 from datasets import load_dataset, load_from_disk
-
+DATASET_PATH = "datasets/JudgeBench"
 
 def load_judge_bench_dataset(
-    dataset_path: str = "datasets/JudgeBench",
+    dataset_path: str = DATASET_PATH,
     random_state: int = None,
 ) -> pd.DataFrame:
     """Load the JudgeBench dataset.
