@@ -1,8 +1,9 @@
 import json
 import re
 from pathlib import Path
-from typing import List, Literal, Union
-
+from typing import List, Literal, Union, Optional
+import logging
+import random
 import pandas as pd
 
 INPUT_PATHS = [
@@ -14,11 +15,14 @@ INPUT_PATHS = [
     "datasets/COMP-Analysis/turn_level_texts/persona-usr_text.txt",
 ]
 ANSWER_PATHS = "datasets/COMP-Analysis/turn_level_texts/turn_overall_ratings.json"
+logger = logging.getLogger(__name__)
 
-
+RANDOM_STATE = 42
+random.seed(RANDOM_STATE)
 def load_comp_analysis_dataset(
     input_paths: Union[str, Path, List[Union[str, Path]]] = INPUT_PATHS,
     answer_path: Union[str, Path] = ANSWER_PATHS,
+    sample_size: Optional[int] = None,
     template: str = "{}\t{}",
 ) -> pd.DataFrame:
     """
@@ -30,7 +34,8 @@ def load_comp_analysis_dataset(
         input_paths (Union[str, Path, List[Union[str, Path]]]): Path(s) to the text files.
         answer_path (Union[str, Path]): Path to the ground truth JSON file.
         template (str): Template string to format the extracted fields.
-
+        sample_size (Optional[int]): If provided, the DataFrame will be sampled to this size.
+        
     Returns:
         pd.DataFrame: DataFrame containing the processed data from the text files,
             with columns 'id', 'input', 'response', and optionally correctness columns.
@@ -55,7 +60,6 @@ def load_comp_analysis_dataset(
     df = pd.DataFrame(data, columns=["input_response"])
     df[["input", "response"]] = df["input_response"].str.split("\t", n=1, expand=True)
     df = df.drop(columns=["input_response"])
-    df.insert(0, "id", range(len(df)))  # Add id column as the first column
 
     # Load ground truth
     ground_truth = []
@@ -74,6 +78,19 @@ def load_comp_analysis_dataset(
     # Add ground truth column
     df["answer"] = ground_truth[: len(df)]
 
+    df = df.copy()
+    df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
+    df["id"] = range(len(df))  # Add an ID column
+    
+    if sample_size is not None:
+        if sample_size > len(df):
+            logger.warning(
+                f"Sample size {sample_size} is larger than the dataset size {len(df)}. "
+                "Using the full dataset instead."
+            )
+        df = df.head(sample_size)
+        
+    logger.info(f"Loaded {len(df)} entries from input files and ground truth.")
     return df
 
 

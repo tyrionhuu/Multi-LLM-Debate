@@ -129,4 +129,4 @@ def compare_hallu_dial_response(
 
 if __name__ == "__main__":
     df = load_hallu_dial_dataset()
-    print(df.info())
+    print(df.iloc[5])
