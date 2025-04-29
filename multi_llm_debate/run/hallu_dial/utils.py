@@ -1,21 +1,28 @@
 import json
 import re
 from pathlib import Path
-from typing import Literal, Union
-
+from typing import Literal, Union, Optional
+import logging
+import random
 import pandas as pd
+logger = logging.getLogger(__name__)
 
 JSON_PATH = "datasets/HalluDial/all_train.json"
+RANDOM_STATE = 42
+random.seed(RANDOM_STATE)
 
-
-def load_hallu_dial_dataset(json_path: Union[str, Path] = JSON_PATH) -> pd.DataFrame:
+def load_hallu_dial_dataset(
+    json_path: Union[str, Path] = JSON_PATH,
+    sample_size: Optional[int] = None,
+) -> pd.DataFrame:
     """
     Convert a JSON file to a DataFrame with added 'id' and 'answer' columns.
     Filters out entries without valid yes/no answers.
 
     Args:
         json_path (Union[str, Path]): Path to the JSON file.
-
+        sample_size (Optional[int]): If provided, the DataFrame will be sampled to this size.
+        
     Returns:
         pd.DataFrame: DataFrame containing the data from the JSON file,
             with columns 'id', 'knowledge', 'dialogue', 'response',
@@ -39,7 +46,17 @@ def load_hallu_dial_dataset(json_path: Union[str, Path] = JSON_PATH) -> pd.DataF
         df = df.rename(columns={"dialogue_history": "dialogue"})
         # Select and reorder columns
         df = df[["knowledge", "dialogue", "response", "answer"]]
-        df.insert(0, "id", range(len(df)))
+        df = df.copy()
+        df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
+        df["id"] = range(len(df))
+        if sample_size is not None:
+            if sample_size > len(df):
+                logger.warning(
+                    f"Sample size {sample_size} is larger than the dataset size {len(df)}. "
+                    "Using the full dataset instead."
+                )
+            df = df.head(sample_size)
+        logger.info(f"Loaded {len(df)} entries from {json_path}")
         return df
     except ValueError as e:
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
