@@ -122,9 +122,10 @@ def load_truthful_qa_dataset(
             )
             sample_size = len(processed_df)
         processed_df = processed_df.head(sample_size)
-        
+
     logger.info(f"Processed TruthfulQA dataset with {len(processed_df)} samples.")
     return processed_df
+
 
 def extract_caption_a_b_c_answer(response: str) -> Literal["A", "B", "C"]:
     """

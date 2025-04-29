@@ -72,7 +72,7 @@ def execute_debate_workflow(
 
     # Run the debate task
     logger.info(f"Executing debate function for {task_name}")
-    
+
     execution_report = run_debate_fn(
         dataframe=dataframe,
         base_dir=output_path,
