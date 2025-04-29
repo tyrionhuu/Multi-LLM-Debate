@@ -21,10 +21,7 @@ if __name__ == "__main__":
 
     logger.info(f"Running evaluation for task: {task_name}")
     # Load the dataset
-    json_data = Path("datasets/BIG-Bench/sports_understanding/task.json")
-    dataframe = load_big_bench_dataset(
-        json_data,
-    )
+    dataframe = load_big_bench_dataset()
 
     shared_main(
         dataframe=dataframe,
