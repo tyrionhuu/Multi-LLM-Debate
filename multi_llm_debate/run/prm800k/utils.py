@@ -1,10 +1,12 @@
 import json
+import logging
 import random
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple, Union, Optional
-import logging
+from typing import Dict, List, Optional, Tuple, Union
+
 import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 JSON_PATH = "datasets/PRM800K/data/phase2_test.jsonl"
@@ -22,7 +24,7 @@ def load_prm800k_dataset(
     Args:
         json_path: Path to the JSONL file.
         sample_size: Optional; if provided, the DataFrame will be sampled to this size.
-        
+
     Returns:
         pd.DataFrame: DataFrame with columns ['question', 'answer', 'steps'].
     """
@@ -75,9 +77,9 @@ def load_prm800k_dataset(
     df = pd.DataFrame(processed)
     df = df.copy()
     df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
-    
+
     df["id"] = range(len(df))  # Add an ID column
-    
+
     if sample_size is not None:
         if sample_size > len(df):
             logger.warning(
@@ -85,9 +87,7 @@ def load_prm800k_dataset(
             )
             sample_size = len(df)
             df = df.head(sample_size)
-    logger.info(
-        f"Loaded PRM800K dataset with {len(df)} samples."
-    )
+    logger.info(f"Loaded PRM800K dataset with {len(df)} samples.")
     return df
 
 
