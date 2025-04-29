@@ -32,7 +32,7 @@ def load_truthful_qa_dataset(
     # Initialize empty DataFrame
     df = None
     dataset_path = Path(dataset_path)
-    
+
     if dataset_path.exists():
         try:
             # Try to load the dataset from disk
@@ -42,10 +42,12 @@ def load_truthful_qa_dataset(
         except Exception as e:
             logger.error(f"Failed to load dataset from disk: {e}")
             df = None
-    
+
     if df is None:
         # If loading from disk failed, download the dataset from Hugging Face
-        logger.info(f"Dataset path {dataset_path} does not exist. Downloading from Hugging Face.")
+        logger.info(
+            f"Dataset path {dataset_path} does not exist. Downloading from Hugging Face."
+        )
         dataset = load_dataset(
             DATASET_NAME,
             cache_dir=str(dataset_path),
