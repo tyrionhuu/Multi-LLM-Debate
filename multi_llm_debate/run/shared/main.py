@@ -69,14 +69,6 @@ def main(
             with open(config) as f:
                 model_configs_list = json.load(f)
 
-        # Adjust sample size if it exceeds dataset size
-        if sample_size is not None and sample_size > len(dataframe):
-            logger.warning(
-                f"Sample size {sample_size} is larger than dataset size {len(dataframe)}. "
-                "Using entire dataset."
-            )
-            sample_size = None
-
         if run_debate:
             for model_configs in model_configs_list:
                 execute_debate_workflow(
