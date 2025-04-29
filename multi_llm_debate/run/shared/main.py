@@ -18,7 +18,6 @@ def main(
     task_name: str = "debate",
     config: Optional[Union[Path, List[Dict]]] = None,
     config_json: Optional[str] = None,
-    random_seed: Optional[int] = 42,
     run_debate: bool = True,
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -40,7 +39,6 @@ def main(
         task_name: Name of the debate task
         config: Path to JSON config file or list of model configurations
         config_json: JSON string containing model configurations
-        random_seed: Random seed for sampling
         run_debate: Whether to run the debate or just evaluate existing results
         temperature: Temperature for model responses
         max_tokens: Maximum number of tokens for model responses
@@ -89,7 +87,6 @@ def main(
                     task_name=task_name,
                     report_path=Path(f"data/{task_name}"),
                     model_configs=model_configs,
-                    random_seed=random_seed,
                     temperature=temperature,
                     max_tokens=max_tokens,
                     batch=batch,
