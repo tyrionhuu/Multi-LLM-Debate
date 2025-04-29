@@ -95,6 +95,8 @@ def build_prm800k_round_zero_prompt(
 
     prompt += "Your answer:\n"
     return prompt
+
+
 def build_prm800k_round_n_prompt(
     question: str,
     steps: List[str],
@@ -116,12 +118,12 @@ def build_prm800k_round_n_prompt(
         "As an assistant, your task is to serve as an impartial response judge.\n"
         + NEW_LINE
     )
-    
+
     prompt += (
         "Several other judges have provided evaluations of an AI assistant's response. "
         "Review their assessments and provide your own independent evaluation.\n"
     ) + NEW_LINE
-    
+
     prompt += (
         "You will be given an input and a question and a step by step response from an AI assistant.\n"
         "Your task is to evaluate each step and give each step a rating.\n"
@@ -151,12 +153,12 @@ def build_prm800k_round_n_prompt(
             + NEW_LINE
         )
     prompt += DIVIDER + NEW_LINE
-    
+
     prompt += "Previous judge responses:\n"
     for i, judge_response in enumerate(responses, 1):
         prompt += f"Judge {i} Response:" + NEW_LINE
         prompt += judge_response + NEW_LINE
-        
+
     prompt += DIVIDER + NEW_LINE
     prompt += "[Question]\n"
     prompt += question + NEW_LINE + DIVIDER + NEW_LINE
@@ -166,6 +168,8 @@ def build_prm800k_round_n_prompt(
     prompt += DIVIDER + NEW_LINE
     prompt += "Your answer:\n"
     return prompt
+
+
 if __name__ == "__main__":
     # Example usage
     question = "What is the capital of France?"
