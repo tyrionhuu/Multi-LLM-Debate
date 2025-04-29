@@ -1,11 +1,13 @@
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import pandas as pd
 
 JSON_PATH = "datasets/PRM800K/data/phase2_test.jsonl"
+
+
 def load_prm800k_dataset(
     json_path: Union[str, Path] = JSON_PATH,
 ) -> pd.DataFrame:
@@ -64,7 +66,7 @@ def load_prm800k_dataset(
         )
 
     df = pd.DataFrame(processed)
-    
+
     return df
 
 
