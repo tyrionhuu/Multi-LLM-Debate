@@ -20,9 +20,7 @@ if __name__ == "__main__":
     print(f"Running evaluation for task: {task_name}")
     # Load the dataset
     dataset_path = Path("datasets/JudgeBench")
-    dataframe = load_judge_bench_dataset(
-        dataset_path=dataset_path,
-    )
+    dataframe = load_judge_bench_dataset()
 
     shared_main(
         dataframe=dataframe,

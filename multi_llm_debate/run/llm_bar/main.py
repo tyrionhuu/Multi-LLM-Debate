@@ -20,10 +20,7 @@ if __name__ == "__main__":
     print(f"Running evaluation for task: {task_name}")
     # Load the dataset
     dataset_path = Path("datasets/LLMBar")
-    dataframe = load_llm_bar_dataset(
-        dataset_path=dataset_path,
-    )
-    # dataframe = dataframe.sample(10, random_state=42)
+    dataframe = load_llm_bar_dataset()
 
     shared_main(
         dataframe=dataframe,

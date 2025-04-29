@@ -11,15 +11,12 @@ DATASET_PATH = "datasets/JudgeBench"
 
 def load_judge_bench_dataset(
     dataset_path: str = DATASET_PATH,
-    random_state: int = None,
 ) -> pd.DataFrame:
     """Load the JudgeBench dataset.
 
     Args:
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
-        random_state: Random seed for shuffling. If None, the dataset will be
-            randomized differently each time.
 
     Returns:
         pd.DataFrame: DataFrame containing the JudgeBench data with randomized order.
@@ -80,9 +77,6 @@ def load_judge_bench_dataset(
     df = df.rename(columns={"pair_id": "id", "label": "answer"})
     # Drop unnecessary columns
     df = df.drop(columns=["original_id", "source"], errors="ignore")
-
-    # Randomize the entries
-    df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
 
     return df
 
