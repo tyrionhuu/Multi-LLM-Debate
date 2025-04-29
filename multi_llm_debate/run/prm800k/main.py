@@ -1,6 +1,5 @@
 if __name__ == "__main__":
     import logging
-    from pathlib import Path
 
     from multi_llm_debate.utils.logging_config import setup_logging
 
