@@ -118,7 +118,7 @@ def load_save_huggingface_dataset_df(
     dataset_path: Optional[Path] = None,
     force_download: bool = False,
     split: Optional[str] = None,
-) -> Optional[pd.DataFrame]:
+) -> pd.DataFrame:
     """
     Load and save a Hugging Face dataset to disk as a pandas DataFrame.
 
@@ -130,8 +130,8 @@ def load_save_huggingface_dataset_df(
         split (Optional[str]): The specific split of the dataset to load (e.g., 'train', 'test').
 
     Returns:
-        Optional[pd.DataFrame]: The loaded dataset as a pandas DataFrame if successful,
-        None otherwise.
+        pd.DataFrame: The loaded dataset as a pandas DataFrame if successful,
+        raises ValueError if the dataset is empty or not found.
     """
     try:
         dataset = load_save_huggingface_dataset(
