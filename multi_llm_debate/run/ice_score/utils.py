@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import Union
 
 import pandas as pd
+JSON_PATH = "datasets/ICE-Score/conala_grade.json"
 
-
-def load_ice_score_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
+def load_ice_score_dataset(json_path: Union[str, Path] = JSON_PATH) -> pd.DataFrame:
     """
     Convert a JSON file to a DataFrame with an added 'id' column.
 
