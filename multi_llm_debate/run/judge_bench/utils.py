@@ -163,7 +163,7 @@ def compare_judge_bench_response(
 
 
 def main() -> None:
-    df = load_judge_bench_dataset()
+    df = load_judge_bench_dataset(sample_size=100)
     print(df.head())
 
 
