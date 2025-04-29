@@ -178,8 +178,8 @@ def load_save_dataset_df(
 
 def main() -> None:
     df = load_save_dataset_df(
-        dataset_name="ScalerLab/JudgeBench",
-        dataset_path=Path("datasets/JudgeBench"),
+        dataset_name="shuaishuaicdp/MLLM-Judge",
+        dataset_path=Path("datasets/MLLM-Judge"),
         force_download=False,
     )
     print(df.columns)
