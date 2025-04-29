@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
-
+import re
 import pandas as pd
 
 
@@ -84,6 +84,33 @@ def preprocess_prm800k_dataset(
 
     return df
 
+def extract_int_list(
+    response: str,
+) -> List[int]:
+    """Extract a list of answers from the response string in the format
+    'Final Answer: [x,y,...]', where x,y,... are 1 or -1.
+
+    Args:
+        response (str): The response string from the LLM.
+
+    Returns:
+        List[int]: List of answers (each must be 1 or -1).
+
+    Raises:
+        ValueError: If no valid answer list is found in the response.
+    """
+    match = re.search(r"Final Answer:\s*\[([-\d\s,]+)\]", response)
+    if match:
+        numbers = [int(x.strip()) for x in match.group(1).split(",")]
+        if all(x in (1, -1) for x in numbers):
+            return numbers
+        raise ValueError(
+            f"Answer list must only contain 1 or -1, got: {numbers}"
+        )
+    raise ValueError(
+        "Invalid response format. Expected 'Final Answer: [x,y,...]' "
+        "where x,y,... are 1 or -1, got: {}".format(response)
+    )
 
 if __name__ == "__main__":
     # Example usage
