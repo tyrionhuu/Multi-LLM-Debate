@@ -17,6 +17,7 @@ random.seed(RANDOM_STATE)
 
 def load_truthful_qa_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
+    sample_size: Optional[int] = None,
 ) -> pd.DataFrame:
     """Load and preprocess the TruthfulQA dataset.
 
@@ -110,10 +111,20 @@ def load_truthful_qa_dataset(
         df.apply(_map_options, axis=1).tolist(), index=df.index
     )
 
-    return df[
+    processed_df = df[
         ["id", "Question", "response_A", "response_B", "response_C", "answer"]
     ].rename(columns={"Question": "question"})
 
+    if sample_size is not None:
+        if sample_size > len(processed_df):
+            logger.warning(
+                f"Sample size {sample_size} exceeds dataset size {len(processed_df)}. Using full dataset."
+            )
+            sample_size = len(processed_df)
+        processed_df = processed_df.head(sample_size)
+        
+    logger.info(f"Processed TruthfulQA dataset with {len(processed_df)} samples.")
+    return processed_df
 
 def extract_caption_a_b_c_answer(response: str) -> Literal["A", "B", "C"]:
     """
