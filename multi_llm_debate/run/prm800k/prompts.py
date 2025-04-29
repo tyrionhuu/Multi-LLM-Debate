@@ -95,14 +95,16 @@ def build_prm800k_round_zero_prompt(
 
     prompt += "Your answer:\n"
     return prompt
+
+
 if __name__ == "__main__":
     # Example usage
     question = "What is the capital of France?"
     steps = [
         "Identify the country in question.",
         "Recall the capital city of that country.",
-        "Confirm the answer based on knowledge."
+        "Confirm the answer based on knowledge.",
     ]
-    
+
     prompt = build_prm800k_round_zero_prompt(question, steps)
     print(prompt)  # This will print the formatted prompt for PRM800K evaluation.
