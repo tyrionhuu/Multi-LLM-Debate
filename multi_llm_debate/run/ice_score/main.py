@@ -17,15 +17,15 @@ if __name__ == "__main__":
     else:
         task_name = args.task_name
     print(f"Running evaluation for task: {task_name}")
+    
     # Load the dataset
-    dataframe = load_ice_score_dataset()
+    dataframe = load_ice_score_dataset(sample_size=args.sample_size)
 
     shared_main(
         dataframe=dataframe,
         run_debate_fn=process_ice_score_dataset,
         evaluate_fn=evaluate_all_ice_score,
         task_name=task_name,
-        sample_size=args.sample_size,
         config_json=args.config_json,
         temperature=args.temperature,
         max_tokens=args.max_tokens,
