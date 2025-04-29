@@ -34,13 +34,27 @@ def load_truthful_qa_dataset(
     dataset_path = Path(dataset_path)
     try:
         df = load_save_huggingface_dataset_df(dataset_name, dataset_path)
-        logger.info("Loaded TruthfulQA dataset from Hugging Face.")
+        logger.info(
+            f"Loaded TruthfulQA dataset from Hugging Face. "
+            f"Type: {type(df)}, Shape: {getattr(df, 'shape', None)}"
+        )
     except Exception as e:
         logger.error(f"Failed to load dataset from Hugging Face: {e}")
         raise e
 
     if df is None:
+        logger.error(
+            f"load_save_huggingface_dataset_df returned None for dataset_name={dataset_name}, "
+            f"dataset_path={dataset_path}"
+        )
         raise ValueError("Input DataFrame is None. Please load the dataset first.")
+
+    if isinstance(df, pd.DataFrame) and df.empty:
+        logger.error(
+            f"Loaded DataFrame is empty for dataset_name={dataset_name}, "
+            f"dataset_path={dataset_path}"
+        )
+        raise ValueError("Loaded DataFrame is empty. Please check the dataset source.")
 
     df = df.copy()
     # Shuffle the DataFrame by RANDOM_STATE

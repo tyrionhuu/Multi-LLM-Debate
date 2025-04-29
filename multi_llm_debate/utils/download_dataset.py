@@ -143,6 +143,11 @@ def load_save_huggingface_dataset_df(
             df = dataset.to_pandas()
             logger.info(f"Dataset converted to DataFrame with shape {df.shape}")
             return df
+        else:
+            logger.warning(
+                f"No dataset found for {dataset_name} at {dataset_path}. Returning None."
+            )
+            return None
     except Exception as e:
         logger.error(f"Error loading dataset: {str(e)}")
         raise
