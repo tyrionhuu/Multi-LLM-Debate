@@ -123,4 +123,4 @@ def compare_ice_score_response(
 if __name__ == "__main__":
     # Example usage
     dataframe = load_ice_score_dataset()
-    print(dataframe.describe())
+    print(dataframe.head())
