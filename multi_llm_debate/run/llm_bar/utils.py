@@ -1,6 +1,5 @@
 import json
 import logging
-import random
 import re
 from pathlib import Path
 from typing import Literal, Optional, Union
@@ -12,18 +11,15 @@ logger = logging.getLogger(__name__)
 
 def load_llm_bar_dataset(
     dataset_path: Union[str, Path] = "datasets/LLMBar",
-    random_state: Optional[int] = None,
 ) -> pd.DataFrame:
     """Load and preprocess the LLMBar dataset.
 
     Args:
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
-        random_state: Random seed for shuffling. If None, the dataset will be
-            randomized differently each time.
 
     Returns:
-        pd.DataFrame: Preprocessed DataFrame with required columns and randomized order.
+        pd.DataFrame: Preprocessed DataFrame with required columns.
     """
     dataset_path = Path(dataset_path)
 
@@ -84,10 +80,6 @@ def load_llm_bar_dataset(
     ) as f:
         json_data.extend(json.load(f))
 
-    if random_state is not None:
-        random.seed(random_state)
-        random.shuffle(json_data)
-
     df = pd.DataFrame(json_data)
 
     # Preprocess: add id column and rename columns
@@ -100,10 +92,6 @@ def load_llm_bar_dataset(
         "label": "answer",
     }
     df = df.rename(columns=column_mapping)
-
-    # Shuffle if random_state is provided (again, for DataFrame order)
-    if random_state is not None:
-        df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
 
     return df.reset_index(drop=True)
 
