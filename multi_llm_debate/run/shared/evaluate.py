@@ -2,7 +2,7 @@ import concurrent.futures
 import json
 import logging
 from pathlib import Path
-from typing import Callable, Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import Callable, Dict, NamedTuple, Optional
 
 import pandas as pd
 
@@ -240,7 +240,6 @@ def _process_ensemble_entry(
         Optional[bool]: True if correct, False if incorrect, None if entry skipped
     """
     try:
-        answer = entry[answer_entry]
         id_ = str(entry[id_entry])
 
         # Load responses from the first debate round file
