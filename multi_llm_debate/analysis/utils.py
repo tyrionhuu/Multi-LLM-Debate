@@ -458,6 +458,9 @@ def load_debate_data(model_dir: Path, write_csv: bool = True) -> Optional[pd.Dat
 
 def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
     """Counts how many directories contain each number of files.
+    
+    For each first-level directory under the base directory, counts how many
+    files (not subdirectories) it contains.
 
     Args:
         base_dir_path: Path to the base directory containing the data.
@@ -466,20 +469,26 @@ def count_files_per_directory(base_dir_path: str) -> Dict[int, int]:
         A dictionary mapping file counts to the number of directories with that count.
     """
     base_path = Path(base_dir_path)
-    file_counts = []
-
+    
     # Check if the directory exists
     if not base_path.exists():
         print(f"Directory not found: {base_dir_path}")
         return {}
-
-    # Walk through all directories and count their files
-    for root, dirs, files in os.walk(base_path):
-        file_counts.append(len(files))
-
+    
+    dir_file_counts = {}
+    
+    # Get all first-level directories
+    first_level_dirs = [d for d in base_path.iterdir() if d.is_dir()]
+    
+    # Count files (not directories) in each first-level directory
+    for directory in first_level_dirs:
+        # Only count files, not subdirectories
+        file_count = len([f for f in directory.iterdir() if f.is_file()])
+        dir_file_counts[directory.name] = file_count
+    
     # Count how many directories have each file count
-    distribution = Counter(file_counts)
-
+    distribution = Counter(dir_file_counts.values())
+    
     return dict(sorted(distribution.items()))
 
 
