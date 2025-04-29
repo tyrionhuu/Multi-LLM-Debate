@@ -1,15 +1,18 @@
 import json
-import re
-from pathlib import Path
-from typing import Union, Optional
 import logging
 import random
+import re
+from pathlib import Path
+from typing import Optional, Union
+
 import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 JSON_PATH = "datasets/ICE-Score/conala_grade.json"
 RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
+
 
 def load_ice_score_dataset(
     json_path: Union[str, Path] = JSON_PATH,
@@ -21,7 +24,7 @@ def load_ice_score_dataset(
     Args:
         json_path (Union[str, Path]): Path to the JSON file.
         sample_size (Optional[int]): If provided, the DataFrame will be sampled to this size.
-        
+
     Returns:
         pd.DataFrame: DataFrame containing the data from the JSON file,
             with columns 'id', 'question', 'response', and 'answer'.
@@ -42,13 +45,11 @@ def load_ice_score_dataset(
         df = df.rename(columns={"intent": "question", "snippet": "response"})
         df = df[["question", "response"]]
         df["answer"] = answers
-        
+
         df = df.copy()
-        df = df.sample(
-            frac=1, random_state=RANDOM_STATE
-        ).reset_index(drop=True)
+        df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
         df["id"] = range(len(df))
-        
+
         if sample_size is not None:
             if sample_size > len(df):
                 logger.warning(
@@ -56,12 +57,12 @@ def load_ice_score_dataset(
                     "Using the full dataset instead."
                 )
             df = df.head(sample_size)
-            
+
         logger.info(
             f"Loaded ICE-Score dataset with {len(df)} samples from {json_path}."
         )
         return df
-    
+
     except ValueError as e:
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
     except Exception as e:
@@ -121,6 +122,5 @@ def compare_ice_score_response(
 
 if __name__ == "__main__":
     # Example usage
-    json_data = Path("datasets/ICE-Score/conala_grade.json")
-    dataframe = load_ice_score_dataset(json_data)
+    dataframe = load_ice_score_dataset()
     print(dataframe.describe())
