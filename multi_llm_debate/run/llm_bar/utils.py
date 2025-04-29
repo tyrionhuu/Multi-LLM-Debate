@@ -8,9 +8,24 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-
+LLM_BAR_DATASET_FILES: list[str] = [
+    "LLMBar/Natural/dataset.json",
+    "LLMBar/Adversarial/GPTInst/dataset.json",
+    "LLMBar/Adversarial/GPTOut/dataset.json",
+    "LLMBar/Adversarial/Manual/dataset.json",
+    "LLMBar/Adversarial/Neighbor/dataset.json",
+    "CaseStudy/Base_9/dataset.json",
+    "CaseStudy/Base_10/dataset.json",
+    "CaseStudy/Constraint/dataset.json",
+    "CaseStudy/Negation/dataset.json",
+    "CaseStudy/Normal/dataset.json",
+    "Processed/FairEval/dataset.json",
+    "Processed/LLMEval^2/dataset.json",
+    "Processed/MT-Bench/dataset.json",
+]
+DATASET_PATH = "datasets/LLMBar"
 def load_llm_bar_dataset(
-    dataset_path: Union[str, Path] = "datasets/LLMBar",
+    dataset_path: Union[str, Path] = DATASET_PATH,
 ) -> pd.DataFrame:
     """Load and preprocess the LLMBar dataset.
 
@@ -29,56 +44,9 @@ def load_llm_bar_dataset(
 
     json_data = []
 
-    with open(dataset_path / "LLMBar/Natural/dataset.json", "r", encoding="utf-8") as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "LLMBar/Adversarial/GPTInst/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "LLMBar/Adversarial/GPTOut/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "LLMBar/Adversarial/Manual/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "LLMBar/Adversarial/Neighbor/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "CaseStudy/Base_9/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "CaseStudy/Base_10/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "CaseStudy/Constraint/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "CaseStudy/Negation/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "CaseStudy/Normal/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "Processed/FairEval/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "Processed/LLMEval^2/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
-    with open(
-        dataset_path / "Processed/MT-Bench/dataset.json", "r", encoding="utf-8"
-    ) as f:
-        json_data.extend(json.load(f))
+    for rel_path in LLM_BAR_DATASET_FILES:
+        with open(dataset_path / rel_path, "r", encoding="utf-8") as f:
+            json_data.extend(json.load(f))
 
     df = pd.DataFrame(json_data)
 
