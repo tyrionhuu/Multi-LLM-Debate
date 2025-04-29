@@ -86,7 +86,9 @@ def execute_debate_workflow(
         logger.info(
             f"Sampling {sample_size} entries from dataset (random seed: {random_seed})"
         )
-        processed_dataframe = processed_dataframe.head(sample_size).reset_index(drop=True)
+        processed_dataframe = processed_dataframe.head(sample_size).reset_index(
+            drop=True
+        )
         if random_seed is not None:
             processed_dataframe = processed_dataframe.sample(
                 n=sample_size, random_state=random_seed

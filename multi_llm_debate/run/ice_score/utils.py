@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import Union
 
 import pandas as pd
+
 JSON_PATH = "datasets/ICE-Score/conala_grade.json"
+
 
 def load_ice_score_dataset(json_path: Union[str, Path] = JSON_PATH) -> pd.DataFrame:
     """
