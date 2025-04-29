@@ -65,6 +65,24 @@ def plot_file_count_distribution(
         + task_name,
         fontsize=14,
     )
+    # Show total entry count as subtitle
+    total_entries = sum(dir_counts)
+    ax.set_title(
+        "Distribution of File Counts Across Directories "
+        + model_config
+        + " "
+        + task_name,
+        fontsize=14,
+        loc="center",
+    )
+    ax.set_title(
+        f"Total entries: {total_entries}",
+        fontsize=10,
+        loc="left",
+        pad=30,
+        color="dimgray",
+    )
+
     ax.set_xlabel("Number of Files in Directory", fontsize=12)
     ax.set_ylabel("Number of Directories", fontsize=12)
     ax.grid(axis="y", alpha=0.3)
