@@ -367,9 +367,15 @@ def check_convergence(
     try:
         answers = [extract_func(response) for response in responses]
         logger.debug(f"Processed answers for convergence check: {answers}")
-        is_converged = len(set(answers)) == 1
+        # Convert lists in answers to tuples for hashing
+        hashable_answers = [
+            tuple(ans) if isinstance(ans, list) else ans for ans in answers
+        ]
+        is_converged = len(set(hashable_answers)) == 1
         if is_converged:
-            logger.info(f"Debate has converged on answer: {list(set(answers))[0]}")
+            logger.info(
+                f"Debate has converged on answer: {list(set(hashable_answers))[0]}"
+            )
         return is_converged
     except Exception as e:
         logger.error(f"Error checking convergence: {str(e)}", exc_info=False)
