@@ -5,8 +5,8 @@ from typing import Literal, Union
 
 import pandas as pd
 
-
-def load_big_bench_dataset(json_path: Union[str, Path]) -> pd.DataFrame:
+JSON_PATH = "datasets/BIG-Bench/sports_understanding/task.json"
+def load_big_bench_dataset(json_path: Union[str, Path] = JSON_PATH) -> pd.DataFrame:
     """
     Convert a JSON file to a DataFrame with an added 'id' column.
 
