@@ -5,16 +5,14 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 
-
+JSON_PATH = "datasets/PRM800K/data/phase2_test.jsonl"
 def load_prm800k_dataset(
-    json_path: Union[str, Path] = "datasets/PRM800K/data/phase2_test.jsonl",
-    random_state: Optional[int] = None,
+    json_path: Union[str, Path] = JSON_PATH,
 ) -> pd.DataFrame:
     """Load and preprocess the PRM800K dataset from a JSONL file.
 
     Args:
         json_path: Path to the JSONL file.
-        random_state: Random seed for shuffling.
 
     Returns:
         pd.DataFrame: DataFrame with columns ['question', 'answer', 'steps'].
@@ -66,10 +64,7 @@ def load_prm800k_dataset(
         )
 
     df = pd.DataFrame(processed)
-
-    if random_state is not None:
-        df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
-
+    
     return df
 
 
