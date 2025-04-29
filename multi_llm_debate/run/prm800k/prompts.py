@@ -1,4 +1,5 @@
 from typing import Dict, List
+
 NEW_LINE = "\n"
 DIVIDER = "#" * 80
 JSON_FORMAT = """
@@ -35,7 +36,6 @@ Final Answer: [x, y, ...]
 """
 
 
-
 def build_prm800k_round_zero_prompt(
     question: str,
     steps: List[str],
@@ -51,7 +51,10 @@ def build_prm800k_round_zero_prompt(
     Returns:
         str: The formatted prompt for PRM800K evaluation
     """
-    prompt = "As an assistant, your task is to serve as an impartial response judge.\n" + NEW_LINE
+    prompt = (
+        "As an assistant, your task is to serve as an impartial response judge.\n"
+        + NEW_LINE
+    )
 
     prompt += (
         "You will be given an input and a question and a step by step response from an AI assistant.\n"
@@ -61,7 +64,7 @@ def build_prm800k_round_zero_prompt(
         "You should output your final answer in the format: 'Final Answer: [x,y,...]'.\n"
         "And x,y,... should be integers, where each value is either 1 or -1, corresponding to the steps provided.\n"
     ) + NEW_LINE
-    
+
     if json_mode:
         prompt += "You MUST output your response in JSON format.\n"
         prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
@@ -81,13 +84,13 @@ def build_prm800k_round_zero_prompt(
             + NEW_LINE
         )
     prompt += DIVIDER + NEW_LINE
-    
+
     prompt += "[Question]\n"
     prompt += question + NEW_LINE + DIVIDER + NEW_LINE
     prompt += "[Steps]\n"
     for i, step in enumerate(steps):
         prompt += f"{i + 1}. {step}\n"
     prompt += DIVIDER + NEW_LINE
-    
+
     prompt += "Your answer:\n"
     return prompt
