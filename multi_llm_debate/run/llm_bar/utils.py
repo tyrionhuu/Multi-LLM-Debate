@@ -1,11 +1,12 @@
 import json
 import logging
+import random
 import re
 from pathlib import Path
-from typing import Literal, Union, Optional
+from typing import Literal, Optional, Union
 
 import pandas as pd
-import random
+
 logger = logging.getLogger(__name__)
 
 LLM_BAR_DATASET_FILES: list[str] = [
@@ -27,6 +28,8 @@ DATASET_PATH = "datasets/LLMBar"
 
 RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
+
+
 def load_llm_bar_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
     sample_size: Optional[int] = None,
@@ -37,7 +40,7 @@ def load_llm_bar_dataset(
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
         sample_size: Optional; if provided, the DataFrame will be sampled to this size.
-        
+
     Returns:
         pd.DataFrame: Preprocessed DataFrame with required columns.
     """
@@ -74,10 +77,8 @@ def load_llm_bar_dataset(
             )
             sample_size = len(df)
             df = df.head(sample_size)
-    
-    logger.info(
-        f"Loaded LLMBar dataset with {len(df)} samples from {dataset_path}."
-    )
+
+    logger.info(f"Loaded LLMBar dataset with {len(df)} samples from {dataset_path}.")
     return df
 
 
