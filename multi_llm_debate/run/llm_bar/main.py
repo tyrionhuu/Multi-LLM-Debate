@@ -8,7 +8,7 @@ if __name__ == "__main__":
     from ..shared.utils import Parser
     from .evaluate import evaluate_all_llm_bar
     from .run_debate import process_llm_bar_dataset
-    from .utils import load_llm_bar_dataset, preprocess_llm_bar_dataframe
+    from .utils import load_llm_bar_dataset
 
     logger = setup_logging(__name__, log_level=logging.INFO)
 
@@ -24,7 +24,6 @@ if __name__ == "__main__":
         dataset_path=dataset_path,
     )
     # dataframe = dataframe.sample(10, random_state=42)
-    dataframe = preprocess_llm_bar_dataframe(dataframe)
 
     shared_main(
         dataframe=dataframe,

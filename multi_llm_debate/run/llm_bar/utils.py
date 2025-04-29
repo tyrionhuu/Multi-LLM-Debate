@@ -10,50 +10,11 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def preprocess_llm_bar_dataframe(
-    dataframe: pd.DataFrame,
-    random_state: int = 42,
-) -> pd.DataFrame:
-    """Preprocess the LLMBar DataFrame to ensure it has all required columns.
-
-    Args:
-        dataframe: Input DataFrame from LLMBar dataset.
-        random_state: Random seed for shuffling. If None, the dataset will be
-            randomized differently each time.
-
-    Returns:
-        pd.DataFrame: Preprocessed DataFrame with required columns.
-    """
-    # Create a copy to avoid modifying the original dataframe
-    processed_df = dataframe.copy()
-
-    # Add an id column
-    processed_df["id"] = range(len(processed_df))
-
-    # Rename columns
-    column_mapping = {
-        "input": "question",
-        "output_1": "response_1",
-        "output_2": "response_2",
-        "label": "answer",
-    }
-
-    processed_df = processed_df.rename(columns=column_mapping)
-
-    # If random_state is provided, shuffle the dataframe
-    if random_state is not None:
-        processed_df = processed_df.sample(
-            frac=1, random_state=random_state
-        ).reset_index(drop=True)
-
-    return processed_df
-
-
 def load_llm_bar_dataset(
     dataset_path: Union[str, Path] = "datasets/LLMBar",
     random_state: Optional[int] = None,
 ) -> pd.DataFrame:
-    """Load the LLMBar dataset.
+    """Load and preprocess the LLMBar dataset.
 
     Args:
         dataset_path: Path to the dataset directory. If it exists locally,
@@ -62,7 +23,7 @@ def load_llm_bar_dataset(
             randomized differently each time.
 
     Returns:
-        pd.DataFrame: DataFrame containing the LLMBar data with randomized order.
+        pd.DataFrame: Preprocessed DataFrame with required columns and randomized order.
     """
     dataset_path = Path(dataset_path)
 
@@ -128,6 +89,22 @@ def load_llm_bar_dataset(
         random.shuffle(json_data)
 
     df = pd.DataFrame(json_data)
+
+    # Preprocess: add id column and rename columns
+    df = df.copy()
+    df["id"] = range(len(df))
+    column_mapping = {
+        "input": "question",
+        "output_1": "response_1",
+        "output_2": "response_2",
+        "label": "answer",
+    }
+    df = df.rename(columns=column_mapping)
+
+    # Shuffle if random_state is provided (again, for DataFrame order)
+    if random_state is not None:
+        df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
+
     return df.reset_index(drop=True)
 
 
@@ -173,8 +150,7 @@ def compare_llm_bar_response(
 
 def main():
     dataset = load_llm_bar_dataset()
-    processed_df = preprocess_llm_bar_dataframe(dataset)
-    print(processed_df.info())
+    print(dataset.info())
 
 
 if __name__ == "__main__":
