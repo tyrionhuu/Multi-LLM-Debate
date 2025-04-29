@@ -53,17 +53,26 @@ def load_truthful_qa_dataset(
             cache_dir=str(dataset_path),
             split="train",
         )
-
+        if dataset is None: # pragma: no cover
+            raise ValueError(
+                f"Failed to load the TruthfulQA dataset from Hugging Face: {DATASET_NAME}"
+            )
         df = pd.DataFrame(dataset)
 
     df = df.copy()
     # Shuffle the DataFrame by RANDOM_STATE
     df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
 
-    # Create ID column if missing
-    if "id" not in df.columns:
-        df["id"] = df.index + 1
+    # Add an ID column
+    df["id"] = range(len(df))
+    
+    # If the DataFrame has a column of dictionaries, expand it
+    first_col = df.columns[0]
+    if df[first_col].apply(lambda x: isinstance(x, dict)).all():
+        meta_df = pd.json_normalize(df[first_col])
+        df = pd.concat([meta_df, df.drop(columns=[first_col])], axis=1)
 
+    # print(df.head())
     # Helper to choose random answers
     def _random_answer(answers_str: str) -> Optional[str]:
         answers = [a.strip() for a in answers_str.split(";") if a.strip()]
