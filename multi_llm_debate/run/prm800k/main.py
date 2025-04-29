@@ -19,3 +19,20 @@ if __name__ == "__main__":
         task_name = args.task_name
     print(f"Running evaluation for task: {task_name}")
     dataframe = load_prm800k_dataset()
+    
+    shared_main(
+        dataframe=dataframe,
+        run_debate_fn=process_prm800k_dataset,
+        evaluate_fn=evaluate_all_prm800k,
+        task_name=task_name,
+        sample_size=args.sample_size,
+        config_json=args.config_json,
+        temperature=args.temperature,
+        max_tokens=args.max_tokens,
+        batch=args.batch,
+        batch_size=args.batch_size,
+        quality_pruning_amount=args.quality_pruning_amount,
+        quality_pruning_func=args.quality_pruning_func,
+        diversity_pruning_func=args.diversity_pruning_func,
+        diversity_pruning_amount=args.diversity_pruning_amount,
+    )
