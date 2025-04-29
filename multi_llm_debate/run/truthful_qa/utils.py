@@ -15,16 +15,19 @@ DATASET_PATH = "datasets/TruthfulQA"
 def load_truthful_qa_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
     dataset_name: str = "domenicrosati/TruthfulQA",
+    random_state: int = 42,
 ) -> pd.DataFrame:
-    """Load the TruthfulQA dataset.
+    """Load and preprocess the TruthfulQA dataset.
 
     Args:
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
         dataset_name: Name of the dataset to load from Hugging Face.
+        random_state: Random seed for shuffling and answer assignment.
 
     Returns:
-        pd.DataFrame: DataFrame containing the TruthfulQA data with randomized order.
+        pd.DataFrame: Processed DataFrame with all required columns and
+            multiple-choice format.
     """
     # Initialize empty DataFrame
     df = None
@@ -36,28 +39,10 @@ def load_truthful_qa_dataset(
         logger.error(f"Failed to load dataset from Hugging Face: {e}")
         raise e
 
-    return df
-
-
-def preprocess_truthful_qa_dataframe(
-    dataframe: pd.DataFrame,
-    random_state: int = 42,
-) -> pd.DataFrame:
-    """Preprocess the TruthfulQA DataFrame to ensure it has all required columns.
-
-    Args:
-        dataframe: Input DataFrame from TruthfulQA dataset.
-        random_state: Random seed for shuffling. If None, the dataset will be
-            randomized differently each time.
-
-    Returns:
-        pd.DataFrame: Processed DataFrame with all required columns and
-            multiple-choice format.
-    """
-    if dataframe is None:
+    if df is None:
         raise ValueError("Input DataFrame is None. Please load the dataset first.")
 
-    df = dataframe.copy()
+    df = df.copy()
     random.seed(random_state)
 
     # Create ID column if missing
@@ -65,7 +50,7 @@ def preprocess_truthful_qa_dataframe(
         df["id"] = df.index + 1
 
     # Helper to choose random answers
-    def _random_answer(answers_str):
+    def _random_answer(answers_str: str) -> Optional[str]:
         answers = [a.strip() for a in answers_str.split(";") if a.strip()]
         return random.choice(answers) if answers else None
 
@@ -73,7 +58,7 @@ def preprocess_truthful_qa_dataframe(
     df["correct_ans"] = df["Correct Answers"].apply(_random_answer)
 
     # Select two distinct incorrect answers
-    def _two_wrong_answers(answers_str):
+    def _two_wrong_answers(answers_str: str) -> tuple[Optional[str], Optional[str]]:
         answers = [a.strip() for a in answers_str.split(";") if a.strip()]
         if len(answers) < 2:
             return (answers[0], answers[0]) if answers else (None, None)
@@ -87,7 +72,7 @@ def preprocess_truthful_qa_dataframe(
     df["answer"] = random.choices(["A", "B", "C"], k=len(df))
 
     # Map answers to options
-    def _map_options(row):
+    def _map_options(row: pd.Series) -> tuple[Optional[str], Optional[str], Optional[str]]:
         opts = {"A": None, "B": None, "C": None}
         opts[row["answer"]] = row["correct_ans"]
         others = [o for o in opts if o != row["answer"]]
@@ -151,10 +136,9 @@ def main() -> None:
     df = load_truthful_qa_dataset(
         "/Users/tyrionhuu/projects/research_projects/Multi-LLM-Debate/datasets/TruthfulQA"
     )
-    processed_df = preprocess_truthful_qa_dataframe(df)
-    print(processed_df.head())
+    print(df.head())
     # Count each answer
-    counts = processed_df["answer"].value_counts()
+    counts = df["answer"].value_counts()
     print("Answer counts:\n", counts)
 
 
