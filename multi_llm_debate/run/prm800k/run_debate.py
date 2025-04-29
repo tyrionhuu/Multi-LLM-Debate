@@ -7,13 +7,11 @@ import pandas as pd
 from ...llm.prompt_builder import PromptBuilder
 from ...utils.model_config import ModelConfig
 from ..shared.run import process_debate_dataset, process_single_debate_entry
-from .prompts import (
-    build_prm800k_round_n_prompt,
-    build_prm800k_round_zero_prompt,
-)
+from .prompts import build_prm800k_round_n_prompt, build_prm800k_round_zero_prompt
 from .utils import extract_int_list
 
 logger = logging.getLogger(__name__)
+
 
 def process_prm800k_dataset(
     dataframe: pd.DataFrame,
@@ -77,7 +75,8 @@ def process_prm800k_dataset(
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
-    
+
+
 def process_single_prm800k_entry(
     entry: pd.Series,
     max_rounds: int = 10,
