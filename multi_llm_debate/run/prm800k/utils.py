@@ -138,5 +138,4 @@ if __name__ == "__main__":
     # Example usage
     df = load_prm800k_dataset()
     processed_df = preprocess_prm800k_dataset(df, random_state=42)
-    print(processed_df.head())
-    print(processed_df.iloc[0].to_dict())  # Print the first row as a dictionary
+    print(processed_df.info())
