@@ -1,20 +1,27 @@
 import json
 import re
 from pathlib import Path
-from typing import Literal, Union
-
+from typing import Literal, Union, Optional
+import logging
+import random
 import pandas as pd
+logger = logging.getLogger(__name__)
 
 JSON_PATH = "datasets/BIG-Bench/sports_understanding/task.json"
+RANDOM_STATE = 42
+random.seed(RANDOM_STATE)
 
-
-def load_big_bench_dataset(json_path: Union[str, Path] = JSON_PATH) -> pd.DataFrame:
+def load_big_bench_dataset(
+    json_path: Union[str, Path] = JSON_PATH,
+    sample_size: Optional[int] = None,
+) -> pd.DataFrame:
     """
     Convert a JSON file to a DataFrame with an added 'id' column.
 
     Args:
         json_path (Union[str, Path]): Path to the JSON file.
-
+        sample_size (Optional[int]): If provided, the DataFrame will be sampled to this size.
+        
     Returns:
         pd.DataFrame: DataFrame containing the data from the JSON file,
             with columns 'id', 'input', and 'answer'.
@@ -34,7 +41,19 @@ def load_big_bench_dataset(json_path: Union[str, Path] = JSON_PATH) -> pd.DataFr
 
         # Select and reorder columns
         df = df[["input", "answer"]]
-        df.insert(0, "id", range(len(df)))
+        df = df.copy()
+        df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
+        df["id"] = range(len(df))
+        
+        if sample_size is not None:
+            if sample_size > len(df):
+                logger.warning(
+                    f"Sample size {sample_size} is larger than the dataset size {len(df)}. "
+                    "Using the full dataset instead."
+                )
+            df = df.head(sample_size)
+            
+        logger.info(f"Loaded {len(df)} examples from {json_path}")
         return df
     except ValueError as e:
         raise ValueError(f"Error reading JSON file {json_path}: {e}")
