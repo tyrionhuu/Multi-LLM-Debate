@@ -19,7 +19,7 @@ def main(
     sample_size: Optional[int] = None,
     config: Optional[Union[Path, List[Dict]]] = None,
     config_json: Optional[str] = None,
-    random_seed: Optional[int] = None,
+    random_seed: Optional[int] = 42,
     run_debate: bool = True,
     temperature: float = 1.0,
     max_tokens: int = 6400,

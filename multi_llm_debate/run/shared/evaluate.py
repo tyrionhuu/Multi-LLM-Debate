@@ -1,7 +1,8 @@
 import json
 import logging
 from pathlib import Path
-from typing import Callable, Dict, NamedTuple, Optional
+from typing import Callable, Dict, List, NamedTuple, Optional, Tuple, Union
+import concurrent.futures
 
 import pandas as pd
 
@@ -18,18 +19,62 @@ class EvaluationResults(NamedTuple):
     ensemble_accuracy: float
 
 
+def _process_debate_entry(
+    entry: pd.Series, 
+    response_base_dir: Path, 
+    evaluation_func: Callable
+) -> Optional[bool]:
+    """Process a single entry for debate evaluation.
+    
+    Args:
+        entry: DataFrame row containing question data
+        response_base_dir: Directory containing response files
+        evaluation_func: Function to evaluate correctness
+    
+    Returns:
+        Optional[bool]: True if correct, False if incorrect, None if entry skipped
+    """
+    try:
+        answer = entry["answer"]
+        id_ = str(entry["id"])
+
+        # Load responses from the corresponding file
+        responses_dir = response_base_dir / id_
+        
+        # Get the final response file
+        final_response_file = get_latest_round_file(responses_dir)
+        
+        with open(final_response_file, "r") as f:
+            responses = json.load(f)
+        
+        # Skip if no valid responses
+        if not responses:
+            return None
+        
+        # Evaluate the responses
+        return evaluation_func(responses, answer)
+    
+    except Exception as e:
+        logger.error(f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}")
+        return None
+
+
 def evaluate_debate_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
     evaluation_func: Optional[Callable] = None,
+    num_workers: int = 4,
+    use_processes: bool = True,
 ) -> float:
     """Evaluate the Boolean Question task on a DataFrame.
 
     Args:
-        response_dir: Directory containing response files.
+        response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing question, answer, passage and id.
         evaluation_func: Function that takes (responses, answer) and returns bool.
             Must accept List[Dict] as responses and str/bool as answer.
+        num_workers: Number of parallel workers to use.
+        use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
     Returns:
         float: Accuracy score (number of correct answers / total valid responses)
@@ -37,55 +82,27 @@ def evaluate_debate_df(
     if evaluation_func is None:
         raise ValueError("evaluation_func must be provided")
 
-    correct_count = 0
-    valid_count = 0
-
-    logger.info(f"Starting debate evaluation on {len(dataframe)} entries...")
-
-    for i, (_, entry) in enumerate(dataframe.iterrows()):
-        if i % 10 == 0:
-            logger.info(f"Processing entry {i}/{len(dataframe)}")
-
-        try:
-            answer = entry["answer"]
-            id_ = str(entry["id"])
-
-            logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
-
-            # Load responses from the corresponding file
-            responses_dir = response_base_dir / id_
-            logger.debug(f"Looking for responses in: {responses_dir}")
-
-            # Get the final response file
-            final_response_file = get_latest_round_file(responses_dir)
-            logger.debug(f"Using final response file: {final_response_file}")
-
-            with open(final_response_file, "r") as f:
-                responses = json.load(f)
-                logger.debug(f"Loaded {len(responses)} responses")
-
-            # Skip if no valid responses
-            if not responses:
-                logger.warning("No valid responses found, skipping")
-                continue
-
-            # Evaluate the responses
-            is_correct = evaluation_func(responses, answer)
-            valid_count += 1
-            if is_correct:
-                correct_count += 1
-                logger.debug(
-                    f"Correct! Current accuracy: {correct_count}/{valid_count}"
-                )
-            else:
-                logger.debug(
-                    f"Incorrect. Current accuracy: {correct_count}/{valid_count}"
-                )
-
-        except Exception as e:
-            logger.error(f"Error processing entry {id_}: {str(e)}")
-            continue
-
+    logger.info(f"Starting debate evaluation on {len(dataframe)} entries with {num_workers} workers...")
+    
+    executor_class = concurrent.futures.ProcessPoolExecutor if use_processes else concurrent.futures.ThreadPoolExecutor
+    
+    results = []
+    with executor_class(max_workers=num_workers) as executor:
+        futures = []
+        for _, entry in dataframe.iterrows():
+            future = executor.submit(_process_debate_entry, entry, response_base_dir, evaluation_func)
+            futures.append(future)
+        
+        for i, future in enumerate(concurrent.futures.as_completed(futures)):
+            if i % 10 == 0:
+                logger.info(f"Completed {i}/{len(futures)} tasks")
+            results.append(future.result())
+    
+    # Filter out None results and count correct ones
+    valid_results = [result for result in results if result is not None]
+    correct_count = sum(1 for result in valid_results if result)
+    valid_count = len(valid_results)
+    
     # Calculate and output accuracy using valid responses
     accuracy = correct_count / valid_count if valid_count > 0 else 0
     logger.info(f"Overall Accuracy: {accuracy:.2%}")
@@ -94,18 +111,63 @@ def evaluate_debate_df(
     return accuracy
 
 
+def _process_single_llm_entry(
+    entry: pd.Series, 
+    response_base_dir: Path, 
+    evaluation_func: Callable
+) -> Optional[bool]:
+    """Process a single entry for single LLM evaluation.
+    
+    Args:
+        entry: DataFrame row containing question data
+        response_base_dir: Directory containing response files
+        evaluation_func: Function to evaluate correctness
+    
+    Returns:
+        Optional[bool]: True if correct, False if incorrect, None if entry skipped
+    """
+    try:
+        answer = entry["answer"]
+        id_ = str(entry["id"])
+
+        # Load responses from the first debate round file
+        responses_dir = response_base_dir / id_
+        first_response_file = responses_dir / "debate_round_0.json"
+        
+        with open(first_response_file, "r") as f:
+            responses = json.load(f)
+        
+        # Skip if no valid responses
+        if not responses:
+            return None
+        
+        # Only use the first response
+        first_response = responses[0]
+        
+        # Create a list with single response for consistent interface
+        return evaluation_func([first_response], answer)
+    
+    except Exception as e:
+        logger.error(f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}")
+        return None
+
+
 def evaluate_single_llm_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
     evaluation_func: Optional[Callable] = None,
+    num_workers: int = 4,
+    use_processes: bool = True,
 ) -> float:
     """Evaluate the Boolean Question task using first answer as single LLM response.
 
     Args:
-        response_dir: Directory containing response files.
+        response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing question, answer, passage and id.
         evaluation_func: Function that takes (responses, answer) and returns bool.
             Must accept List[Dict] as responses and str/bool as answer.
+        num_workers: Number of parallel workers to use.
+        use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
     Returns:
         float: Accuracy score using first answer as single LLM response.
@@ -113,62 +175,112 @@ def evaluate_single_llm_df(
     if evaluation_func is None:
         raise ValueError("evaluation_func must be provided")
 
-    correct_count = 0
-    valid_count = 0
-
-    logger.info(f"Starting single LLM evaluation on {len(dataframe)} entries...")
-
-    for i, (_, entry) in enumerate(dataframe.iterrows()):
-        if i % 10 == 0:
-            logger.info(f"Processing entry {i}/{len(dataframe)}")
-
-        try:
-            answer = entry["answer"]
-            id_ = str(entry["id"])
-
-            logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
-
-            # Load responses from the first debate round file
-            responses_dir = response_base_dir / id_
-            first_response_file = responses_dir / "debate_round_0.json"
-            logger.debug(f"Looking for first round response: {first_response_file}")
-
-            with open(first_response_file, "r") as f:
-                responses = json.load(f)
-                logger.debug(f"Loaded {len(responses)} responses from first round")
-
-            # Skip if no valid responses
-            if not responses:
-                logger.warning("No valid responses found, skipping")
-                continue
-
-            # Only use the first response
-            first_response = responses[0]
-            logger.debug("Using first response for evaluation")
-
-            # Create a list with single response for consistent interface
-            is_correct = evaluation_func([first_response], answer)
-            valid_count += 1
-            if is_correct:
-                correct_count += 1
-                logger.debug(
-                    f"Correct! Current accuracy: {correct_count}/{valid_count}"
-                )
-            else:
-                logger.debug(
-                    f"Incorrect. Current accuracy: {correct_count}/{valid_count}"
-                )
-
-        except Exception as e:
-            logger.error(f"Error processing entry {id_}: {str(e)}")
-            continue
-
+    logger.info(f"Starting single LLM evaluation on {len(dataframe)} entries with {num_workers} workers...")
+    
+    executor_class = concurrent.futures.ProcessPoolExecutor if use_processes else concurrent.futures.ThreadPoolExecutor
+    
+    results = []
+    with executor_class(max_workers=num_workers) as executor:
+        futures = []
+        for _, entry in dataframe.iterrows():
+            future = executor.submit(_process_single_llm_entry, entry, response_base_dir, evaluation_func)
+            futures.append(future)
+        
+        for i, future in enumerate(concurrent.futures.as_completed(futures)):
+            if i % 10 == 0:
+                logger.info(f"Completed {i}/{len(futures)} tasks")
+            results.append(future.result())
+    
+    # Filter out None results and count correct ones
+    valid_results = [result for result in results if result is not None]
+    correct_count = sum(1 for result in valid_results if result)
+    valid_count = len(valid_results)
+    
     # Calculate and output accuracy using valid responses
     accuracy = correct_count / valid_count if valid_count > 0 else 0
     logger.info(f"Single LLM Accuracy: {accuracy:.2%}")
     logger.info(f"Valid single LLM responses: {valid_count}/{len(dataframe)}")
 
     return accuracy
+
+
+def _process_ensemble_entry(
+    entry: pd.Series, 
+    response_base_dir: Path, 
+    extract_func: Callable,
+    evaluation_func: Callable,
+    answer_entry: str = "answer",
+    id_entry: str = "id",
+    response_entry: str = "response"
+) -> Optional[bool]:
+    """Process a single entry for ensemble evaluation.
+    
+    Args:
+        entry: DataFrame row containing question data
+        response_base_dir: Directory containing response files
+        extract_func: Function to extract and normalize responses
+        evaluation_func: Function to evaluate correctness
+        answer_entry: Column name for the correct answer
+        id_entry: Column name for the unique identifier
+        response_entry: Column name for the response
+    
+    Returns:
+        Optional[bool]: True if correct, False if incorrect, None if entry skipped
+    """
+    try:
+        answer = entry[answer_entry]
+        id_ = str(entry[id_entry])
+
+        # Load responses from the first debate round file
+        responses_dir = response_base_dir / id_
+        first_response_file = responses_dir / "debate_round_0.json"
+        
+        with open(first_response_file, "r") as f:
+            responses = json.load(f)
+        
+        # Skip if no valid responses
+        if not responses:
+            return None
+        
+        # Get all responses and their normalized answers
+        raw_responses = [response[response_entry] for response in responses]
+
+        # Create a list of (normalized_response, raw_response) pairs
+        response_pairs = []
+        for raw in raw_responses:
+            normalized = extract_func(raw)
+            if normalized:  # Only include valid normalized responses
+                response_pairs.append((normalized, raw))
+
+        if not response_pairs:
+            return None
+
+        # Count occurrences of each normalized response
+        response_counts: Dict[str, int] = {}
+        for normalized, _ in response_pairs:
+            response_counts[normalized] = response_counts.get(normalized, 0) + 1
+
+        # Get majority normalized response
+        majority_normalized = max(response_counts.items(), key=lambda x: x[1])[0]
+
+        # Check if it's a true majority (more than half)
+        total_votes = sum(response_counts.values())
+        if response_counts[majority_normalized] <= total_votes / 2:
+            return None
+
+        # Find the original raw response that corresponds to the majority normalized response
+        majority_raw = next(
+            raw for norm, raw in response_pairs if norm == majority_normalized
+        )
+
+        # Compare with correct answer using the raw response
+        return evaluation_func(
+            [{response_entry: majority_raw}], entry[answer_entry]
+        )
+    
+    except Exception as e:
+        logger.error(f"Error processing entry {entry.get(id_entry, 'unknown')}: {str(e)}")
+        return None
 
 
 def evaluate_ensemble_df(
@@ -179,6 +291,8 @@ def evaluate_ensemble_df(
     answer_entry: str = "answer",
     id_entry: str = "id",
     response_entry: str = "response",
+    num_workers: int = 4,
+    use_processes: bool = True,
 ) -> float:
     """Evaluate using majority vote from first round responses.
 
@@ -190,95 +304,42 @@ def evaluate_ensemble_df(
         answer_entry: Column name for the correct answer in the DataFrame.
         id_entry: Column name for the unique identifier in the DataFrame.
         response_entry: Column name for the response in the DataFrame.
+        num_workers: Number of parallel workers to use.
+        use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
     Returns:
         float: Accuracy score using majority vote from first round responses.
     """
-    correct_count = 0
-    valid_count = 0
-
-    logger.info(f"Starting ensemble evaluation on {len(dataframe)} entries...")
-
-    for i, (_, entry) in enumerate(dataframe.iterrows()):
-        if i % 10 == 0:
-            logger.info(f"Processing entry {i}/{len(dataframe)}")
-
-        try:
-            answer = entry[answer_entry]
-            id_ = str(entry[id_entry])
-
-            logger.debug(f"Evaluating ID: {id_}, expected answer: {answer}")
-
-            # Load responses from the first debate round file
-            responses_dir = response_base_dir / id_
-            first_response_file = responses_dir / "debate_round_0.json"
-            logger.debug(f"Looking for first round responses: {first_response_file}")
-
-            with open(first_response_file, "r") as f:
-                responses = json.load(f)
-                logger.debug(f"Loaded {len(responses)} responses from first round")
-
-            # Skip if no valid responses
-            if not responses:
-                logger.warning("No valid responses found, skipping")
-                continue
-
-            # Get all responses and their normalized answers
-            raw_responses = [response[response_entry] for response in responses]
-
-            # Create a list of (normalized_response, raw_response) pairs
-            response_pairs = []
-            for raw in raw_responses:
-                normalized = extract_func(raw)
-                if normalized:  # Only include valid normalized responses
-                    response_pairs.append((normalized, raw))
-
-            if not response_pairs:
-                logger.warning("No valid normalized responses found, skipping")
-                continue
-
-            # Count occurrences of each normalized response
-            response_counts: Dict[str, int] = {}
-            for normalized, _ in response_pairs:
-                response_counts[normalized] = response_counts.get(normalized, 0) + 1
-
-            # Get majority normalized response
-            majority_normalized = max(response_counts.items(), key=lambda x: x[1])[0]
-
-            # Check if it's a true majority (more than half)
-            total_votes = sum(response_counts.values())
-            if response_counts[majority_normalized] <= total_votes / 2:
-                logger.warning("No majority response found, skipping")
-                continue
-
-            # Find the original raw response that corresponds to the majority normalized response
-            # Use the first one found if there are multiple matches
-            majority_raw = next(
-                raw for norm, raw in response_pairs if norm == majority_normalized
+    logger.info(f"Starting ensemble evaluation on {len(dataframe)} entries with {num_workers} workers...")
+    
+    executor_class = concurrent.futures.ProcessPoolExecutor if use_processes else concurrent.futures.ThreadPoolExecutor
+    
+    results = []
+    with executor_class(max_workers=num_workers) as executor:
+        futures = []
+        for _, entry in dataframe.iterrows():
+            future = executor.submit(
+                _process_ensemble_entry, 
+                entry, 
+                response_base_dir, 
+                extract_func, 
+                evaluation_func, 
+                answer_entry, 
+                id_entry, 
+                response_entry
             )
-
-            logger.debug(f"Majority normalized response: {majority_normalized}")
-            logger.debug(f"Corresponding raw response: {majority_raw}")
-
-            # Compare with correct answer using the raw response
-            is_correct = evaluation_func(
-                [{response_entry: majority_raw}], entry[answer_entry]
-            )
-            valid_count += 1
-            if is_correct:
-                correct_count += 1
-                logger.debug(
-                    f"Correct! Current accuracy: {correct_count}/{valid_count}"
-                )
-            else:
-                logger.debug(
-                    f"Incorrect. Current accuracy: {correct_count}/{valid_count}"
-                )
-
-        except Exception as e:
-            logger.error(f"Error processing entry {id_}: {str(e)}")
-            continue
-
+            futures.append(future)
+        
+        for i, future in enumerate(concurrent.futures.as_completed(futures)):
+            if i % 10 == 0:
+                logger.info(f"Completed {i}/{len(futures)} tasks")
+            results.append(future.result())
+    
+    # Filter out None results and count correct ones
+    valid_results = [result for result in results if result is not None]
+    correct_count = sum(1 for result in valid_results if result)
+    valid_count = len(valid_results)
+    
     # Calculate and output accuracy using valid responses
     accuracy = correct_count / valid_count if valid_count > 0 else 0
     logger.info(f"Ensemble Accuracy (First Round Majority): {accuracy:.2%}")
@@ -296,6 +357,8 @@ def evaluate_all(
     answer_entry: str = "answer",
     id_entry: str = "id",
     response_entry: str = "response",
+    num_workers: int = 4,
+    use_processes: bool = True,
 ) -> EvaluationResults:
     """Run all evaluation methods and return their results.
 
@@ -305,6 +368,11 @@ def evaluate_all(
         extract_func: Function to extract and normalize response strings.
         evaluation_func: Function to evaluate if response matches answer.
         multiple_models: Whether multiple model types are being evaluated.
+        answer_entry: Column name for the correct answer in the DataFrame.
+        id_entry: Column name for the unique identifier in the DataFrame.
+        response_entry: Column name for the response in the DataFrame.
+        num_workers: Number of parallel workers to use.
+        use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
     Returns:
         EvaluationResults: Named tuple containing accuracies for all three methods.
@@ -312,9 +380,14 @@ def evaluate_all(
     logger.info("Running debate evaluation...")
     logger.info(f"Processing data directory: {response_base_dir}")
     logger.info(f"Dataset contains {len(dataframe)} entries")
+    logger.info(f"Using {num_workers} workers with {'processes' if use_processes else 'threads'}")
 
     debate_acc = evaluate_debate_df(
-        response_base_dir, dataframe, evaluation_func=evaluation_func
+        response_base_dir, 
+        dataframe, 
+        evaluation_func=evaluation_func,
+        num_workers=num_workers,
+        use_processes=use_processes
     )
 
     # Only run single LLM evaluation for single model type
@@ -322,7 +395,11 @@ def evaluate_all(
     if not multiple_models:
         logger.info("Running single LLM evaluation...")
         single_acc = evaluate_single_llm_df(
-            response_base_dir, dataframe, evaluation_func=evaluation_func
+            response_base_dir, 
+            dataframe, 
+            evaluation_func=evaluation_func,
+            num_workers=num_workers,
+            use_processes=use_processes
         )
 
     logger.info("Running ensemble evaluation...")
@@ -334,6 +411,8 @@ def evaluate_all(
         answer_entry=answer_entry,
         id_entry=id_entry,
         response_entry=response_entry,
+        num_workers=num_workers,
+        use_processes=use_processes
     )
 
     logger.info("Summary of all evaluation methods:")
