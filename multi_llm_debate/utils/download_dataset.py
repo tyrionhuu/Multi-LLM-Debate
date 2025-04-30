@@ -186,6 +186,7 @@ def main() -> None:
         dataset_name="shuaishuaicdp/MLLM-Judge",
         dataset_path=Path("datasets/MLLM-Judge"),
         force_download=False,
+        split="train",
     )
     print(df.columns)
 

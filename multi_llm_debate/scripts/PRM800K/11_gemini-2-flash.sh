@@ -19,6 +19,8 @@ python -m multi_llm_debate.run.prm800k.main \
     --task-name "prm800k" \
     --batch \
     --batch-size 11 \
+    --sample-size 1000
+
 # Run the evaluation using module path with direct JSON config
 python -m multi_llm_debate.run.prm800k.main \
     --config-json "$CONFIG" \
@@ -27,3 +29,4 @@ python -m multi_llm_debate.run.prm800k.main \
     --diversity-pruning-amount 7 \
     --batch \
     --batch-size 11 \
+    --sample-size 1000
