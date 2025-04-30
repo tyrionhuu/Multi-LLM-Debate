@@ -140,9 +140,9 @@ def diversity_pruning_by_answer(
             raise ValueError(
                 "All responses must have a valid final answer for diversity pruning by answer."
             )
-        # Serialize non-str extracted answers for uniqueness comparison
-        if not isinstance(extracted_response, str):
-            extracted_response_for_set = json.dumps(extracted_response, sort_keys=True)
+        # Convert list extracted answers to str for uniqueness comparison
+        if isinstance(extracted_response, list):
+            extracted_response_for_set = str(extracted_response)
         else:
             extracted_response_for_set = extracted_response
         extracted_answers.append((extracted_response, extracted_response_for_set))
