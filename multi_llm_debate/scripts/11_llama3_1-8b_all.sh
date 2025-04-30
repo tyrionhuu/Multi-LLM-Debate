@@ -12,7 +12,7 @@ while getopts "g:" opt; do
     esac
 done
 
-$(pwd)/multi_llm_debate/scripts/PRM800K/11_llama3_1-8b.sh -g "$GPU"
+# $(pwd)/multi_llm_debate/scripts/PRM800K/11_llama3_1-8b.sh -g "$GPU"
 
 $(pwd)/multi_llm_debate/scripts/COMP-Analysis/11_llama3_1-8b.sh -g "$GPU"
 
