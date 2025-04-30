@@ -98,7 +98,8 @@ def diversity_pruning_by_answer(
     round_number: int = 0,
     **kwargs,
 ) -> List[str]:
-    """Select a subset of responses that maximizes information entropy on final answers.
+    """
+    Select a subset of responses that maximizes information entropy on final answers.
 
     This function selects responses with different final answers. If there are fewer
     unique answers than the requested amount, additional responses will be included
@@ -139,17 +140,22 @@ def diversity_pruning_by_answer(
             raise ValueError(
                 "All responses must have a valid final answer for diversity pruning by answer."
             )
-        extracted_answers.append(extracted_response)
+        # Serialize non-str extracted answers for uniqueness comparison
+        if not isinstance(extracted_response, str):
+            extracted_response_for_set = json.dumps(extracted_response, sort_keys=True)
+        else:
+            extracted_response_for_set = extracted_response
+        extracted_answers.append((extracted_response, extracted_response_for_set))
 
     # Select responses with different answers
     selected_indices = []
     seen_answers = set()
 
     # First pass: collect responses with unique answers
-    for i, answer in enumerate(extracted_answers):
-        if answer not in seen_answers and len(selected_indices) < selected_amount:
+    for i, (answer, answer_for_set) in enumerate(extracted_answers):
+        if answer_for_set not in seen_answers and len(selected_indices) < selected_amount:
             selected_indices.append(i)
-            seen_answers.add(answer)
+            seen_answers.add(answer_for_set)
 
     # Second pass: if we don't have enough responses, add more even if answers repeat
     if len(selected_indices) < selected_amount:
