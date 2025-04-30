@@ -16,7 +16,8 @@ def diversity_pruning_by_embedding(
     round_number: int = 0,
     **kwargs,
 ) -> List[str]:
-    """Select a subset of responses that maximizes information entropy.
+    """
+    Select a subset of responses that maximizes information entropy.
 
     The algorithm selects k responses from n candidates that maximize the total
     Kullback-Leibler (KL) divergence between selected responses. This ensures
