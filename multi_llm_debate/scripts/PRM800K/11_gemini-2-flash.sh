@@ -22,11 +22,11 @@ python -m multi_llm_debate.run.prm800k.main \
     --sample-size 1000
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.prm800k.main \
-    --config-json "$CONFIG" \
-    --task-name "prm800k_pruning" \
-    --diversity-pruning "answer" \
-    --diversity-pruning-amount 7 \
-    --batch \
-    --batch-size 11 \
-    --sample-size 1000
+# python -m multi_llm_debate.run.prm800k.main \
+#     --config-json "$CONFIG" \
+#     --task-name "prm800k_pruning" \
+#     --diversity-pruning "answer" \
+#     --diversity-pruning-amount 7 \
+#     --batch \
+#     --batch-size 11 \
+#     --sample-size 1000

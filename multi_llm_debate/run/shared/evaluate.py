@@ -2,7 +2,7 @@ import concurrent.futures
 import json
 import logging
 from pathlib import Path
-from typing import Callable, Dict, NamedTuple, Optional
+from typing import Callable, Dict, NamedTuple, Optional, List
 
 import pandas as pd
 
@@ -256,32 +256,37 @@ def _process_ensemble_entry(
         # Get all responses and their normalized answers
         raw_responses = [response[response_entry] for response in responses]
 
-        # Create a list of (normalized_response, raw_response) pairs
+        # Create a list of (normalized_response, raw_response, original_normalized) tuples
         response_pairs = []
         for raw in raw_responses:
             normalized = extract_func(raw)
-            if normalized:  # Only include valid normalized responses
-                response_pairs.append((normalized, raw))
+            if normalized is not None:  # Only include valid normalized responses
+                # Handle lists by converting to string representation for hashing
+                if isinstance(normalized, List):
+                    # Store original value and use string representation as key
+                    response_pairs.append((str(normalized), raw, normalized))
+                else:
+                    response_pairs.append((normalized, raw, normalized))
 
         if not response_pairs:
             return None
 
-        # Count occurrences of each normalized response
+        # Count occurrences of each normalized response (using string representation if needed)
         response_counts: Dict[str, int] = {}
-        for normalized, _ in response_pairs:
-            response_counts[normalized] = response_counts.get(normalized, 0) + 1
+        for key, _, _ in response_pairs:
+            response_counts[key] = response_counts.get(key, 0) + 1
 
-        # Get majority normalized response
-        majority_normalized = max(response_counts.items(), key=lambda x: x[1])[0]
+        # Get majority normalized response key
+        majority_key = max(response_counts.items(), key=lambda x: x[1])[0]
 
         # Check if it's a true majority (more than half)
         total_votes = sum(response_counts.values())
-        if response_counts[majority_normalized] <= total_votes / 2:
+        if response_counts[majority_key] <= total_votes / 2:
             return None
 
         # Find the original raw response that corresponds to the majority normalized response
         majority_raw = next(
-            raw for norm, raw in response_pairs if norm == majority_normalized
+            raw for key, raw, _ in response_pairs if key == majority_key
         )
 
         # Compare with correct answer using the raw response
