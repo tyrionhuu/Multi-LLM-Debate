@@ -153,7 +153,10 @@ def diversity_pruning_by_answer(
 
     # First pass: collect responses with unique answers
     for i, (answer, answer_for_set) in enumerate(extracted_answers):
-        if answer_for_set not in seen_answers and len(selected_indices) < selected_amount:
+        if (
+            answer_for_set not in seen_answers
+            and len(selected_indices) < selected_amount
+        ):
             selected_indices.append(i)
             seen_answers.add(answer_for_set)
 
