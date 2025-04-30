@@ -2,7 +2,7 @@ import concurrent.futures
 import json
 import logging
 from pathlib import Path
-from typing import Callable, Dict, NamedTuple, Optional, List
+from typing import Callable, Dict, List, NamedTuple, Optional
 
 import pandas as pd
 
