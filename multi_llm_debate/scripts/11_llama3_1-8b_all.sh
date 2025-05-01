@@ -20,6 +20,6 @@ $(pwd)/multi_llm_debate/scripts/BIG-Bench/11_llama3_1-8b.sh -g "$GPU"
 
 $(pwd)/multi_llm_debate/scripts/HalluDial/11_llama3_1-8b.sh -g "$GPU"
 
-$(pwd)/multi_llm_debate/scripts/ICE-Score/11_llama3_1-8b.sh -g "$GPU"
+# $(pwd)/multi_llm_debate/scripts/ICE-Score/11_llama3_1-8b.sh -g "$GPU"
 
-$(pwd)/multi_llm_debate/scripts/JudgeBench/11_llama3_1-8b.sh -g "$GPU"
+# $(pwd)/multi_llm_debate/scripts/JudgeBench/11_llama3_1-8b.sh -g "$GPU"
