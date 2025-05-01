@@ -1,8 +1,9 @@
 import concurrent.futures
 import json
 import logging
+import math
 from pathlib import Path
-from typing import Callable, Dict, List, NamedTuple, Optional
+from typing import Callable, Dict, List, NamedTuple, Optional, Tuple
 
 import pandas as pd
 
@@ -17,6 +18,46 @@ class EvaluationResults(NamedTuple):
     debate_accuracy: float
     single_llm_accuracy: float
     ensemble_accuracy: float
+    # Confidence intervals (lower, upper) for each accuracy
+    debate_ci: Tuple[float, float]
+    single_llm_ci: Tuple[float, float]
+    ensemble_ci: Tuple[float, float]
+
+
+def wilson_score_interval(
+    correct: int, total: int, confidence: float = 0.95
+) -> Tuple[float, float]:
+    """Calculate Wilson score interval for binomial proportion.
+
+    Args:
+        correct: Number of successful trials
+        total: Total number of trials
+        confidence: Confidence level (default: 0.95 for 95% confidence)
+
+    Returns:
+        Tuple[float, float]: Lower and upper bounds of confidence interval
+    """
+    if total == 0:
+        return (0.0, 0.0)
+
+    # z-score for the given confidence level
+    z = {
+        0.90: 1.645,
+        0.95: 1.96,
+        0.99: 2.576
+    }.get(confidence, 1.96)
+
+    p = float(correct) / total
+    denominator = 1.0 + z * z / total
+    centre_adjusted_probability = p + z * z / (2 * total)
+    adjusted_standard_deviation = math.sqrt(
+        (p * (1 - p) + z * z / (4 * total)) / total
+    )
+
+    lower = (centre_adjusted_probability - z * adjusted_standard_deviation) / denominator
+    upper = (centre_adjusted_probability + z * adjusted_standard_deviation) / denominator
+
+    return (max(0.0, lower), min(1.0, upper))
 
 
 def _process_debate_entry(
@@ -63,7 +104,7 @@ def evaluate_debate_df(
     evaluation_func: Optional[Callable] = None,
     num_workers: int = 4,
     use_processes: bool = True,
-) -> float:
+) -> Tuple[float, Tuple[float, float]]:
     """Evaluate the Boolean Question task on a DataFrame.
 
     Args:
@@ -75,7 +116,7 @@ def evaluate_debate_df(
         use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
     Returns:
-        float: Accuracy score (number of correct answers / total valid responses)
+        Tuple[float, Tuple[float, float]]: Accuracy score and confidence interval tuple
     """
     if evaluation_func is None:
         raise ValueError("evaluation_func must be provided")
@@ -109,12 +150,14 @@ def evaluate_debate_df(
     correct_count = sum(1 for result in valid_results if result)
     valid_count = len(valid_results)
 
-    # Calculate and output accuracy using valid responses
+    # Calculate accuracy and confidence interval
     accuracy = correct_count / valid_count if valid_count > 0 else 0
-    logger.info(f"Overall Accuracy: {accuracy:.2%}")
+    ci = wilson_score_interval(correct_count, valid_count)
+
+    logger.info(f"Overall Accuracy: {accuracy:.2%} (95% CI: {ci[0]:.2%}-{ci[1]:.2%})")
     logger.info(f"Valid responses: {valid_count}/{len(dataframe)}")
 
-    return accuracy
+    return accuracy, ci
 
 
 def evaluate_single_llm_df(
@@ -123,7 +166,7 @@ def evaluate_single_llm_df(
     evaluation_func: Optional[Callable] = None,
     num_workers: int = 4,
     use_processes: bool = True,
-) -> float:
+) -> Tuple[float, Tuple[float, float]]:
     """Evaluate the task using all first round answers, averaging correct rate per entry.
 
     Args:
@@ -135,7 +178,7 @@ def evaluate_single_llm_df(
         use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
     Returns:
-        float: Average correct rate per entry (mean of correct fraction per entry).
+        Tuple[float, Tuple[float, float]]: Average correct rate and confidence interval
     """
     if evaluation_func is None:
         raise ValueError("evaluation_func must be provided")
@@ -193,15 +236,30 @@ def evaluate_single_llm_df(
                 logger.info(f"Completed {i}/{len(futures)} tasks")
             results.append(future.result())
 
-    # Filter out None results and compute mean correct rate
+    # Filter out None results and compute mean and standard error
     valid_results = [result for result in results if result is not None]
     valid_count = len(valid_results)
-    mean_correct_rate = sum(valid_results) / valid_count if valid_count > 0 else 0.0
 
-    logger.info(f"Single LLM Average Correct Rate: {mean_correct_rate:.2%}")
+    if valid_count == 0:
+        return 0.0, (0.0, 0.0)
+
+    mean_correct_rate = sum(valid_results) / valid_count
+
+    # For averaging rates, we can use normal approximation
+    # Standard error of the mean
+    if valid_count > 1:
+        std_dev = math.sqrt(sum((x - mean_correct_rate) ** 2 for x in valid_results) / (valid_count - 1))
+        std_error = std_dev / math.sqrt(valid_count)
+        margin = 1.96 * std_error  # 95% confidence
+        ci = (max(0.0, mean_correct_rate - margin), min(1.0, mean_correct_rate + margin))
+    else:
+        # Can't compute confidence interval with just one sample
+        ci = (0.0, 1.0)
+
+    logger.info(f"Single LLM Average Correct Rate: {mean_correct_rate:.2%} (95% CI: {ci[0]:.2%}-{ci[1]:.2%})")
     logger.info(f"Valid single LLM entries: {valid_count}/{len(dataframe)}")
 
-    return mean_correct_rate
+    return mean_correct_rate, ci
 
 
 def _process_ensemble_entry(
@@ -297,7 +355,7 @@ def evaluate_ensemble_df(
     response_entry: str = "response",
     num_workers: int = 4,
     use_processes: bool = True,
-) -> float:
+) -> Tuple[float, Tuple[float, float]]:
     """Evaluate using majority vote from first round responses.
 
     Args:
@@ -312,7 +370,7 @@ def evaluate_ensemble_df(
         use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
     Returns:
-        float: Accuracy score using majority vote from first round responses.
+        Tuple[float, Tuple[float, float]]: Accuracy score and confidence interval tuple
     """
     logger.info(
         f"Starting ensemble evaluation on {len(dataframe)} entries with {num_workers} workers..."
@@ -350,12 +408,14 @@ def evaluate_ensemble_df(
     correct_count = sum(1 for result in valid_results if result)
     valid_count = len(valid_results)
 
-    # Calculate and output accuracy using valid responses
+    # Calculate accuracy and confidence interval
     accuracy = correct_count / valid_count if valid_count > 0 else 0
-    logger.info(f"Ensemble Accuracy (First Round Majority): {accuracy:.2%}")
+    ci = wilson_score_interval(correct_count, valid_count)
+
+    logger.info(f"Ensemble Accuracy (First Round Majority): {accuracy:.2%} (95% CI: {ci[0]:.2%}-{ci[1]:.2%})")
     logger.info(f"Valid ensemble responses: {valid_count}/{len(dataframe)}")
 
-    return accuracy
+    return accuracy, ci
 
 
 def evaluate_all(
@@ -385,7 +445,7 @@ def evaluate_all(
         use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
     Returns:
-        EvaluationResults: Named tuple containing accuracies for all three methods.
+        EvaluationResults: Named tuple containing accuracies and confidence intervals
     """
     logger.info("Running debate evaluation...")
     logger.info(f"Processing data directory: {response_base_dir}")
@@ -394,7 +454,7 @@ def evaluate_all(
         f"Using {num_workers} workers with {'processes' if use_processes else 'threads'}"
     )
 
-    debate_acc = evaluate_debate_df(
+    debate_acc, debate_ci = evaluate_debate_df(
         response_base_dir,
         dataframe,
         evaluation_func=evaluation_func,
@@ -404,9 +464,10 @@ def evaluate_all(
 
     # Only run single LLM evaluation for single model type
     single_acc = 0.0
+    single_ci = (0.0, 0.0)
     if not multiple_models:
         logger.info("Running single LLM evaluation...")
-        single_acc = evaluate_single_llm_df(
+        single_acc, single_ci = evaluate_single_llm_df(
             response_base_dir,
             dataframe,
             evaluation_func=evaluation_func,
@@ -415,7 +476,7 @@ def evaluate_all(
         )
 
     logger.info("Running ensemble evaluation...")
-    ensemble_acc = evaluate_ensemble_df(
+    ensemble_acc, ensemble_ci = evaluate_ensemble_df(
         response_base_dir,
         dataframe,
         extract_func=extract_func,
@@ -428,9 +489,12 @@ def evaluate_all(
     )
 
     logger.info("Summary of all evaluation methods:")
-    logger.info(f"Debate accuracy:     {debate_acc:.2%}")
+    logger.info(f"Debate accuracy:     {debate_acc:.2%} (95% CI: {debate_ci[0]:.2%}-{debate_ci[1]:.2%})")
     if not multiple_models:
-        logger.info(f"Single LLM accuracy: {single_acc:.2%}")
-    logger.info(f"Ensemble accuracy:   {ensemble_acc:.2%}")
+        logger.info(f"Single LLM accuracy: {single_acc:.2%} (95% CI: {single_ci[0]:.2%}-{single_ci[1]:.2%})")
+    logger.info(f"Ensemble accuracy:   {ensemble_acc:.2%} (95% CI: {ensemble_ci[0]:.2%}-{ensemble_ci[1]:.2%})")
 
-    return EvaluationResults(debate_acc, single_acc, ensemble_acc)
+    return EvaluationResults(
+        debate_acc, single_acc, ensemble_acc,
+        debate_ci, single_ci, ensemble_ci
+    )
