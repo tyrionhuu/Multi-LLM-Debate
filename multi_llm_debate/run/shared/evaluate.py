@@ -470,7 +470,7 @@ def evaluate_all(
     # Only run single LLM evaluation for single model type
     single_acc = 0.0
     single_ci = (0.0, 0.0)
-    
+
     logger.info("Running single LLM evaluation...")
     single_acc, single_ci = evaluate_single_llm_df(
         response_base_dir,
