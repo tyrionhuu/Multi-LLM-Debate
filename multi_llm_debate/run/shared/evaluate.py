@@ -158,6 +158,45 @@ def evaluate_debate_df(
     return accuracy, ci
 
 
+def _entry_correct_fraction(
+    entry: pd.Series, response_base_dir: Path, evaluation_func: Callable
+) -> Optional[float]:
+    """Compute fraction of correct responses for a single entry.
+    
+    Args:
+        entry: DataFrame row containing question data
+        response_base_dir: Directory containing response files
+        evaluation_func: Function to evaluate correctness
+    
+    Returns:
+        Optional[float]: Fraction of correct responses, or None if entry skipped
+    """
+    try:
+        answer = entry["answer"]
+        id_ = str(entry["id"])
+        responses_dir = response_base_dir / id_
+        first_response_file = responses_dir / "debate_round_0.json"
+        with open(first_response_file, "r") as f:
+            responses = json.load(f)
+        if not responses:
+            return None
+        correct = 0
+        total = 0
+        for resp in responses:
+            # Evaluate each response individually
+            if evaluation_func([resp], answer):
+                correct += 1
+            total += 1
+        if total == 0:
+            return None
+        return correct / total
+    except Exception as e:
+        logger.error(
+            f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}"
+        )
+        return None
+
+
 def evaluate_single_llm_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
@@ -184,35 +223,6 @@ def evaluate_single_llm_df(
     logger.info(
         f"Starting single LLM evaluation (average correct rate) on {len(dataframe)} entries with {num_workers} workers..."
     )
-
-    def _entry_correct_fraction(
-        entry: pd.Series, response_base_dir: Path, evaluation_func: Callable
-    ) -> Optional[float]:
-        """Compute fraction of correct responses for a single entry."""
-        try:
-            answer = entry["answer"]
-            id_ = str(entry["id"])
-            responses_dir = response_base_dir / id_
-            first_response_file = responses_dir / "debate_round_0.json"
-            with open(first_response_file, "r") as f:
-                responses = json.load(f)
-            if not responses:
-                return None
-            correct = 0
-            total = 0
-            for resp in responses:
-                # Evaluate each response individually
-                if evaluation_func([resp], answer):
-                    correct += 1
-                total += 1
-            if total == 0:
-                return None
-            return correct / total
-        except Exception as e:
-            logger.error(
-                f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}"
-            )
-            return None
 
     executor_class = (
         concurrent.futures.ProcessPoolExecutor

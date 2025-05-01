@@ -57,18 +57,11 @@ def evaluate_all_truthful_qa(
 if __name__ == "__main__":
     from pathlib import Path
 
-    from ..shared.utils import Parser
-    from .utils import load_truthful_qa_dataset, preprocess_truthful_qa_dataframe
+    from .utils import load_truthful_qa_dataset
 
-    args = Parser(description="Run TruthfulQA evaluation").parse_args()
+    df = load_truthful_qa_dataset(sample_size=1000)
 
-    # Load the dataset
-    dataset_path = Path("datasets/TruthfulQA")
-    dataframe = load_truthful_qa_dataset(
-        dataset_path=dataset_path,
-    )
-    dataframe = preprocess_truthful_qa_dataframe(dataframe)
     evaluate_all_truthful_qa(
-        response_base_dir=Path("data/truthful_qa/Llama-3_1-8B-Instruct(11)"),
-        dataframe=dataframe,
+        response_base_dir=Path("data/truthful_qa/gemini-2_0-flash-001(11)"),
+        dataframe=df,
     )
