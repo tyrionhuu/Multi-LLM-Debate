@@ -162,12 +162,12 @@ def _entry_correct_fraction(
     entry: pd.Series, response_base_dir: Path, evaluation_func: Callable
 ) -> Optional[float]:
     """Compute fraction of correct responses for a single entry.
-    
+
     Args:
         entry: DataFrame row containing question data
         response_base_dir: Directory containing response files
         evaluation_func: Function to evaluate correctness
-    
+
     Returns:
         Optional[float]: Fraction of correct responses, or None if entry skipped
     """
@@ -191,9 +191,7 @@ def _entry_correct_fraction(
             return None
         return correct / total
     except Exception as e:
-        logger.error(
-            f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}"
-        )
+        logger.error(f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}")
         return None
 
 
