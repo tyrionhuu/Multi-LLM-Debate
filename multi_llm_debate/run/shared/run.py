@@ -95,11 +95,6 @@ def execute_debate_workflow(
     print(f"Failed entries: {len(execution_report['failed_entries'])}")
     print(f"Success rate: {execution_report['success_rate']:.2f}%")
 
-    # Check if we have multiple model types
-    model_types = {config["name"] for config in model_configs}
-    multiple_models = len(model_types) > 1
-    logger.info(f"Multiple model types detected: {multiple_models}")
-
     # Evaluate using provided evaluation function
     logger.info("Running evaluation")
     try:
@@ -129,28 +124,25 @@ def execute_debate_workflow(
         current_config = model_configs_to_string(model_configs)
         new_row = [
             current_config,
-            "N/A" if multiple_models else f"{results.single_llm_accuracy:.4f}",
-            (
-                f"{results.ensemble_accuracy:.4f}"
-                if hasattr(results, "ensemble_accuracy")
-                else "N/A"
-            ),
-            (
-                f"{results.debate_accuracy:.4f}"
-                if hasattr(results, "debate_accuracy")
-                else "N/A"
-            ),
+            f"{results.single_llm_accuracy:.4f}",
+            f"{results.single_llm_ci:.4f}",
+            f"{results.ensemble_accuracy:.4f}",
+            f"{results.ensemble_ci:.4f}",
+            f"{results.debate_accuracy:.4f}",
+            f"{results.debate_ci:.4f}",
             csv_time,
         ]
 
         if not existing_data:
-            # Create new file with headers
             existing_data = [
                 [
                     "Model Configuration",
                     "Single LLM Accuracy",
+                    "Single LLM CI",
                     "Ensemble Accuracy",
+                    "Ensemble CI",
                     "Debate Accuracy",
+                    "Debate CI",
                     "Running Time",
                 ]
             ]
