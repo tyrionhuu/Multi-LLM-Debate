@@ -117,45 +117,6 @@ def evaluate_debate_df(
     return accuracy
 
 
-def _process_single_llm_entry(
-    entry: pd.Series, response_base_dir: Path, evaluation_func: Callable
-) -> Optional[bool]:
-    """Process a single entry for single LLM evaluation.
-
-    Args:
-        entry: DataFrame row containing question data
-        response_base_dir: Directory containing response files
-        evaluation_func: Function to evaluate correctness
-
-    Returns:
-        Optional[bool]: True if correct, False if incorrect, None if entry skipped
-    """
-    try:
-        answer = entry["answer"]
-        id_ = str(entry["id"])
-
-        # Load responses from the first debate round file
-        responses_dir = response_base_dir / id_
-        first_response_file = responses_dir / "debate_round_0.json"
-
-        with open(first_response_file, "r") as f:
-            responses = json.load(f)
-
-        # Skip if no valid responses
-        if not responses:
-            return None
-
-        # Only use the first response
-        first_response = responses[0]
-
-        # Create a list with single response for consistent interface
-        return evaluation_func([first_response], answer)
-
-    except Exception as e:
-        logger.error(f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}")
-        return None
-
-
 def evaluate_single_llm_df(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
@@ -163,7 +124,7 @@ def evaluate_single_llm_df(
     num_workers: int = 4,
     use_processes: bool = True,
 ) -> float:
-    """Evaluate the Boolean Question task using first answer as single LLM response.
+    """Evaluate the task using all first round answers, averaging correct rate per entry.
 
     Args:
         response_base_dir: Directory containing response files.
@@ -174,14 +135,39 @@ def evaluate_single_llm_df(
         use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
     Returns:
-        float: Accuracy score using first answer as single LLM response.
+        float: Average correct rate per entry (mean of correct fraction per entry).
     """
     if evaluation_func is None:
         raise ValueError("evaluation_func must be provided")
 
     logger.info(
-        f"Starting single LLM evaluation on {len(dataframe)} entries with {num_workers} workers..."
+        f"Starting single LLM evaluation (average correct rate) on {len(dataframe)} entries with {num_workers} workers..."
     )
+
+    def _entry_correct_fraction(entry: pd.Series, response_base_dir: Path, evaluation_func: Callable) -> Optional[float]:
+        """Compute fraction of correct responses for a single entry."""
+        try:
+            answer = entry["answer"]
+            id_ = str(entry["id"])
+            responses_dir = response_base_dir / id_
+            first_response_file = responses_dir / "debate_round_0.json"
+            with open(first_response_file, "r") as f:
+                responses = json.load(f)
+            if not responses:
+                return None
+            correct = 0
+            total = 0
+            for resp in responses:
+                # Evaluate each response individually
+                if evaluation_func([resp], answer):
+                    correct += 1
+                total += 1
+            if total == 0:
+                return None
+            return correct / total
+        except Exception as e:
+            logger.error(f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}")
+            return None
 
     executor_class = (
         concurrent.futures.ProcessPoolExecutor
@@ -194,7 +180,7 @@ def evaluate_single_llm_df(
         futures = []
         for _, entry in dataframe.iterrows():
             future = executor.submit(
-                _process_single_llm_entry, entry, response_base_dir, evaluation_func
+                _entry_correct_fraction, entry, response_base_dir, evaluation_func
             )
             futures.append(future)
 
@@ -203,17 +189,15 @@ def evaluate_single_llm_df(
                 logger.info(f"Completed {i}/{len(futures)} tasks")
             results.append(future.result())
 
-    # Filter out None results and count correct ones
+    # Filter out None results and compute mean correct rate
     valid_results = [result for result in results if result is not None]
-    correct_count = sum(1 for result in valid_results if result)
     valid_count = len(valid_results)
+    mean_correct_rate = sum(valid_results) / valid_count if valid_count > 0 else 0.0
 
-    # Calculate and output accuracy using valid responses
-    accuracy = correct_count / valid_count if valid_count > 0 else 0
-    logger.info(f"Single LLM Accuracy: {accuracy:.2%}")
-    logger.info(f"Valid single LLM responses: {valid_count}/{len(dataframe)}")
+    logger.info(f"Single LLM Average Correct Rate: {mean_correct_rate:.2%}")
+    logger.info(f"Valid single LLM entries: {valid_count}/{len(dataframe)}")
 
-    return accuracy
+    return mean_correct_rate
 
 
 def _process_ensemble_entry(
