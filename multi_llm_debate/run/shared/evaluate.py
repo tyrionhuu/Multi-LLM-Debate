@@ -41,21 +41,19 @@ def wilson_score_interval(
         return (0.0, 0.0)
 
     # z-score for the given confidence level
-    z = {
-        0.90: 1.645,
-        0.95: 1.96,
-        0.99: 2.576
-    }.get(confidence, 1.96)
+    z = {0.90: 1.645, 0.95: 1.96, 0.99: 2.576}.get(confidence, 1.96)
 
     p = float(correct) / total
     denominator = 1.0 + z * z / total
     centre_adjusted_probability = p + z * z / (2 * total)
-    adjusted_standard_deviation = math.sqrt(
-        (p * (1 - p) + z * z / (4 * total)) / total
-    )
+    adjusted_standard_deviation = math.sqrt((p * (1 - p) + z * z / (4 * total)) / total)
 
-    lower = (centre_adjusted_probability - z * adjusted_standard_deviation) / denominator
-    upper = (centre_adjusted_probability + z * adjusted_standard_deviation) / denominator
+    lower = (
+        centre_adjusted_probability - z * adjusted_standard_deviation
+    ) / denominator
+    upper = (
+        centre_adjusted_probability + z * adjusted_standard_deviation
+    ) / denominator
 
     return (max(0.0, lower), min(1.0, upper))
 
@@ -248,15 +246,22 @@ def evaluate_single_llm_df(
     # For averaging rates, we can use normal approximation
     # Standard error of the mean
     if valid_count > 1:
-        std_dev = math.sqrt(sum((x - mean_correct_rate) ** 2 for x in valid_results) / (valid_count - 1))
+        std_dev = math.sqrt(
+            sum((x - mean_correct_rate) ** 2 for x in valid_results) / (valid_count - 1)
+        )
         std_error = std_dev / math.sqrt(valid_count)
         margin = 1.96 * std_error  # 95% confidence
-        ci = (max(0.0, mean_correct_rate - margin), min(1.0, mean_correct_rate + margin))
+        ci = (
+            max(0.0, mean_correct_rate - margin),
+            min(1.0, mean_correct_rate + margin),
+        )
     else:
         # Can't compute confidence interval with just one sample
         ci = (0.0, 1.0)
 
-    logger.info(f"Single LLM Average Correct Rate: {mean_correct_rate:.2%} (95% CI: {ci[0]:.2%}-{ci[1]:.2%})")
+    logger.info(
+        f"Single LLM Average Correct Rate: {mean_correct_rate:.2%} (95% CI: {ci[0]:.2%}-{ci[1]:.2%})"
+    )
     logger.info(f"Valid single LLM entries: {valid_count}/{len(dataframe)}")
 
     return mean_correct_rate, ci
@@ -412,7 +417,9 @@ def evaluate_ensemble_df(
     accuracy = correct_count / valid_count if valid_count > 0 else 0
     ci = wilson_score_interval(correct_count, valid_count)
 
-    logger.info(f"Ensemble Accuracy (First Round Majority): {accuracy:.2%} (95% CI: {ci[0]:.2%}-{ci[1]:.2%})")
+    logger.info(
+        f"Ensemble Accuracy (First Round Majority): {accuracy:.2%} (95% CI: {ci[0]:.2%}-{ci[1]:.2%})"
+    )
     logger.info(f"Valid ensemble responses: {valid_count}/{len(dataframe)}")
 
     return accuracy, ci
@@ -489,12 +496,17 @@ def evaluate_all(
     )
 
     logger.info("Summary of all evaluation methods:")
-    logger.info(f"Debate accuracy:     {debate_acc:.2%} (95% CI: {debate_ci[0]:.2%}-{debate_ci[1]:.2%})")
+    logger.info(
+        f"Debate accuracy:     {debate_acc:.2%} (95% CI: {debate_ci[0]:.2%}-{debate_ci[1]:.2%})"
+    )
     if not multiple_models:
-        logger.info(f"Single LLM accuracy: {single_acc:.2%} (95% CI: {single_ci[0]:.2%}-{single_ci[1]:.2%})")
-    logger.info(f"Ensemble accuracy:   {ensemble_acc:.2%} (95% CI: {ensemble_ci[0]:.2%}-{ensemble_ci[1]:.2%})")
+        logger.info(
+            f"Single LLM accuracy: {single_acc:.2%} (95% CI: {single_ci[0]:.2%}-{single_ci[1]:.2%})"
+        )
+    logger.info(
+        f"Ensemble accuracy:   {ensemble_acc:.2%} (95% CI: {ensemble_ci[0]:.2%}-{ensemble_ci[1]:.2%})"
+    )
 
     return EvaluationResults(
-        debate_acc, single_acc, ensemble_acc,
-        debate_ci, single_ci, ensemble_ci
+        debate_acc, single_acc, ensemble_acc, debate_ci, single_ci, ensemble_ci
     )
