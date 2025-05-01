@@ -124,6 +124,7 @@ def execute_debate_workflow(
         current_config = model_configs_to_string(model_configs)
         new_row = [
             current_config,
+            task_name,  # Add task name to the results row
             f"{results.single_llm_accuracy:.4f}",
             f"{results.single_llm_ci:.4f}",
             f"{results.ensemble_accuracy:.4f}",
@@ -137,6 +138,7 @@ def execute_debate_workflow(
             existing_data = [
                 [
                     "Model Configuration",
+                    "Task Name",  # Add Task Name column header
                     "Single LLM Accuracy",
                     "Single LLM CI",
                     "Ensemble Accuracy",
