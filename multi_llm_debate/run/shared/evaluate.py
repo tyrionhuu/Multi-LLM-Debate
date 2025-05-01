@@ -144,7 +144,9 @@ def evaluate_single_llm_df(
         f"Starting single LLM evaluation (average correct rate) on {len(dataframe)} entries with {num_workers} workers..."
     )
 
-    def _entry_correct_fraction(entry: pd.Series, response_base_dir: Path, evaluation_func: Callable) -> Optional[float]:
+    def _entry_correct_fraction(
+        entry: pd.Series, response_base_dir: Path, evaluation_func: Callable
+    ) -> Optional[float]:
         """Compute fraction of correct responses for a single entry."""
         try:
             answer = entry["answer"]
@@ -166,7 +168,9 @@ def evaluate_single_llm_df(
                 return None
             return correct / total
         except Exception as e:
-            logger.error(f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}")
+            logger.error(
+                f"Error processing entry {entry.get('id', 'unknown')}: {str(e)}"
+            )
             return None
 
     executor_class = (
