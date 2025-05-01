@@ -126,11 +126,11 @@ def execute_debate_workflow(
             current_config,
             task_name,  # Add task name to the results row
             f"{results.single_llm_accuracy:.4f}",
-            f"{results.single_llm_ci:.4f}",
+            f"{results.single_llm_error:.4f}",
             f"{results.ensemble_accuracy:.4f}",
-            f"{results.ensemble_ci:.4f}",
+            f"{results.ensemble_error:.4f}",
             f"{results.debate_accuracy:.4f}",
-            f"{results.debate_ci:.4f}",
+            f"{results.debate_error:.4f}",
             csv_time,
         ]
 
@@ -140,11 +140,11 @@ def execute_debate_workflow(
                     "Model Configuration",
                     "Task Name",  # Add Task Name column header
                     "Single LLM Accuracy",
-                    "Single LLM CI",
+                    "Single LLM Error Margin",
                     "Ensemble Accuracy",
-                    "Ensemble CI",
+                    "Ensemble Error Margin",
                     "Debate Accuracy",
-                    "Debate CI",
+                    "Debate Error Margin",
                     "Running Time",
                 ]
             ]
