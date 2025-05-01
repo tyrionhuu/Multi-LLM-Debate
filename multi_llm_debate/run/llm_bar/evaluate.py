@@ -32,7 +32,6 @@ def evaluate_llm_bar_responses(
 def evaluate_all_llm_bar(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    multiple_models: bool = False,
 ) -> EvaluationResults:
     """Run all LLM Bar evaluations with LLM Bar-specific settings.
 
@@ -41,7 +40,6 @@ def evaluate_all_llm_bar(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
-        multiple_models: Whether multiple model types are being evaluated.
 
     Returns:
         EvaluationResults: Results of the evaluation.
@@ -51,5 +49,4 @@ def evaluate_all_llm_bar(
         dataframe=dataframe,
         extract_func=extract_1_2_answer,
         evaluation_func=evaluate_llm_bar_responses,
-        multiple_models=multiple_models,
     )

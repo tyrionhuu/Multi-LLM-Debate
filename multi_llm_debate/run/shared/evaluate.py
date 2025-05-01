@@ -430,7 +430,6 @@ def evaluate_all(
     dataframe: pd.DataFrame,
     extract_func: Callable,
     evaluation_func: Callable,
-    multiple_models: bool = False,
     answer_entry: str = "answer",
     id_entry: str = "id",
     response_entry: str = "response",
@@ -444,7 +443,6 @@ def evaluate_all(
         dataframe: Pandas DataFrame containing question, answer, passage and id.
         extract_func: Function to extract and normalize response strings.
         evaluation_func: Function to evaluate if response matches answer.
-        multiple_models: Whether multiple model types are being evaluated.
         answer_entry: Column name for the correct answer in the DataFrame.
         id_entry: Column name for the unique identifier in the DataFrame.
         response_entry: Column name for the response in the DataFrame.
@@ -472,15 +470,15 @@ def evaluate_all(
     # Only run single LLM evaluation for single model type
     single_acc = 0.0
     single_ci = (0.0, 0.0)
-    if not multiple_models:
-        logger.info("Running single LLM evaluation...")
-        single_acc, single_ci = evaluate_single_llm_df(
-            response_base_dir,
-            dataframe,
-            evaluation_func=evaluation_func,
-            num_workers=num_workers,
-            use_processes=use_processes,
-        )
+    
+    logger.info("Running single LLM evaluation...")
+    single_acc, single_ci = evaluate_single_llm_df(
+        response_base_dir,
+        dataframe,
+        evaluation_func=evaluation_func,
+        num_workers=num_workers,
+        use_processes=use_processes,
+    )
 
     logger.info("Running ensemble evaluation...")
     ensemble_acc, ensemble_ci = evaluate_ensemble_df(
@@ -499,10 +497,9 @@ def evaluate_all(
     logger.info(
         f"Debate accuracy:     {debate_acc:.2%} (95% CI: {debate_ci[0]:.2%}-{debate_ci[1]:.2%})"
     )
-    if not multiple_models:
-        logger.info(
-            f"Single LLM accuracy: {single_acc:.2%} (95% CI: {single_ci[0]:.2%}-{single_ci[1]:.2%})"
-        )
+    logger.info(
+        f"Single LLM accuracy: {single_acc:.2%} (95% CI: {single_ci[0]:.2%}-{single_ci[1]:.2%})"
+    )
     logger.info(
         f"Ensemble accuracy:   {ensemble_acc:.2%} (95% CI: {ensemble_ci[0]:.2%}-{ensemble_ci[1]:.2%})"
     )

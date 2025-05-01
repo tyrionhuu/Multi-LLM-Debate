@@ -34,7 +34,6 @@ def evaluate_truthful_qa_responses(
 def evaluate_all_truthful_qa(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    multiple_models: bool = False,
 ) -> EvaluationResults:
     """Run all truthful QA evaluations with truthful QA-specific settings.
 
@@ -43,7 +42,6 @@ def evaluate_all_truthful_qa(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
-        multiple_models: Whether multiple model types are being evaluated.
 
     Returns:
         EvaluationResults: Results of the evaluation.
@@ -53,7 +51,6 @@ def evaluate_all_truthful_qa(
         dataframe=dataframe,
         extract_func=extract_caption_a_b_c_answer,
         evaluation_func=evaluate_truthful_qa_responses,
-        multiple_models=multiple_models,
     )
 
 
@@ -74,5 +71,4 @@ if __name__ == "__main__":
     evaluate_all_truthful_qa(
         response_base_dir=Path("data/truthful_qa/Llama-3_1-8B-Instruct(11)"),
         dataframe=dataframe,
-        multiple_models=False,
     )

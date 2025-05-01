@@ -32,7 +32,6 @@ def evaluate_prm800k_responses(
 def evaluate_all_prm800k(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    multiple_models: bool = False,
 ) -> EvaluationResults:
     """Run all PRM800K evaluations with PRM800K-specific settings.
 
@@ -41,7 +40,6 @@ def evaluate_all_prm800k(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
-        multiple_models: Whether multiple model types are being evaluated.
 
     Returns:
         EvaluationResults: Results of the evaluation.
@@ -51,5 +49,4 @@ def evaluate_all_prm800k(
         dataframe=dataframe,
         extract_func=extract_int_list,
         evaluation_func=evaluate_prm800k_responses,
-        multiple_models=multiple_models,
     )

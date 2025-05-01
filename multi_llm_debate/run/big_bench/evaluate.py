@@ -29,7 +29,6 @@ def evaluate_big_bench_responses(
 def evaluate_all_big_bench(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    multiple_models: bool = False,
 ) -> EvaluationResults:
     """Run all BIG-Bench evaluations with BIG-Bench-specific settings.
 
@@ -38,7 +37,6 @@ def evaluate_all_big_bench(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
-        multiple_models: Whether multiple model types are being evaluated.
 
     Returns:
         EvaluationResults: Results of the evaluation.
@@ -48,5 +46,4 @@ def evaluate_all_big_bench(
         dataframe=dataframe,
         extract_func=extract_0_1_answer,
         evaluation_func=evaluate_big_bench_responses,
-        multiple_models=multiple_models,
     )

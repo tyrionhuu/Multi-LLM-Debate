@@ -31,7 +31,6 @@ def evaluate_comp_analysis_responses(
 def evaluate_all_comp_analysis(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
-    multiple_models: bool = False,
 ) -> EvaluationResults:
     """Run all COMP Analysis evaluations with COMP Analysis-specific settings.
 
@@ -40,7 +39,6 @@ def evaluate_all_comp_analysis(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
-        multiple_models: Whether multiple model types are being evaluated.
 
     Returns:
         EvaluationResults: Results of the evaluation.
@@ -50,5 +48,4 @@ def evaluate_all_comp_analysis(
         dataframe=dataframe,
         extract_func=extract_1_to_5_answer,
         evaluation_func=evaluate_comp_analysis_responses,
-        multiple_models=multiple_models,
     )
