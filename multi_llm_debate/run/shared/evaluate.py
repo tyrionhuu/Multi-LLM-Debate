@@ -24,9 +24,7 @@ class EvaluationResults(NamedTuple):
     ensemble_error: float
 
 
-def wilson_score_interval(
-    correct: int, total: int, confidence: float = 0.95
-) -> float:
+def wilson_score_interval(correct: int, total: int, confidence: float = 0.95) -> float:
     """Calculate Wilson score error margin for binomial proportion.
 
     Args:
@@ -499,15 +497,9 @@ def evaluate_all(
     )
 
     logger.info("Summary of all evaluation methods:")
-    logger.info(
-        f"Debate accuracy:     {debate_acc:.2%} (±{debate_error:.2%})"
-    )
-    logger.info(
-        f"Single LLM accuracy: {single_acc:.2%} (±{single_error:.2%})"
-    )
-    logger.info(
-        f"Ensemble accuracy:   {ensemble_acc:.2%} (±{ensemble_error:.2%})"
-    )
+    logger.info(f"Debate accuracy:     {debate_acc:.2%} (±{debate_error:.2%})")
+    logger.info(f"Single LLM accuracy: {single_acc:.2%} (±{single_error:.2%})")
+    logger.info(f"Ensemble accuracy:   {ensemble_acc:.2%} (±{ensemble_error:.2%})")
 
     return EvaluationResults(
         debate_acc, single_acc, ensemble_acc, debate_error, single_error, ensemble_error
