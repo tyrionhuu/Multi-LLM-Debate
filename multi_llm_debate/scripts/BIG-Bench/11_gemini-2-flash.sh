@@ -14,19 +14,30 @@ CONFIG='[
 ]'
 
 
-python -m multi_llm_debate.run.big_bench.main \
-    --config-json "$CONFIG" \
-    --task-name "big_bench" \
-    --batch \
-    --batch-size 11 \
-    --sample-size 1000 \
+# python -m multi_llm_debate.run.big_bench.main \
+#     --config-json "$CONFIG" \
+#     --task-name "big_bench" \
+#     --batch \
+#     --batch-size 11 \
+#     --sample-size 1000 \
 
-# Run the evaluation using module path with direct JSON config
+# # Run the evaluation using module path with direct JSON config
+# python -m multi_llm_debate.run.big_bench.main \
+#     --config-json "$CONFIG" \
+#     --task-name "big_bench_pruning" \
+#     --diversity-pruning "answer" \
+#     --diversity-pruning-amount 7 \
+#     --batch \
+#     --batch-size 11 \
+#     --sample-size 1000 \
+
 python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
     --task-name "big_bench_pruning" \
+    --quality-pruning \
+    --quality-pruning-amount 7 \
     --diversity-pruning "answer" \
-    --diversity-pruning-amount 7 \
+    --diversity-pruning-amount 5 \
     --batch \
     --batch-size 11 \
     --sample-size 1000 \
