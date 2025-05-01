@@ -14,7 +14,6 @@ def main(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable[..., Dict],
     evaluate_fn: Callable[..., Any],
-    process_df_fn: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None,
     task_name: str = "debate",
     config: Optional[Union[Path, List[Dict]]] = None,
     config_json: Optional[str] = None,
@@ -34,8 +33,6 @@ def main(
         dataframe: Input DataFrame containing the debate data
         run_debate_fn: Function to run debates
         evaluate_fn: Function to evaluate debate results
-        process_df_fn: Optional function to preprocess DataFrame. If None,
-            the dataframe will be used without preprocessing.
         task_name: Name of the debate task
         config: Path to JSON config file or list of model configurations
         config_json: JSON string containing model configurations
