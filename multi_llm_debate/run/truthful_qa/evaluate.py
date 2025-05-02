@@ -62,7 +62,7 @@ if __name__ == "__main__":
     df = load_truthful_qa_dataset(sample_size=1000)
 
     result = evaluate_all_truthful_qa(
-        response_base_dir=Path("data/truthful_qa/gemini-2_0-flash-001(11)"),
+        response_base_dir=Path("data/truthful_qa/Llama-3_1-8B-Instruct(11)"),
         dataframe=df,
     )
     print(result)
