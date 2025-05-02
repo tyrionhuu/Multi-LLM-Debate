@@ -2,7 +2,7 @@
 
 # Define variables
 MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
-MODEL_QUANTITY=11
+MODEL_QUANTITY=7
 
 # Parse command line arguments
 GPU="7"  # Default GPU
