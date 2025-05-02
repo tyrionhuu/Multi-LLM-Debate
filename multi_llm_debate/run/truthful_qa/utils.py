@@ -62,10 +62,10 @@ def load_truthful_qa_dataset(
 
     df = df.copy()
     # Shuffle the DataFrame by RANDOM_STATE
-    df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
+    # df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
 
     # Add an ID column
-    df["id"] = range(len(df))
+    df["id"] = range(1, len(df) + 1)
 
     # If the DataFrame has a column of dictionaries, expand it
     first_col = df.columns[0]
