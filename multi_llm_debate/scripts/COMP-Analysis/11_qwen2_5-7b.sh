@@ -125,7 +125,7 @@ CONFIG='[
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.comp_analysis.main \
     --config-json "$CONFIG" \
     --sample-size 1000 \
-    --task-name "comp_analysis_pruning" \
+    --task-name "comp_analysis_pruning_all" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 5 \
     --batch \
