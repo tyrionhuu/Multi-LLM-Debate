@@ -124,7 +124,7 @@ CONFIG='[
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
     --sample-size 1000 \
-    --task-name "big_bench_pruning" \
+    --task-name "big_bench_pruning_all" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 5 \
     --batch \

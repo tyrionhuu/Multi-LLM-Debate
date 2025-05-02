@@ -33,7 +33,7 @@ CONFIG='[
 
 python -m multi_llm_debate.run.big_bench.main \
     --config-json "$CONFIG" \
-    --task-name "big_bench_pruning" \
+    --task-name "big_bench_pruning_all" \
     --quality-pruning \
     --quality-pruning-amount 7 \
     --diversity-pruning "answer" \
