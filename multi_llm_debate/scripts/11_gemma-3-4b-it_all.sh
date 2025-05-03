@@ -12,10 +12,16 @@ while getopts "g:" opt; do
     esac
 done
 
-$(pwd)/multi_llm_debate/scripts/BIG-Bench/11_gemma-3-4b-it.sh -g "$GPU"
+$(pwd)/multi_llm_debate/scripts/COMP-Analysis/7_gemma-3-4b-it.sh
 
-$(pwd)/multi_llm_debate/scripts/HalluDial/11_gemma-3-4b-it.sh -g "$GPU"
+$(pwd)/multi_llm_debate/scripts/HalluDial/5_gemma-3-4b-it.sh
 
-$(pwd)/multi_llm_debate/scripts/COMP-Analysis/11_gemma-3-4b-it.sh -g "$GPU"
+$(pwd)/multi_llm_debate/scripts/HalluDial/7_gemma-3-4b-it.sh
+
+# $(pwd)/multi_llm_debate/scripts/BIG-Bench/11_gemma-3-4b-it.sh -g "$GPU"
+
+# $(pwd)/multi_llm_debate/scripts/HalluDial/11_gemma-3-4b-it.sh -g "$GPU"
+
+# $(pwd)/multi_llm_debate/scripts/COMP-Analysis/11_gemma-3-4b-it.sh -g "$GPU"
 
 # $(pwd)/multi_llm_debate/scripts/PRM800K/11_gemma-3-4b-it.sh -g "$GPU"
