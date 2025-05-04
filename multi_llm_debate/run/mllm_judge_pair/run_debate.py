@@ -125,7 +125,7 @@ def process_mllm_judge_pairs_entry(
             round_n_fn=build_mllm_judge_pairs_round_n_prompt,
             prompt_params=prompt_params,
             query=entry["question"],
-            images=entry["image"].apply(image_str_to_bytes)
+            images=entry["image"].apply(image_str_to_bytes),
         ),
         prompt_params={
             "question": entry["question"],
