@@ -106,7 +106,7 @@ def load_mllm_judge_pairs(
         df = df.copy()
         df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
         df["id"] = range(len(df))
-        
+
         if sample_size is not None:
             if sample_size > len(df):
                 logger.warning(
@@ -130,4 +130,4 @@ def load_mllm_judge_pairs(
 if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_pairs(sample_size=10)
-    print(df['response_a'].head(10))
+    print(df["response_a"].head(10))
