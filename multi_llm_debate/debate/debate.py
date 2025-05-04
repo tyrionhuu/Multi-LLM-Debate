@@ -83,7 +83,7 @@ def debate(
     logger.debug(f"Created temporary directory for debate: {temp_dir}")
 
     all_responses = []
-    images = prompt_builder.images
+    images = prompt_builder.images  # This can now contain paths, URLs, or byte data
 
     try:
         for i in range(max_rounds):
@@ -228,7 +228,7 @@ def run_debate_with_retry(
     output_dir: Union[str, Path],
     round_num: int,
     extract_func: Callable,
-    images: Union[str, Path, List[str], List[Path], None] = None,
+    images: Union[str, Path, List[str], List[Path], bytes, List[bytes], None] = None,
     json_mode: bool = False,
     batch: bool = False,
     batch_size: int = 11,
@@ -248,7 +248,8 @@ def run_debate_with_retry(
         output_dir: Directory path for saving debate responses.
         round_num: The current round number.
         extract_func: Function to process responses between rounds.
-        images: Optional images for the debate round.
+        images: Optional images for the debate round. Can be file paths, URLs,
+               or raw image bytes.
         json_mode: Whether to expect JSON responses from agents.
         batch: Whether to run in batch mode.
         batch_size: Size of the batch.
