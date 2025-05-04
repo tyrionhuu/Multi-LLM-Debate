@@ -110,4 +110,5 @@ def load_mllm_judge_score_dataset(
 if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_score_dataset()
-    print(df.head())
+    print("Distinct values in answer column:")
+    print(df['answer'].unique())
