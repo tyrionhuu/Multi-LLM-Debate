@@ -147,6 +147,7 @@ def compare_mllm_judge_score_response(
         answer = str(answer)
     return response == answer
 
+
 def image_str_to_bytes(image_str: str) -> bytes:
     """Convert base64 string to bytes.
 
@@ -159,6 +160,8 @@ def image_str_to_bytes(image_str: str) -> bytes:
     # Decode the base64 string
     image_bytes = base64.b64decode(image_str)
     return image_bytes
+
+
 if __name__ == "__main__":
     from multi_llm_debate.utils.logging_config import setup_logging
 
