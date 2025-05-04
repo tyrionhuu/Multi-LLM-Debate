@@ -6,7 +6,7 @@ import pandas as pd
 
 from datasets import Dataset, load_dataset, load_from_disk
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
