@@ -118,3 +118,8 @@ def load_mllm_judge_score_dataset(
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         raise
+
+if __name__ == "__main__":
+    # Example usage
+    df = load_mllm_judge_score_dataset()
+    print(df.head())
