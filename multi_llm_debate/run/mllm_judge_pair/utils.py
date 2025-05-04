@@ -80,7 +80,7 @@ def load_mllm_judge_pairs(
         original_len = len(df)
         df = df[df["answer"].isin(["A", "B"])]
         filtered_len = len(df)
-        
+
         if filtered_len < original_len:
             logger.info(
                 f"Filtered out {original_len - filtered_len} entries with "
@@ -192,5 +192,5 @@ if __name__ == "__main__":
     logger = setup_logging(__name__, log_level=logging.INFO)
     # Example usage
     df = load_mllm_judge_pairs()
-    print("Unique values in answer column:", df['answer'].unique())
-    print("Value counts in answer column:\n", df['answer'].value_counts())
+    print("Unique values in answer column:", df["answer"].unique())
+    print("Value counts in answer column:\n", df["answer"].value_counts())
