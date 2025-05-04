@@ -8,13 +8,14 @@ from ...llm.prompt_builder import PromptBuilder
 from ...utils.model_config import ModelConfig
 from ..shared.run import process_debate_dataset, process_single_debate_entry
 from .prompts import (
-    build_mllm_judge_pairs_round_zero_prompt,
     build_mllm_judge_pairs_round_n_prompt,
+    build_mllm_judge_pairs_round_zero_prompt,
 )
 from .utils import extract_caption_a_b_answer
 
 # Fix the setup_logging call by removing the level parameter
 logger = logging.getLogger(__name__)
+
 
 def process_mllm_judge_pairs_dataset(
     dataframe: pd.DataFrame,
@@ -29,7 +30,7 @@ def process_mllm_judge_pairs_dataset(
     quality_pruning_func: Callable = None,
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Callable = None,
-    diversity_pruning_amount: int = 5,  
+    diversity_pruning_amount: int = 5,
 ) -> Dict[str, Any]:
     """Run the MLLM-Judge task on a DataFrame.
 
@@ -48,7 +49,7 @@ def process_mllm_judge_pairs_dataset(
         quality_pruning_amount: Amount for pruning quality
         diversity_pruning_func: Optional function for diversity pruning
         diversity_pruning_amount: Amount for pruning diversity
-        
+
     Returns:
         Dict containing summary of execution including failed entries
     Raises:
@@ -74,6 +75,8 @@ def process_mllm_judge_pairs_dataset(
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
+
+
 def process_mllm_judge_pairs_entry(
     entry: pd.Series,
     max_rounds: int = 10,
@@ -122,7 +125,7 @@ def process_mllm_judge_pairs_entry(
             round_n_fn=build_mllm_judge_pairs_round_n_prompt,
             prompt_params=prompt_params,
             query=entry["question"],
-            images=entry["image"]
+            images=entry["image"],
         ),
         prompt_params={
             "question": entry["question"],
