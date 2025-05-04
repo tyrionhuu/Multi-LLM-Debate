@@ -78,44 +78,6 @@ def load_mllm_judge_pairs(
             missing = [col for col in expected_columns if col not in df.columns]
             logger.warning(f"Missing expected columns: {missing}")
 
-        # Handle image column which contains base64 encoded image data
-        if "image" in df.columns:
-            try:
-                def process_image(img_data):
-                    """Process image data to ensure it's properly formatted."""
-                    if isinstance(img_data, str):
-                        if ',' in img_data:
-                            img_data = img_data.split(',', 1)[1]
-                            logger.info(f"Decoded base64 image data: {img_data[:20]}...")  # Debugging line
-                        # Decode base64 to bytes
-                        return base64.b64decode(img_data)
-                    elif isinstance(img_data, bytes):
-                        # Check if it's already valid image bytes
-                        try:
-                            Image.open(io.BytesIO(img_data))
-                            logger.info(f"Valid image bytes data: {img_data[:20]}...")  # Debugging line
-                            return img_data
-                        except Exception:
-                            # Try decoding as base64
-                            try:
-                                logger.info(f"Attempting to decode base64 image data: {img_data[:20]}...")  # Debugging line
-                                return base64.b64decode(img_data)
-                            except Exception:
-                                logger.warning(
-                                    "Image data is not valid image bytes or base64"
-                                )
-                                return img_data
-                    return img_data
-                
-                # Process all images
-                df["image"] = df["image"].apply(process_image)
-                logger.info("Images processed successfully")
-                
-            except Exception as e:
-                logger.warning(f"Error processing images: {e}")
-        else:
-            logger.warning("No image column found in the dataset")
-
         # Parse question field if requested
         if parse_question and "question" in df.columns:
             logger.info("Parsing question field into separate columns...")
