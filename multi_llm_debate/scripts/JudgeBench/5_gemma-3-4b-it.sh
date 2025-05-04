@@ -2,7 +2,7 @@
 
 # Define variables
 MODEL_NAME="/data/share_weight/gemma-3-4b-it"
-MODEL_QUANTITY=7
+MODEL_QUANTITY=5
 
 # Parse command line arguments
 GPU="7"  # Default GPU
@@ -54,7 +54,7 @@ trap cleanup SIGINT SIGTERM EXIT
 
 # For port, use the first GPU in case of multiple GPUs
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
-PORT=$((8500 + FIRST_GPU * 10))
+PORT=$((8300 + FIRST_GPU * 10))
 
 export VLLM_LOGGING_LEVEL=ERROR
 
@@ -65,14 +65,14 @@ if [[ "$GPU" == *","* ]]; then
     if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
         echo "Using tensor parallelism with 2 GPUs"
         # Start VLLM server with tensor parallelism
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 32000 --tensor-parallel-size 2 &
+        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --tensor-parallel-size 2 &
     else
         echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
         exit 1
     fi
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 32000 --gpu-memory-utilization 0.98 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.98 &
 fi
 
 SERVER_PID=$!
@@ -105,31 +105,19 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
-    --task-name "truthful_qa" \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
+    --task-name "judge_bench" \
     --batch \
     --batch-size 11 \
-
-# # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
-    --config-json "$CONFIG" \
-    --task-name "truthful_qa_pruning" \
-    --diversity-pruning "answer" \
-    --diversity-pruning-amount 5 \
-    --batch \
-    --batch-size 11 \
-    
-
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
+# Run the evaluation using module path with direct JSON config
+# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
 #     --config-json "$CONFIG" \
-#     --task-name "truthful_qa_pruning_all" \
+#     --task-name "judge_bench_pruning" \
 #     --diversity-pruning "answer" \
 #     --diversity-pruning-amount 5 \
 #     --batch \
 #     --batch-size 11 \
-#     --quality-pruning \
-#     --quality-pruning-amount 7 \
-
+    
 cleanup 1
 

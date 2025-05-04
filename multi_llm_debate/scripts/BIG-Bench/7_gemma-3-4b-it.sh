@@ -105,12 +105,12 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
-#     --config-json "$CONFIG" \
-#     --task-name "big_bench" \
-#     --batch \
-#     --batch-size 11 \
-#     --sample-size 1000 \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+    --config-json "$CONFIG" \
+    --task-name "big_bench" \
+    --batch \
+    --batch-size 11 \
+    --sample-size 1000 \
 
 # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
