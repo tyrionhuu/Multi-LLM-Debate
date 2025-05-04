@@ -82,7 +82,7 @@ def load_mllm_judge_score_dataset(
         df = df[["id", "image", "question", "response", "answer"]]
 
         df = df.copy()
-        df = df.sample(n=sample_size, random_state=RANDOM_STATE).reset_index(drop=True)
+        df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
         df["id"] = range(len(df))
 
         if sample_size is not None:
@@ -115,4 +115,4 @@ if __name__ == "__main__":
     df = load_mllm_judge_score_dataset()
     print(df.info())
     print("Distinct values in answer column:")
-    print(df['answer'].unique())
+    print(df["answer"].unique())
