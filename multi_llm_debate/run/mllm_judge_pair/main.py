@@ -8,6 +8,7 @@ if __name__ == "__main__":
     from .evaluate import evaluate_all_mllm_judge_pairs
     from .run_debate import process_mllm_judge_pairs_dataset
     from .utils import load_mllm_judge_pairs
+
     logger = setup_logging(__name__, log_level=logging.INFO)
 
     args = Parser(description="Run MLLM-Judge Pairs evaluation").parse_args()
