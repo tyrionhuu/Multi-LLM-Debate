@@ -3,9 +3,11 @@ import random
 import re
 from pathlib import Path
 from typing import Literal, Optional, Union
-
+import base64
+import io
 import pandas as pd
 
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -76,14 +78,43 @@ def load_mllm_judge_pairs(
             missing = [col for col in expected_columns if col not in df.columns]
             logger.warning(f"Missing expected columns: {missing}")
 
-        # Handle image column which contains byte data
+        # Handle image column which contains base64 encoded image data
         if "image" in df.columns:
-            # If needed, convert string representation of bytes to actual bytes
-            if isinstance(df["image"].iloc[0], str):
-                # This handles cases where bytes might be represented as strings
-                df["image"] = df["image"].apply(
-                    lambda x: x.encode() if isinstance(x, str) else x
-                )
+            try:
+                def process_image(img_data):
+                    """Process image data to ensure it's properly formatted."""
+                    if isinstance(img_data, str):
+                        if ',' in img_data:
+                            img_data = img_data.split(',', 1)[1]
+                            logger.info(f"Decoded base64 image data: {img_data[:20]}...")  # Debugging line
+                        # Decode base64 to bytes
+                        return base64.b64decode(img_data)
+                    elif isinstance(img_data, bytes):
+                        # Check if it's already valid image bytes
+                        try:
+                            Image.open(io.BytesIO(img_data))
+                            logger.info(f"Valid image bytes data: {img_data[:20]}...")  # Debugging line
+                            return img_data
+                        except Exception:
+                            # Try decoding as base64
+                            try:
+                                logger.info(f"Attempting to decode base64 image data: {img_data[:20]}...")  # Debugging line
+                                return base64.b64decode(img_data)
+                            except Exception:
+                                logger.warning(
+                                    "Image data is not valid image bytes or base64"
+                                )
+                                return img_data
+                    return img_data
+                
+                # Process all images
+                df["image"] = df["image"].apply(process_image)
+                logger.info("Images processed successfully")
+                
+            except Exception as e:
+                logger.warning(f"Error processing images: {e}")
+        else:
+            logger.warning("No image column found in the dataset")
 
         # Parse question field if requested
         if parse_question and "question" in df.columns:
@@ -171,19 +202,9 @@ def compare_mllm_judge_pairs_response(
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    import io
-    from PIL import Image
+    from multi_llm_debate.utils.logging_config import setup_logging
+
+    logger = setup_logging(__name__, log_level=logging.INFO)
     # Example usage
     df = load_mllm_judge_pairs(sample_size=10)
-    
-    # Display first few images
-    for i, img_bytes in enumerate(df['image'].head(3)):
-        # Convert bytes to image
-        img = Image.open(io.BytesIO(img_bytes))
-        
-        plt.figure(figsize=(8, 8))
-        plt.imshow(img)
-        plt.axis('off')
-        plt.title(f"Image {i+1}")
-        plt.show()
+    print(df.info())
