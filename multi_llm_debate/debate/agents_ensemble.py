@@ -223,7 +223,9 @@ class AgentsEnsemble:
         self,
         agents: Union[Agent, List[Agent]],
         prompt: str,
-        images: Union[str, Path, bytes, List[str], List[Path], List[bytes], None] = None,
+        images: Union[
+            str, Path, bytes, List[str], List[Path], List[bytes], None
+        ] = None,
         json_mode: bool = False,
         timeout: Optional[int] = None,
         max_retries: int = 3,
@@ -237,7 +239,7 @@ class AgentsEnsemble:
         Args:
             agents (List[Agent]): List of agents to use for the request.
             prompt (str): The input prompt for the LLM.
-            images (Union[str, Path, bytes, List[str], List[Path], List[bytes], None]): 
+            images (Union[str, Path, bytes, List[str], List[Path], List[bytes], None]):
                 Optional images to include in the request. Can be file paths or image data as bytes.
             json_mode (bool): Whether to return the response in JSON format.
             timeout (Optional[int]): Maximum time to wait for a response.
@@ -375,7 +377,9 @@ class AgentsEnsemble:
     def get_responses(
         self,
         prompt: str,
-        images: Union[str, Path, bytes, List[str], List[Path], List[bytes], None] = None,
+        images: Union[
+            str, Path, bytes, List[str], List[Path], List[bytes], None
+        ] = None,
         json_mode: bool = False,
         timeout: Optional[int] = None,
         max_retries: int = 3,
@@ -388,7 +392,7 @@ class AgentsEnsemble:
 
         Args:
             prompt (str): The input prompt for the LLM.
-            images (Union[str, Path, bytes, List[str], List[Path], List[bytes], None]): 
+            images (Union[str, Path, bytes, List[str], List[Path], List[bytes], None]):
                 Optional images to include in the request. Can be file paths or image data as bytes.
             json_mode (bool): Whether to return the response in JSON format.
             timeout (Optional[int]): Maximum time to wait for a response.
