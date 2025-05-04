@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union, ByteString
 
 
 class PromptBuilder:
@@ -11,7 +11,8 @@ class PromptBuilder:
         round_n_fn: Callable[..., str],
         prompt_params: Dict[str, Any],
         query: Optional[str] = None,
-        images: Union[str, Path, List[str], List[Path], None] = None,
+        images: Union[str, Path, List[str], List[Path], bytes, List[bytes], 
+                     ByteString, List[ByteString], None] = None,
     ):
         """
         Args:
@@ -19,7 +20,8 @@ class PromptBuilder:
             round_n_fn: Function to build subsequent round prompts
             prompt_params: Dictionary of parameters needed by prompt functions
             query: Optional query parameter for prompt building
-            images: Optional images parameter for prompt building
+            images: Optional images parameter for prompt building. Can be file
+                paths, raw image bytes, or lists of either.
         """
         self.round_zero_fn = round_zero_fn
         self.round_n_fn = round_n_fn
