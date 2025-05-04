@@ -2,7 +2,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import List, Union, ByteString
+from typing import ByteString, List, Union
 
 from .agents_ensemble import AgentsEnsemble
 
@@ -13,8 +13,17 @@ def run_debate_round_zero(
     prompt: str,
     agents_ensemble: AgentsEnsemble,
     output_dir: Union[str, Path],
-    images: Union[str, Path, List[str], List[Path], bytes, List[bytes], 
-                 ByteString, List[ByteString], None] = None,
+    images: Union[
+        str,
+        Path,
+        List[str],
+        List[Path],
+        bytes,
+        List[bytes],
+        ByteString,
+        List[ByteString],
+        None,
+    ] = None,
     json_mode: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
