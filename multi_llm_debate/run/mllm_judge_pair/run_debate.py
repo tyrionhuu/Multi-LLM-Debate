@@ -11,7 +11,7 @@ from .prompts import (
     build_mllm_judge_pairs_round_n_prompt,
     build_mllm_judge_pairs_round_zero_prompt,
 )
-from .utils import extract_caption_a_b_answer
+from .utils import extract_caption_a_b_answer, image_str_to_bytes
 
 # Fix the setup_logging call by removing the level parameter
 logger = logging.getLogger(__name__)
@@ -125,7 +125,7 @@ def process_mllm_judge_pairs_entry(
             round_n_fn=build_mllm_judge_pairs_round_n_prompt,
             prompt_params=prompt_params,
             query=entry["question"],
-            images=entry["image"],
+            images=entry["image"].apply(image_str_to_bytes)
         ),
         prompt_params={
             "question": entry["question"],
