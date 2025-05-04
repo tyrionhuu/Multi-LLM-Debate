@@ -15,12 +15,12 @@ CONFIG='[
 
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.llm_bar.main \
+python -m multi_llm_debate.run.mllm_judge_pair.main \
     --config-json "$CONFIG" \
-    --task-name "llm_bar" \
+    --task-name "mllm_judge_pair" \
     --batch \
     --batch-size 11 \
-    --sample-size 3
+    --sample-size 1
 # Run the evaluation using module path with direct JSON config
 # python -m multi_llm_debate.run.llm_bar.main \
 #     --config-json "$CONFIG" \
