@@ -105,11 +105,11 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
-#     --config-json "$CONFIG" \
-#     --task-name "ice_score" \
-#     --batch \
-#     --batch-size 11 \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
+    --config-json "$CONFIG" \
+    --task-name "ice_score" \
+    --batch \
+    --batch-size 11 \
 # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.ice_score.main \
     --config-json "$CONFIG" \

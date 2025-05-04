@@ -105,11 +105,11 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
-#     --task-name "truthful_qa" \
-#     --config-json "$CONFIG" \
-#     --batch \
-#     --batch-size 11 \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
+    --task-name "truthful_qa" \
+    --config-json "$CONFIG" \
+    --batch \
+    --batch-size 11 \
 
 # # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.truthful_qa.main \
