@@ -6,6 +6,7 @@ from typing import Literal, Optional, Union
 
 import pandas as pd
 
+
 logger = logging.getLogger(__name__)
 
 MLLM_JUDGE_PAIR_DATASET_FILE = "datasets/MLLM-Judge/pair_data.tsv"
@@ -170,6 +171,19 @@ def compare_mllm_judge_pairs_response(
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    import io
+    from PIL import Image
     # Example usage
     df = load_mllm_judge_pairs(sample_size=10)
-    print(df["response_A"].head(10))
+    
+    # Display first few images
+    for i, img_bytes in enumerate(df['image'].head(3)):
+        # Convert bytes to image
+        img = Image.open(io.BytesIO(img_bytes))
+        
+        plt.figure(figsize=(8, 8))
+        plt.imshow(img)
+        plt.axis('off')
+        plt.title(f"Image {i+1}")
+        plt.show()
