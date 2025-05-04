@@ -107,6 +107,30 @@ def load_mllm_judge_score_dataset(
         raise
 
 
+def extract_0_5_answer(
+    response: str,
+) -> Literal["0", "1", "2", "3", "4", "5"]:
+    """Extract the answer from the response string.
+
+    Args:
+        response (str): The response string from the LLM.
+
+    Returns:
+        Literal["0", "1", "2", "3", "4", "5"]: Answer "0", "1", "2", "3", "4", or "5".
+
+    Raises:
+        ValueError: If no valid answer is found in the response.
+    """
+    match = re.search(r"Final Answer:\s*([012345])", response)
+    if match:
+        return match.group(1)
+    raise ValueError(
+        "No valid answer found in the response. Please ensure the response "
+        "contains 'Final Answer: 0', 'Final Answer: 1', 'Final Answer: 2', "
+        "'Final Answer: 3', 'Final Answer: 4', or 'Final Answer: 5'."
+    )
+
+
 if __name__ == "__main__":
     from multi_llm_debate.utils.logging_config import setup_logging
 
