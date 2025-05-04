@@ -162,7 +162,18 @@ def compare_mllm_judge_pairs_response(
         logger.error(f"Error comparing responses: {e}")
         raise
 
+def image_str_to_bytes(image_str: str) -> bytes:
+    """Convert base64 string to bytes.
 
+    Args:
+        image_str: Base64 encoded string of the image.
+
+    Returns:
+        Bytes representation of the image.
+    """
+    # Decode the base64 string
+    image_bytes = base64.b64decode(image_str)
+    return image_bytes
 if __name__ == "__main__":
     from multi_llm_debate.utils.logging_config import setup_logging
 
