@@ -147,7 +147,24 @@ def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
         raise ValueError(
             "No valid answer found in the response. Please ensure the response contains 'Final Answer: A' or 'Final Answer: B'."
         )
-        
+def compare_mllm_judge_pairs_response(
+    response: Literal["A", "B"],
+    answer: str,
+) -> bool:
+    """Compare the responses from the MLLM-Judge dataset.
+
+    Args:
+        response: The response string from the LLM.
+        answer: The correct answer to the question ("A"/"B").
+
+    Returns:
+        bool: True if the response matches the answer, False otherwise.
+    """
+    try:
+        return response == answer.upper()
+    except Exception as e:
+        logger.error(f"Error comparing responses: {e}")
+        raise
 if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_pairs(sample_size=10)
