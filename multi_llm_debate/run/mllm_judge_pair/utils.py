@@ -15,19 +15,48 @@ RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
 
 
+def parse_question_field(text: str) -> tuple[str, str, str]:
+    """Parse the question field to extract question and responses.
+    
+    Args:
+        text: The content of the question field in format
+            "question Assistant A:... Assistant B:..."
+            
+    Returns:
+        Tuple containing (question, response_a, response_b)
+    """
+    # Extract question (everything before "Assistant A:")
+    question_match = re.search(r"^(.*?)Assistant A:", text, re.DOTALL)
+    question = question_match.group(1).strip() if question_match else ""
+    
+    # Extract Assistant A's response (between "Assistant A:" and "Assistant B:")
+    response_a_match = re.search(r"Assistant A:(.*?)Assistant B:", text, re.DOTALL)
+    response_a = response_a_match.group(1).strip() if response_a_match else ""
+    
+    # Extract Assistant B's response (everything after "Assistant B:")
+    response_b_match = re.search(r"Assistant B:(.*?)$", text, re.DOTALL)
+    response_b = response_b_match.group(1).strip() if response_b_match else ""
+    
+    return question, response_a, response_b
+
+
 def load_mllm_judge_pairs(
     file_path: Optional[Union[str, Path]] = None,
     sample_size: Optional[int] = None,
+    parse_question: bool = True,
 ) -> pd.DataFrame:
     """Load MLLM-Judge pair dataset from TSV file.
 
     Args:
         file_path: Path to the TSV file. If None, uses the default path.
         sample_size: Optional number of samples to return from the dataset.
+        parse_question: Whether to parse the question field into separate columns
+            for question, response_a, and response_b.
 
     Returns:
         DataFrame containing the pair data with columns: id, image, question,
-        and answer.
+        answer, and if parse_question is True, also includes original_question,
+        response_a, and response_b.
 
     Raises:
         FileNotFoundError: If the specified file doesn't exist.
@@ -55,6 +84,22 @@ def load_mllm_judge_pairs(
                 df["image"] = df["image"].apply(
                     lambda x: x.encode() if isinstance(x, str) else x
                 )
+                
+        # Parse question field if requested
+        if parse_question and "question" in df.columns:
+            logger.info("Parsing question field into separate columns...")
+            # Save original question
+            df["original_question"] = df["question"]
+            
+            # Apply parsing function
+            parsed_results = df["original_question"].apply(parse_question_field)
+            
+            # Create new columns
+            df["question"] = parsed_results.apply(lambda x: x[0])
+            df["response_a"] = parsed_results.apply(lambda x: x[1])
+            df["response_b"] = parsed_results.apply(lambda x: x[2])
+            
+            logger.info("Question field parsed successfully")
 
         logger.info(f"Loaded {len(df)} MLLM-Judge pair examples")
 
@@ -82,3 +127,4 @@ if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_pairs(sample_size=5)
     print(df.head())
+
