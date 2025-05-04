@@ -3,7 +3,7 @@ import logging
 import random
 import re
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Union, Tuple
 
 import pandas as pd
 
@@ -15,7 +15,7 @@ RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
 
 
-def parse_question_field(text: str) -> tuple[str, str, str]:
+def parse_question_field(text: str) -> Tuple[str, str, str]:
     """Parse the question field to extract question and responses.
 
     Args:
