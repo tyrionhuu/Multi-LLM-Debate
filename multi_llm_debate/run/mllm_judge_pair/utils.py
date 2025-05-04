@@ -73,3 +73,8 @@ def load_mllm_judge_pairs(
     except Exception as e:
         logger.exception(f"Error loading dataset: {e}")
         raise
+    
+if __name__ == "__main__":
+    # Example usage
+    df = load_mllm_judge_pairs(sample_size=5)
+    print(df.head())
