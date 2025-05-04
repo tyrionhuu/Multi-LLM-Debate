@@ -1,5 +1,4 @@
 import base64
-import io
 import logging
 import random
 import re
@@ -7,7 +6,6 @@ from pathlib import Path
 from typing import Literal, Optional, Union
 
 import pandas as pd
-from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +75,17 @@ def load_mllm_judge_pairs(
         if not all(col in df.columns for col in expected_columns):
             missing = [col for col in expected_columns if col not in df.columns]
             logger.warning(f"Missing expected columns: {missing}")
+
+        # Filter for only entries with answer "A" or "B"
+        original_len = len(df)
+        df = df[df["answer"].isin(["A", "B"])]
+        filtered_len = len(df)
+        
+        if filtered_len < original_len:
+            logger.info(
+                f"Filtered out {original_len - filtered_len} entries with "
+                f"answers other than 'A' or 'B'"
+            )
 
         # Parse question field if requested
         if parse_question and "question" in df.columns:
