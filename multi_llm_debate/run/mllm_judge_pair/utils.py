@@ -182,5 +182,6 @@ if __name__ == "__main__":
 
     logger = setup_logging(__name__, log_level=logging.INFO)
     # Example usage
-    df = load_mllm_judge_pairs(sample_size=10)
-    print(df.iloc[0])
+    df = load_mllm_judge_pairs()
+    print("Unique values in answer column:", df['answer'].unique())
+    print("Value counts in answer column:\n", df['answer'].value_counts())
