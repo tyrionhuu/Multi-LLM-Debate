@@ -1,10 +1,10 @@
 import asyncio
+import base64
 import json
 import logging
 import os
 import random
 import time
-import base64
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -61,10 +61,10 @@ def _get_google_access_token_and_url(
 
 def _is_bytes_like(obj: Any) -> bool:
     """Check if an object is bytes-like (bytes or bytearray).
-    
+
     Args:
         obj (Any): Object to check
-        
+
     Returns:
         bool: True if the object is bytes-like, False otherwise
     """
@@ -223,10 +223,10 @@ def generate_api_messages(
     if len(images) == 1:
         img = images[0]
         if _is_bytes_like(img):
-            base64_image = base64.b64encode(img).decode('utf-8')
+            base64_image = base64.b64encode(img).decode("utf-8")
         else:
             base64_image = encode_image(img)
-            
+
         messages = [
             {
                 "role": "user",
@@ -246,10 +246,10 @@ def generate_api_messages(
         base64_images = []
         for img in images:
             if _is_bytes_like(img):
-                base64_images.append(base64.b64encode(img).decode('utf-8'))
+                base64_images.append(base64.b64encode(img).decode("utf-8"))
             else:
                 base64_images.append(encode_image(img))
-                
+
         content = [
             {
                 "type": "text",
@@ -334,7 +334,9 @@ async def call_model_batch(
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Union[List[Union[str, Path, List[str], List[Path], bytes, List[bytes], None]], None] = None,
+    images: Union[
+        List[Union[str, Path, List[str], List[Path], bytes, List[bytes], None]], None
+    ] = None,
     api_key: Optional[str] = None,
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",

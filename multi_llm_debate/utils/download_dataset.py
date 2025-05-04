@@ -1,7 +1,7 @@
+import io
 import logging
 from pathlib import Path
-from typing import Optional, Union, Tuple
-import io
+from typing import Optional, Tuple, Union
 
 import pandas as pd
 from PIL import Image
@@ -189,33 +189,32 @@ def load_save_dataset_df(
     )
 
 
-def get_image_by_id(
-    df: pd.DataFrame, 
-    image_id: int
-) -> Tuple[Image.Image, dict]:
+def get_image_by_id(df: pd.DataFrame, image_id: int) -> Tuple[Image.Image, dict]:
     """
     Extract and return an image from the dataset by its ID (index).
-    
+
     Args:
         df (pd.DataFrame): The dataframe containing the images.
         image_id (int): The index of the image to retrieve.
-        
+
     Returns:
         Tuple[Image.Image, dict]: A tuple containing the PIL Image object
         and any associated metadata.
     """
     if image_id < 0 or image_id >= len(df):
-        raise ValueError(f"Image ID {image_id} out of range. Dataset has {len(df)} images.")
-    
+        raise ValueError(
+            f"Image ID {image_id} out of range. Dataset has {len(df)} images."
+        )
+
     image_row = df.iloc[image_id]
-    image_bytes = image_row['image']['bytes']
-    
+    image_bytes = image_row["image"]["bytes"]
+
     # Convert bytes to PIL Image
     image = Image.open(io.BytesIO(image_bytes))
-    
+
     # Extract any other metadata if available
-    metadata = {k: v for k, v in image_row.items() if k != 'image'}
-    
+    metadata = {k: v for k, v in image_row.items() if k != "image"}
+
     return image, metadata
 
 
@@ -227,40 +226,44 @@ def main() -> None:
         # split="train",
     )
     print(df.head())
-    
+
     # Example: Get an image by ID
     try:
-        image_id = 3 # Get the first image
+        image_id = 3  # Get the first image
         image, metadata = get_image_by_id(df, image_id)
         print(f"\nRetrieved image with ID {image_id}")
         print(f"Image size: {image.size}")
         print(f"Image mode: {image.mode}")
         print(f"Associated metadata: {metadata}")
-        
+
         # Option 1: Display image in interactive environments (Jupyter/IPython)
         try:
             # Check if we're in IPython/Jupyter
             ip = get_ipython()  # type: ignore
             from IPython.display import display
+
             print("Displaying image in notebook:")
             display(image)
         except (NameError, ImportError):
             # If not in IPython or can't import display
-            print("Not in an interactive environment, using alternative display methods")
-            
+            print(
+                "Not in an interactive environment, using alternative display methods"
+            )
+
             # Option 2: Save and open with default system image viewer
             temp_path = f"temp_image_{image_id}.jpg"
             image.save(temp_path)
             print(f"Image saved to {temp_path}")
-            
+
             # Option 3: Display using matplotlib
             import matplotlib.pyplot as plt
+
             plt.figure(figsize=(10, 10))
             plt.imshow(image)
-            plt.axis('off')
+            plt.axis("off")
             plt.title(f"Image ID: {image_id}")
             plt.show()
-            
+
     except Exception as e:
         logger.error(f"Error retrieving or displaying image: {str(e)}")
 
