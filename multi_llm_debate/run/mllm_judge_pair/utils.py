@@ -22,21 +22,21 @@ def parse_question_field(text: str) -> tuple[str, str, str]:
             "question Assistant A:... Assistant B:..."
 
     Returns:
-        Tuple containing (question, response_a, response_b)
+        Tuple containing (question, response_A, response_B)
     """
     # Extract question (everything before "Assistant A:")
     question_match = re.search(r"^(.*?)Assistant A:", text, re.DOTALL)
     question = question_match.group(1).strip() if question_match else ""
 
     # Extract Assistant A's response (between "Assistant A:" and "Assistant B:")
-    response_a_match = re.search(r"Assistant A:(.*?)Assistant B:", text, re.DOTALL)
-    response_a = response_a_match.group(1).strip() if response_a_match else ""
+    response_A_match = re.search(r"Assistant A:(.*?)Assistant B:", text, re.DOTALL)
+    response_A = response_A_match.group(1).strip() if response_A_match else ""
 
     # Extract Assistant B's response (everything after "Assistant B:")
-    response_b_match = re.search(r"Assistant B:(.*?)$", text, re.DOTALL)
-    response_b = response_b_match.group(1).strip() if response_b_match else ""
+    response_B_match = re.search(r"Assistant B:(.*?)$", text, re.DOTALL)
+    response_B = response_B_match.group(1).strip() if response_B_match else ""
 
-    return question, response_a, response_b
+    return question, response_A, response_B
 
 
 def load_mllm_judge_pairs(
@@ -50,12 +50,12 @@ def load_mllm_judge_pairs(
         file_path: Path to the TSV file. If None, uses the default path.
         sample_size: Optional number of samples to return from the dataset.
         parse_question: Whether to parse the question field into separate columns
-            for question, response_a, and response_b.
+            for question, response_A, and response_B.
 
     Returns:
         DataFrame containing the pair data with columns: id, image, question,
         answer, and if parse_question is True, also includes original_question,
-        response_a, and response_b.
+        response_A, and response_B.
 
     Raises:
         FileNotFoundError: If the specified file doesn't exist.
@@ -95,8 +95,8 @@ def load_mllm_judge_pairs(
 
             # Create new columns
             df["question"] = parsed_results.apply(lambda x: x[0])
-            df["response_a"] = parsed_results.apply(lambda x: x[1])
-            df["response_b"] = parsed_results.apply(lambda x: x[2])
+            df["response_A"] = parsed_results.apply(lambda x: x[1])
+            df["response_B"] = parsed_results.apply(lambda x: x[2])
 
             logger.info("Question field parsed successfully")
 
@@ -172,4 +172,4 @@ def compare_mllm_judge_pairs_response(
 if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_pairs(sample_size=10)
-    print(df["response_a"].head(10))
+    print(df["response_A"].head(10))
