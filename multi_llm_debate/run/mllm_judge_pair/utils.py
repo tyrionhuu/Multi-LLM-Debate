@@ -126,7 +126,28 @@ def load_mllm_judge_pairs(
         logger.exception(f"Error loading dataset: {e}")
         raise
 
+def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
+    """
+    Extract answer from the response string.
 
+    First tries to find "Final Answer: A" or "Final Answer: B" pattern.
+    If not found, falls back to finding the last occurrence of A or B.
+
+    Args:
+        response: The response string from the LLM.
+
+    Returns:
+        Literal["A", "B"]: Answer "A" or "B".
+    """
+    # Try to find "Final Answer: X" pattern
+    match = re.search(r"Final Answer:\s*([AB])", response)
+    if match:
+        return match.group(1)
+    else:
+        raise ValueError(
+            "No valid answer found in the response. Please ensure the response contains 'Final Answer: A' or 'Final Answer: B'."
+        )
+        
 if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_pairs(sample_size=10)
