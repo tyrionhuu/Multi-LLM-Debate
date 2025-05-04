@@ -194,7 +194,7 @@ def main() -> None:
         force_download=False,
         # split="train",
     )
-    print(df.columns)
+    print(df.head())
 
 
 if __name__ == "__main__":
