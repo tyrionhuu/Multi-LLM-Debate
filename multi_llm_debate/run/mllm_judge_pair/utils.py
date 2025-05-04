@@ -1,4 +1,3 @@
-import json
 import logging
 import random
 import re
@@ -126,6 +125,7 @@ def load_mllm_judge_pairs(
         logger.exception(f"Error loading dataset: {e}")
         raise
 
+
 def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
     """
     Extract answer from the response string.
@@ -147,6 +147,8 @@ def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
         raise ValueError(
             "No valid answer found in the response. Please ensure the response contains 'Final Answer: A' or 'Final Answer: B'."
         )
+
+
 def compare_mllm_judge_pairs_response(
     response: Literal["A", "B"],
     answer: str,
@@ -165,6 +167,8 @@ def compare_mllm_judge_pairs_response(
     except Exception as e:
         logger.error(f"Error comparing responses: {e}")
         raise
+
+
 if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_pairs(sample_size=10)
