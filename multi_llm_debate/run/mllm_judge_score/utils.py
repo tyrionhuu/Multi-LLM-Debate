@@ -17,7 +17,7 @@ random.seed(RANDOM_STATE)
 
 def parse_question_field(text: str) -> Tuple[str, str]:
     """
-    Parse a question field where the question appears before 'Assistant:' 
+    Parse a question field where the question appears before 'Assistant:'
 
     Args:
         text: The input text to parse.
@@ -110,4 +110,4 @@ def load_mllm_judge_score_dataset(
 if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_score_dataset()
-    print(df.info())
+    print(df.head())
