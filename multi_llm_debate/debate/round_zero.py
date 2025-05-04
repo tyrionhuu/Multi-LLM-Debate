@@ -2,7 +2,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, ByteString
 
 from .agents_ensemble import AgentsEnsemble
 
@@ -13,7 +13,8 @@ def run_debate_round_zero(
     prompt: str,
     agents_ensemble: AgentsEnsemble,
     output_dir: Union[str, Path],
-    images: Union[str, Path, List[str], List[Path], None] = None,
+    images: Union[str, Path, List[str], List[Path], bytes, List[bytes], 
+                 ByteString, List[ByteString], None] = None,
     json_mode: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -29,7 +30,9 @@ def run_debate_round_zero(
         prompt: The initial prompt/question to start the debate.
         agents_ensemble: Collection of LLM agents participating in the debate.
         output_dir: Directory path where debate responses will be saved.
-        images (Union[str, Path, List[str], List[Path], None]): Optional image file paths
+        images: Optional image data, which can be either file paths or raw image
+            bytes. Supported formats include: string paths, Path objects, bytes,
+            ByteString, or lists of any of these types.
         json_mode: Whether to expect JSON responses from agents.
         temperature: Sampling temperature for the model.
         max_tokens: Maximum number of tokens in the response.
