@@ -2,7 +2,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Union, ByteString
 
 from .agents_ensemble import AgentsEnsemble
 
@@ -14,7 +14,7 @@ def run_debate_round_n(
     agents_ensemble: AgentsEnsemble,
     output_dir: Union[str, Path],
     round_num: int,
-    images: Union[str, Path, List[str], List[Path], None] = None,
+    images: Union[str, Path, List[str], List[Path], bytes, List[bytes], ByteString, List[ByteString], None] = None,
     json_mode: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -29,12 +29,14 @@ def run_debate_round_n(
             the debate.
         output_dir (str | Path): Directory path where debate responses will be saved.
         round_num (int): Current round number.
-        images (Union[str, Path, List[str], List[Path], None]): Optional image file paths
+        images (Union[str, Path, List[str], List[Path], bytes, List[bytes], 
+                      ByteString, List[ByteString], None]): Optional image data, 
+                      which can be either file paths or raw image bytes.
         json_mode (bool): Whether to expect JSON responses from agents.
         temperature (float): Sampling temperature for the model.
         max_tokens (int): Maximum number of tokens in the response.
         batch (bool): Whether to run in batch mode.
-        batch_size (int): Size of the batch for  processing.
+        batch_size (int): Size of the batch for processing.
 
     Returns:
         List[dict]: List of agent responses, where each response is a dictionary.
