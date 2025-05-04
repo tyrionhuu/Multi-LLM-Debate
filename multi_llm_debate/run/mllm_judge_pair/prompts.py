@@ -57,8 +57,8 @@ def build_mllm_judge_pairs_round_zero_prompt(
     """
     prompt = (
         "Please act as an impartial judge and evaluate the quality of the "
-        "responses provided by two AI assistants to the user question and an image"
-        "displayed below. You should choose the assistant that follows the "
+        "responses provided by two AI assistants to the user question "
+        "displayed below and an image. You should choose the assistant that follows the "
         "user's instructions and answers the user's question better. " + NEW_LINE
     )
 
@@ -144,8 +144,8 @@ def build_mllm_judge_pairs_round_n_prompt(
     prompt += DIVIDER + NEW_LINE
     prompt += (
         "Please act as an independent impartial judge and evaluate the quality "
-        "of the responses provided by two AI assistants to the user question and an image "
-        "displayed below. Consider the previous judges' evaluations, but make "
+        "of the responses provided by two AI assistants to the user question "
+        "displayed below and an image. Consider the previous judges' evaluations, but make "
         "your own assessment. You should choose the assistant that follows the "
         "user's instructions and answers the user's question better." + NEW_LINE
     )
