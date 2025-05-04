@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union, ByteString
+from typing import Any, ByteString, Callable, Dict, List, Optional, Union
 
 
 class PromptBuilder:
@@ -11,8 +11,17 @@ class PromptBuilder:
         round_n_fn: Callable[..., str],
         prompt_params: Dict[str, Any],
         query: Optional[str] = None,
-        images: Union[str, Path, List[str], List[Path], bytes, List[bytes], 
-                     ByteString, List[ByteString], None] = None,
+        images: Union[
+            str,
+            Path,
+            List[str],
+            List[Path],
+            bytes,
+            List[bytes],
+            ByteString,
+            List[ByteString],
+            None,
+        ] = None,
     ):
         """
         Args:
