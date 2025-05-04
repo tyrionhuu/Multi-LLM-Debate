@@ -4,6 +4,7 @@ import logging
 import os
 import random
 import time
+import base64
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -58,6 +59,18 @@ def _get_google_access_token_and_url(
     return access_token, base_url
 
 
+def _is_bytes_like(obj: Any) -> bool:
+    """Check if an object is bytes-like (bytes or bytearray).
+    
+    Args:
+        obj (Any): Object to check
+        
+    Returns:
+        bool: True if the object is bytes-like, False otherwise
+    """
+    return isinstance(obj, (bytes, bytearray))
+
+
 def call_model(
     model_name: str = "gpt-4",
     base_url: str = None,
@@ -66,7 +79,7 @@ def call_model(
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Union[str, Path, List[str], List[Path], None] = None,
+    images: Union[str, Path, List[str], List[Path], bytes, List[bytes], None] = None,
     api_key: Optional[str] = None,
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",
@@ -84,8 +97,8 @@ def call_model(
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request. Defaults to 30.
-        images (Union[str, Path, List[str], List[Path], None]):
-            Image file paths when using vision models.
+        images (Union[str, Path, List[str], List[Path], bytes, List[bytes], None]):
+            Image file paths or raw image bytes when using vision models.
         api_key (Optional[str]): The API key to use. Defaults to the one from config.
         project_id (Optional[str]): GCP project ID for Gemini.
         location (str): GCP region for Gemini.
@@ -106,7 +119,7 @@ def call_model(
 
     try:
         # Process images if provided
-        processed_images: List[str] = []
+        processed_images: List[Union[str, bytes]] = []
         if images is not None:
             if not isinstance(images, list):
                 images = [images]
@@ -116,9 +129,11 @@ def call_model(
                     if not img_path.exists():
                         raise ValueError(f"Image file {img_path} does not exist.")
                     processed_images.append(str(img_path))
+                elif _is_bytes_like(img):
+                    processed_images.append(img)
                 else:
                     raise ValueError(
-                        "Images must be a string, Path, or list of strings/Paths."
+                        "Images must be a string, Path, bytes, or list of strings/Paths/bytes."
                     )
 
         # Detect Gemini model
@@ -189,15 +204,15 @@ def call_model(
 
 def generate_api_messages(
     prompt: str,
-    images: Optional[List[Union[str, Path]]] = None,
+    images: Optional[List[Union[str, Path, bytes]]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Prepares the messages payload for the API call with optional images and a prompt.
 
     Args:
         prompt (str): The text prompt for the model.
-        images (Optional[List[Union[str, Path]]]): List of image file paths.
-            If None, returns text-only message format.
+        images (Optional[List[Union[str, Path, bytes]]]): List of image file paths
+            or raw image bytes. If None, returns text-only message format.
 
     Returns:
         list[dict]: A list of messages formatted for the API call.
@@ -205,11 +220,13 @@ def generate_api_messages(
     if not images:
         return [{"role": "user", "content": prompt}]
 
-    # Convert Path objects to str
-    image_paths = [str(img) if isinstance(img, Path) else img for img in images]
-
-    if len(image_paths) == 1:
-        base64_image = encode_image(image_paths[0])
+    if len(images) == 1:
+        img = images[0]
+        if _is_bytes_like(img):
+            base64_image = base64.b64encode(img).decode('utf-8')
+        else:
+            base64_image = encode_image(img)
+            
         messages = [
             {
                 "role": "user",
@@ -226,7 +243,13 @@ def generate_api_messages(
             }
         ]
     else:
-        base64_images = [encode_image(img) for img in image_paths]
+        base64_images = []
+        for img in images:
+            if _is_bytes_like(img):
+                base64_images.append(base64.b64encode(img).decode('utf-8'))
+            else:
+                base64_images.append(encode_image(img))
+                
         content = [
             {
                 "type": "text",
@@ -259,7 +282,7 @@ async def call_model_async(
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Union[str, Path, List[str], List[Path], None] = None,
+    images: Union[str, Path, List[str], List[Path], bytes, List[bytes], None] = None,
     api_key: Optional[str] = None,
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",
@@ -275,8 +298,8 @@ async def call_model_async(
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request.
-        images (Union[str, Path, List[str], List[Path], None]):
-            Image file paths when using vision models.
+        images (Union[str, Path, List[str], List[Path], bytes, List[bytes], None]):
+            Image file paths or raw image bytes when using vision models.
         api_key (Optional[str]): The API key to use.
         project_id (Optional[str]): GCP project ID for Gemini.
         location (str): GCP region for Gemini.
@@ -311,7 +334,7 @@ async def call_model_batch(
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Union[List[Union[str, Path, List[str], List[Path], None]], None] = None,
+    images: Union[List[Union[str, Path, List[str], List[Path], bytes, List[bytes], None]], None] = None,
     api_key: Optional[str] = None,
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",
@@ -328,8 +351,8 @@ async def call_model_batch(
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request.
-        images (List[Union[str, Path, List[str], List[Path], None]], optional):
-            List of image file paths or lists of paths when using vision models.
+        images (List[Union[str, Path, List[str], List[Path], bytes, List[bytes], None]], optional):
+            List of image file paths, raw image bytes, or lists of paths/bytes when using vision models.
             Should match the length of prompts or be None.
         api_key (Optional[str]): The API key to use.
         project_id (Optional[str]): GCP project ID for Gemini.
