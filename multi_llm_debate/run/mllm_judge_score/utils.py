@@ -108,6 +108,9 @@ def load_mllm_judge_score_dataset(
 
 
 if __name__ == "__main__":
+    from multi_llm_debate.utils.logging_config import setup_logging
+
+    logger = setup_logging(__name__, log_level=logging.INFO)
     # Example usage
     df = load_mllm_judge_score_dataset()
     print(df.info())
