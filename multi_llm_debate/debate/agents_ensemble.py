@@ -223,7 +223,7 @@ class AgentsEnsemble:
         self,
         agents: Union[Agent, List[Agent]],
         prompt: str,
-        images: Union[str, Path, List[str], List[Path], None] = None,
+        images: Union[str, Path, bytes, List[str], List[Path], List[bytes], None] = None,
         json_mode: bool = False,
         timeout: Optional[int] = None,
         max_retries: int = 3,
@@ -237,7 +237,8 @@ class AgentsEnsemble:
         Args:
             agents (List[Agent]): List of agents to use for the request.
             prompt (str): The input prompt for the LLM.
-            images (Union[str, Path, List[str], List[Path], None]): Optional images to include in the request.
+            images (Union[str, Path, bytes, List[str], List[Path], List[bytes], None]): 
+                Optional images to include in the request. Can be file paths or image data as bytes.
             json_mode (bool): Whether to return the response in JSON format.
             timeout (Optional[int]): Maximum time to wait for a response.
             max_retries (int): Number of retry attempts for failed requests.
@@ -263,9 +264,12 @@ class AgentsEnsemble:
                     img_path = Path(img)
                     if not img_path.exists():
                         raise ValueError(f"Image file {img_path} does not exist.")
+                elif isinstance(img, bytes):
+                    # No need to validate bytes objects as they are raw image data
+                    pass
                 else:
                     raise ValueError(
-                        f"Invalid image type: {type(img)}. Expected str or Path."
+                        f"Invalid image type: {type(img)}. Expected str, Path, or bytes."
                     )
         start_time = time.time()
         logger.debug(f"Starting response generation with {len(agents)} agents")
@@ -371,7 +375,7 @@ class AgentsEnsemble:
     def get_responses(
         self,
         prompt: str,
-        images: Union[str, Path, List[str], List[Path], None] = None,
+        images: Union[str, Path, bytes, List[str], List[Path], List[bytes], None] = None,
         json_mode: bool = False,
         timeout: Optional[int] = None,
         max_retries: int = 3,
@@ -384,7 +388,8 @@ class AgentsEnsemble:
 
         Args:
             prompt (str): The input prompt for the LLM.
-            images (Union[str, Path, List[str], List[Path], None]): Optional images to include in the request.
+            images (Union[str, Path, bytes, List[str], List[Path], List[bytes], None]): 
+                Optional images to include in the request. Can be file paths or image data as bytes.
             json_mode (bool): Whether to return the response in JSON format.
             timeout (Optional[int]): Maximum time to wait for a response.
             max_retries (int): Number of retry attempts for failed requests.
