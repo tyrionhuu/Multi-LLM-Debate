@@ -6,6 +6,7 @@ import pandas as pd
 from ..shared.evaluate import EvaluationResults, evaluate_all
 from .utils import compare_mllm_judge_pairs_response, extract_caption_a_b_answer
 
+
 def evaluate_mllm_judge_pairs_responses(
     responses: List[Dict],
     answer: str,
@@ -25,7 +26,8 @@ def evaluate_mllm_judge_pairs_responses(
         )
         for response in responses
     )
-    
+
+
 def evaluate_all_mllm_judge_pairs(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
