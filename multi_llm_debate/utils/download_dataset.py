@@ -111,7 +111,7 @@ def load_save_huggingface_dataset(
                 # If no split is specified, return the first split available
                 dataset = next(iter(dataset.values()))
                 logger.debug(f"Loaded first split of dataset {dataset_name}")
-                
+
             return dataset
         except KeyError:
             logger.error(f"Split {split} not found in dataset {dataset_name}")
