@@ -6,7 +6,7 @@ import pandas as pd
 
 from datasets import Dataset, load_dataset, load_from_disk
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -82,6 +82,7 @@ def load_save_huggingface_dataset(
                     if is_latest:
                         logger.info(f"Loading latest version from {dataset_path}")
                         dataset = load_from_disk(str(dataset_path))
+                        logger.debug(f"Loaded dataset {dataset}")
                     else:
                         logger.info(
                             f"Local dataset outdated or missing. Downloading {dataset_name}"
@@ -105,10 +106,15 @@ def load_save_huggingface_dataset(
         try:
             if split:
                 dataset = dataset[split]
+                logger.debug(f"Loaded split {split} of dataset {dataset_name}")
             else:
                 # If no split is specified, return the first split available
                 dataset = next(iter(dataset.values()))
+                logger.debug(f"Loaded first split of dataset {dataset_name}")
+                
+            return dataset
         except KeyError:
+            logger.error(f"Split {split} not found in dataset {dataset_name}")
             return dataset
     return None
 
@@ -186,7 +192,7 @@ def main() -> None:
         dataset_name="shuaishuaicdp/MLLM-Judge",
         dataset_path=Path("datasets/MLLM-Judge"),
         force_download=False,
-        split="train",
+        # split="train",
     )
     print(df.columns)
 
