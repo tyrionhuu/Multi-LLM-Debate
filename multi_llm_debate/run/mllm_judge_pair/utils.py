@@ -3,7 +3,7 @@ import logging
 import random
 import re
 from pathlib import Path
-from typing import Literal, Optional, Union, Tuple
+from typing import Literal, Optional, Tuple, Union
 
 import pandas as pd
 
