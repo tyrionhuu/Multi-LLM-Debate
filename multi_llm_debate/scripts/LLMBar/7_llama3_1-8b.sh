@@ -105,20 +105,20 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
-    --task-name "llm_bar" \
-    --config-json "$CONFIG" \
-    --batch \
-    --batch-size 11 \
-
-# Run the evaluation using module path with direct JSON config
 # CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
+#     --task-name "llm_bar" \
 #     --config-json "$CONFIG" \
-#     --task-name "llm_bar_pruning" \
-#     --diversity-pruning "answer" \
-#     --diversity-pruning-amount 7 \
 #     --batch \
 #     --batch-size 11 \
+
+# Run the evaluation using module path with direct JSON config
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
+    --config-json "$CONFIG" \
+    --task-name "llm_bar_pruning" \
+    --diversity-pruning "answer" \
+    --diversity-pruning-amount 5 \
+    --batch \
+    --batch-size 11 \
     
 cleanup 1
 
