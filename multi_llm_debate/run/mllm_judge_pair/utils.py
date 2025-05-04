@@ -1,12 +1,12 @@
+import base64
+import io
 import logging
 import random
 import re
 from pathlib import Path
 from typing import Literal, Optional, Union
-import base64
-import io
-import pandas as pd
 
+import pandas as pd
 from PIL import Image
 
 logger = logging.getLogger(__name__)
