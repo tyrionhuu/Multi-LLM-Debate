@@ -15,40 +15,27 @@ RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
 
 
-def parse_question_field(text: str) -> Tuple[str, str, int]:
+def parse_question_field(text: str) -> Tuple[str, str]:
     """
-    Parse a question field where the question appears before 'Assistant:' and
-    ends with a number.
+    Parse a question field where the question appears before 'Assistant:' 
 
     Args:
         text: The input text to parse.
 
     Returns:
-        A tuple containing the extracted question text, the assistant's response, and the score number.
+        A tuple containing the extracted question text, the assistant's response
     """
     # Split by "Assistant:" to get the question part
     parts = text.split("Assistant:")
 
     if len(parts) < 2:
         logger.warning(f"Could not find 'Assistant:' in text: {text}")
-        return text, "", 0
+        return text, ""
 
     question = parts[0].strip()
-    assistant_response_with_score = parts[1].strip()
+    assistant_response = parts[1].strip()
 
-    # Extract the number from the end of the text
-    match = re.search(r"(\d+)$", text.strip())
-
-    if not match:
-        logger.warning(f"Could not find ending number in: {text}")
-        return question, assistant_response_with_score, 0
-
-    score = int(match.group(1))
-
-    # Remove the score from the assistant response
-    assistant_response = re.sub(r"\s*\d+$", "", assistant_response_with_score).strip()
-
-    return question, assistant_response, score
+    return question, assistant_response
 
 
 def load_mllm_judge_score_dataset(
@@ -86,13 +73,13 @@ def load_mllm_judge_score_dataset(
             logger.warning(f"Missing expected columns: {missing}")
 
         # Parse the question field
-        df["question"], df["response"], df["score"] = zip(
+        df["question"], df["response"] = zip(
             *df["question"].apply(parse_question_field)
         )
 
         logger.info(f"Loaded {len(df)} rows from {file_path}")
 
-        df = df[["id", "image", "question", "response", "score"]]
+        df = df[["id", "image", "question", "response", "answer"]]
 
         df = df.copy()
         df = df.sample(n=sample_size, random_state=RANDOM_STATE).reset_index(drop=True)
@@ -123,4 +110,4 @@ def load_mllm_judge_score_dataset(
 if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_score_dataset()
-    print(df.head())
+    print(df.info())
