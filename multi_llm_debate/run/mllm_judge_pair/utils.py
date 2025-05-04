@@ -41,7 +41,7 @@ def parse_question_field(text: str) -> Tuple[str, str, str]:
 
 
 def load_mllm_judge_pairs(
-    file_path: Optional[Union[str, Path]] = None,
+    file_path: Optional[Union[str, Path]] = MLLM_JUDGE_PAIR_DATASET_FILE,
     sample_size: Optional[int] = None,
     parse_question: bool = True,
 ) -> pd.DataFrame:
