@@ -126,4 +126,4 @@ def load_mllm_judge_pairs(
 if __name__ == "__main__":
     # Example usage
     df = load_mllm_judge_pairs(sample_size=5)
-    print(df.head())
+    print(df['response_a'].head(10))
