@@ -130,7 +130,22 @@ def extract_0_5_answer(
         "'Final Answer: 3', 'Final Answer: 4', or 'Final Answer: 5'."
     )
 
+def compare_mllm_judge_score_response(
+    response: Literal["0", "1", "2", "3", "4", "5"],
+    answer: Union[str, int]
+) -> Literal["0", "1", "2", "3", "4", "5"]:
+    """
+    Compare the MLLM-Judge score response.
 
+    Args:
+        response: The response string from the LLM.
+
+    Returns:
+        Literal["0", "1", "2", "3", "4", "5"]: Answer "0", "1", "2", "3", "4", or "5".
+    """
+    if isinstance(answer, int):
+        answer = str(answer)
+    return response == answer
 if __name__ == "__main__":
     from multi_llm_debate.utils.logging_config import setup_logging
 
