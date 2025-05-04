@@ -20,7 +20,7 @@ python -m multi_llm_debate.run.mllm_judge_pair.main \
     --task-name "mllm_judge_pair" \
     --batch \
     --batch-size 11 \
-    --sample-size 1
+    --sample-size 5
 # Run the evaluation using module path with direct JSON config
 # python -m multi_llm_debate.run.llm_bar.main \
 #     --config-json "$CONFIG" \
