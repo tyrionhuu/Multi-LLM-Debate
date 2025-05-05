@@ -22,6 +22,7 @@ JUDGE_ANYTHING_PAIR_PREFERENCE_FILE = (
     "datasets/JudgeAnything/Preference/Human_Pairing.json"
 )
 
+
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
 ) -> pd.DataFrame:
@@ -31,6 +32,7 @@ def _load_json_dataset(
     df = pd.DataFrame(data)
     # Filter DataFrame to only include rows where task_name is "Image2Text"
     df = df[df["task_name"] == "Image2Text"]
+    df = df.drop(columns=["task_name", "audio_path", "video_path"])
     return df
 
 
@@ -44,6 +46,7 @@ def _load_response_dataset(
     df = df[df["task_name"] == "Image2Text"]
     return df
 
+
 def _load_preference_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_PAIR_PREFERENCE_FILE,
 ) -> pd.DataFrame:
@@ -55,18 +58,20 @@ def _load_preference_dataset(
     df = df[df["rubric_name"] == "overall_score"]
     df = df.drop(columns=["task_name", "rubric_name", "comment"])
     return df
+
+
 if __name__ == "__main__":
     # Example usage
     dataset = _load_json_dataset()
     print("Judge Anything Pair Dataset:")
     print(dataset.head())
     print(dataset.columns)
-    
+
     preference = _load_preference_dataset()
     print("Preference Dataset:")
     print(preference.head())
     print(preference.columns)
-    
+
     response_dataset = _load_response_dataset()
     print("Response Dataset:")
     print(response_dataset.head())
