@@ -60,18 +60,24 @@ def _load_preference_dataset(
     return df
 
 
-def _merge_dataset_and_response(
-    dataset: pd.DataFrame, response: pd.DataFrame
+def _merge_dataset(
+    dataset: pd.DataFrame, 
+    response: pd.DataFrame,
+    preference: Optional[pd.DataFrame] = None
 ) -> pd.DataFrame:
     """
-    Merge dataset and response DataFrames by uniq_id column.
+    Merge dataset, response, and optionally preference DataFrames.
     
     Args:
         dataset: DataFrame containing the base dataset.
         response: DataFrame containing responses, where uniq_id might not be unique.
+        preference: Optional DataFrame containing preference data, where uniq_id 
+                   is in format like "141_8a093930" while in other dataframes
+                   it's like "1732019006_376_7b6a1840". The matching is done on
+                   the last two parts (e.g., "376_7b6a1840").
     
     Returns:
-        A merged DataFrame containing data from both input DataFrames.
+        A merged DataFrame containing data from all input DataFrames.
     """
     # Validate if uniq_id exists in both DataFrames
     if "uniq_id" not in dataset.columns or "uniq_id" not in response.columns:
@@ -83,7 +89,7 @@ def _merge_dataset_and_response(
         logger.info(f"Found {duplicate_ids} duplicate uniq_ids in response DataFrame. "
                    f"All duplicates will be included in the merged result.")
     
-    # Perform merge operation
+    # Perform merge operation for dataset and response
     merged_df = pd.merge(
         dataset,
         response,
@@ -94,6 +100,42 @@ def _merge_dataset_and_response(
     
     logger.info(f"Merged dataset ({len(dataset)} rows) and response "
                f"({len(response)} rows) into a DataFrame with {len(merged_df)} rows")
+    
+    # Merge preference if provided
+    if preference is not None:
+        if "uniq_id" not in preference.columns:
+            raise ValueError("Preference DataFrame must contain 'uniq_id' column")
+        
+        # Create temporary columns in both dataframes to extract the last two parts of uniq_id
+        merged_df['id_suffix'] = merged_df['uniq_id'].apply(
+            lambda x: '_'.join(x.split('_')[-2:]) if x.count('_') >= 2 else x
+        )
+        
+        preference_copy = preference.copy()
+        preference_copy['id_suffix'] = preference_copy['uniq_id'].apply(
+            lambda x: '_'.join(x.split('_')[-2:]) if x.count('_') >= 2 else x
+        )
+        
+        # Merge with preference using the extracted suffixes
+        merged_df = pd.merge(
+            merged_df,
+            preference_copy,
+            on='id_suffix',
+            how='left',
+            suffixes=('', '_preference')
+        )
+        
+        # Drop the temporary column
+        merged_df = merged_df.drop(columns=['id_suffix'])
+        
+        # Rename the preference uniq_id to avoid confusion
+        if 'uniq_id_preference' not in merged_df.columns:
+            merged_df = merged_df.rename(columns={'uniq_id_y': 'preference_id'})
+        else:
+            merged_df = merged_df.rename(columns={'uniq_id_preference': 'preference_id'})
+        
+        logger.info(f"Merged with preference dataset ({len(preference)} rows) "
+                   f"resulting in a DataFrame with {len(merged_df)} rows")
     
     return merged_df
 
@@ -115,7 +157,7 @@ if __name__ == "__main__":
     print(response_dataset.head())
     print(response_dataset.columns)
 
-    merged_df = _merge_dataset_and_response(dataset, response_dataset)
-    print("Merged Dataset and Response:")
+    merged_df = _merge_dataset(dataset, response_dataset, preference)
+    print("Merged Dataset, Response, and Preference:")
     print(merged_df.head())
     print(merged_df.columns)
