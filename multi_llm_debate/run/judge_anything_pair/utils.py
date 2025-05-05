@@ -53,6 +53,7 @@ def _load_preference_dataset(
     df = pd.DataFrame(data)
     df = df[df["task_name"] == "Image2Text"]
     df = df[df["rubric_name"] == "overall_score"]
+    df = df.drop(columns=["task_name", "rubric_name", "comment"])
     return df
 if __name__ == "__main__":
     # Example usage
