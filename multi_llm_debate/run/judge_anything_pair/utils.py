@@ -61,6 +61,8 @@ def load_judge_anything_pairs(
 
     logger.info(f"Loaded {len(df)} pairs from dataset, response, and preference files.")
     return df
+
+
 def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
     """
     Extract answer from the response string.
@@ -82,6 +84,8 @@ def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
         raise ValueError(
             "No valid answer found in the response. Please ensure the response contains 'Final Answer: A' or 'Final Answer: B'."
         )
+
+
 def compare_judge_anything_pairs_response(
     response: Literal["A", "B"],
     answer: str,
@@ -100,6 +104,8 @@ def compare_judge_anything_pairs_response(
         raise ValueError("Response must be either 'A' or 'B'.")
 
     return response == answer
+
+
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
 ) -> pd.DataFrame:
