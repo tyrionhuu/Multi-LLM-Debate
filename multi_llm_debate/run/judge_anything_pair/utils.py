@@ -22,6 +22,7 @@ JUDGE_ANYTHING_PAIR_PREFERENCE_FILE = (
     "datasets/JudgeAnything/Preference/Human_Pairing.json"
 )
 
+
 def load_judge_anything_pairs(
     dataset_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
     response_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_RESPONSE_FILE,
@@ -49,7 +50,7 @@ def load_judge_anything_pairs(
     df = merged_df.copy()
     df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
     df["id"] = range(len(df))
-    
+
     if sample_size is not None:
         if sample_size > len(df):
             logger.warning(
@@ -58,11 +59,11 @@ def load_judge_anything_pairs(
             )
             sample_size = len(df)
         df = df.head(sample_size)
-        
-    logger.info(
-        f"Loaded {len(df)} pairs from dataset, response, and preference files."
-    )
+
+    logger.info(f"Loaded {len(df)} pairs from dataset, response, and preference files.")
     return df
+
+
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
 ) -> pd.DataFrame:
