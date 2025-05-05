@@ -20,7 +20,8 @@ def _load_json_dataset(
     with open(file_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     df = pd.DataFrame(data)
-    
+    # Filter DataFrame to only include rows where task_name is "Image2Text"
+    df = df[df['task_name'] == "Image2Text"]
     return df
 
 
@@ -28,3 +29,4 @@ if __name__ == "__main__":
     # Example usage
     dataset = _load_json_dataset()
     print(dataset.head())
+    print(dataset.columns)
