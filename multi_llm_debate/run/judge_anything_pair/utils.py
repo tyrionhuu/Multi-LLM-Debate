@@ -179,15 +179,15 @@ def _merge_dataset(
                 "uniq_id": model1_entry["uniq_id"],
                 "id_suffix": suffix,
                 # Model 1 specific data
-                "model1_name": model1,
-                "model1_response": model1_entry["response"],
+                # "model1_name": model1,
+                "response_A": model1_entry["response"]["content"],
                 # Model 2 specific data
-                "model2_name": model2,
-                "model2_response": model2_entry["response"],
+                # "model2_name": model2,
+                "response_B": model2_entry["response"]["content"],
                 # Preference data
                 "preference_id": pref_row["uniq_id"],
-                "model_pair": pref_row["model_pair"],
-                "choice": "1" if pref_row["choice"] == "0" else pref_row["choice"],
+                # "model_pair": pref_row["model_pair"],
+                "choice": "A" if pref_row["choice"] == "0" else "B",
             }
 
             result_rows.append(combined_row)
