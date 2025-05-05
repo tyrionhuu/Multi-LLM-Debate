@@ -16,6 +16,7 @@ from .utils import extract_1_5_answer, image_str_to_bytes
 # Fix the setup_logging call by removing the level parameter
 logger = logging.getLogger(__name__)
 
+
 def process_mllm_judge_score_dataset(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,
@@ -55,7 +56,7 @@ def process_mllm_judge_score_dataset(
         ValueError: If DataFrame format is invalid
     """
     required_columns = ["question", "response", "id", "image"]
-    
+
     return process_debate_dataset(
         dataframe=dataframe,
         process_entry_fn=process_mllm_judge_score_entry,
@@ -74,7 +75,8 @@ def process_mllm_judge_score_dataset(
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
-    
+
+
 def process_mllm_judge_score_entry(
     entry: pd.Series,
     max_rounds: int = 10,
