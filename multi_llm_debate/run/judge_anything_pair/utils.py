@@ -64,15 +64,15 @@ if __name__ == "__main__":
     # Example usage
     dataset = _load_json_dataset()
     print("Judge Anything Pair Dataset:")
-    print(dataset.head())
+    print(dataset.info())
     print(dataset.columns)
 
     preference = _load_preference_dataset()
     print("Preference Dataset:")
-    print(preference.head())
+    print(preference.info())
     print(preference.columns)
 
     response_dataset = _load_response_dataset()
     print("Response Dataset:")
-    print(response_dataset.head())
+    print(response_dataset.info())
     print(response_dataset.columns)
