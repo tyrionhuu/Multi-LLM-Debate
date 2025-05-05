@@ -1,4 +1,3 @@
-import base64
 import json
 import logging
 import random
@@ -62,8 +61,45 @@ def load_judge_anything_pairs(
 
     logger.info(f"Loaded {len(df)} pairs from dataset, response, and preference files.")
     return df
+def extract_caption_a_b_answer(response: str) -> Literal["A", "B"]:
+    """
+    Extract answer from the response string.
 
+    First tries to find "Final Answer: A" or "Final Answer: B" pattern.
+    If not found, falls back to finding the last occurrence of A or B.
 
+    Args:
+        response: The response string from the LLM.
+
+    Returns:
+        Literal["A", "B"]: Answer "A" or "B".
+    """
+    # Try to find "Final Answer: X" pattern
+    match = re.search(r"Final Answer:\s*([AB])", response)
+    if match:
+        return match.group(1)
+    else:
+        raise ValueError(
+            "No valid answer found in the response. Please ensure the response contains 'Final Answer: A' or 'Final Answer: B'."
+        )
+def compare_judge_anything_pairs_response(
+    response: Literal["A", "B"],
+    answer: str,
+) -> bool:
+    """
+    Compare the responses from the Judge Anything pair dataset.
+
+    Args:
+        response: The response string from the LLM.
+        answer: The correct answer to the question ("A"/"B").
+
+    Returns:
+        bool: True if the response matches the answer, False otherwise.
+    """
+    if response not in ["A", "B"]:
+        raise ValueError("Response must be either 'A' or 'B'.")
+
+    return response == answer
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
 ) -> pd.DataFrame:
