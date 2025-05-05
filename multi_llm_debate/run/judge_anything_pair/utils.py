@@ -60,19 +60,62 @@ def _load_preference_dataset(
     return df
 
 
+def _merge_dataset_and_response(
+    dataset: pd.DataFrame, response: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Merge dataset and response DataFrames by uniq_id column.
+    
+    Args:
+        dataset: DataFrame containing the base dataset.
+        response: DataFrame containing responses, where uniq_id might not be unique.
+    
+    Returns:
+        A merged DataFrame containing data from both input DataFrames.
+    """
+    # Validate if uniq_id exists in both DataFrames
+    if "uniq_id" not in dataset.columns or "uniq_id" not in response.columns:
+        raise ValueError("Both DataFrames must contain 'uniq_id' column")
+    
+    # Note that duplicate uniq_ids in response DataFrame are allowed
+    duplicate_ids = response["uniq_id"].duplicated().sum()
+    if duplicate_ids > 0:
+        logger.info(f"Found {duplicate_ids} duplicate uniq_ids in response DataFrame. "
+                   f"All duplicates will be included in the merged result.")
+    
+    # Perform merge operation
+    merged_df = pd.merge(
+        dataset,
+        response,
+        on="uniq_id",
+        how="inner",
+        suffixes=('', '_response')
+    )
+    
+    logger.info(f"Merged dataset ({len(dataset)} rows) and response "
+               f"({len(response)} rows) into a DataFrame with {len(merged_df)} rows")
+    
+    return merged_df
+
+
 if __name__ == "__main__":
     # Example usage
     dataset = _load_json_dataset()
     print("Judge Anything Pair Dataset:")
-    print(dataset.info())
+    print(dataset.head())
     print(dataset.columns)
 
     preference = _load_preference_dataset()
     print("Preference Dataset:")
-    print(preference.info())
+    print(preference.head())
     print(preference.columns)
 
     response_dataset = _load_response_dataset()
     print("Response Dataset:")
-    print(response_dataset.info())
+    print(response_dataset.head())
     print(response_dataset.columns)
+
+    merged_df = _merge_dataset_and_response(dataset, response_dataset)
+    print("Merged Dataset and Response:")
+    print(merged_df.head())
+    print(merged_df.columns)
