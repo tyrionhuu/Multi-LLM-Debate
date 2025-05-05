@@ -51,12 +51,26 @@ def _load_response_dataset(
 def _load_preference_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_PAIR_PREFERENCE_FILE,
 ) -> pd.DataFrame:
-    """Load a preference dataset and return it as a DataFrame."""
+    """
+    Load a preference dataset and return it as a DataFrame.
+    
+    Filters out entries with 'task_name' different from 'Image2Text',
+    entries with 'rubric_name' different from 'overall_score',
+    and entries with 'choice' equal to 1.
+    
+    Args:
+        file_path: Path to the preference dataset JSON file.
+        
+    Returns:
+        A filtered DataFrame containing preference data.
+    """
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
     df = pd.DataFrame(data)
     df = df[df["task_name"] == "Image2Text"]
     df = df[df["rubric_name"] == "overall_score"]
+    # Filter out entries with choice equal to 1
+    df = df[df["choice"] != "1"]
     df = df.drop(columns=["task_name", "rubric_name", "comment"])
     return df
 
