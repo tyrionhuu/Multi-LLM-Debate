@@ -44,6 +44,7 @@ def _load_response_dataset(
         data = json.load(f)
     df = pd.DataFrame(data)
     df = df[df["task_name"] == "Image2Text"]
+    df = df.drop(columns=["task_name"])
     return df
 
 
@@ -166,3 +167,9 @@ if __name__ == "__main__":
     print(merged_df.head())
     print(merged_df.info())
     # Display all fields for the first few rows
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', 1000)
+    print(merged_df.iloc[0:7, :])
+    # Reset display options to default
+    pd.reset_option('display.max_columns')
+    pd.reset_option('display.width')
