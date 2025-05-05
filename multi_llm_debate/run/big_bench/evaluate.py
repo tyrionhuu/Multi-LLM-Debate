@@ -47,9 +47,11 @@ def evaluate_all_big_bench(
         extract_func=extract_0_1_answer,
         evaluation_func=evaluate_big_bench_responses,
     )
+
+
 if __name__ == "__main__":
     from pathlib import Path
-    
+
     from .utils import load_big_bench_dataset
 
     df = load_big_bench_dataset(sample_size=1000)

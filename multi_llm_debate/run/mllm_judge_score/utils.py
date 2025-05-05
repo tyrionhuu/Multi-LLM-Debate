@@ -78,16 +78,18 @@ def load_mllm_judge_score_dataset(
         )
 
         logger.info(f"Loaded {len(df)} rows from {file_path}")
-        
+
         # Filter entries with answers from 1 to 5
         original_len = len(df)
         # Convert answer column to integers for proper filtering
         df["answer"] = pd.to_numeric(df["answer"], errors="coerce")
         df = df[df["answer"].between(1, 5)]
         filtered_len = len(df)
-        
+
         if filtered_len < original_len:
-            logger.info(f"Filtered out {original_len - filtered_len} entries with answers not in range 1-5")
+            logger.info(
+                f"Filtered out {original_len - filtered_len} entries with answers not in range 1-5"
+            )
 
         df = df[["id", "image", "question", "response", "answer"]]
 
