@@ -210,6 +210,9 @@ if __name__ == "__main__":
     print(preference.info())
     print("\nUnique values in 'choice' column:")
     print(preference['choice'].unique())
+    
+    print("\nCounts of values in 'choice' column:")
+    print(preference['choice'].value_counts())
 
     response_dataset = _load_response_dataset()
     print("Response Dataset:")
