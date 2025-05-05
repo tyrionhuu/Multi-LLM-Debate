@@ -187,7 +187,7 @@ def _merge_dataset(
                 # Preference data
                 "preference_id": pref_row["uniq_id"],
                 "model_pair": pref_row["model_pair"],
-                "choice": pref_row["choice"],
+                "choice": "1" if pref_row["choice"] == "0" else pref_row["choice"],
             }
 
             result_rows.append(combined_row)
@@ -221,11 +221,11 @@ if __name__ == "__main__":
     print("Preference Dataset:")
     print(preference.head())
     print(preference.info())
-    print("\nUnique values in 'choice' column:")
-    print(preference["choice"].unique())
+    # print("\nUnique values in 'choice' column:")
+    # print(preference["choice"].unique())
 
-    print("\nCounts of values in 'choice' column:")
-    print(preference["choice"].value_counts())
+    # print("\nCounts of values in 'choice' column:")
+    # print(preference["choice"].value_counts())
 
     response_dataset = _load_response_dataset()
     print("Response Dataset:")
