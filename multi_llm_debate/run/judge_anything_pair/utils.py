@@ -52,6 +52,7 @@ def _load_preference_dataset(
         data = json.load(f)
     df = pd.DataFrame(data)
     df = df[df["task_name"] == "Image2Text"]
+    df = df[df["rubric_name"] == "overall_score"]
     return df
 if __name__ == "__main__":
     # Example usage
