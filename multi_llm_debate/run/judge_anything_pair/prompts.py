@@ -134,7 +134,8 @@ def build_judge_bench_round_n_prompt(
     """
     prompt = (
         "Several other judges have provided evaluations of two AI assistant "
-        "responses to a user question and an image. Below are their evaluations: " + NEW_LINE
+        "responses to a user question and an image. Below are their evaluations: "
+        + NEW_LINE
     )
 
     prompt += DIVIDER + NEW_LINE
