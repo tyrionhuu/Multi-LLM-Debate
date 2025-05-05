@@ -1,7 +1,7 @@
 import io
 import logging
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 
 import pandas as pd
 from PIL import Image
@@ -239,7 +239,7 @@ def main() -> None:
         # Option 1: Display image in interactive environments (Jupyter/IPython)
         try:
             # Check if we're in IPython/Jupyter
-            ip = get_ipython()  # type: ignore
+            _ = get_ipython()  # type: ignore
             from IPython.display import display
 
             print("Displaying image in notebook:")
