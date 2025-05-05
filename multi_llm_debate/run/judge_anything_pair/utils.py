@@ -178,16 +178,13 @@ def _merge_dataset(
                 # Base data from model1
                 "uniq_id": model1_entry["uniq_id"],
                 "id_suffix": suffix,
+                "image_path": model1_entry["image_path"],  # Include image_path from original merge
                 # Model 1 specific data
-                # "model1_name": model1,
                 "response_A": model1_entry["response"]["content"],
                 # Model 2 specific data
-                # "model2_name": model2,
                 "response_B": model2_entry["response"]["content"],
                 # Preference data
-                "preference_id": pref_row["uniq_id"],
-                # "model_pair": pref_row["model_pair"],
-                "choice": "A" if pref_row["choice"] == "0" else "B",
+                "answer": "A" if pref_row["choice"] == "0" else "B",
             }
 
             result_rows.append(combined_row)
@@ -206,7 +203,8 @@ def _merge_dataset(
         # Drop any temporary columns if they still exist
         if "id_suffix" in merged_df.columns:
             merged_df = merged_df.drop(columns=["id_suffix"])
-
+     
+        merged_df = merged_df.drop(columns=["uniq_id"])
     return merged_df
 
 
