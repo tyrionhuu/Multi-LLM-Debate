@@ -15,7 +15,10 @@ random.seed(RANDOM_STATE)
 JUDGE_ANYTHING_PAIR_DATASET_FILE = (
     "datasets/JudgeAnything/X2XRawBenchmark/X2XBenchmark.json"
 )
-JUDGE_ANYTHING_PAIR_RESPONSE_FILE = "datasets/JudgeAnything/ResponseCollection/X2XBenchmarkResponse.json"
+JUDGE_ANYTHING_PAIR_RESPONSE_FILE = (
+    "datasets/JudgeAnything/ResponseCollection/X2XBenchmarkResponse.json"
+)
+
 
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
@@ -43,7 +46,7 @@ def _load_response_dataset(
 if __name__ == "__main__":
     # Example usage
     # dataset = _load_json_dataset()
-    response_dataset = _load_response_dataset()  
+    response_dataset = _load_response_dataset()
     print(response_dataset.head())
     print(response_dataset.columns)
     # print(dataset.head())
