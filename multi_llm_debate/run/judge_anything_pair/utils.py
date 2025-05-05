@@ -164,4 +164,4 @@ if __name__ == "__main__":
     merged_df = _merge_dataset(dataset, response_dataset, preference)
     print("Merged Dataset, Response, and Preference:")
     print(merged_df.head())
-    print(merged_df.columns)
+    print(merged_df.info())
