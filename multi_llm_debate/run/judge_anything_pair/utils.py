@@ -149,19 +149,20 @@ if __name__ == "__main__":
     dataset = _load_json_dataset()
     print("Judge Anything Pair Dataset:")
     print(dataset.head())
-    print(dataset.columns)
+    print(dataset.info())
 
     preference = _load_preference_dataset()
     print("Preference Dataset:")
     print(preference.head())
-    print(preference.columns)
+    print(preference.info())
 
     response_dataset = _load_response_dataset()
     print("Response Dataset:")
     print(response_dataset.head())
-    print(response_dataset.columns)
+    print(response_dataset.info())
 
     merged_df = _merge_dataset(dataset, response_dataset, preference)
     print("Merged Dataset, Response, and Preference:")
     print(merged_df.head())
     print(merged_df.info())
+    # Display all fields for the first few rows
