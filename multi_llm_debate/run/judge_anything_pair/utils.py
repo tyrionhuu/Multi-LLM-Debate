@@ -106,6 +106,9 @@ def _merge_dataset(
     if preference is not None:
         if "uniq_id" not in preference.columns:
             raise ValueError("Preference DataFrame must contain 'uniq_id' column")
+            
+        if "model_pair" not in preference.columns:
+            raise ValueError("Preference DataFrame must contain 'model_pair' column")
 
         # Create temporary columns in both dataframes to extract the last two parts of uniq_id
         merged_df["id_suffix"] = merged_df["uniq_id"].apply(
@@ -116,31 +119,80 @@ def _merge_dataset(
         preference_copy["id_suffix"] = preference_copy["uniq_id"].apply(
             lambda x: "_".join(x.split("_")[-2:]) if x.count("_") >= 2 else x
         )
-
-        # Merge with preference using the extracted suffixes
-        merged_df = pd.merge(
-            merged_df,
-            preference_copy,
-            on="id_suffix",
-            how="left",
-            suffixes=("", "_preference"),
-        )
-
-        # Drop the temporary column
-        merged_df = merged_df.drop(columns=["id_suffix"])
-
-        # Rename the preference uniq_id to avoid confusion
-        if "uniq_id_preference" not in merged_df.columns:
-            merged_df = merged_df.rename(columns={"uniq_id_y": "preference_id"})
-        else:
-            merged_df = merged_df.rename(
-                columns={"uniq_id_preference": "preference_id"}
+        
+        # Extract model names from model_pair column (format: model1_vs_model2)
+        preference_copy[['model1', 'model2']] = preference_copy['model_pair'].str.split('_vs_', expand=True)
+        
+        # Create result dataframe to store paired responses
+        result_rows = []
+        
+        # Group by id_suffix to find matching pairs
+        id_suffix_groups = merged_df.groupby('id_suffix')
+        
+        for idx, pref_row in preference_copy.iterrows():
+            suffix = pref_row['id_suffix']
+            model1 = pref_row['model1']
+            model2 = pref_row['model2']
+            
+            # Skip if no matching entries in merged_df
+            if suffix not in id_suffix_groups.groups:
+                continue
+                
+            # Get all entries with matching suffix
+            matching_entries = id_suffix_groups.get_group(suffix)
+            
+            # Find entries for each model
+            model1_entries = matching_entries[
+                matching_entries['model_name'].str.contains(model1, case=False)
+            ]
+            model2_entries = matching_entries[
+                matching_entries['model_name'].str.contains(model2, case=False)
+            ]
+            
+            # Skip if we don't have matches for both models
+            if len(model1_entries) == 0 or len(model2_entries) == 0:
+                continue
+            
+            # Use the first entry for each model
+            model1_entry = model1_entries.iloc[0].to_dict()
+            model2_entry = model2_entries.iloc[0].to_dict()
+            
+            # Create a new row combining both model responses
+            combined_row = {
+                # Base data from model1
+                'uniq_id': model1_entry['uniq_id'],
+                'id_suffix': suffix,
+                
+                # Model 1 specific data
+                'model1_name': model1,
+                'model1_response': model1_entry['response'],
+                
+                # Model 2 specific data
+                'model2_name': model2,
+                'model2_response': model2_entry['response'],
+                
+                # Preference data
+                'preference_id': pref_row['uniq_id'],
+                'model_pair': pref_row['model_pair'],
+                'choice': pref_row['choice'],
+            }
+            
+            result_rows.append(combined_row)
+        
+        # Create new DataFrame from results
+        if result_rows:
+            merged_df = pd.DataFrame(result_rows)
+            logger.info(
+                f"Created {len(merged_df)} paired entries from preference dataset "
+                f"({len(preference)} rows)"
             )
+        else:
+            logger.warning("No matching pairs found between datasets")
+            merged_df = pd.DataFrame()
 
-        logger.info(
-            f"Merged with preference dataset ({len(preference)} rows) "
-            f"resulting in a DataFrame with {len(merged_df)} rows"
-        )
+        # Drop any temporary columns if they still exist
+        if 'id_suffix' in merged_df.columns:
+            merged_df = merged_df.drop(columns=['id_suffix'])
 
     return merged_df
 
@@ -156,6 +208,8 @@ if __name__ == "__main__":
     print("Preference Dataset:")
     print(preference.head())
     print(preference.info())
+    print("\nUnique values in 'choice' column:")
+    print(preference['choice'].unique())
 
     response_dataset = _load_response_dataset()
     print("Response Dataset:")
@@ -167,9 +221,9 @@ if __name__ == "__main__":
     print(merged_df.head())
     print(merged_df.info())
     # Display all fields for the first few rows
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', 1000)
-    print(merged_df.iloc[0:7, :])
-    # Reset display options to default
-    pd.reset_option('display.max_columns')
-    pd.reset_option('display.width')
+    # Display the first few rows as JSON for better readability
+    pd.set_option('display.max_colwidth', None)
+    for i in range(min(5, len(merged_df))):
+        print(f"\n--- Row {i} ---")
+        print(json.dumps(merged_df.iloc[i].to_dict(), indent=2))
+
