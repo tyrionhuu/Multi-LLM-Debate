@@ -247,34 +247,36 @@ def _merge_dataset(
 
 
 if __name__ == "__main__":
-    # Example usage
-    dataset = _load_json_dataset()
-    print("Judge Anything Pair Dataset:")
-    print(dataset.head())
-    print(dataset.info())
+    # dataset = _load_json_dataset()
+    # print("Judge Anything Pair Dataset:")
+    # print(dataset.head())
+    # print(dataset.info())
 
-    preference = _load_preference_dataset()
-    print("Preference Dataset:")
-    print(preference.head())
-    print(preference.info())
-    # print("\nUnique values in 'choice' column:")
-    # print(preference["choice"].unique())
+    # preference = _load_preference_dataset()
+    # print("Preference Dataset:")
+    # print(preference.head())
+    # print(preference.info())
+    # # print("\nUnique values in 'choice' column:")
+    # # print(preference["choice"].unique())
 
-    # print("\nCounts of values in 'choice' column:")
-    # print(preference["choice"].value_counts())
+    # # print("\nCounts of values in 'choice' column:")
+    # # print(preference["choice"].value_counts())
 
-    response_dataset = _load_response_dataset()
-    print("Response Dataset:")
-    print(response_dataset.head())
-    print(response_dataset.info())
+    # response_dataset = _load_response_dataset()
+    # print("Response Dataset:")
+    # print(response_dataset.head())
+    # print(response_dataset.info())
 
-    merged_df = _merge_dataset(dataset, response_dataset, preference)
-    print("Merged Dataset, Response, and Preference:")
-    print(merged_df.head())
-    print(merged_df.info())
-    # Display all fields for the first few rows
-    # Display the first few rows as JSON for better readability
-    pd.set_option("display.max_colwidth", None)
-    for i in range(min(5, len(merged_df))):
-        print(f"\n--- Row {i} ---")
-        print(json.dumps(merged_df.iloc[i].to_dict(), indent=2))
+    # merged_df = _merge_dataset(dataset, response_dataset, preference)
+    # print("Merged Dataset, Response, and Preference:")
+    # print(merged_df.head())
+    # print(merged_df.info())
+    # # Display all fields for the first few rows
+    # # Display the first few rows as JSON for better readability
+    # pd.set_option("display.max_colwidth", None)
+    # for i in range(min(5, len(merged_df))):
+    #     print(f"\n--- Row {i} ---")
+    #     print(json.dumps(merged_df.iloc[i].to_dict(), indent=2))
+    pairs_df = load_judge_anything_pairs()
+    print(pairs_df.head())
+    print(pairs_df.info())
