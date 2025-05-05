@@ -125,6 +125,7 @@ def build_mllm_judge_score_round_zero_prompt(
 
     return prompt
 
+
 def build_mllm_judge_score_round_n_prompt(
     question: str,
     response: str,
@@ -149,13 +150,13 @@ def build_mllm_judge_score_round_n_prompt(
         "to the instruction and an image given by the user. "
         "Below are their evaluations: " + NEW_LINE
     )
-    
+
     prompt += DIVIDER + NEW_LINE
     for i, response in enumerate(responses, 1):
         prompt += f"Judge {i}: {response}" + NEW_LINE
 
     prompt += DIVIDER + NEW_LINE
-    
+
     prompt += (
         "Please act as an impartial judge and evaluate the quality of the "
         "single response from the AI assistant to user's instruction. "
@@ -165,7 +166,7 @@ def build_mllm_judge_score_round_n_prompt(
         "and an image. Your task is to score the response on a scale of 1 to 5, "
         f"based on the following criteria:{NEW_LINE}{SCORING_CRITERIA}"
     )
-    
+
     if json_mode:
         prompt += (
             "You MUST answer in the following JSON format (x is an integer from 1 to 5):"
