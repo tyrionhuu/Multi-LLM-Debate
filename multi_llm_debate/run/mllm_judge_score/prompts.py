@@ -62,6 +62,7 @@ in all criteria. Provides an insightful, detailed, and thorough answer with deep
 understanding.
 """
 
+
 def build_mllm_judge_score_round_zero_prompt(
     question: str,
     response: str,
@@ -86,7 +87,7 @@ def build_mllm_judge_score_round_zero_prompt(
         "and an image. Your task is to score the response on a scale of 1 to 5, "
         f"based on the following criteria:{NEW_LINE}{SCORING_CRITERIA}"
     )
-    
+
     if json_mode:
         prompt += (
             "You MUST answer in the following JSON format (x is an integer from 1 to 5):"
