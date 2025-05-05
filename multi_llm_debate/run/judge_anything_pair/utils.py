@@ -69,8 +69,8 @@ def _load_preference_dataset(
     df = pd.DataFrame(data)
     df = df[df["task_name"] == "Image2Text"]
     df = df[df["rubric_name"] == "overall_score"]
-    # Filter out entries with choice equal to 1
-    df = df[df["choice"] != "1"]
+    # Filter out entries with choice equal to 1 (ensuring we're dealing with strings)
+    df = df[df["choice"].astype(str) != "1"]
     df = df.drop(columns=["task_name", "rubric_name", "comment"])
     return df
 
