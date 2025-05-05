@@ -103,7 +103,7 @@ def build_ice_score_round_zero_prompt(
             NEW_LINE
             + "Note that the 'Final Answer' MUST be placed at the end of your response, "
             + "and the value must be only a number between 0 and 4. "
-            + "Do not include any other text after 'Final Answer: 0' or 'Final Answer: 4'."
+            + "Do not include any other text after 'Final Answer: x'."
             + NEW_LINE
         )
     else:
@@ -116,7 +116,7 @@ def build_ice_score_round_zero_prompt(
             NEW_LINE
             + "Note that the 'Final Answer: ' MUST be placed at the end of your response, "
             + "and the value must be only a number between 0 and 4. "
-            + "Do not include any other text after 'Final Answer: 0' or 'Final Answer: 4'."
+            + "Do not include any other text after 'Final Answer: x'."
             + NEW_LINE
         )
     prompt += DIVIDER + NEW_LINE
@@ -206,7 +206,7 @@ def build_ice_score_round_n_prompt(
             NEW_LINE
             + "Note that the 'Final Answer' MUST be placed at the end of your response, "
             + "and the value must be only a number between 0 and 4. "
-            + "Do not include any other text after 'Final Answer: 0' or 'Final Answer: 4'."
+            + "Do not include any other text after 'Final Answer: x'."
             + NEW_LINE
         )
     else:
@@ -216,7 +216,7 @@ def build_ice_score_round_n_prompt(
             NEW_LINE
             + "Note that the 'Final Answer: ' MUST be placed at the end of your response, "
             + "and the value must be only a number between 0 and 4. "
-            + "Do not include any other text after 'Final Answer: 0' or 'Final Answer: 4'."
+            + "Do not include any other text after 'Final Answer: x'."
             + NEW_LINE
         )
     prompt += DIVIDER + NEW_LINE
