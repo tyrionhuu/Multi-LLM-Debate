@@ -114,3 +114,13 @@ def build_mllm_judge_score_round_zero_prompt(
             + "Do not include any other text after 'Final Answer: x'."
             + NEW_LINE
         )
+
+    prompt += DIVIDER + NEW_LINE
+    prompt += "[problem]" + NEW_LINE
+    prompt += question + NEW_LINE
+    prompt += "[The Start of the Code Snippet]" + NEW_LINE
+    prompt += response + NEW_LINE
+    prompt += "[The End of the Code Snippet]" + NEW_LINE
+    prompt += NEW_LINE + "Your answer:" + NEW_LINE
+
+    return prompt
