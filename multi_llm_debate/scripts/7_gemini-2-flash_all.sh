@@ -1,9 +1,17 @@
 #!/bin/bash
 
-# $(pwd)/multi_llm_debate/scripts/PRM800K/11_gemini-2-flash.sh
+# $(pwd)/multi_llm_debate/scripts/PRM800K/7_gemini-2-flash.sh
 
-$(pwd)/multi_llm_debate/scripts/HalluDial/11_gemini-2-flash.sh
+$(pwd)/multi_llm_debate/scripts/BIG-Bench/7_gemini-2-flash.sh
 
-$(pwd)/multi_llm_debate/scripts/ICE-Score/11_gemini-2-flash.sh
+$(pwd)/multi_llm_debate/scripts/COMP-Analysis/7_gemini-2-flash.sh
 
-$(pwd)/multi_llm_debate/scripts/COMP-Analysis/11_gemini-2-flash.sh
+$(pwd)/multi_llm_debate/scripts/HalluDial/7_gemini-2-flash.sh
+
+$(pwd)/multi_llm_debate/scripts/ICE-Score/7_gemini-2-flash.sh
+
+$(pwd)/multi_llm_debate/scripts/JudgeBench/7_gemini-2-flash.sh
+
+$(pwd)/multi_llm_debate/scripts/LLMBar/7_gemini-2-flash.sh
+
+$(pwd)/multi_llm_debate/scripts/TruthfulQA/7_gemini-2-flash.sh
