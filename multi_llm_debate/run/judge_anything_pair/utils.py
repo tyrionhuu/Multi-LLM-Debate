@@ -175,15 +175,12 @@ def _merge_dataset(
 
             # Create a new row combining both model responses
             combined_row = {
-                # Base data from model1
                 "uniq_id": model1_entry["uniq_id"],
+                "question": model1_entry["question"],
                 "id_suffix": suffix,
-                "image_path": model1_entry["image_path"],  # Include image_path from original merge
-                # Model 1 specific data
+                "image_path": model1_entry["image_path"],  
                 "response_A": model1_entry["response"]["content"],
-                # Model 2 specific data
                 "response_B": model2_entry["response"]["content"],
-                # Preference data
                 "answer": "A" if pref_row["choice"] == "0" else "B",
             }
 
