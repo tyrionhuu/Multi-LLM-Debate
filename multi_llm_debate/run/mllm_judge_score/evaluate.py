@@ -6,6 +6,7 @@ import pandas as pd
 from ..shared.evaluate import EvaluationResults, evaluate_all
 from .utils import compare_mllm_judge_score_response, extract_1_5_answer
 
+
 def evaluate_mllm_judge_score_responses(
     responses: List[Dict],
     answer: str,
