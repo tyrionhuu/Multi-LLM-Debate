@@ -22,7 +22,47 @@ JUDGE_ANYTHING_PAIR_PREFERENCE_FILE = (
     "datasets/JudgeAnything/Preference/Human_Pairing.json"
 )
 
+def load_judge_anything_pairs(
+    dataset_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
+    response_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_RESPONSE_FILE,
+    preference_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_PREFERENCE_FILE,
+    sample_size: Optional[int] = None,
+) -> pd.DataFrame:
+    """
+    Load Judge Anything pair dataset, response, and preference data.
 
+    Args:
+        dataset_file: Path to the dataset JSON file.
+        response_file: Path to the response JSON file.
+        preference_file: Path to the preference JSON file.
+        sample_size: Optional number of samples to return from the dataset.
+
+    Returns:
+        DataFrame containing the merged data with columns:
+        uniq_id, question, image_path, response_A, response_B, answer.
+    """
+    dataset = _load_json_dataset(dataset_file)
+    response = _load_response_dataset(response_file)
+    preference = _load_preference_dataset(preference_file)
+
+    merged_df = _merge_dataset(dataset, response, preference)
+    df = merged_df.copy()
+    df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
+    df["id"] = range(len(df))
+    
+    if sample_size is not None:
+        if sample_size > len(df):
+            logger.warning(
+                f"Requested sample size {sample_size} is larger than dataset size {len(df)}. "
+                "Returning the entire dataset."
+            )
+            sample_size = len(df)
+        df = df.head(sample_size)
+        
+    logger.info(
+        f"Loaded {len(df)} pairs from dataset, response, and preference files."
+    )
+    return df
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
 ) -> pd.DataFrame:
