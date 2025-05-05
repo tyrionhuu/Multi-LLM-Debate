@@ -168,6 +168,6 @@ if __name__ == "__main__":
     logger = setup_logging(__name__, log_level=logging.INFO)
     # Example usage
     df = load_mllm_judge_score_dataset()
-    print(df.info())
-    print("Distinct values in answer column:")
-    print(df["answer"].unique())
+    print(df.head())
+    # print("Distinct values in answer column:")
+    # print(df["answer"].unique())
