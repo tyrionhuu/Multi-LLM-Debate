@@ -57,12 +57,17 @@ def _load_preference_dataset(
     return df
 if __name__ == "__main__":
     # Example usage
-    # dataset = _load_json_dataset()
-    # response_dataset = _load_response_dataset()
-    # print(response_dataset.head())
-    # print(response_dataset.columns)
-    # print(dataset.head())
-    # print(dataset.columns)
+    dataset = _load_json_dataset()
+    print("Judge Anything Pair Dataset:")
+    print(dataset.head())
+    print(dataset.columns)
+    
     preference = _load_preference_dataset()
+    print("Preference Dataset:")
     print(preference.head())
     print(preference.columns)
+    
+    response_dataset = _load_response_dataset()
+    print("Response Dataset:")
+    print(response_dataset.head())
+    print(response_dataset.columns)
