@@ -116,11 +116,87 @@ def build_mllm_judge_score_round_zero_prompt(
         )
 
     prompt += DIVIDER + NEW_LINE
-    prompt += "[problem]" + NEW_LINE
+    prompt += "[Instruction]" + NEW_LINE
     prompt += question + NEW_LINE
-    prompt += "[The Start of the Code Snippet]" + NEW_LINE
+    prompt += "[The Start of Assistant's Response]" + NEW_LINE
     prompt += response + NEW_LINE
-    prompt += "[The End of the Code Snippet]" + NEW_LINE
+    prompt += "[The End of Assistant's Response]" + NEW_LINE
     prompt += NEW_LINE + "Your answer:" + NEW_LINE
 
+    return prompt
+
+def build_mllm_judge_score_round_n_prompt(
+    question: str,
+    response: str,
+    responses: List[str | Dict],
+    use_cot: bool = True,
+    json_mode: bool = False,
+) -> str:
+    """Build prompt for subsequent rounds of judge evaluation.
+
+    Args:
+        question: The user question to be evaluated
+        response: Response from the AI assistant
+        responses: Previous responses from judge models
+        use_cot: Whether to use chain-of-thought prompting
+        json_mode: Whether to return response in JSON format
+
+    Returns:
+        str: The formatted prompt for judge evaluation
+    """
+    prompt = (
+        "Several other judges have provided evaluations of an AI assistant's response "
+        "to the instruction and an image given by the user. "
+        "Below are their evaluations: " + NEW_LINE
+    )
+    
+    prompt += DIVIDER + NEW_LINE
+    for i, response in enumerate(responses, 1):
+        prompt += f"Judge {i}: {response}" + NEW_LINE
+
+    prompt += DIVIDER + NEW_LINE
+    
+    prompt += (
+        "Please act as an impartial judge and evaluate the quality of the "
+        "single response from the AI assistant to user's instruction. "
+        "Consider the previous evaluations provided by other judges, "
+        "but make your own independent assessment. "
+        "You will be provided with a question, the response from the AI assistant, "
+        "and an image. Your task is to score the response on a scale of 1 to 5, "
+        f"based on the following criteria:{NEW_LINE}{SCORING_CRITERIA}"
+    )
+    
+    if json_mode:
+        prompt += (
+            "You MUST answer in the following JSON format (x is an integer from 1 to 5):"
+            + NEW_LINE
+        )
+        prompt += JSON_FORMAT_COT if use_cot else JSON_FORMAT
+        prompt += (
+            NEW_LINE
+            + "Note that the 'Final Answer' MUST be placed at the end of your response, "
+            + "and the value must be only a number between 1 and 5. "
+            + "Do not include any other text after 'Final Answer: x'."
+            + NEW_LINE
+        )
+    else:
+        prompt += (
+            "You MUST answer in the following format (x is an integer from 1 to 5):"
+            + NEW_LINE
+        )
+        prompt += NON_JSON_FORMAT_COT if use_cot else NON_JSON_FORMAT
+        prompt += (
+            NEW_LINE
+            + "Note that the 'Final Answer: ' MUST be placed at the end of your response, "
+            + "and the value must be only a number between 1 and 5. "
+            + "Do not include any other text after 'Final Answer: x'."
+            + NEW_LINE
+        )
+    prompt += DIVIDER + NEW_LINE
+    prompt += "[Instruction]" + NEW_LINE
+    prompt += question + NEW_LINE
+    prompt += "[The Start of Assistant's Response]" + NEW_LINE
+    prompt += response + NEW_LINE
+    prompt += "[The End of Assistant's Response]" + NEW_LINE
+    prompt += NEW_LINE + "Your answer:" + NEW_LINE
     return prompt
