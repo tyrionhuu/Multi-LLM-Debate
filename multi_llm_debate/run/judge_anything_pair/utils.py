@@ -61,82 +61,86 @@ def _load_preference_dataset(
 
 
 def _merge_dataset(
-    dataset: pd.DataFrame, 
+    dataset: pd.DataFrame,
     response: pd.DataFrame,
-    preference: Optional[pd.DataFrame] = None
+    preference: Optional[pd.DataFrame] = None,
 ) -> pd.DataFrame:
     """
     Merge dataset, response, and optionally preference DataFrames.
-    
+
     Args:
         dataset: DataFrame containing the base dataset.
         response: DataFrame containing responses, where uniq_id might not be unique.
-        preference: Optional DataFrame containing preference data, where uniq_id 
+        preference: Optional DataFrame containing preference data, where uniq_id
                    is in format like "141_8a093930" while in other dataframes
                    it's like "1732019006_376_7b6a1840". The matching is done on
                    the last two parts (e.g., "376_7b6a1840").
-    
+
     Returns:
         A merged DataFrame containing data from all input DataFrames.
     """
     # Validate if uniq_id exists in both DataFrames
     if "uniq_id" not in dataset.columns or "uniq_id" not in response.columns:
         raise ValueError("Both DataFrames must contain 'uniq_id' column")
-    
+
     # Note that duplicate uniq_ids in response DataFrame are allowed
     duplicate_ids = response["uniq_id"].duplicated().sum()
     if duplicate_ids > 0:
-        logger.info(f"Found {duplicate_ids} duplicate uniq_ids in response DataFrame. "
-                   f"All duplicates will be included in the merged result.")
-    
+        logger.info(
+            f"Found {duplicate_ids} duplicate uniq_ids in response DataFrame. "
+            f"All duplicates will be included in the merged result."
+        )
+
     # Perform merge operation for dataset and response
     merged_df = pd.merge(
-        dataset,
-        response,
-        on="uniq_id",
-        how="inner",
-        suffixes=('', '_response')
+        dataset, response, on="uniq_id", how="inner", suffixes=("", "_response")
     )
-    
-    logger.info(f"Merged dataset ({len(dataset)} rows) and response "
-               f"({len(response)} rows) into a DataFrame with {len(merged_df)} rows")
-    
+
+    logger.info(
+        f"Merged dataset ({len(dataset)} rows) and response "
+        f"({len(response)} rows) into a DataFrame with {len(merged_df)} rows"
+    )
+
     # Merge preference if provided
     if preference is not None:
         if "uniq_id" not in preference.columns:
             raise ValueError("Preference DataFrame must contain 'uniq_id' column")
-        
+
         # Create temporary columns in both dataframes to extract the last two parts of uniq_id
-        merged_df['id_suffix'] = merged_df['uniq_id'].apply(
-            lambda x: '_'.join(x.split('_')[-2:]) if x.count('_') >= 2 else x
+        merged_df["id_suffix"] = merged_df["uniq_id"].apply(
+            lambda x: "_".join(x.split("_")[-2:]) if x.count("_") >= 2 else x
         )
-        
+
         preference_copy = preference.copy()
-        preference_copy['id_suffix'] = preference_copy['uniq_id'].apply(
-            lambda x: '_'.join(x.split('_')[-2:]) if x.count('_') >= 2 else x
+        preference_copy["id_suffix"] = preference_copy["uniq_id"].apply(
+            lambda x: "_".join(x.split("_")[-2:]) if x.count("_") >= 2 else x
         )
-        
+
         # Merge with preference using the extracted suffixes
         merged_df = pd.merge(
             merged_df,
             preference_copy,
-            on='id_suffix',
-            how='left',
-            suffixes=('', '_preference')
+            on="id_suffix",
+            how="left",
+            suffixes=("", "_preference"),
         )
-        
+
         # Drop the temporary column
-        merged_df = merged_df.drop(columns=['id_suffix'])
-        
+        merged_df = merged_df.drop(columns=["id_suffix"])
+
         # Rename the preference uniq_id to avoid confusion
-        if 'uniq_id_preference' not in merged_df.columns:
-            merged_df = merged_df.rename(columns={'uniq_id_y': 'preference_id'})
+        if "uniq_id_preference" not in merged_df.columns:
+            merged_df = merged_df.rename(columns={"uniq_id_y": "preference_id"})
         else:
-            merged_df = merged_df.rename(columns={'uniq_id_preference': 'preference_id'})
-        
-        logger.info(f"Merged with preference dataset ({len(preference)} rows) "
-                   f"resulting in a DataFrame with {len(merged_df)} rows")
-    
+            merged_df = merged_df.rename(
+                columns={"uniq_id_preference": "preference_id"}
+            )
+
+        logger.info(
+            f"Merged with preference dataset ({len(preference)} rows) "
+            f"resulting in a DataFrame with {len(merged_df)} rows"
+        )
+
     return merged_df
 
 
