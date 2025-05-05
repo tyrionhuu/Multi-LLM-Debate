@@ -178,7 +178,7 @@ def _merge_dataset(
                 "uniq_id": model1_entry["uniq_id"],
                 "question": model1_entry["question"],
                 "id_suffix": suffix,
-                "image_path": model1_entry["image_path"],  
+                "image_path": model1_entry["image_path"],
                 "response_A": model1_entry["response"]["content"],
                 "response_B": model2_entry["response"]["content"],
                 "answer": "A" if pref_row["choice"] == "0" else "B",
@@ -200,7 +200,7 @@ def _merge_dataset(
         # Drop any temporary columns if they still exist
         if "id_suffix" in merged_df.columns:
             merged_df = merged_df.drop(columns=["id_suffix"])
-     
+
         merged_df = merged_df.drop(columns=["uniq_id"])
     return merged_df
 
