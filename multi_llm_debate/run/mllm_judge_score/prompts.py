@@ -82,7 +82,7 @@ def build_mllm_judge_score_round_zero_prompt(
     """
     prompt = (
         "Please act as an impartial judge and evaluate the quality of the "
-        "single response from the AI assistant to user's instruction. "
+        " response from the AI assistant to user's instruction. "
         "You will be provided with a question, the response from the AI assistant, "
         "and an image. Your task is to score the response on a scale of 1 to 5, "
         f"based on the following criteria:{NEW_LINE}{SCORING_CRITERIA}"
