@@ -22,14 +22,14 @@ python -m multi_llm_debate.run.comp_analysis.main \
     --sample-size 1000 \
 
 # Run the evaluation using module path with direct JSON config
-python -m multi_llm_debate.run.comp_analysis.main \
-    --config-json "$CONFIG" \
-    --task-name "comp_analysis_pruning" \
-    --diversity-pruning "answer" \
-    --diversity-pruning-amount 5 \
-    --batch \
-    --batch-size 11 \
-    --sample-size 1000 \
+# python -m multi_llm_debate.run.comp_analysis.main \
+#     --config-json "$CONFIG" \
+#     --task-name "comp_analysis_pruning" \
+#     --diversity-pruning "answer" \
+#     --diversity-pruning-amount 5 \
+#     --batch \
+#     --batch-size 11 \
+#     --sample-size 1000 \
 
 # python -m multi_llm_debate.run.comp_analysis.main \
 #     --config-json "$CONFIG" \
