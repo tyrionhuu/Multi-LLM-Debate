@@ -24,7 +24,49 @@ JUDGE_ANYTHING_SCORE_ANSWER_FILE = (
     "datasets/JudgeAnything/Preference/Human_Scoring.json"
 )
 
+def load_judge_anything_score_dataset(
+    dataset_file: Union[str, Path] = JUDGE_ANYTHING_SCORE_DATASET_FILE,
+    response_file: Union[str, Path] = JUDGE_ANYTHING_SCORE_RESPONSE_FILE,
+    answer_file: Union[str, Path] = JUDGE_ANYTHING_SCORE_ANSWER_FILE,
+    sample_size: Optional[int] = None,
+) -> pd.DataFrame:
+    """
+    Load Judge Anything score dataset, response, and answer data.
 
+    Args:
+        dataset_file: Path to the dataset JSON file.
+        response_file: Path to the response JSON file.
+        answer_file: Path to the answer JSON file.
+        sample_size: Optional number of samples to return from the dataset.
+
+    Returns:
+        DataFrame containing the merged data with columns:
+        uniq_id, question, image_path, response_A, response_B, answer.
+    """
+    dataset = _load_json_dataset(dataset_file)
+    response = _load_response_dataset(response_file)
+    answer = _load_answer_dataset(answer_file)
+
+    merged_df = _merge_datasets(dataset, response, answer)
+    df["image"] = df["image_path"].apply(
+        lambda x: _image_path_to_bytes(x, base_path="datasets/JudgeAnything/X2XRawBenchmark")
+    )
+    df.drop(columns=["image_path"], inplace=True)
+    df = merged_df.copy()
+    df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
+    df["id"] = range(len(df))
+    
+    if sample_size is not None:
+        if sample_size > len(df):
+            logger.warning(
+                f"Requested sample size {sample_size} is larger than dataset size {len(df)}. "
+                "Returning the entire dataset."
+            )
+            sample_size = len(df)
+        df = df.head(sample_size)
+
+    logger.info(f"Loaded {len(df)} pairs from dataset, response, and answer files.")
+    return df
 def _merge_datasets(
     dataset: pd.DataFrame,
     response_dataset: pd.DataFrame,
@@ -215,23 +257,23 @@ if __name__ == "__main__":
     print(dataset.head())
     print(dataset.info())
 
-    preference = _load_answer_dataset()
+    answer = _load_answer_dataset()
     print("Preference Dataset:")
-    preference = preference.sort_values(by="uniq_id")
-    print(preference.head())
-    print(preference.info())
+    answer = answer.sort_values(by="uniq_id")
+    print(answer.head())
+    print(answer.info())
     print("\nUnique values in 'score' column:")
-    print(preference["score"].unique())
+    print(answer["score"].unique())
 
     print("\nCounts of values in 'score' column:")
-    print(preference["score"].value_counts())
+    print(answer["score"].value_counts())
 
     response_dataset = _load_response_dataset()
     print("Response Dataset:")
     print(response_dataset.head())
     print(response_dataset.info())
 
-    merged_df = _merge_datasets(dataset, response_dataset, preference)
+    merged_df = _merge_datasets(dataset, response_dataset, answer)
     print("Merged Dataset:")
     print(merged_df.head())
     print(merged_df.info())
