@@ -65,6 +65,7 @@ def load_judge_anything_score_dataset(
     logger.info(f"Loaded {len(df)} pairs from dataset, response, and answer files.")
     return df
 
+
 def extract_1_5_answer(
     response: str,
 ) -> Literal["1", "2", "3", "4", "5"]:
@@ -87,6 +88,8 @@ def extract_1_5_answer(
         "contains 'Final Answer: 1', 'Final Answer: 2', 'Final Answer: 3', "
         "'Final Answer: 4', or 'Final Answer: 5'."
     )
+
+
 def _merge_datasets(
     dataset: pd.DataFrame,
     response_dataset: pd.DataFrame,
