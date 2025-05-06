@@ -36,7 +36,7 @@ Final Answer: A/B
 """
 
 
-def build_judge_bench_round_zero_prompt(
+def build_judge_anything_pair_round_zero_prompt(
     question: str,
     response_a: str,
     response_b: str,
@@ -111,7 +111,7 @@ def build_judge_bench_round_zero_prompt(
     return prompt
 
 
-def build_judge_bench_round_n_prompt(
+def build_judge_anything_pair_round_n_prompt(
     question: str,
     response_a: str,
     response_b: str,

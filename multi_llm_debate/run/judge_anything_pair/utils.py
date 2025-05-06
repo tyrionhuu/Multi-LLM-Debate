@@ -22,7 +22,7 @@ JUDGE_ANYTHING_PAIR_PREFERENCE_FILE = (
 )
 
 
-def load_judge_anything_pairs(
+def load_judge_anything_pairs_dataset(
     dataset_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
     response_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_RESPONSE_FILE,
     preference_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_PREFERENCE_FILE,
@@ -319,6 +319,6 @@ if __name__ == "__main__":
     # for i in range(min(5, len(merged_df))):
     #     print(f"\n--- Row {i} ---")
     #     print(json.dumps(merged_df.iloc[i].to_dict(), indent=2))
-    pairs_df = load_judge_anything_pairs()
+    pairs_df = load_judge_anything_pairs_dataset()
     print(pairs_df.head())
     print(pairs_df.info())
