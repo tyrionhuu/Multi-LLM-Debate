@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Parse -g argument for GPU number
+GPU=""
+while getopts "g:" opt; do
+    case $opt in
+        g)
+        GPU="$OPTARG"
+        ;;
+        *)
+        ;;
+    esac
+done
+
+# $(pwd)/multi_llm_debate/scripts/PRM800K/7_llama3_1-8b.sh -g "$GPU"
+$(pwd)/multi_llm_debate/scripts/BIG-Bench/11_gemma-3-4b-it.sh -g "$GPU"
+
+$(pwd)/multi_llm_debate/scripts/BIG-Bench/11_llama3_1-8b.sh -g "$GPU"
+
+$(pwd)/multi_llm_debate/scripts/BIG-Bench/11_qwen2_5-7b.sh -g "$GPU"
