@@ -145,7 +145,7 @@ def extract_1_5_answer(
 
 def compare_mllm_judge_score_response(
     response: Literal["1", "2", "3", "4", "5"], answer: Union[str, int]
-) -> Literal["1", "2", "3", "4", "5"]:
+) -> bool:
     """
     Compare the MLLM-Judge score response.
 
@@ -154,7 +154,7 @@ def compare_mllm_judge_score_response(
         answer: The expected answer, either as string or integer.
 
     Returns:
-        Literal["1", "2", "3", "4", "5"]: Answer "1", "2", "3", "4", or "5".
+        bool: True if the response matches the expected answer, False otherwise.
     """
     if isinstance(answer, int):
         answer = str(answer)

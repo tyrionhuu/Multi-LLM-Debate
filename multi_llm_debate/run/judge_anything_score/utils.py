@@ -89,7 +89,22 @@ def extract_1_5_answer(
         "'Final Answer: 4', or 'Final Answer: 5'."
     )
 
+def compare_judge_anything_score_response(
+    response: Literal["1", "2", "3", "4", "5"], answer: Union[str, int]
+) -> bool:
+    """
+    Compare the Judge Anything score response.
 
+    Args:
+        response: The response string from the LLM, between 1-5.
+        answer: The expected answer, either as string or integer.
+
+    Returns:
+        bool: True if the response matches the expected answer, False otherwise.
+    """
+    if isinstance(answer, int):
+        answer = str(answer)
+    return response == answer
 def _merge_datasets(
     dataset: pd.DataFrame,
     response_dataset: pd.DataFrame,
