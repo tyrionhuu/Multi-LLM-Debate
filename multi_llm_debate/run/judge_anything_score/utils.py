@@ -82,6 +82,7 @@ if __name__ == "__main__":
 
     preference = _load_answer_dataset()
     print("Preference Dataset:")
+    preference = preference.sort_values(by="uniq_id")
     print(preference.head())
     print(preference.info())
     print("\nUnique values in 'score' column:")
