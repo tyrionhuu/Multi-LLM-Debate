@@ -110,6 +110,8 @@ CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_score.main \
     --config-json "$CONFIG" \
     --batch \
     --batch-size 11 \
+    --sample-size 800 \
+
 
 # Run the evaluation using module path with direct JSON config
 CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_score.main \
@@ -119,6 +121,8 @@ CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_score.main \
     --diversity-pruning-amount 5 \
     --batch \
     --batch-size 11 \
-    
+    --sample-size 800 \
+
+
 cleanup 1
 
