@@ -89,6 +89,7 @@ def extract_1_5_answer(
         "'Final Answer: 4', or 'Final Answer: 5'."
     )
 
+
 def compare_judge_anything_score_response(
     response: Literal["1", "2", "3", "4", "5"], answer: Union[str, int]
 ) -> bool:
@@ -105,6 +106,8 @@ def compare_judge_anything_score_response(
     if isinstance(answer, int):
         answer = str(answer)
     return response == answer
+
+
 def _merge_datasets(
     dataset: pd.DataFrame,
     response_dataset: pd.DataFrame,
