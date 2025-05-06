@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 import random
@@ -6,7 +7,7 @@ from pathlib import Path
 from typing import Literal, Optional, Union
 
 import pandas as pd
-import base64
+
 logger = logging.getLogger(__name__)
 RANDOM_STATE = 42
 random.seed(RANDOM_STATE)
@@ -175,7 +176,10 @@ def _load_answer_dataset(
     df = df.drop(columns=["task_name", "rubric_name", "comment", "index"])
     return df
 
-def _image_path_to_bytes(image_path: str, base_path: str = "datasets/JudgeAnything/X2XRawBenchmark") -> bytes:
+
+def _image_path_to_bytes(
+    image_path: str, base_path: str = "datasets/JudgeAnything/X2XRawBenchmark"
+) -> bytes:
     """
     Convert an image path to bytes.
 
@@ -190,7 +194,7 @@ def _image_path_to_bytes(image_path: str, base_path: str = "datasets/JudgeAnythi
         if not full_path.exists():
             logger.error(f"Image file not found: {full_path}")
             raise FileNotFoundError(f"Image file not found: {full_path}")
-        
+
         with open(full_path, "rb") as f:
             image_bytes = f.read()
         return base64.b64encode(image_bytes).decode("utf-8")
