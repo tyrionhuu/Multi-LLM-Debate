@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
+MODEL_NAME="/data/share_weight/Llama-3.2-11B-Vision-Instruct"
 MODEL_QUANTITY=9
 
 # Parse command line arguments
