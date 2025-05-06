@@ -177,6 +177,9 @@ def _merge_datasets(
     if result_rows:
         result_df = pd.DataFrame(result_rows)
         result_df = result_df.drop(columns=["uniq_id"])
+        # Add an id column to the result DataFrame
+        result_df = result_df.reset_index(drop=True)
+        result_df["id"] = range(len(result_df))
 
         logger.info(
             f"Final merged DataFrame contains {len(result_df)} rows after merging."
@@ -184,7 +187,7 @@ def _merge_datasets(
     else:
         logger.warning("No matching rows found after merging.")
         result_df = pd.DataFrame(
-            columns=["question", "response", "answer", "image_path"]
+            columns=["question", "response", "answer", "image_path", "id"]
         )
     return result_df
 
