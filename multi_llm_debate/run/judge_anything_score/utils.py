@@ -60,9 +60,9 @@ def _merge_datasets(
         f"Merged dataset ({len(dataset)} rows) and response "
         f"({len(response_dataset)} rows) into a DataFrame with {len(merged_df)} rows"
     )
-    
-    if "uniq_id" not in preference.columns:
-        raise ValueError("Preference DataFrame must contain 'uniq_id' column")
+    return merged_df
+    # if "uniq_id" not in answer_dataset.columns:
+    #     raise ValueError("Preference DataFrame must contain 'uniq_id' column")
     
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_SCORE_DATASET_FILE,
@@ -135,3 +135,8 @@ if __name__ == "__main__":
     print("Response Dataset:")
     print(response_dataset.head())
     print(response_dataset.info())
+    
+    merged_df = _merge_datasets(dataset, response_dataset, preference)
+    print("Merged Dataset:")
+    print(merged_df.head())
+    print(merged_df.info())
