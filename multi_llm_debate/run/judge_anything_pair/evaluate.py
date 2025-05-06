@@ -5,6 +5,8 @@ import pandas as pd
 
 from ..shared.evaluate import EvaluationResults, evaluate_all
 from .utils import compare_judge_anything_pairs_response, extract_caption_a_b_answer
+
+
 def evaluate_judge_anything_pair_responses(
     responses: List[Dict],
     answer: str,
@@ -24,7 +26,8 @@ def evaluate_judge_anything_pair_responses(
         )
         for response in responses
     )
-    
+
+
 def evaluate_all_judge_anything_pair(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
