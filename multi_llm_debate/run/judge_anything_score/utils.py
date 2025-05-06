@@ -23,6 +23,7 @@ JUDGE_ANYTHING_SCORE_ANSWER_FILE = (
     "datasets/JudgeAnything/Preference/Human_Scoring.json"
 )
 
+
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_SCORE_DATASET_FILE,
 ) -> pd.DataFrame:
@@ -35,6 +36,7 @@ def _load_json_dataset(
     df = df.drop(columns=["task_name", "audio_path", "video_path"])
     return df
 
+
 def _load_response_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_SCORE_RESPONSE_FILE,
 ) -> pd.DataFrame:
@@ -45,6 +47,7 @@ def _load_response_dataset(
     df = df[df["task_name"] == "Image2Text"]
     df = df.drop(columns=["task_name"])
     return df
+
 
 def _load_answer_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_SCORE_ANSWER_FILE,
@@ -69,6 +72,7 @@ def _load_answer_dataset(
     df = df[df["rubric_name"] == "overall_score"]
     df = df.drop(columns=["task_name", "rubric_name", "index"])
     return df
+
 
 if __name__ == "__main__":
     dataset = _load_json_dataset()
