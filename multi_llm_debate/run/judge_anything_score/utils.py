@@ -23,6 +23,7 @@ JUDGE_ANYTHING_SCORE_ANSWER_FILE = (
     "datasets/JudgeAnything/Preference/Human_Scoring.json"
 )
 
+
 def _merge_datasets(
     dataset: pd.DataFrame,
     response_dataset: pd.DataFrame,
@@ -63,43 +64,43 @@ def _merge_datasets(
     # return merged_df
     if "uniq_id" not in answer_dataset.columns:
         raise ValueError("Preference DataFrame must contain 'uniq_id' column")
-    
+
     merged_df["id_suffix"] = merged_df["uniq_id"].apply(
         lambda x: "_".join(x.split("_")[-2:]) if x.count("_") >= 2 else x
     )
-    
+
     answer_df = answer_dataset.copy()
     answer_df["id_suffix"] = answer_df["uniq_id"].apply(
         lambda x: "_".join(x.split("_")[-2:]) if x.count("_") >= 2 else x
     )
-    
+
     result_rows = []
-    
+
     # Group by id_suffix to find matching pairs
     id_suffix_groups = merged_df.groupby("id_suffix")
-    
+
     for _, answer_row in answer_df.iterrows():
         id_suffix = answer_row["id_suffix"]
         model_name = answer_row["model_name"]
-        
+
         if id_suffix not in id_suffix_groups.groups:
             logger.warning(f"ID suffix {id_suffix} not found in merged DataFrame.")
             continue
-        
+
         # Get all entries with matching suffix
         matching_entries = id_suffix_groups.get_group(id_suffix)
         model_entries = matching_entries[
             matching_entries["model_name"].str.contains(model_name, na=False)
         ]
-        
+
         if len(model_entries) == 0:
             logger.warning(
                 f"No matching entries found for model {model_name} with ID suffix {id_suffix}."
             )
             continue
-        
+
         model_entry = model_entries.iloc[0].to_dict()
-        
+
         combined_row = {
             "uniq_id": model_entry["uniq_id"],
             "question": model_entry["question"],
@@ -107,20 +108,24 @@ def _merge_datasets(
             "answer": answer_row["score"],
             "image_path": model_entry["image_path"],
         }
-        
+
         result_rows.append(combined_row)
-        
+
     if result_rows:
         result_df = pd.DataFrame(result_rows)
         result_df = result_df.drop(columns=["uniq_id"])
-        
+
         logger.info(
             f"Final merged DataFrame contains {len(result_df)} rows after merging."
         )
     else:
         logger.warning("No matching rows found after merging.")
-        result_df = pd.DataFrame(columns=["question", "response", "answer", "image_path"])
+        result_df = pd.DataFrame(
+            columns=["question", "response", "answer", "image_path"]
+        )
     return result_df
+
+
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_SCORE_DATASET_FILE,
 ) -> pd.DataFrame:
@@ -192,7 +197,7 @@ if __name__ == "__main__":
     print("Response Dataset:")
     print(response_dataset.head())
     print(response_dataset.info())
-    
+
     merged_df = _merge_datasets(dataset, response_dataset, preference)
     print("Merged Dataset:")
     print(merged_df.head())
