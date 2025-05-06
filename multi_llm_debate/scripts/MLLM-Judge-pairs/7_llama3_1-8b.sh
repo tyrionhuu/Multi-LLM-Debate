@@ -62,18 +62,11 @@ PORT=$((8007 + FIRST_GPU * 10))
 if [[ "$GPU" == *","* ]]; then
     # Count the number of GPUs
     IFS=',' read -ra GPU_ARRAY <<< "$GPU"
-    if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
-        echo "Using tensor parallelism with 2 GPUs"
-        # Start VLLM server with tensor parallelism
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --tensor-parallel-size 2 --gpu-memory-utilization 0.98 &
-    elif [[ ${#GPU_ARRAY[@]} -eq 3 ]]; then
-        echo "Using tensor parallelism with 3 GPUs"
-        # Start VLLM server with tensor parallelism using 3 GPUs
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --tensor-parallel-size 3 --gpu-memory-utilization 0.98 &
-    else
-        echo "Error: Currently only supporting either 1 GPU or exactly 2 or 3 GPUs for tensor parallelism"
-        exit 1
-    fi
+    NUM_GPUS=${#GPU_ARRAY[@]}
+    
+    echo "Using tensor parallelism with ${NUM_GPUS} GPUs"
+    # Start VLLM server with tensor parallelism using the number of GPUs provided
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --tensor-parallel-size ${NUM_GPUS} --gpu-memory-utilization 0.98 &
 else
     # Single GPU mode
     env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --gpu-memory-utilization 0.99 &
