@@ -166,7 +166,9 @@ def compare_judge_bench_response(
 
 def main() -> None:
     df = load_judge_bench_dataset(sample_size=100)
-    print(df.iloc[0])
+    print("\nFirst entry in the JudgeBench dataset:")
+    # Print the complete first entry as a dictionary for clarity
+    print(df.iloc[0].to_dict())
 
 
 if __name__ == "__main__":
