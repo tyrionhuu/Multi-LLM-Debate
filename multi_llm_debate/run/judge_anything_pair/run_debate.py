@@ -11,7 +11,7 @@ from .prompts import (
     build_judge_anything_pair_round_n_prompt,
     build_judge_anything_pair_round_zero_prompt,
 )
-from .utils import extract_caption_a_b_answer
+from .utils import extract_caption_a_b_answer, image_path_to_bytes
 
 # Fix the setup_logging call by removing the level parameter
 logger = logging.getLogger(__name__)
@@ -127,6 +127,7 @@ def process_judge_anything_pair_entry(
             round_n_fn=build_judge_anything_pair_round_n_prompt,
             prompt_params=prompt_params,
             query=entry["question"],
+            images=image_path_to_bytes(entry["image_path"]),
         ),
         prompt_params={
             "question": entry["question"],

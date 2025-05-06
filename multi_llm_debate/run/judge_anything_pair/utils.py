@@ -4,7 +4,7 @@ import random
 import re
 from pathlib import Path
 from typing import Literal, Optional, Union
-
+import base64
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -287,7 +287,36 @@ def _merge_dataset(
         merged_df = merged_df.drop(columns=["uniq_id"])
     return merged_df
 
+def image_path_to_bytes(
+    image_path: str, base_path: str = "datasets/JudgeAnything/X2XRawBenchmark"
+) -> bytes:
+    """
+    Convert an image path to bytes.
 
+    Args:
+        image_path: Path to the image file.
+
+    Returns:
+        Bytes representation of the image.
+    """
+    try:
+        full_path = Path(base_path) / image_path
+        if not full_path.exists():
+            logger.error(f"Image file not found: {full_path}")
+            raise FileNotFoundError(f"Image file not found: {full_path}")
+
+        with open(full_path, "rb") as f:
+            image_bytes = f.read()
+        return base64.b64encode(image_bytes).decode("utf-8")
+    except FileNotFoundError as e:
+        logger.error(f"File not found error: {e}")
+        raise
+    except PermissionError as e:
+        logger.error(f"Permission denied when accessing file: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Error processing image {image_path}: {e}")
+        raise
 if __name__ == "__main__":
     # dataset = _load_json_dataset()
     # print("Judge Anything Pair Dataset:")
