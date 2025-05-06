@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="/data/share_weight/Qwen2.5-7B-Instruct"
+MODEL_NAME="/data/share_weight/Qwen2.5-VL-7B-Instruct"
 MODEL_QUANTITY=9
 
 # Parse command line arguments
