@@ -291,7 +291,7 @@ class AgentsEnsemble:
                     logger.info(f"Calling model for Agent {agent.agent_id}")
                     raw_response = self._retry_with_backoff(
                         call_model,
-                        model=model_name,
+                        model_name=model_name,
                         prompt=prompt,
                         images=images,
                         json_mode=json_mode,
