@@ -19,11 +19,11 @@ done
 
 $(pwd)/multi_llm_debate/scripts/MLLM-Judge-pairs/7_qwen2_5-7b.sh -g "$GPU"
 
+$(pwd)/multi_llm_debate/scripts/MLLM-Judge-score/7_qwen2_5-7b.sh -g "$GPU"
+
 $(pwd)/multi_llm_debate/scripts/MLLM-Judge-pairs/5_qwen2_5-7b.sh -g "$GPU"
 
 $(pwd)/multi_llm_debate/scripts/MLLM-Judge-pairs/9_qwen2_5-7b.sh -g "$GPU"
-
-$(pwd)/multi_llm_debate/scripts/MLLM-Judge-score/7_qwen2_5-7b.sh -g "$GPU"
 
 $(pwd)/multi_llm_debate/scripts/MLLM-Judge-score/5_qwen2_5-7b.sh -g "$GPU"
 
