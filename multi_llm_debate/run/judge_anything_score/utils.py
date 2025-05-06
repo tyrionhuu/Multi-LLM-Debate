@@ -69,3 +69,24 @@ def _load_answer_dataset(
     df = df[df["rubric_name"] == "overall_score"]
     df = df.drop(columns=["task_name", "rubric_name", "index"])
     return df
+
+if __name__ == "__main__":
+    dataset = _load_json_dataset()
+    print("Judge Anything Pair Dataset:")
+    print(dataset.head())
+    print(dataset.info())
+
+    preference = _load_answer_dataset()
+    print("Preference Dataset:")
+    print(preference.head())
+    print(preference.info())
+    print("\nUnique values in 'score' column:")
+    print(preference["score"].unique())
+
+    print("\nCounts of values in 'score' column:")
+    print(preference["score"].value_counts())
+
+    response_dataset = _load_response_dataset()
+    print("Response Dataset:")
+    print(response_dataset.head())
+    print(response_dataset.info())
