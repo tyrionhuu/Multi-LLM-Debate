@@ -49,12 +49,6 @@ def load_judge_anything_score_dataset(
     answer = _load_answer_dataset(answer_file)
 
     merged_df = _merge_datasets(dataset, response, answer)
-    df["image"] = df["image_path"].apply(
-        lambda x: _image_path_to_bytes(
-            x, base_path="datasets/JudgeAnything/X2XRawBenchmark"
-        )
-    )
-    df.drop(columns=["image_path"], inplace=True)
     df = merged_df.copy()
     df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
     df["id"] = range(len(df))
@@ -71,7 +65,28 @@ def load_judge_anything_score_dataset(
     logger.info(f"Loaded {len(df)} pairs from dataset, response, and answer files.")
     return df
 
+def extract_1_5_answer(
+    response: str,
+) -> Literal["1", "2", "3", "4", "5"]:
+    """Extract the answer from the response string.
 
+    Args:
+        response: The response string from the LLM.
+
+    Returns:
+        Literal["1", "2", "3", "4", "5"]: Answer "1", "2", "3", "4", or "5".
+
+    Raises:
+        ValueError: If no valid answer is found in the response.
+    """
+    match = re.search(r"Final Answer:\s*([12345])", response)
+    if match:
+        return match.group(1)
+    raise ValueError(
+        "No valid answer found in the response. Please ensure the response "
+        "contains 'Final Answer: 1', 'Final Answer: 2', 'Final Answer: 3', "
+        "'Final Answer: 4', or 'Final Answer: 5'."
+    )
 def _merge_datasets(
     dataset: pd.DataFrame,
     response_dataset: pd.DataFrame,
@@ -224,7 +239,7 @@ def _load_answer_dataset(
     return df
 
 
-def _image_path_to_bytes(
+def image_path_to_bytes(
     image_path: str, base_path: str = "datasets/JudgeAnything/X2XRawBenchmark"
 ) -> bytes:
     """
@@ -258,30 +273,30 @@ def _image_path_to_bytes(
 
 if __name__ == "__main__":
     dataset = _load_json_dataset()
-    print("Judge Anything Pair Dataset:")
-    print(dataset.head())
-    print(dataset.info())
+    # print("Judge Anything Pair Dataset:")
+    # print(dataset.head())
+    # print(dataset.info())
 
     answer = _load_answer_dataset()
-    print("Preference Dataset:")
-    answer = answer.sort_values(by="uniq_id")
-    print(answer.head())
-    print(answer.info())
-    print("\nUnique values in 'score' column:")
-    print(answer["score"].unique())
+    # print("Preference Dataset:")
+    # answer = answer.sort_values(by="uniq_id")
+    # print(answer.head())
+    # print(answer.info())
+    # print("\nUnique values in 'score' column:")
+    # print(answer["score"].unique())
 
-    print("\nCounts of values in 'score' column:")
-    print(answer["score"].value_counts())
+    # print("\nCounts of values in 'score' column:")
+    # print(answer["score"].value_counts())
 
     response_dataset = _load_response_dataset()
-    print("Response Dataset:")
-    print(response_dataset.head())
-    print(response_dataset.info())
+    # print("Response Dataset:")
+    # print(response_dataset.head())
+    # print(response_dataset.info())
 
     merged_df = _merge_datasets(dataset, response_dataset, answer)
     print("Merged Dataset:")
     print(merged_df.head())
     print(merged_df.info())
 
-    test_bytes = _image_path_to_bytes("images/VisITBench/103_5809ca8d.jpg")
+    test_bytes = image_path_to_bytes("images/VisITBench/103_5809ca8d.jpg")
     print("Image bytes:", test_bytes[:10])  # Print first 10 bytes for brevity
