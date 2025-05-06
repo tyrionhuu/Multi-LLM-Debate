@@ -228,7 +228,7 @@ def _merge_dataset(
         # Group by id_suffix to find matching pairs
         id_suffix_groups = merged_df.groupby("id_suffix")
 
-        for idx, pref_row in preference_copy.iterrows():
+        for _, pref_row in preference_copy.iterrows():
             suffix = pref_row["id_suffix"]
             model1 = pref_row["model1"]
             model2 = pref_row["model2"]
