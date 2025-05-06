@@ -16,6 +16,7 @@ from .utils import extract_caption_a_b_answer
 # Fix the setup_logging call by removing the level parameter
 logger = logging.getLogger(__name__)
 
+
 def process_judge_anything_pair_dataset(
     dataframe: pd.DataFrame,
     max_rounds: int = 10,
@@ -76,6 +77,8 @@ def process_judge_anything_pair_dataset(
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
     )
+
+
 def process_judge_anything_pair_entry(
     entry: pd.Series,
     max_rounds: int = 10,
