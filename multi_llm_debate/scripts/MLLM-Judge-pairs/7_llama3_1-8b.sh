@@ -66,10 +66,10 @@ if [[ "$GPU" == *","* ]]; then
     
     echo "Using tensor parallelism with ${NUM_GPUS} GPUs"
     # Start VLLM server with tensor parallelism using the number of GPUs provided
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --tensor-parallel-size ${NUM_GPUS} --gpu-memory-utilization 0.98 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --tensor-parallel-size ${NUM_GPUS} --gpu-memory-utilization 0.98 --enforce-eager --max-num-seqs 8 &
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --gpu-memory-utilization 0.99 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --gpu-memory-utilization 0.99 --enforce-eager --max-num-seqs 8 &
 fi
 
 SERVER_PID=$!
