@@ -166,7 +166,7 @@ def compare_judge_bench_response(
 
 def main() -> None:
     df = load_judge_bench_dataset(sample_size=100)
-    print(df.head())
+    print(df.iloc[0])
 
 
 if __name__ == "__main__":
