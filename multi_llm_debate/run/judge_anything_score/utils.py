@@ -70,7 +70,7 @@ def _load_answer_dataset(
     df = pd.DataFrame(data)
     df = df[df["task_name"] == "Image2Text"]
     df = df[df["rubric_name"] == "overall_score"]
-    df = df.drop(columns=["task_name", "rubric_name", "comment"])
+    df = df.drop(columns=["task_name", "rubric_name", "comment", "index"])
     return df
 
 
