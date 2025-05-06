@@ -17,7 +17,7 @@ if __name__ == "__main__":
     else:
         task_name = args.task_name
     print(f"Running evaluation for task: {task_name}")
-    
+
     dataframe = load_judge_anything_pairs_dataset(sample_size=args.sample_size)
     shared_main(
         dataframe=dataframe,
