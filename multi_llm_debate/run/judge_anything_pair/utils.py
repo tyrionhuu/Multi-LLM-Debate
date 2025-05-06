@@ -1,10 +1,11 @@
+import base64
 import json
 import logging
 import random
 import re
 from pathlib import Path
 from typing import Literal, Optional, Union
-import base64
+
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -287,6 +288,7 @@ def _merge_dataset(
         merged_df = merged_df.drop(columns=["uniq_id"])
     return merged_df
 
+
 def image_path_to_bytes(
     image_path: str, base_path: str = "datasets/JudgeAnything/X2XRawBenchmark"
 ) -> bytes:
@@ -317,6 +319,8 @@ def image_path_to_bytes(
     except Exception as e:
         logger.error(f"Error processing image {image_path}: {e}")
         raise
+
+
 if __name__ == "__main__":
     # dataset = _load_json_dataset()
     # print("Judge Anything Pair Dataset:")
