@@ -45,3 +45,27 @@ def _load_response_dataset(
     df = df[df["task_name"] == "Image2Text"]
     df = df.drop(columns=["task_name"])
     return df
+
+def _load_answer_dataset(
+    file_path: Union[str, Path] = JUDGE_ANYTHING_SCORE_ANSWER_FILE,
+) -> pd.DataFrame:
+    """
+    Load a answer dataset and return it as a DataFrame.
+
+    Filters out entries with 'task_name' different from 'Image2Text',
+    entries with 'rubric_name' different from 'overall_score',
+    and entries with 'choice' equal to 1.
+
+    Args:
+        file_path: Path to the answer dataset JSON file.
+
+    Returns:
+        A filtered DataFrame containing answer data.
+    """
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    df = pd.DataFrame(data)
+    df = df[df["task_name"] == "Image2Text"]
+    df = df[df["rubric_name"] == "overall_score"]
+    df = df.drop(columns=["task_name", "rubric_name", "index"])
+    return df
