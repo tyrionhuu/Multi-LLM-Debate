@@ -237,3 +237,4 @@ if __name__ == "__main__":
     print(merged_df.info())
 
     test_bytes = _image_path_to_bytes("images/VisITBench/103_5809ca8d.jpg")
+    print("Image bytes:", test_bytes[:10])  # Print first 10 bytes for brevity
