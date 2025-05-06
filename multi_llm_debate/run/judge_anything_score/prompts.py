@@ -58,6 +58,7 @@ Each score level is described in detail below to guide the evaluation process.
     and suitability. It is exemplary in fulfilling its intended purpose.
 """
 
+
 def build_judge_anything_score_round_zero_prompt(
     question: str,
     response: str,

@@ -24,6 +24,7 @@ JUDGE_ANYTHING_SCORE_ANSWER_FILE = (
     "datasets/JudgeAnything/Preference/Human_Scoring.json"
 )
 
+
 def load_judge_anything_score_dataset(
     dataset_file: Union[str, Path] = JUDGE_ANYTHING_SCORE_DATASET_FILE,
     response_file: Union[str, Path] = JUDGE_ANYTHING_SCORE_RESPONSE_FILE,
@@ -49,13 +50,15 @@ def load_judge_anything_score_dataset(
 
     merged_df = _merge_datasets(dataset, response, answer)
     df["image"] = df["image_path"].apply(
-        lambda x: _image_path_to_bytes(x, base_path="datasets/JudgeAnything/X2XRawBenchmark")
+        lambda x: _image_path_to_bytes(
+            x, base_path="datasets/JudgeAnything/X2XRawBenchmark"
+        )
     )
     df.drop(columns=["image_path"], inplace=True)
     df = merged_df.copy()
     df = df.sample(frac=1, random_state=RANDOM_STATE).reset_index(drop=True)
     df["id"] = range(len(df))
-    
+
     if sample_size is not None:
         if sample_size > len(df):
             logger.warning(
@@ -67,6 +70,8 @@ def load_judge_anything_score_dataset(
 
     logger.info(f"Loaded {len(df)} pairs from dataset, response, and answer files.")
     return df
+
+
 def _merge_datasets(
     dataset: pd.DataFrame,
     response_dataset: pd.DataFrame,
