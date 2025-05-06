@@ -23,7 +23,47 @@ JUDGE_ANYTHING_SCORE_ANSWER_FILE = (
     "datasets/JudgeAnything/Preference/Human_Scoring.json"
 )
 
+def _merge_datasets(
+    dataset: pd.DataFrame,
+    response_dataset: pd.DataFrame,
+    answer_dataset: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Merge datasets based on 'uniq_id' and 'response_id' columns.
 
+    Args:
+        dataset: The main dataset to merge.
+        response_dataset: The response dataset to merge.
+        answer_dataset: The answer dataset to merge.
+
+    Returns:
+        A merged DataFrame containing the combined data.
+    """
+    # Validate if uniq_id exists in both DataFrames
+    if "uniq_id" not in dataset.columns or "uniq_id" not in response_dataset.columns:
+        raise ValueError("Both DataFrames must contain 'uniq_id' column")
+
+    # Note that duplicate uniq_ids in response DataFrame are allowed
+    duplicate_ids = response_dataset["uniq_id"].duplicated().sum()
+    if duplicate_ids > 0:
+        logger.info(
+            f"Found {duplicate_ids} duplicate uniq_ids in response DataFrame. "
+            f"All duplicates will be included in the merged result."
+        )
+
+    # Perform merge operation for dataset and response
+    merged_df = pd.merge(
+        dataset, response_dataset, on="uniq_id", how="inner", suffixes=("", "_response")
+    )
+
+    logger.info(
+        f"Merged dataset ({len(dataset)} rows) and response "
+        f"({len(response_dataset)} rows) into a DataFrame with {len(merged_df)} rows"
+    )
+    
+    if "uniq_id" not in preference.columns:
+        raise ValueError("Preference DataFrame must contain 'uniq_id' column")
+    
 def _load_json_dataset(
     file_path: Union[str, Path] = JUDGE_ANYTHING_SCORE_DATASET_FILE,
 ) -> pd.DataFrame:
