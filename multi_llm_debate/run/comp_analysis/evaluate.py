@@ -52,9 +52,11 @@ def evaluate_all_comp_analysis(
 
 if __name__ == "__main__":
     from pathlib import Path
-
+    from multi_llm_debate.utils.logging_config import setup_logging
+    import logging
     from .utils import load_comp_analysis_dataset
-
+    logger = setup_logging(__name__, log_level=logging.INFO)
+        
     df = load_comp_analysis_dataset(sample_size=1000)
 
     result = evaluate_all_comp_analysis(
