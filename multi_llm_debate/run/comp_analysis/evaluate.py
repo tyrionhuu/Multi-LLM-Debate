@@ -49,3 +49,16 @@ def evaluate_all_comp_analysis(
         extract_func=extract_1_to_5_answer,
         evaluation_func=evaluate_comp_analysis_responses,
     )
+
+if __name__ == "__main__":
+    from pathlib import Path
+
+    from .utils import load_comp_analysis_dataset
+
+    df = load_comp_analysis_dataset(sample_size=1000)
+
+    result = evaluate_all_comp_analysis(
+        response_base_dir=Path("data/comp_analysis/gemma-3-4b-it(11)"),
+        dataframe=df,
+    )
+    print(result)
