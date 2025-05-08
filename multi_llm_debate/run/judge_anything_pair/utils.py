@@ -297,6 +297,7 @@ def image_path_to_bytes(
 
     Args:
         image_path: Path to the image file.
+        base_path: Base directory for the image files.
 
     Returns:
         Bytes representation of the image.
@@ -309,7 +310,10 @@ def image_path_to_bytes(
 
         with open(full_path, "rb") as f:
             image_bytes = f.read()
-        return base64.b64encode(image_bytes).decode("utf-8")
+            if not isinstance(image_bytes, bytes):
+                logger.error(f"Failed to read image file: {full_path}")
+                raise ValueError(f"Failed to read image file: {full_path}")
+        return image_bytes
     except FileNotFoundError as e:
         logger.error(f"File not found error: {e}")
         raise
