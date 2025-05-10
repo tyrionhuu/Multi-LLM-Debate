@@ -105,24 +105,24 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
-    --task-name "mllm_judge_pair" \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_anything_pair.main \
+    --task-name "judge_anything_pair" \
     --config-json "$CONFIG" \
     --batch \
     --batch-size 11 \
     --sample-size 800 \
 
 # # Run the evaluation using module path with direct JSON config
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
+# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_anything_pair.main \
 #     --config-json "$CONFIG" \
-#     --task-name "mllm_judge_pair_pruning" \
+#     --task-name "judge_anything_pair_pruning" \
 #     --diversity-pruning "answer" \
 #     --diversity-pruning-amount 5 \
 #     --batch \
 #     --batch-size 11 \
     
 
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
+# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_anything_pair.main \
 #     --config-json "$CONFIG" \
 #     --task-name "truthful_qa_pruning_all" \
 #     --diversity-pruning "answer" \
