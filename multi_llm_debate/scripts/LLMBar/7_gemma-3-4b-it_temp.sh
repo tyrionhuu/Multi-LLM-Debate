@@ -105,33 +105,33 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
     --config-json "$CONFIG" \
-    --task-name "big_bench_temp_0_6" \
+    --task-name "llm_bar_temp_0_6" \
     --batch \
     --batch-size 11 \
     --sample-size 1000 \
     --temperature 0.6 \
 
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
     --config-json "$CONFIG" \
-    --task-name "big_bench_temp_0_8" \
+    --task-name "llm_bar_temp_0_8" \
     --batch \
     --batch-size 11 \
     --sample-size 1000 \
     --temperature 0.8 \
 
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
     --config-json "$CONFIG" \
-    --task-name "big_bench_temp_1_2" \
+    --task-name "llm_bar_temp_1_2" \
     --batch \
     --batch-size 11 \
     --sample-size 1000 \
     --temperature 1.2 \
 
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
     --config-json "$CONFIG" \
-    --task-name "big_bench_temp_1_4" \
+    --task-name "llm_bar_temp_1_4" \
     --batch \
     --batch-size 11 \
     --sample-size 1000 \
