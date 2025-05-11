@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="microsoft/Phi-3.5-mini-instruct"
+MODEL_NAME="microsoft/Phi-4-mini-instruct"
 MODEL_QUANTITY=7
 
 # Parse command line arguments
@@ -65,14 +65,14 @@ if [[ "$GPU" == *","* ]]; then
     if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
         echo "Using tensor parallelism with 2 GPUs"
         # Start VLLM server with tensor parallelism
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --trust-remote-code --port $PORT --max-model-len 32000 --tensor-parallel-size 2 &
+        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --trust-remote-code --port $PORT --max-model-len 16000 --tensor-parallel-size 2 &
     else
         echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
         exit 1
     fi
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --trust-remote-code --port $PORT --max-model-len 32000 --gpu-memory-utilization 0.98 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --trust-remote-code --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.98 &
 fi
 
 SERVER_PID=$!
