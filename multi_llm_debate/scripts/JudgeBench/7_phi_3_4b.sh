@@ -105,26 +105,26 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
     --sample-size 1000 \
-    --task-name "big_bench" \
+    --task-name "judge_bench" \
     --batch \
-    --batch-size 4 \
+    --batch-size 11 \
 # # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
     --sample-size 1000 \
-    --task-name "big_bench_pruning" \
+    --task-name "judge_bench_pruning" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 5 \
     --batch \
-    --batch-size 4 \
+    --batch-size 11 \
     
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.big_bench.main \
+# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
 #     --config-json "$CONFIG" \
 #     --sample-size 1000 \
-#     --task-name "big_bench_pruning_all" \
+#     --task-name "judge_bench_pruning_all" \
 #     --diversity-pruning "answer" \
 #     --diversity-pruning-amount 5 \
 #     --batch \
