@@ -2,7 +2,7 @@
 
 # Define variables
 MODEL_NAME="/data/share_weight/Llama-3.2-11B-Vision-Instruct"
-MODEL_QUANTITY=9
+MODEL_QUANTITY=7
 
 # Parse command line arguments
 GPU="7"  # Default GPU
@@ -54,25 +54,22 @@ trap cleanup SIGINT SIGTERM EXIT
 
 # For port, use the first GPU in case of multiple GPUs
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
-PORT=$((8009 + FIRST_GPU * 10))
+PORT=$((8007 + FIRST_GPU * 10))
 
-export VLLM_LOGGING_LEVEL=ERROR
+# export VLLM_LOGGING_LEVEL=ERROR
 
 # Check if we have multiple GPUs and set tensor parallelism accordingly
 if [[ "$GPU" == *","* ]]; then
     # Count the number of GPUs
     IFS=',' read -ra GPU_ARRAY <<< "$GPU"
-    if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
-        echo "Using tensor parallelism with 2 GPUs"
-        # Start VLLM server with tensor parallelism
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 32000 --tensor-parallel-size 2 --gpu-memory-utilization 0.98 &
-    else
-        echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
-        exit 1
-    fi
+    NUM_GPUS=${#GPU_ARRAY[@]}
+    
+    echo "Using tensor parallelism with ${NUM_GPUS} GPUs"
+    # Start VLLM server with tensor parallelism using the number of GPUs provided
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --tensor-parallel-size ${NUM_GPUS} --gpu-memory-utilization 0.98 --enforce-eager --max-num-seqs 8 &
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.98 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 max-num-seqs=16 --gpu-memory-utilization 0.98 --enforce-eager --max-num-seqs 8 &
 fi
 
 SERVER_PID=$!
@@ -121,5 +118,6 @@ CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
     --batch \
     --batch-size 11 \
     --sample-size 800 \
+
 cleanup 1
 
