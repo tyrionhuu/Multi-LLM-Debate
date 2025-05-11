@@ -56,7 +56,7 @@ trap cleanup SIGINT SIGTERM EXIT
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
 PORT=$((8007 + FIRST_GPU * 10))
 
-# export VLLM_LOGGING_LEVEL=ERROR
+export VLLM_LOGGING_LEVEL=ERROR
 
 # Check if we have multiple GPUs and set tensor parallelism accordingly
 if [[ "$GPU" == *","* ]]; then
@@ -69,6 +69,7 @@ if [[ "$GPU" == *","* ]]; then
     env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 --tensor-parallel-size ${NUM_GPUS} --gpu-memory-utilization 0.98 --enforce-eager --max-num-seqs 8 &
 else
     # Single GPU mode
+    # env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 max-num-seqs=16 --gpu-memory-utilization 0.98 --enforce-eager --max-num-seqs 8 &
     env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 12000 max-num-seqs=16 --gpu-memory-utilization 0.98 --enforce-eager --max-num-seqs 8 &
 fi
 
