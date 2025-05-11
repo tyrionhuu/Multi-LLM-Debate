@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="microsoft/Phi-3-vision-128k-instruct"
+MODEL_NAME="microsoft/Phi-3.5-mini-instruct"
 MODEL_QUANTITY=7
 
 # Parse command line arguments
