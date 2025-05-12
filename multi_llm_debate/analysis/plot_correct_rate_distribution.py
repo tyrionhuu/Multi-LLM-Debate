@@ -319,11 +319,9 @@ def combine_correct_rate_plots(
 ) -> None:
     """Combine multiple correct rate plots into a single figure with subplots.
     
-    This version integrates the functionality of correct_rate_main directly,
-    calculating distributions for each model configuration and displaying them
-    together. It assumes the same dataframe, extract_func, compare_func, and
-    task_name for all configurations, with only model_dirs and model_configs
-    being different.
+    This version creates bar chart comparisons of the distributions across
+    different models. Each subplot represents a single round, with bars for
+    each model's distribution of correct agents.
     
     Args:
         df: DataFrame containing the "ground truth" answer data for all models.
@@ -348,8 +346,7 @@ def combine_correct_rate_plots(
         return
     
     # Collect all distributions from processing each model configuration
-    all_config_distributions = []
-    config_labels = []
+    model_distributions = {}
     
     # Process each model configuration
     for model_dir, model_config in zip(model_dirs, model_configs):
@@ -393,7 +390,7 @@ def combine_correct_rate_plots(
                 except Exception as err:
                     logger.error(f"Error processing round {round_number} for {model_config}: {err}")
             
-            # If we have distributions for this model, create individual plots and add to collection
+            # If we have distributions for this model, store them
             if all_distributions:
                 # Create the individual plot for this model
                 title = f"Correct Agent Distribution by Round {model_config} - {task_name}"
@@ -406,84 +403,120 @@ def combine_correct_rate_plots(
                     file_name=f"correct_agent_distribution_{model_config}_{task_name}.png",
                 )
                 
-                # Create individual heatmap
-                create_heatmap(
-                    all_distributions=all_distributions,
-                    output_dir=config_output_dir,
-                    show_plot=False,  # Don't show individual heatmaps
-                    file_name=f"correct_agent_heatmap_{model_config}_{task_name}.png",
-                )
-                
-                # Add to collection for combined plot
-                all_config_distributions.append(all_distributions)
-                config_labels.append(f"{model_config}" if not task_name else 
-                                   f"{model_config} - {task_name}")
+                # Store distributions by model
+                model_distributions[model_config] = all_distributions
 
         except Exception as e:
             logger.error(f"Error processing {model_config}: {e}")
     
-    # Create combined plot if we have data from multiple models
-    if not all_config_distributions:
+    # Create combined plots - one subplot per round with multiple models in each
+    if not model_distributions:
         logger.warning("No distributions to plot in the combined figure.")
         return
     
-    # Determine grid dimensions if not specified
+    # Determine which rounds we have data for (across all models)
+    available_rounds = set()
+    for distributions in model_distributions.values():
+        available_rounds.update(round_num for round_num, _ in distributions)
+    available_rounds = sorted(available_rounds)
+    
+    # Determine grid layout for subplots (one subplot per round)
+    n_rounds = len(available_rounds)
     if rows is None and columns is None:
-        # Default to a square-ish grid
-        n_configs = len(all_config_distributions)
-        columns = math.ceil(math.sqrt(n_configs))
-        rows = math.ceil(n_configs / columns)
+        # Default to a single row if few rounds, otherwise optimize layout
+        if n_rounds <= 6:
+            rows, columns = 1, n_rounds
+        else:
+            # Aim for a roughly square layout
+            columns = math.ceil(math.sqrt(n_rounds))
+            rows = math.ceil(n_rounds / columns)
     elif rows is None:
-        rows = math.ceil(len(all_config_distributions) / columns)
+        rows = math.ceil(n_rounds / columns)
     elif columns is None:
-        columns = math.ceil(len(all_config_distributions) / rows)
+        columns = math.ceil(n_rounds / rows)
     
     # Create figure for subplots
     fig = plt.figure(figsize=(6 * columns, 5 * rows))
     
-    # Plot each configuration's distributions
-    for idx, (distributions, label) in enumerate(zip(all_config_distributions, config_labels)):
-        if idx >= rows * columns:
-            logger.warning(f"Not enough subplots for all configs. Skipping {len(all_config_distributions) - rows * columns} configs.")
+    # For each round, create a subplot comparing all models
+    for subplot_idx, round_number in enumerate(available_rounds):
+        if subplot_idx >= rows * columns:
+            logger.warning(f"Not enough subplots for all rounds. Skipping remaining rounds.")
             break
-        
-        # Create subplot
-        ax = fig.add_subplot(rows, columns, idx + 1)
-        
-        # Add mini-heatmap to the subplot
-        data = []
-        for round_num, bin_percentages in distributions:
-            for bin_label, percentage in bin_percentages.items():
-                data.append({
-                    "Round": round_num,
-                    "Correct Agents": int(bin_label),
-                    "Percentage": percentage
-                })
-        
-        df_heatmap = pd.DataFrame(data)
-        if not df_heatmap.empty:
-            pivot_df = df_heatmap.pivot(
-                index="Round", columns="Correct Agents", values="Percentage"
-            ).fillna(0)
             
-            sns.heatmap(
-                pivot_df,
-                annot=True,
-                fmt=".1f",
-                cmap="YlGnBu",
-                linewidths=0.5,
-                ax=ax,
-                cbar_kws={"label": "%"},
-            )
+        # Create subplot for this round
+        ax = fig.add_subplot(rows, columns, subplot_idx + 1)
+        
+        # Collect data for all models for this round
+        round_data = {}
+        for model, distributions in model_distributions.items():
+            # Find the data for this specific round
+            for r, bin_percentages in distributions:
+                if r == round_number:
+                    round_data[model] = bin_percentages
+                    break
+        
+        if not round_data:
+            ax.text(0.5, 0.5, f"No data for round {round_number}", 
+                   ha="center", va="center", fontsize=12)
+            ax.set_title(f"Round {round_number}", fontsize=14)
+            continue
             
-            ax.set_title(label, fontsize=12)
+        # Find all unique bin values across models
+        all_bins = set()
+        for bin_percentages in round_data.values():
+            all_bins.update(int(b) for b in bin_percentages.keys())
+        all_bins = sorted(all_bins)
+        
+        # Set up bar positions
+        n_models = len(round_data)
+        bar_width = 0.8 / n_models  # Adjust width based on number of models
+        offsets = [i * bar_width - (n_models-1) * bar_width / 2 for i in range(n_models)]
+        
+        # Plot bars for each model
+        for (model, bin_percentages), offset in zip(round_data.items(), offsets):
+            bins = all_bins
+            values = [bin_percentages.get(str(b), 0) for b in bins]
+            x_positions = [b + offset for b in bins]
+            
+            bars = ax.bar(x_positions, values, width=bar_width, label=model)
+            
+            # Add text labels for significant values (>5%)
+            for x, y in zip(x_positions, values):
+                if y > 5:  # Only show labels for values > 5% to avoid clutter
+                    ax.text(x, y + 1, f"{y:.1f}%", ha="center", va="bottom", fontsize=8)
+        
+        ax.set_title(f"Round {round_number}", fontsize=14)
+        ax.set_xlabel("Number of Correct Agents", fontsize=12)
+        
+        # Only add y-label to leftmost subplots in each row
+        if subplot_idx % columns == 0:
+            ax.set_ylabel("Tasks (%)", fontsize=12)
+            
+        # Set x-ticks to be exactly at the bin positions
+        ax.set_xticks(all_bins)
+        ax.set_xticklabels(all_bins)
+        
+        # Add grid lines for readability
+        ax.grid(axis="y", alpha=0.3)
+        
+        # Set consistent y-axis range for better comparison
+        ax.set_ylim(0, 100)
+        
+        # Add legend if this is the first subplot
+        if subplot_idx == 0:
+            ax.legend(loc="upper right", fontsize=10)
+    
+    # Turn off any extra subplots
+    for j in range(n_rounds, rows * columns):
+        fig.add_subplot(rows, columns, j + 1).axis("off")
     
     # Set overall figure title
     task_subtitle = f" for {task_name}" if task_name else ""
     fig.suptitle(f"{combined_title}{task_subtitle}", fontsize=16)
     
     # Adjust layout
-    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Leave room for the suptitle
+    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Leave room for the suptitle
     
     # Save figure
     output_path = output_dir / file_name
@@ -510,7 +543,7 @@ if __name__ == "__main__":
     logger.setLevel(logging.ERROR)
 
     df = load_judge_bench_dataset()
-    OUTPUT_DIR = Path("../output/visualizations/judge_bench")
+    OUTPUT_DIR = Path("output/visualizations/judge_bench")
     task_name = "Judge Bench"
 
     model_dirs = [
