@@ -76,7 +76,7 @@ def ks_statistic_beta_mixtures(params1: dict, params2: dict) -> float:
 
 
 def analyze_distributions_adaptive_stopping(
-    answers_csv_path: Path,
+    dataframe: pd.DataFrame,
     debates_csv_path: Path,
     fitting_method: str = "direct",
     max_rounds: Optional[int] = None,
@@ -94,8 +94,7 @@ def analyze_distributions_adaptive_stopping(
     Beta-Binomial mixture models to the data.
 
     Args:
-        answers_csv_path: Path to CSV with correct answers ("id", "answer" columns)
-        debates_csv_path: Path to CSV with debate rounds data
+        dataframe: DataFrame containing the debate data
         fitting_method: Method to use for fitting Beta-Binomial mixtures ("em" or "direct")
         max_rounds: Maximum number of rounds to analyze (None for all)
         n_restarts: Number of random restarts for model fitting
@@ -115,12 +114,8 @@ def analyze_distributions_adaptive_stopping(
     """
     # Load answers data
     try:
-        df_answers = pd.read_csv(answers_csv_path)
-
-        # Only remove missing values, no numerical conversion
-        df_answers.dropna(subset=["id"], inplace=True)
+        df_answers = dataframe.copy()
         if verbose:
-            print(f"Loaded answers data from {answers_csv_path}")
             print(df_answers.head())
     except Exception as e:
         raise ValueError(f"Failed to load answers data: {e}")
@@ -315,11 +310,14 @@ if __name__ == "__main__":
     from multi_llm_debate.run.llm_bar.utils import (
         compare_llm_bar_response,
         extract_1_2_answer,
+        load_llm_bar_dataset,
     )
 
-    answers_csv_path = (Path("output/llm_bar/processed_data.csv"),)
-    model_config = ("Llama-3_1-8B-Instruct(11)",)
-
+    df = load_llm_bar_dataset()
+    model_config = ("Llama-3.1-8B",)
+    debate_round_csv_path = Path(
+        "data/llm_bar/Llama-3_1-8B-Instruct(7)/debate_rounds.csv"
+    )
     FIT_METHOD = "direct"  # "direct" or "em" optimization approach
     N_RESTARTS = 2  # Number of random restarts for more stable fitting
     ENFORCE_INCREASING = False  # Enforce non-decreasing expected success probability
@@ -327,10 +325,8 @@ if __name__ == "__main__":
     OUTPUT_DIR = Path("output/visualizations/llm_bar")
     task_name = "LLMBar"
     analyze_distributions_adaptive_stopping(
-        answers_csv_path=Path("output/llm_bar/processed_data.csv"),
-        debates_csv_path=Path(
-            "data/llm_bar/Llama-3_1-8B-Instruct(11)/debate_rounds.csv"
-        ),
+        dataframe=df,
+        debates_csv_path=debate_round_csv_path,
         fitting_method=FIT_METHOD,
         max_rounds=MAX_ROUNDS,
         n_restarts=N_RESTARTS,
