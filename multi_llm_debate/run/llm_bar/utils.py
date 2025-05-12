@@ -32,6 +32,7 @@ random.seed(RANDOM_STATE)
 
 def load_llm_bar_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
+    base_path: Optional[Union[str, Path]] = None,
     sample_size: Optional[int] = None,
 ) -> pd.DataFrame:
     """Load and preprocess the LLMBar dataset.
@@ -45,7 +46,10 @@ def load_llm_bar_dataset(
         pd.DataFrame: Preprocessed DataFrame with required columns.
     """
     dataset_path = Path(dataset_path)
-
+    if base_path is not None:
+        dataset_path = Path(base_path) / dataset_path
+    dataset_path = dataset_path.resolve()
+    logger.info(f"Dataset path: {dataset_path}")
     if not dataset_path.exists():
         logger.error(f"Dataset path {dataset_path} does not exist.")
         return pd.DataFrame()
