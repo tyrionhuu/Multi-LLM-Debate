@@ -496,7 +496,7 @@ def combine_correct_rate_plots(
     for subplot_idx, round_number in enumerate(available_rounds):
         if subplot_idx >= rows * columns:
             logger.warning(
-                f"Not enough subplots for all rounds. Skipping remaining rounds."
+                "Not enough subplots for all rounds. Skipping remaining rounds."
             )
             break
 
@@ -543,7 +543,7 @@ def combine_correct_rate_plots(
             values = [bin_percentages.get(str(b), 0) for b in bins]
             x_positions = [b + offset for b in bins]
 
-            bars = ax.bar(x_positions, values, width=bar_width, label=model)
+            _ = ax.bar(x_positions, values, width=bar_width, label=model)
 
         ax.set_title(f"Round {round_number}", fontsize=14)
         ax.set_xlabel("Number of Correct Agents", fontsize=12)
