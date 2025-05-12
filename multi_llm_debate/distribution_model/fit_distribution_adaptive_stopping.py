@@ -321,10 +321,10 @@ if __name__ == "__main__":
     FIT_METHOD = "direct"  # "direct" or "em" optimization approach
     N_RESTARTS = 2  # Number of random restarts for more stable fitting
     ENFORCE_INCREASING = False  # Enforce non-decreasing expected success probability
-    MAX_ROUNDS = None  # or an int
+    MAX_ROUNDS = 10  # or an int
     OUTPUT_DIR = Path("output/visualizations/llm_bar")
     task_name = "LLMBar"
-    analyze_distributions_adaptive_stopping(
+    aggregated_df, fit_results = analyze_distributions_adaptive_stopping(
         dataframe=df,
         debates_csv_path=debate_round_csv_path,
         fitting_method=FIT_METHOD,
@@ -338,3 +338,8 @@ if __name__ == "__main__":
         ks_threshold=0.05,
         stability_rounds=2,
     )
+    print("Aggregated DataFrame:")
+    print(aggregated_df)
+    print("Fit Results:")
+    for fit_result in fit_results:
+        print(fit_result)
