@@ -17,6 +17,7 @@ random.seed(RANDOM_STATE)
 
 def load_truthful_qa_dataset(
     dataset_path: Union[str, Path] = DATASET_PATH,
+    base_path: Optional[Union[str, Path]] = None,
     sample_size: Optional[int] = None,
 ) -> pd.DataFrame:
     """Load and preprocess the TruthfulQA dataset.
@@ -25,7 +26,8 @@ def load_truthful_qa_dataset(
         dataset_path: Path to the dataset directory. If it exists locally,
             it will be loaded from disk; otherwise, it will be downloaded.
         dataset_name: Name of the dataset to load from Hugging Face.
-
+        base_path: Base path for the dataset. If provided, it will be used
+            to construct the full dataset path.
     Returns:
         pd.DataFrame: Processed DataFrame with all required columns and
             multiple-choice format.
@@ -33,7 +35,10 @@ def load_truthful_qa_dataset(
     # Initialize empty DataFrame
     df = None
     dataset_path = Path(dataset_path)
-
+    if base_path is not None:
+        dataset_path = Path(base_path) / dataset_path
+    dataset_path = dataset_path.resolve()
+    logger.info(f"Dataset path: {dataset_path}")
     if dataset_path.exists():
         try:
             # Try to load the dataset from disk

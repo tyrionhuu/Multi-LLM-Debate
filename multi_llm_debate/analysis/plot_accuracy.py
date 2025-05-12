@@ -81,6 +81,8 @@ def process_multiple_models_majority_aggregated(
     max_round_number: int = 10,
     extract_func: Callable = None,
     compare_func: Callable = None,
+    custom_model_names: list[str] = None,
+    plot_title: str = None,
 ) -> None:
     """Process multiple model data and create visualizations comparing their aggregated majority correct rates.
 
@@ -92,6 +94,8 @@ def process_multiple_models_majority_aggregated(
         max_round_number: Maximum round number for the correct rate calculation.
         extract_func: Function to extract and normalize responses.
         compare_func: Function to compare normalized responses with correct answer.
+        custom_model_names: Optional list of custom model names for the legend.
+        plot_title: Optional custom plot title.
 
     This function:
     1) Analyzes accuracy for each model
@@ -104,8 +108,11 @@ def process_multiple_models_majority_aggregated(
     model_names = []
     
     # Process each model directory
-    for model_dir in model_dirs:
-        model_name = model_dir.name
+    for idx, model_dir in enumerate(model_dirs):
+        if custom_model_names and idx < len(custom_model_names):
+            model_name = custom_model_names[idx]
+        else:
+            model_name = model_dir.name
         model_names.append(model_name)
         logger.info(f"\nProcessing model: {model_name}")
 
@@ -170,6 +177,7 @@ def process_multiple_models_majority_aggregated(
             output_dir=output_dir,
             max_round_number=max_round_number,
             task_name=task_name,
+            plot_title=plot_title,
         )
 
 
@@ -179,6 +187,7 @@ def _create_combined_plot(
     output_dir: Path,
     max_round_number: int = 10,
     task_name: str = "Judge Bench",
+    plot_title: str = None,
 ) -> None:
     """Creates a combined plot of aggregated majority accuracy for multiple models.
     
@@ -188,6 +197,7 @@ def _create_combined_plot(
         output_dir: Directory to save the plot.
         max_round_number: Maximum round number for the plot (default is 10).
         task_name: Name of the task (default is "Judge Bench").
+        plot_title: Optional custom plot title.
     """
     plt.figure(figsize=(12, 8))
     
@@ -213,9 +223,12 @@ def _create_combined_plot(
         )
     
     # Title and labels
-    plt.title(
-        f"Comparison of Aggregated Majority Correct Rates - {task_name}", pad=15
-    )
+    if plot_title:
+        plt.title(plot_title, pad=15)
+    else:
+        plt.title(
+            f"Comparison of Aggregated Majority Correct Rates - {task_name}", pad=15
+        )
     plt.xlabel("Round Number")
     plt.ylabel("Correct Rate")
     plt.grid(True, linestyle="--", alpha=0.7)
@@ -244,7 +257,7 @@ def _create_combined_plot(
     
     # Save the plot
     output_dir.mkdir(parents=True, exist_ok=True)
-    plot_path = output_dir / f"comparison_majority_aggregated.png"
+    plot_path = output_dir / f"{task_name.replace(' ', '_')}_comparison_majority_aggregated.png"
     plt.savefig(plot_path)
     print(f"Combined plot saved to: {plot_path}")
     
