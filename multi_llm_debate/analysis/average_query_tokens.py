@@ -45,6 +45,7 @@ if __name__ == "__main__":
     from multi_llm_debate.run.big_bench.utils import load_big_bench_dataset
     from multi_llm_debate.run.judge_bench.utils import load_judge_bench_dataset
     from multi_llm_debate.run.llm_bar.utils import load_llm_bar_dataset
+    from multi_llm_debate.run.truthful_qa.utils import load_truthful_qa_dataset
 
     # big_bench_df = load_big_bench_dataset(sample_size=1000)
     # big_bench_list = big_bench_df["input"].tolist()
@@ -57,8 +58,14 @@ if __name__ == "__main__":
     # average_token_count = calculate_average_token_count(judge_bench_list)
     # print(f"Average token count for Judge_Bench dataset: {average_token_count}")
     
-    llm_bar_df = load_llm_bar_dataset()
-    llm_bar_df["merged_input"] = llm_bar_df["question"] + " " + llm_bar_df["response_1"] + " " + llm_bar_df["response_2"]
-    llm_bar_list = llm_bar_df["merged_input"].tolist()
-    average_token_count = calculate_average_token_count(llm_bar_list)
-    print(f"Average token count for LLM_Bar dataset: {average_token_count}")
+    # llm_bar_df = load_llm_bar_dataset()
+    # llm_bar_df["merged_input"] = llm_bar_df["question"] + " " + llm_bar_df["response_1"] + " " + llm_bar_df["response_2"]
+    # llm_bar_list = llm_bar_df["merged_input"].tolist()
+    # average_token_count = calculate_average_token_count(llm_bar_list)
+    # print(f"Average token count for LLM_Bar dataset: {average_token_count}")
+    
+    truthful_qa_df = load_truthful_qa_dataset()
+    truthful_qa_df["merged_input"] = truthful_qa_df["question"] + " " + truthful_qa_df["answer_A"] + " " + truthful_qa_df["answer_B"] + " " + truthful_qa_df["answer_C"]
+    truthful_qa_list = truthful_qa_df["merged_input"].tolist()
+    average_token_count = calculate_average_token_count(truthful_qa_list)
+    print(f"Average token count for Truthful_QA dataset: {average_token_count}")
