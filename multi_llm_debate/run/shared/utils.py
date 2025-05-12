@@ -224,11 +224,14 @@ def format_time(seconds: float) -> Tuple[str, str]:
     return display_time, csv_time
 
 
-def get_latest_round_file(responses_dir: Path) -> Path:
-    """Get the file path for the latest debate round.
+def get_latest_round_file(
+    responses_dir: Path, max_rounds: Optional[int] = None
+) -> Path:
+    """Get the file path for the latest debate round, optionally up to max_rounds.
 
     Args:
         responses_dir: Directory containing debate round files
+        max_rounds: Optional maximum round number to consider
 
     Returns:
         Path to the latest debate round file
@@ -238,8 +241,17 @@ def get_latest_round_file(responses_dir: Path) -> Path:
     if not files:
         raise ValueError(f"No debate round files found in {responses_dir}")
 
-    # Extract round numbers and find max
-    rounds = [int(re.search(r"debate_round_(\d+)", f).group(1)) for f in files]
+    # Extract round numbers and filter by max_rounds if provided
+    rounds = [
+        int(re.search(r"debate_round_(\d+)", f).group(1))
+        for f in files
+    ]
+    if max_rounds is not None:
+        rounds = [r for r in rounds if r <= max_rounds - 1]
+        if not rounds:
+            raise ValueError(
+                f"No debate round files <= max_rounds={max_rounds} in {responses_dir}"
+            )
     latest_round = max(rounds)
     return Path(responses_dir / f"debate_round_{latest_round}.json")
 

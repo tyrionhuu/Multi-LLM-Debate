@@ -58,7 +58,10 @@ def wilson_score_interval(correct: int, total: int, confidence: float = 0.95) ->
 
 
 def _process_debate_entry(
-    entry: pd.Series, response_base_dir: Path, evaluation_func: Callable
+    entry: pd.Series,
+    response_base_dir: Path,
+    evaluation_func: Callable,
+    max_rounds: Optional[int] = None,
 ) -> Optional[bool]:
     """Process a single entry for debate evaluation.
 
@@ -66,6 +69,7 @@ def _process_debate_entry(
         entry: DataFrame row containing question data
         response_base_dir: Directory containing response files
         evaluation_func: Function to evaluate correctness
+        max_rounds: Maximum number of rounds to consider (None for all)
 
     Returns:
         Optional[bool]: True if correct, False if incorrect, None if entry skipped
@@ -74,20 +78,16 @@ def _process_debate_entry(
         answer = entry["answer"]
         id_ = str(entry["id"])
 
-        # Load responses from the corresponding file
         responses_dir = response_base_dir / id_
 
-        # Get the final response file
-        final_response_file = get_latest_round_file(responses_dir)
+        final_response_file = get_latest_round_file(responses_dir=responses_dir, max_rounds=max_rounds)
 
         with open(final_response_file, "r") as f:
             responses = json.load(f)
 
-        # Skip if no valid responses
         if not responses:
             return None
 
-        # Evaluate the responses
         return evaluation_func(responses, answer)
 
     except Exception as e:
@@ -101,6 +101,7 @@ def evaluate_debate_df(
     evaluation_func: Optional[Callable] = None,
     num_workers: int = 4,
     use_processes: bool = True,
+    max_rounds: Optional[int] = None,
 ) -> Tuple[float, float]:
     """Evaluate the Boolean Question task on a DataFrame.
 
@@ -108,9 +109,9 @@ def evaluate_debate_df(
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing question, answer, passage and id.
         evaluation_func: Function that takes (responses, answer) and returns bool.
-            Must accept List[Dict] as responses and str/bool as answer.
         num_workers: Number of parallel workers to use.
         use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
+        max_rounds: Maximum number of rounds to consider (None for all)
 
     Returns:
         Tuple[float, float]: Accuracy score and error margin
@@ -133,7 +134,11 @@ def evaluate_debate_df(
         futures = []
         for _, entry in dataframe.iterrows():
             future = executor.submit(
-                _process_debate_entry, entry, response_base_dir, evaluation_func
+                _process_debate_entry,
+                entry,
+                response_base_dir,
+                evaluation_func,
+                max_rounds,
             )
             futures.append(future)
 
@@ -158,7 +163,9 @@ def evaluate_debate_df(
 
 
 def _entry_correct_fraction(
-    entry: pd.Series, response_base_dir: Path, evaluation_func: Callable
+    entry: pd.Series,
+    response_base_dir: Path,
+    evaluation_func: Callable,
 ) -> Optional[float]:
     """Compute fraction of correct responses for a single entry.
 
@@ -174,7 +181,7 @@ def _entry_correct_fraction(
         answer = entry["answer"]
         id_ = str(entry["id"])
         responses_dir = response_base_dir / id_
-        first_response_file = responses_dir / "debate_round_0.json"
+        first_response_file = responses_dir / f"debate_round_0.json"
         with open(first_response_file, "r") as f:
             responses = json.load(f)
         if not responses:
@@ -182,7 +189,6 @@ def _entry_correct_fraction(
         correct = 0
         total = 0
         for resp in responses:
-            # Evaluate each response individually
             if evaluation_func([resp], answer):
                 correct += 1
             total += 1
@@ -207,7 +213,6 @@ def evaluate_single_llm_df(
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing question, answer, passage and id.
         evaluation_func: Function that takes (responses, answer) and returns bool.
-            Must accept List[Dict] as responses and str/bool as answer.
         num_workers: Number of parallel workers to use.
         use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
 
@@ -232,7 +237,10 @@ def evaluate_single_llm_df(
         futures = []
         for _, entry in dataframe.iterrows():
             future = executor.submit(
-                _entry_correct_fraction, entry, response_base_dir, evaluation_func
+                _entry_correct_fraction,
+                entry,
+                response_base_dir,
+                evaluation_func,
             )
             futures.append(future)
 
@@ -296,28 +304,22 @@ def _process_ensemble_entry(
     try:
         id_ = str(entry[id_entry])
 
-        # Load responses from the first debate round file
         responses_dir = response_base_dir / id_
-        first_response_file = responses_dir / "debate_round_0.json"
+        first_response_file = responses_dir / f"debate_round_0.json"
 
         with open(first_response_file, "r") as f:
             responses = json.load(f)
 
-        # Skip if no valid responses
         if not responses:
             return None
 
-        # Get all responses and their normalized answers
         raw_responses = [response[response_entry] for response in responses]
 
-        # Create a list of (normalized_response, raw_response, original_normalized) tuples
         response_pairs = []
         for raw in raw_responses:
             normalized = extract_func(raw)
-            if normalized is not None:  # Only include valid normalized responses
-                # Handle lists by converting to string representation for hashing
+            if normalized is not None:
                 if isinstance(normalized, List):
-                    # Store original value and use string representation as key
                     response_pairs.append((str(normalized), raw, normalized))
                 else:
                     response_pairs.append((normalized, raw, normalized))
@@ -325,25 +327,20 @@ def _process_ensemble_entry(
         if not response_pairs:
             return None
 
-        # Count occurrences of each normalized response (using string representation if needed)
         response_counts: Dict[str, int] = {}
         for key, _, _ in response_pairs:
             response_counts[key] = response_counts.get(key, 0) + 1
 
-        # Get majority normalized response key
         majority_key = max(response_counts.items(), key=lambda x: x[1])[0]
 
-        # Check if it's a true majority (more than half)
         total_votes = sum(response_counts.values())
         if response_counts[majority_key] <= total_votes / 2:
             return None
 
-        # Find the original raw response that corresponds to the majority normalized response
         majority_raw = next(
             raw for key, raw, _ in response_pairs if key == majority_key
         )
 
-        # Compare with correct answer using the raw response
         return evaluation_func([{response_entry: majority_raw}], entry[answer_entry])
 
     except Exception as e:
@@ -438,6 +435,7 @@ def evaluate_all(
     response_entry: str = "response",
     num_workers: int = 4,
     use_processes: bool = True,
+    max_rounds: Optional[int] = None,
 ) -> EvaluationResults:
     """Run all evaluation methods and return their results.
 
@@ -451,6 +449,7 @@ def evaluate_all(
         response_entry: Column name for the response in the DataFrame.
         num_workers: Number of parallel workers to use.
         use_processes: If True, use ProcessPoolExecutor, otherwise ThreadPoolExecutor.
+        max_rounds: Maximum number of rounds to consider (None for all)
 
     Returns:
         EvaluationResults: Named tuple containing accuracies and error margins
@@ -468,9 +467,9 @@ def evaluate_all(
         evaluation_func=evaluation_func,
         num_workers=num_workers,
         use_processes=use_processes,
+        max_rounds=max_rounds,
     )
 
-    # Only run single LLM evaluation for single model type
     single_acc = 0.0
     single_error = 0.0
 
