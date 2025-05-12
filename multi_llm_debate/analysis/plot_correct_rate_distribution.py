@@ -13,7 +13,6 @@ from .calculate_correct_rate_distribution import (
 from .utils import load_debate_data
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
 
 
 def plot_file_count_distribution(
@@ -564,8 +563,7 @@ def combine_correct_rate_plots(
         fig.add_subplot(rows, columns, j + 1).axis("off")
 
     # Set overall figure title
-    task_subtitle = f" for {task_name}" if task_name else ""
-    fig.suptitle(f"{combined_title}{task_subtitle}", fontsize=16)
+    fig.suptitle(f"{combined_title}", fontsize=16)
 
     # Adjust layout
     plt.tight_layout(rect=[0, 0, 1, 0.95])  # Leave room for the suptitle
