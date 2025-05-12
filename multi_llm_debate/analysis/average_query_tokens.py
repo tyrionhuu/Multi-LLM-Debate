@@ -6,6 +6,7 @@ def calculate_average_token_count(
 ):
     """
     Calculate the average token count of a list of strings, with an optional image token count, using tiktoken.
+    Default model is "gpt-4o".
 
     Parameters:
     text_list (list of str): List of strings to calculate token count.
@@ -74,9 +75,8 @@ if __name__ == "__main__":
     # average_token_count = calculate_average_token_count(truthful_qa_list)
     # print(f"Average token count for Truthful_QA dataset: {average_token_count}")
 
-    mllm_judge_pairs = load_mllm_judge_pairs(sample_size=800)
-    # print(mllm_judge_pairs.columns)
-    mllm_judge_pairs["merged_input"] = mllm_judge_pairs["question"] + " " + mllm_judge_pairs["response_A"] + " " + mllm_judge_pairs["response_B"]
-    mllm_judge_pairs_list = mllm_judge_pairs["merged_input"].tolist()
-    average_token_count = calculate_average_token_count(mllm_judge_pairs_list, image_tokens=256)
-    print(f"Average token count for MLLM_Judge_Pairs dataset: {average_token_count}")
+    # mllm_judge_pairs = load_mllm_judge_pairs(sample_size=800)
+    # mllm_judge_pairs["merged_input"] = mllm_judge_pairs["question"] + " " + mllm_judge_pairs["response_A"] + " " + mllm_judge_pairs["response_B"]
+    # mllm_judge_pairs_list = mllm_judge_pairs["merged_input"].tolist()
+    # average_token_count = calculate_average_token_count(mllm_judge_pairs_list, image_tokens=256)
+    # print(f"Average token count for MLLM_Judge_Pairs dataset: {average_token_count}")
