@@ -102,9 +102,7 @@ def compare_big_bench_response(
     """
     if isinstance(response, int):
         if response != 0 and response != 1:
-            raise ValueError(
-                "Response must be either 0 or 1. Received: {response}"
-            )
+            raise ValueError("Response must be either 0 or 1. Received: {response}")
     try:
         return str(response) == str(answer)
     except ValueError as e:

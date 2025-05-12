@@ -49,7 +49,7 @@ def load_judge_anything_pairs_dataset(
         dataset_file = base_dir / dataset_file
         response_file = base_dir / response_file
         preference_file = base_dir / preference_file
-        
+
     dataset = _load_json_dataset(dataset_file)
     response = _load_response_dataset(response_file)
     preference = _load_preference_dataset(preference_file)

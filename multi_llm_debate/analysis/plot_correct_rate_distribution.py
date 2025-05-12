@@ -346,7 +346,7 @@ def combine_correct_rate_plots(
 
     # Collect all distributions from processing each model configuration
     model_distributions = {}
-    
+
     # Create a directory for intermediate results
     results_dir = output_dir / "distribution_data"
     results_dir.mkdir(exist_ok=True, parents=True)
@@ -370,7 +370,7 @@ def combine_correct_rate_plots(
             logger.info(f"Processed debate data: {len(df_debates)} records")
 
             all_distributions = []
-            
+
             # For saving intermediate results
             model_data = []
 
@@ -394,27 +394,33 @@ def combine_correct_rate_plots(
 
                     if bin_percentages:
                         all_distributions.append((round_number, bin_percentages))
-                        
+
                         # Add to model_data for saving
                         for bin_label, percentage in bin_percentages.items():
-                            model_data.append({
-                                "Model": model_config,
-                                "Round": round_number,
-                                "Correct_Agents": int(bin_label),
-                                "Percentage": percentage
-                            })
+                            model_data.append(
+                                {
+                                    "Model": model_config,
+                                    "Round": round_number,
+                                    "Correct_Agents": int(bin_label),
+                                    "Percentage": percentage,
+                                }
+                            )
 
                 except Exception as err:
                     logger.error(
                         f"Error processing round {round_number} for {model_config}: {err}"
                     )
-            
+
             # Save intermediate results for this model
             if model_data:
                 model_df = pd.DataFrame(model_data)
-                model_csv_path = results_dir / f"{model_config.replace(' ', '_')}_distribution.csv"
+                model_csv_path = (
+                    results_dir / f"{model_config.replace(' ', '_')}_distribution.csv"
+                )
                 model_df.to_csv(model_csv_path, index=False)
-                logger.info(f"Saved distribution data for {model_config} to {model_csv_path}")
+                logger.info(
+                    f"Saved distribution data for {model_config} to {model_csv_path}"
+                )
 
             # If we have distributions for this model, store them and create plots
             if all_distributions:
@@ -436,19 +442,21 @@ def combine_correct_rate_plots(
 
         except Exception as e:
             logger.error(f"Error processing {model_config}: {e}")
-    
+
     # Save combined distribution data
     all_models_data = []
     for model, distributions in model_distributions.items():
         for round_num, bin_percentages in distributions:
             for bin_label, percentage in bin_percentages.items():
-                all_models_data.append({
-                    "Model": model,
-                    "Round": round_num,
-                    "Correct_Agents": int(bin_label),
-                    "Percentage": percentage
-                })
-    
+                all_models_data.append(
+                    {
+                        "Model": model,
+                        "Round": round_num,
+                        "Correct_Agents": int(bin_label),
+                        "Percentage": percentage,
+                    }
+                )
+
     if all_models_data:
         combined_df = pd.DataFrame(all_models_data)
         combined_csv_path = results_dir / "all_models_distribution.csv"
