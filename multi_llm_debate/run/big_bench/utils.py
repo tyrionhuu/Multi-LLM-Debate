@@ -16,6 +16,7 @@ random.seed(RANDOM_STATE)
 
 def load_big_bench_dataset(
     json_path: Union[str, Path] = JSON_PATH,
+    base_path: Optional[Union[str, Path]] = None,
     sample_size: Optional[int] = None,
 ) -> pd.DataFrame:
     """
@@ -30,7 +31,10 @@ def load_big_bench_dataset(
             with columns 'id', 'input', and 'answer'.
     """
     json_path = Path(json_path)
-
+    if base_path is not None:
+        json_path = Path(base_path) / json_path
+    json_path = json_path.resolve()
+    logger.info(f"JSON path: {json_path}")
     if not json_path.is_file():
         raise FileNotFoundError(f"File not found: {json_path}")
     try:
