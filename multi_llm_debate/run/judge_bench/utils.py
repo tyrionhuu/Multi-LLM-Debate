@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 def load_judge_bench_dataset(
     dataset_path: str = DATASET_PATH,
+    base_path: Optional[str] = None,
     sample_size: Optional[int] = None,
 ) -> pd.DataFrame:
     """Load the JudgeBench dataset.
@@ -31,6 +32,9 @@ def load_judge_bench_dataset(
     """
     # Initialize empty DataFrames
     df_1, df_2 = None, None
+    # Check if base_path is provided
+    if base_path is not None:
+        dataset_path = os.path.join(base_path, dataset_path)
 
     # Try to load local datasets first
     if os.path.exists(dataset_path):
