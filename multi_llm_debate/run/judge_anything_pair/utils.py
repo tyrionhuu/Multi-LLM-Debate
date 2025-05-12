@@ -115,7 +115,7 @@ def compare_judge_anything_pairs_response(
     if response not in ["A", "B"]:
         raise ValueError("Response must be either 'A' or 'B'.")
 
-    return response == answer
+    return response.lower() == answer.lower()
 
 
 def _load_json_dataset(
