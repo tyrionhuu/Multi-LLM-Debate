@@ -561,9 +561,9 @@ if __name__ == "__main__":
     ]
     extract_func = extract_caption_a_b_answer
     compare_func = compare_judge_bench_response
-    max_rounds = 5
-    rows = 1
-    columns = 5
+    max_rounds = 6
+    rows = 2
+    columns = 3
     show_plot = True
     combined_title = "Comparison of Correct Agent Distributions"
     file_name = "combined_correct_rate_plots.png"
