@@ -113,7 +113,7 @@ if __name__ == "__main__":
     )
     mllm_judge_pairs_list = mllm_judge_pairs["merged_input"].tolist()
     average_token_count = calculate_average_token_count(
-        mllm_judge_pairs_list, image_tokens=256
+        mllm_judge_pairs_list
     )
     print(f"Average token count for MLLM_Judge_Pairs dataset: {average_token_count}")
 
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     )
     judge_anything_pairs_list = judge_anything_pairs["merged_input"].tolist()
     average_token_count = calculate_average_token_count(
-        judge_anything_pairs_list, image_tokens=256
+        judge_anything_pairs_list
     )
     print(
         f"Average token count for Judge_Anything_Pairs dataset: {average_token_count}"
