@@ -1,8 +1,27 @@
-from typing import List
-
+from typing import List, Any
+import concurrent.futures
 import tiktoken
 import json
 from pathlib import Path
+
+def tokenize_text(
+    text: str, encoder: Any, max_length: int
+) -> int:
+    """
+    Tokenize a single text string and return the token count.
+    
+    Parameters:
+    text (str): The text to tokenize
+    encoder (Any): The tiktoken encoder
+    max_length (int): Maximum token length
+    
+    Returns:
+    int: Number of tokens in the text
+    """
+    tokens = encoder.encode(text)
+    truncated_tokens = tokens[:max_length]
+    return len(truncated_tokens)
+
 def calculate_average_token_count(
     text_list: List[str], image_tokens: int = 0, model_name: str = "o200k_base"
 ):
@@ -26,17 +45,15 @@ def calculate_average_token_count(
         4096  # GPT-3 models like "gpt-3.5-turbo" have a max token length of 4096
     )
 
-    # Tokenize each string and calculate the number of tokens
+    # Use ThreadPoolExecutor for parallel tokenization
     token_counts = []
-    for text in text_list:
-        # Tokenize using tiktoken
-        tokens = encoder.encode(text)
-
-        # Truncate tokens if they exceed the model's max token length
-        truncated_tokens = tokens[:max_length]
-
-        # Append the count of tokens for this text
-        token_counts.append(len(truncated_tokens))
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = {
+            executor.submit(tokenize_text, text, encoder, max_length): text 
+            for text in text_list
+        }
+        for future in concurrent.futures.as_completed(futures):
+            token_counts.append(future.result())
 
     # Add image tokens if any
     total_tokens = sum(token_counts) + image_tokens
@@ -81,8 +98,17 @@ def _load_responses_from_round_dir(round_dir: str) -> List[str]:
     list of str: List of responses loaded from the round directory.
     """
     responses = []
-    for json_file in Path(round_dir).glob("*.json"):
-        responses.extend(_load_responses_from_json(json_file))
+    json_files = list(Path(round_dir).glob("*.json"))
+    
+    # Process JSON files in parallel
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_file = {
+            executor.submit(_load_responses_from_json, str(json_file)): json_file 
+            for json_file in json_files
+        }
+        for future in concurrent.futures.as_completed(future_to_file):
+            responses.extend(future.result())
+            
     return responses
 
 def load_responses_from_model_dir(model_dir: str) -> List[str]:
@@ -97,10 +123,17 @@ def load_responses_from_model_dir(model_dir: str) -> List[str]:
     list of str: List of responses loaded from the model directory.
     """
     responses = []
-    # Get all directories, not just those matching "debate_round_*"
-    for dir_path in Path(model_dir).iterdir():
-        if dir_path.is_dir():
-            responses.extend(_load_responses_from_round_dir(dir_path))
+    dir_paths = [d for d in Path(model_dir).iterdir() if d.is_dir()]
+    
+    # Process directories in parallel
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_dir = {
+            executor.submit(_load_responses_from_round_dir, str(dir_path)): dir_path 
+            for dir_path in dir_paths
+        }
+        for future in concurrent.futures.as_completed(future_to_dir):
+            responses.extend(future.result())
+            
     return responses
 
 def calculate_average_token_count_from_model_dir(
@@ -146,80 +179,3 @@ if __name__ == "__main__":
     model_dir = "data/truthful_qa/gemma-3-4b-it(7)"
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
-    # from multi_llm_debate.run.big_bench.utils import load_big_bench_dataset
-    # from multi_llm_debate.run.judge_anything_pair.utils import (
-    #     load_judge_anything_pairs_dataset,
-    # )
-    # from multi_llm_debate.run.judge_bench.utils import load_judge_bench_dataset
-    # from multi_llm_debate.run.llm_bar.utils import load_llm_bar_dataset
-    # from multi_llm_debate.run.mllm_judge_pair.utils import load_mllm_judge_pairs
-    # from multi_llm_debate.run.truthful_qa.utils import load_truthful_qa_dataset
-
-    # big_bench_df = load_big_bench_dataset(sample_size=1000)
-    # big_bench_list = big_bench_df["input"].tolist()
-    # average_token_count = calculate_average_token_count(big_bench_list)
-    # print(f"Average token count for BIG_Bench dataset: {average_token_count}")
-
-    # judge_bench_df = load_judge_bench_dataset()
-    # judge_bench_df["merged_input"] = (
-    #     judge_bench_df["question"]
-    #     + " "
-    #     + judge_bench_df["response_A"]
-    #     + " "
-    #     + judge_bench_df["response_B"]
-    # )
-    # judge_bench_list = judge_bench_df["merged_input"].tolist()
-    # average_token_count = calculate_average_token_count(judge_bench_list)
-    # print(f"Average token count for Judge_Bench dataset: {average_token_count}")
-
-    # llm_bar_df = load_llm_bar_dataset()
-    # llm_bar_df["merged_input"] = (
-    #     llm_bar_df["question"]
-    #     + " "
-    #     + llm_bar_df["response_1"]
-    #     + " "
-    #     + llm_bar_df["response_2"]
-    # )
-    # llm_bar_list = llm_bar_df["merged_input"].tolist()
-    # average_token_count = calculate_average_token_count(llm_bar_list)
-    # print(f"Average token count for LLM_Bar dataset: {average_token_count}")
-
-    # truthful_qa_df = load_truthful_qa_dataset()
-    # truthful_qa_df["merged_input"] = (
-    #     truthful_qa_df["question"]
-    #     + " "
-    #     + truthful_qa_df["response_A"]
-    #     + " "
-    #     + truthful_qa_df["response_B"]
-    #     + " "
-    #     + truthful_qa_df["response_C"]
-    # )
-    # truthful_qa_list = truthful_qa_df["merged_input"].tolist()
-    # average_token_count = calculate_average_token_count(truthful_qa_list)
-    # print(f"Average token count for Truthful_QA dataset: {average_token_count}")
-
-    # mllm_judge_pairs = load_mllm_judge_pairs(sample_size=800)
-    # mllm_judge_pairs["merged_input"] = (
-    #     mllm_judge_pairs["question"]
-    #     + " "
-    #     + mllm_judge_pairs["response_A"]
-    #     + " "
-    #     + mllm_judge_pairs["response_B"]
-    # )
-    # mllm_judge_pairs_list = mllm_judge_pairs["merged_input"].tolist()
-    # average_token_count = calculate_average_token_count(mllm_judge_pairs_list)
-    # print(f"Average token count for MLLM_Judge_Pairs dataset: {average_token_count}")
-
-    # judge_anything_pairs = load_judge_anything_pairs_dataset(sample_size=1000)
-    # judge_anything_pairs["merged_input"] = (
-    #     judge_anything_pairs["question"]
-    #     + " "
-    #     + judge_anything_pairs["response_A"]
-    #     + " "
-    #     + judge_anything_pairs["response_B"]
-    # )
-    # judge_anything_pairs_list = judge_anything_pairs["merged_input"].tolist()
-    # average_token_count = calculate_average_token_count(judge_anything_pairs_list)
-    # print(
-    #     f"Average token count for Judge_Anything_Pairs dataset: {average_token_count}"
-    # )
