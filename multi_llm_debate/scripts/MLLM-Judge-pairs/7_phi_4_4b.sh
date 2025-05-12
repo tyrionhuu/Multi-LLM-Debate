@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="microsoft/Phi-3.5-mini-instruct"
+MODEL_NAME="microsoft/Phi-4-multimodal-instruct"
 MODEL_QUANTITY=7
 
 # Parse command line arguments
@@ -56,7 +56,7 @@ trap cleanup SIGINT SIGTERM EXIT
 FIRST_GPU=$(echo $GPU | cut -d',' -f1)
 PORT=$((8002 + FIRST_GPU * 10))
 
-export VLLM_LOGGING_LEVEL=ERROR
+# export VLLM_LOGGING_LEVEL=ERROR
 
 # Check if we have multiple GPUs and set tensor parallelism accordingly
 if [[ "$GPU" == *","* ]]; then
@@ -105,26 +105,26 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
     --config-json "$CONFIG" \
     --sample-size 1000 \
-    --task-name "llm_bar" \
+    --task-name "mllm_judge_pair" \
     --batch \
     --batch-size 11 \
 # # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
     --config-json "$CONFIG" \
     --sample-size 1000 \
-    --task-name "llm_bar_pruning" \
+    --task-name "mllm_judge_pair_pruning" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 5 \
     --batch \
     --batch-size 11 \
     
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.llm_bar.main \
+# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
 #     --config-json "$CONFIG" \
 #     --sample-size 1000 \
-#     --task-name "llm_bar_pruning_all" \
+#     --task-name "mllm_judge_pair_pruning_all" \
 #     --diversity-pruning "answer" \
 #     --diversity-pruning-amount 5 \
 #     --batch \

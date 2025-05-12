@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="microsoft/Phi-3-vision-128k-instruct"
+MODEL_NAME="microsoft/Phi-3.5-mini-instruct"
 MODEL_QUANTITY=7
 
 # Parse command line arguments
@@ -65,14 +65,14 @@ if [[ "$GPU" == *","* ]]; then
     if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
         echo "Using tensor parallelism with 2 GPUs"
         # Start VLLM server with tensor parallelism
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --trust-remote-code --port $PORT --max-model-len 32000 --tensor-parallel-size 2 &
+        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --trust-remote-code --port $PORT --max-model-len 16000 --tensor-parallel-size 2 &
     else
         echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
         exit 1
     fi
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --trust-remote-code --port $PORT --max-model-len 32000 --gpu-memory-utilization 0.98 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --trust-remote-code --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.98 &
 fi
 
 SERVER_PID=$!
@@ -105,26 +105,26 @@ CONFIG='[
 ]'
 
 # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
     --sample-size 1000 \
-    --task-name "mllm_judge_pair" \
+    --task-name "judge_bench" \
     --batch \
     --batch-size 11 \
 # # Run the evaluation using module path with direct JSON config
-CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
+CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
     --config-json "$CONFIG" \
     --sample-size 1000 \
-    --task-name "mllm_judge_pair_pruning" \
+    --task-name "judge_bench_pruning" \
     --diversity-pruning "answer" \
     --diversity-pruning-amount 5 \
     --batch \
     --batch-size 11 \
     
-# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.mllm_judge_pair.main \
+# CUDA_VISIBLE_DEVICES=all python -m multi_llm_debate.run.judge_bench.main \
 #     --config-json "$CONFIG" \
 #     --sample-size 1000 \
-#     --task-name "mllm_judge_pair_pruning_all" \
+#     --task-name "judge_bench_pruning_all" \
 #     --diversity-pruning "answer" \
 #     --diversity-pruning-amount 5 \
 #     --batch \
