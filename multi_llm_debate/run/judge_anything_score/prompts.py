@@ -44,16 +44,16 @@ Each score level is described in detail below to guide the evaluation process.
 
 1: The output fails to meet basic expectations. It is largely ineffective, significantly 
     flawed, and does not serve its intended purpose.
-    
+
 2: The output meets minimal standards but has considerable deficiencies. It partially 
     serves its purpose but requires substantial improvement.
-    
+
 3: The output adequately meets the basic requirements. It functions as intended but lacks 
     distinction and contains some areas needing enhancement.
-    
+
 4: The output effectively meets the expectations with minor areas for improvement. It is 
     well-executed and serves its purpose reliably.
-    
+
 5: The output surpasses expectations, demonstrating outstanding effectiveness, excellence, 
     and suitability. It is exemplary in fulfilling its intended purpose.
 """
