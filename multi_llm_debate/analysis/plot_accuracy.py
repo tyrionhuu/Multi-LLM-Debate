@@ -73,6 +73,177 @@ def create_plot_majority_aggregated(
     plt.show()
 
 
+def process_multiple_models_majority_aggregated(
+    model_dirs: list[Path],
+    output_dir: Path,
+    dataframe: pd.DataFrame,
+    task_name: str = "Judge Bench",
+    max_round_number: int = 10,
+    extract_func: Callable = None,
+    compare_func: Callable = None,
+) -> None:
+    """Process multiple model data and create visualizations comparing their aggregated majority correct rates.
+
+    Args:
+        model_dirs: List of paths to the model directories containing debate data.
+        output_dir: Path to the output directory for saving visualizations.
+        dataframe: DataFrame containing task data.
+        task_name: Name of the task (default is "Judge Bench").
+        max_round_number: Maximum round number for the correct rate calculation.
+        extract_func: Function to extract and normalize responses.
+        compare_func: Function to compare normalized responses with correct answer.
+
+    This function:
+    1) Analyzes accuracy for each model
+    2) Calculates majority correct rates for each unique accuracy value
+    3) Aggregates the results across all accuracy levels for each model
+    4) Plots all models together in a single graph
+    """
+    # List to store aggregated majority values for each model
+    all_models_data = []
+    model_names = []
+    
+    # Process each model directory
+    for model_dir in model_dirs:
+        model_name = model_dir.name
+        model_names.append(model_name)
+        print(f"\nProcessing model: {model_name}")
+
+        # 1) Analyze accuracy
+        result_df = analyze_task_accuracy(
+            model_dir=model_dir,
+            dataframe=dataframe,
+            extract_func=extract_func,
+            compare_func=compare_func,
+        )
+
+        # 2) Get all unique accuracy values from the result dataframe
+        unique_accuracies = result_df["accuracy"].unique()
+
+        # 3) Initialize a list to store the majority values by round for each accuracy
+        majority_by_rounds_list = []
+
+        length = len(result_df)
+        # 4) For each unique accuracy value, calculate majority correct rates by round
+        for accuracy in unique_accuracies:
+            if accuracy < 0:
+                continue
+
+            # Filter tasks by accuracy
+            filtered_df = result_df[result_df["accuracy"] == accuracy]
+
+            # Calculate and print the percentage of tasks with this accuracy
+            accuracy_percentage = (len(filtered_df) / length) * 100
+            print(f"Accuracy = {accuracy:.2f}: {accuracy_percentage:.2f}% of total tasks")
+
+            try:
+                # Calculate majority correct rates for this accuracy
+                cr_filtered_df = calculate_correct_rate_by_round(
+                    filtered_df,
+                    model_dir,
+                    max_round_number=max_round_number,
+                    extract_func=extract_func,
+                    compare_func=compare_func,
+                )
+
+                # Check if we have results for the majority metric
+                majority_rows = cr_filtered_df[cr_filtered_df["metric"] == "majority"]
+                if not majority_rows.empty:
+                    majority_by_rounds_list.append(majority_rows.iloc[0, 2:].values)
+
+            except Exception as e:
+                print(f"Error processing accuracy {accuracy}: {e}")
+                continue
+
+        # 5) Aggregate majority values across all accuracies
+        if majority_by_rounds_list:
+            aggregated_majority_by_round = np.mean(
+                np.vstack(majority_by_rounds_list), axis=0
+            )
+            all_models_data.append(aggregated_majority_by_round)
+            
+            # Also create individual plots for each model
+            create_plot_majority_aggregated(
+                aggregated_majority_by_round=aggregated_majority_by_round,
+                model_name=model_name,
+                output_dir=output_dir,
+                max_round_number=max_round_number,
+                task_name=task_name,
+            )
+    
+    # 6) Create a combined plot for all models
+    if all_models_data:
+        _create_combined_plot(
+            all_models_data=all_models_data,
+            model_names=model_names,
+            output_dir=output_dir,
+            max_round_number=max_round_number,
+            task_name=task_name,
+        )
+
+
+def _create_combined_plot(
+    all_models_data: list[np.ndarray],
+    model_names: list[str],
+    output_dir: Path,
+    max_round_number: int = 10,
+    task_name: str = "Judge Bench",
+) -> None:
+    """Creates a combined plot of aggregated majority accuracy for multiple models.
+    
+    Args:
+        all_models_data: List of arrays containing aggregated majority data for each model.
+        model_names: List of model names corresponding to the data.
+        output_dir: Directory to save the plot.
+        max_round_number: Maximum round number for the plot (default is 10).
+        task_name: Name of the task (default is "Judge Bench").
+    """
+    plt.figure(figsize=(12, 8))
+    
+    # Create x-axis values (round numbers)
+    colors = plt.cm.tab10(np.linspace(0, 1, len(all_models_data)))
+    
+    for i, (model_data, model_name) in enumerate(zip(all_models_data, model_names)):
+        rounds = np.arange(len(model_data))
+        plt.plot(
+            rounds,
+            model_data,
+            color=colors[i],
+            linestyle="-",
+            linewidth=2,
+            marker="o",
+            markersize=6,
+            label=f"{model_name}",
+        )
+    
+    # Title and labels
+    plt.title(
+        f"Comparison of Aggregated Majority Correct Rates - {task_name}", pad=15
+    )
+    plt.xlabel("Round Number")
+    plt.ylabel("Correct Rate")
+    plt.grid(True, linestyle="--", alpha=0.7)
+    
+    plt.legend(loc='best')
+    
+    # Set y-axis limits and ticks
+    plt.ylim(0, 1)
+    plt.yticks(np.arange(0, 1.1, 0.1))
+    plt.xticks(range(min(11, max_round_number + 1)))
+    
+    plt.tight_layout()
+    
+    # Save the plot
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plot_path = output_dir / f"comparison_majority_aggregated.png"
+    plt.savefig(plot_path)
+    print(f"Combined plot saved to: {plot_path}")
+    
+    # Then show it
+    plt.show()
+
+
+# Keep the original function for backward compatibility
 def process_model_majority_aggregated(
     model_dir: Path,
     output_dir: Path,
@@ -83,7 +254,9 @@ def process_model_majority_aggregated(
     compare_func: Callable = None,
 ) -> None:
     """Process model data and create visualizations for the aggregated majority correct rate.
-
+    
+    This is a wrapper around process_multiple_models_majority_aggregated for backward compatibility.
+    
     Args:
         model_dir: Path to the model directory containing debate data.
         output_dir: Path to the output directory for saving visualizations.
@@ -92,74 +265,13 @@ def process_model_majority_aggregated(
         max_round_number: Maximum round number for the correct rate calculation.
         extract_func: Function to extract and normalize responses.
         compare_func: Function to compare normalized responses with correct answer.
-
-    This function:
-    1) Analyzes accuracy
-    2) Calculates majority correct rates for each unique accuracy value
-    3) Aggregates the results for the majority correct rate across all accuracy levels
-    4) Plots the results for the aggregated majority correct rate
     """
-    model_name = model_dir.name
-    # print(f"\nProcessing model: {model_name}")
-
-    # 1) Analyze accuracy
-    result_df = analyze_task_accuracy(
-        model_dir=model_dir,
+    process_multiple_models_majority_aggregated(
+        model_dirs=[model_dir],
+        output_dir=output_dir,
         dataframe=dataframe,
+        task_name=task_name,
+        max_round_number=max_round_number,
         extract_func=extract_func,
         compare_func=compare_func,
     )
-
-    # 2) Get all unique accuracy values from the result dataframe
-    unique_accuracies = result_df["accuracy"].unique()
-
-    # 3) Initialize a list to store the majority values by round for each accuracy
-    majority_by_rounds_list = []
-
-    length = len(result_df)
-    # 4) For each unique accuracy value, calculate majority correct rates by round
-    for accuracy in unique_accuracies:
-        if accuracy < 0:
-            continue
-
-        # Filter tasks by accuracy
-        filtered_df = result_df[result_df["accuracy"] == accuracy]
-
-        # Calculate and print the percentage of tasks with this accuracy
-        accuracy_percentage = (len(filtered_df) / length) * 100
-        print(f"Accuracy = {accuracy:.2f}: {accuracy_percentage:.2f}% of total tasks")
-
-        try:
-            # Calculate majority correct rates for this accuracy
-            cr_filtered_df = calculate_correct_rate_by_round(
-                filtered_df,
-                model_dir,
-                max_round_number=max_round_number,
-                extract_func=extract_func,
-                compare_func=compare_func,
-            )
-
-            # Check if we have results for the majority metric
-            majority_rows = cr_filtered_df[cr_filtered_df["metric"] == "majority"]
-            if not majority_rows.empty:
-                majority_by_rounds_list.append(majority_rows.iloc[0, 2:].values)
-
-        except Exception as e:
-            print(f"Error processing accuracy {accuracy}: {e}")
-            continue
-
-    # 5) Aggregate majority values across all accuracies
-    if majority_by_rounds_list:
-        # Stack the lists vertically and calculate the mean across the rows (across all accuracies)
-        aggregated_majority_by_round = np.mean(
-            np.vstack(majority_by_rounds_list), axis=0
-        )
-
-        # 6) Create the plot for aggregated majority correct rates
-        create_plot_majority_aggregated(
-            aggregated_majority_by_round=aggregated_majority_by_round,
-            model_name=model_name,
-            output_dir=output_dir,
-            max_round_number=max_round_number,
-            task_name=task_name,
-        )
