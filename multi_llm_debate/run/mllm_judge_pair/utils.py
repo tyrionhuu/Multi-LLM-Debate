@@ -43,6 +43,7 @@ def parse_question_field(text: str) -> Tuple[str, str, str]:
 def load_mllm_judge_pairs(
     file_path: Optional[Union[str, Path]] = MLLM_JUDGE_PAIR_DATASET_FILE,
     sample_size: Optional[int] = None,
+    base_path: Optional[Union[str, Path]] = None,
     parse_question: bool = True,
 ) -> pd.DataFrame:
     """Load MLLM-Judge pair dataset from TSV file.
@@ -63,7 +64,10 @@ def load_mllm_judge_pairs(
     """
     if file_path is None:
         file_path = MLLM_JUDGE_PAIR_DATASET_FILE
-
+    file_path = Path(file_path)
+    if base_path is not None:
+        file_path = Path(base_path) / file_path
+    file_path = file_path.resolve()
     logger.info(f"Loading MLLM-Judge pair data from {file_path}")
 
     try:
