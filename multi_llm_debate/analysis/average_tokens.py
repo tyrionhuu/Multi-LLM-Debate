@@ -1,26 +1,27 @@
-from typing import List, Any
 import concurrent.futures
-import tiktoken
 import json
 from pathlib import Path
+from typing import Any, List
 
-def tokenize_text(
-    text: str, encoder: Any, max_length: int
-) -> int:
+import tiktoken
+
+
+def tokenize_text(text: str, encoder: Any, max_length: int) -> int:
     """
     Tokenize a single text string and return the token count.
-    
+
     Parameters:
     text (str): The text to tokenize
     encoder (Any): The tiktoken encoder
     max_length (int): Maximum token length
-    
+
     Returns:
     int: Number of tokens in the text
     """
     tokens = encoder.encode(text)
     truncated_tokens = tokens[:max_length]
     return len(truncated_tokens)
+
 
 def calculate_average_token_count(
     text_list: List[str], image_tokens: int = 0, model_name: str = "o200k_base"
@@ -49,7 +50,7 @@ def calculate_average_token_count(
     token_counts = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = {
-            executor.submit(tokenize_text, text, encoder, max_length): text 
+            executor.submit(tokenize_text, text, encoder, max_length): text
             for text in text_list
         }
         for future in concurrent.futures.as_completed(futures):
@@ -66,6 +67,7 @@ def calculate_average_token_count(
 
     return average_token_count
 
+
 def _load_responses_from_json(json_path: str) -> List[str]:
     """
     Load responses from a JSON file and return them as a list of strings.
@@ -76,16 +78,17 @@ def _load_responses_from_json(json_path: str) -> List[str]:
     Returns:
     list of str: List of responses loaded from the JSON file.
     """
-    with open(json_path, 'r', encoding='utf-8') as f:
+    with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    
+
     # Extract responses from the JSON data
     responses = []
     for item in data:
-        if isinstance(item, dict) and 'response' in item:
-            responses.append(item['response'])
-    
+        if isinstance(item, dict) and "response" in item:
+            responses.append(item["response"])
+
     return responses
+
 
 def _load_responses_from_round_dir(round_dir: str) -> List[str]:
     """
@@ -99,17 +102,18 @@ def _load_responses_from_round_dir(round_dir: str) -> List[str]:
     """
     responses = []
     json_files = list(Path(round_dir).glob("*.json"))
-    
+
     # Process JSON files in parallel
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_file = {
-            executor.submit(_load_responses_from_json, str(json_file)): json_file 
+            executor.submit(_load_responses_from_json, str(json_file)): json_file
             for json_file in json_files
         }
         for future in concurrent.futures.as_completed(future_to_file):
             responses.extend(future.result())
-            
+
     return responses
+
 
 def load_responses_from_model_dir(model_dir: str) -> List[str]:
     """
@@ -124,17 +128,18 @@ def load_responses_from_model_dir(model_dir: str) -> List[str]:
     """
     responses = []
     dir_paths = [d for d in Path(model_dir).iterdir() if d.is_dir()]
-    
+
     # Process directories in parallel
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_dir = {
-            executor.submit(_load_responses_from_round_dir, str(dir_path)): dir_path 
+            executor.submit(_load_responses_from_round_dir, str(dir_path)): dir_path
             for dir_path in dir_paths
         }
         for future in concurrent.futures.as_completed(future_to_dir):
             responses.extend(future.result())
-            
+
     return responses
+
 
 def calculate_average_token_count_from_model_dir(
     model_dir: str, image_tokens: int = 0, model_name: str = "o200k_base"
@@ -159,23 +164,23 @@ if __name__ == "__main__":
     model_dir = "data/big_bench/gemma-3-4b-it(7)"
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
-    
+
     model_dir = "data/judge_bench/gemma-3-4b-it(7)"
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
-    
+
     model_dir = "data/llm_bar/gemma-3-4b-it(7)"
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
-    
+
     model_dir = "data/mllm_judge_pair/gemma-3-4b-it(7)"
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
-    
+
     model_dir = "data/judge_anything_pair/gemma-3-4b-it(7)"
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
-    
+
     model_dir = "data/truthful_qa/gemma-3-4b-it(7)"
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
