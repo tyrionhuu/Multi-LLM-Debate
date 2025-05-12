@@ -53,34 +53,34 @@ if __name__ == "__main__":
     from multi_llm_debate.run.mllm_judge_pair.utils import load_mllm_judge_pairs
     from multi_llm_debate.run.judge_anything_pair.utils import load_judge_anything_pairs_dataset
 
-    # big_bench_df = load_big_bench_dataset(sample_size=1000)
-    # big_bench_list = big_bench_df["input"].tolist()
-    # average_token_count = calculate_average_token_count(big_bench_list)
-    # print(f"Average token count for BIG_Bench dataset: {average_token_count}")
+    big_bench_df = load_big_bench_dataset(sample_size=1000)
+    big_bench_list = big_bench_df["input"].tolist()
+    average_token_count = calculate_average_token_count(big_bench_list)
+    print(f"Average token count for BIG_Bench dataset: {average_token_count}")
     
-    # judge_bench_df = load_judge_bench_dataset()
-    # judge_bench_df["merged_input"] = judge_bench_df["question"] + " " + judge_bench_df["response_A"] + " " + judge_bench_df["response_B"]
-    # judge_bench_list = judge_bench_df["merged_input"].tolist()
-    # average_token_count = calculate_average_token_count(judge_bench_list)
-    # print(f"Average token count for Judge_Bench dataset: {average_token_count}")
+    judge_bench_df = load_judge_bench_dataset()
+    judge_bench_df["merged_input"] = judge_bench_df["question"] + " " + judge_bench_df["response_A"] + " " + judge_bench_df["response_B"]
+    judge_bench_list = judge_bench_df["merged_input"].tolist()
+    average_token_count = calculate_average_token_count(judge_bench_list)
+    print(f"Average token count for Judge_Bench dataset: {average_token_count}")
     
-    # llm_bar_df = load_llm_bar_dataset()
-    # llm_bar_df["merged_input"] = llm_bar_df["question"] + " " + llm_bar_df["response_1"] + " " + llm_bar_df["response_2"]
-    # llm_bar_list = llm_bar_df["merged_input"].tolist()
-    # average_token_count = calculate_average_token_count(llm_bar_list)
-    # print(f"Average token count for LLM_Bar dataset: {average_token_count}")
+    llm_bar_df = load_llm_bar_dataset()
+    llm_bar_df["merged_input"] = llm_bar_df["question"] + " " + llm_bar_df["response_1"] + " " + llm_bar_df["response_2"]
+    llm_bar_list = llm_bar_df["merged_input"].tolist()
+    average_token_count = calculate_average_token_count(llm_bar_list)
+    print(f"Average token count for LLM_Bar dataset: {average_token_count}")
     
-    # truthful_qa_df = load_truthful_qa_dataset()
-    # truthful_qa_df["merged_input"] = truthful_qa_df["question"] + " " + truthful_qa_df["response_A"] + " " + truthful_qa_df["response_B"] + " " + truthful_qa_df["response_C"]
-    # truthful_qa_list = truthful_qa_df["merged_input"].tolist()
-    # average_token_count = calculate_average_token_count(truthful_qa_list)
-    # print(f"Average token count for Truthful_QA dataset: {average_token_count}")
+    truthful_qa_df = load_truthful_qa_dataset()
+    truthful_qa_df["merged_input"] = truthful_qa_df["question"] + " " + truthful_qa_df["response_A"] + " " + truthful_qa_df["response_B"] + " " + truthful_qa_df["response_C"]
+    truthful_qa_list = truthful_qa_df["merged_input"].tolist()
+    average_token_count = calculate_average_token_count(truthful_qa_list)
+    print(f"Average token count for Truthful_QA dataset: {average_token_count}")
 
-    # mllm_judge_pairs = load_mllm_judge_pairs(sample_size=800)
-    # mllm_judge_pairs["merged_input"] = mllm_judge_pairs["question"] + " " + mllm_judge_pairs["response_A"] + " " + mllm_judge_pairs["response_B"]
-    # mllm_judge_pairs_list = mllm_judge_pairs["merged_input"].tolist()
-    # average_token_count = calculate_average_token_count(mllm_judge_pairs_list, image_tokens=256)
-    # print(f"Average token count for MLLM_Judge_Pairs dataset: {average_token_count}")
+    mllm_judge_pairs = load_mllm_judge_pairs(sample_size=800)
+    mllm_judge_pairs["merged_input"] = mllm_judge_pairs["question"] + " " + mllm_judge_pairs["response_A"] + " " + mllm_judge_pairs["response_B"]
+    mllm_judge_pairs_list = mllm_judge_pairs["merged_input"].tolist()
+    average_token_count = calculate_average_token_count(mllm_judge_pairs_list, image_tokens=256)
+    print(f"Average token count for MLLM_Judge_Pairs dataset: {average_token_count}")
     
     judge_anything_pairs = load_judge_anything_pairs_dataset(sample_size=1000)
     judge_anything_pairs["merged_input"] = judge_anything_pairs["question"] + " " + judge_anything_pairs["response_A"] + " " + judge_anything_pairs["response_B"]
