@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # print(f"Average token count for LLM_Bar dataset: {average_token_count}")
     
     truthful_qa_df = load_truthful_qa_dataset()
-    truthful_qa_df["merged_input"] = truthful_qa_df["question"] + " " + truthful_qa_df["answer_A"] + " " + truthful_qa_df["answer_B"] + " " + truthful_qa_df["answer_C"]
+    truthful_qa_df["merged_input"] = truthful_qa_df["question"] + " " + truthful_qa_df["response_A"] + " " + truthful_qa_df["response_B"] + " " + truthful_qa_df["response_C"]
     truthful_qa_list = truthful_qa_df["merged_input"].tolist()
     average_token_count = calculate_average_token_count(truthful_qa_list)
     print(f"Average token count for Truthful_QA dataset: {average_token_count}")
