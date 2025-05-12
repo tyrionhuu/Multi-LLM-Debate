@@ -1,34 +1,37 @@
+import tiktoken
 from typing import List
 
-from transformers import AutoTokenizer
-
-
 def calculate_average_token_count(
-    text_list: List[str], image_tokens: int = 0, model_name: str = "bert-base-uncased"
+    text_list: List[str], image_tokens: int = 0, model_name: str = "o200k_base"
 ):
     """
-    Calculate the average token count of a list of strings, with an optional image token count, using a tokenizer.
+    Calculate the average token count of a list of strings, with an optional image token count, using tiktoken.
 
     Parameters:
     text_list (list of str): List of strings to calculate token count.
     image_tokens (int, optional): The number of tokens associated with an image. Defaults to 0.
-    model_name (str, optional): The name of the pre-trained model for tokenization. Defaults to "bert-base-uncased".
+    model_name (str, optional): The name of the model for tokenization (default is "gpt-3.5-turbo").
 
     Returns:
     float: The average number of tokens in the list of strings, including image tokens.
     """
-    # Load the tokenizer from HuggingFace
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    # Initialize the tokenizer for the specified model
+    encoder = tiktoken.get_encoding(model_name)
     
     # Get the model's max token length
-    max_length = tokenizer.model_max_length
-
+    max_length = 4096  # GPT-3 models like "gpt-3.5-turbo" have a max token length of 4096
+    
     # Tokenize each string and calculate the number of tokens
     token_counts = []
     for text in text_list:
-        # Tokenize with truncation and padding to ensure it fits the max length
-        tokens = tokenizer.tokenize(text)
-        token_counts.append(min(len(tokens), max_length))  # Ensure we don't exceed max_length
+        # Tokenize using tiktoken
+        tokens = encoder.encode(text)
+        
+        # Truncate tokens if they exceed the model's max token length
+        truncated_tokens = tokens[:max_length]
+        
+        # Append the count of tokens for this text
+        token_counts.append(len(truncated_tokens))
 
     # Add image tokens if any
     total_tokens = sum(token_counts) + image_tokens
@@ -46,6 +49,7 @@ if __name__ == "__main__":
     from multi_llm_debate.run.judge_bench.utils import load_judge_bench_dataset
     from multi_llm_debate.run.llm_bar.utils import load_llm_bar_dataset
     from multi_llm_debate.run.truthful_qa.utils import load_truthful_qa_dataset
+    from multi_llm_debate.run.mllm_judge_pair.utils import load_mllm_judge_pairs
 
     # big_bench_df = load_big_bench_dataset(sample_size=1000)
     # big_bench_list = big_bench_df["input"].tolist()
@@ -64,8 +68,15 @@ if __name__ == "__main__":
     # average_token_count = calculate_average_token_count(llm_bar_list)
     # print(f"Average token count for LLM_Bar dataset: {average_token_count}")
     
-    truthful_qa_df = load_truthful_qa_dataset()
-    truthful_qa_df["merged_input"] = truthful_qa_df["question"] + " " + truthful_qa_df["response_A"] + " " + truthful_qa_df["response_B"] + " " + truthful_qa_df["response_C"]
-    truthful_qa_list = truthful_qa_df["merged_input"].tolist()
-    average_token_count = calculate_average_token_count(truthful_qa_list)
-    print(f"Average token count for Truthful_QA dataset: {average_token_count}")
+    # truthful_qa_df = load_truthful_qa_dataset()
+    # truthful_qa_df["merged_input"] = truthful_qa_df["question"] + " " + truthful_qa_df["response_A"] + " " + truthful_qa_df["response_B"] + " " + truthful_qa_df["response_C"]
+    # truthful_qa_list = truthful_qa_df["merged_input"].tolist()
+    # average_token_count = calculate_average_token_count(truthful_qa_list)
+    # print(f"Average token count for Truthful_QA dataset: {average_token_count}")
+
+    mllm_judge_pairs = load_mllm_judge_pairs(sample_size=800)
+    # print(mllm_judge_pairs.columns)
+    mllm_judge_pairs["merged_input"] = mllm_judge_pairs["question"] + " " + mllm_judge_pairs["response_A"] + " " + mllm_judge_pairs["response_B"]
+    mllm_judge_pairs_list = mllm_judge_pairs["merged_input"].tolist()
+    average_token_count = calculate_average_token_count(mllm_judge_pairs_list, image_tokens=256)
+    print(f"Average token count for MLLM_Judge_Pairs dataset: {average_token_count}")
