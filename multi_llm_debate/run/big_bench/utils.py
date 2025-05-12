@@ -88,7 +88,7 @@ def extract_0_1_answer(
 
 
 def compare_big_bench_response(
-    response: Literal["0", "1"],
+    response: Union[Literal["0", "1"], int],
     answer: Union[str, int],
 ) -> bool:
     """Compare the response from the LLM with the expected answer.
@@ -100,9 +100,16 @@ def compare_big_bench_response(
     Returns:
         bool: True if the response matches the expected answer, False otherwise.
     """
-    if isinstance(answer, int):
-        answer = str(answer)
-    return response == answer
+    if isinstance(response, int):
+        if response != 0 and response != 1:
+            raise ValueError(
+                "Response must be either 0 or 1. Received: {response}"
+            )
+    try:
+        return str(response) == str(answer)
+    except ValueError as e:
+        logger.debug(f"Error comparing response: {e}")
+        return False
 
 
 if __name__ == "__main__":
