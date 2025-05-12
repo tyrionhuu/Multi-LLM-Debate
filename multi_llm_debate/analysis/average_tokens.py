@@ -168,11 +168,11 @@ if __name__ == "__main__":
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
     
-    model_dir = "data/mllm_judge_pairs/gemma-3-4b-it(7)"
+    model_dir = "data/mllm_judge_pair/gemma-3-4b-it(7)"
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
     
-    model_dir = "data/judge_anything_pairs/gemma-3-4b-it(7)"
+    model_dir = "data/judge_anything_pair/gemma-3-4b-it(7)"
     average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
     
