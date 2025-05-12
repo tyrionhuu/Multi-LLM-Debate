@@ -27,6 +27,7 @@ def load_judge_anything_pairs_dataset(
     dataset_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_DATASET_FILE,
     response_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_RESPONSE_FILE,
     preference_file: Union[str, Path] = JUDGE_ANYTHING_PAIR_PREFERENCE_FILE,
+    base_dir: Optional[Union[str, Path]] = None,
     sample_size: Optional[int] = None,
 ) -> pd.DataFrame:
     """
@@ -36,12 +37,19 @@ def load_judge_anything_pairs_dataset(
         dataset_file: Path to the dataset JSON file.
         response_file: Path to the response JSON file.
         preference_file: Path to the preference JSON file.
+        base_dir: Base directory for the dataset files.
         sample_size: Optional number of samples to return from the dataset.
 
     Returns:
         DataFrame containing the merged data with columns:
         uniq_id, question, image_path, response_A, response_B, answer.
     """
+    if base_dir is not None:
+        base_dir = Path(base_dir)
+        dataset_file = base_dir / dataset_file
+        response_file = base_dir / response_file
+        preference_file = base_dir / preference_file
+        
     dataset = _load_json_dataset(dataset_file)
     response = _load_response_dataset(response_file)
     preference = _load_preference_dataset(preference_file)
