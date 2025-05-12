@@ -242,10 +242,7 @@ def get_latest_round_file(
         raise ValueError(f"No debate round files found in {responses_dir}")
 
     # Extract round numbers and filter by max_rounds if provided
-    rounds = [
-        int(re.search(r"debate_round_(\d+)", f).group(1))
-        for f in files
-    ]
+    rounds = [int(re.search(r"debate_round_(\d+)", f).group(1)) for f in files]
     if max_rounds is not None:
         rounds = [r for r in rounds if r <= max_rounds - 1]
         if not rounds:

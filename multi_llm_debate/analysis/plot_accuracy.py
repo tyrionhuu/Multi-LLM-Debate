@@ -106,7 +106,7 @@ def process_multiple_models_majority_aggregated(
     # List to store aggregated majority values for each model
     all_models_data = []
     model_names = []
-    
+
     # Process each model directory
     for idx, model_dir in enumerate(model_dirs):
         if custom_model_names and idx < len(custom_model_names):
@@ -141,7 +141,9 @@ def process_multiple_models_majority_aggregated(
 
             # Calculate and print the percentage of tasks with this accuracy
             accuracy_percentage = (len(filtered_df) / length) * 100
-            logger.info(f"Accuracy = {accuracy:.2f}: {accuracy_percentage:.2f}% of total tasks")
+            logger.info(
+                f"Accuracy = {accuracy:.2f}: {accuracy_percentage:.2f}% of total tasks"
+            )
 
             try:
                 # Calculate majority correct rates for this accuracy
@@ -168,7 +170,7 @@ def process_multiple_models_majority_aggregated(
                 np.vstack(majority_by_rounds_list), axis=0
             )
             all_models_data.append(aggregated_majority_by_round)
-    
+
     # 6) Create a combined plot for all models
     if all_models_data:
         _create_combined_plot(
@@ -190,7 +192,7 @@ def _create_combined_plot(
     plot_title: str = None,
 ) -> None:
     """Creates a combined plot of aggregated majority accuracy for multiple models.
-    
+
     Args:
         all_models_data: List of arrays containing aggregated majority data for each model.
         model_names: List of model names corresponding to the data.
@@ -200,15 +202,15 @@ def _create_combined_plot(
         plot_title: Optional custom plot title.
     """
     plt.figure(figsize=(12, 8))
-    
+
     # Create x-axis values (round numbers)
     colors = plt.cm.tab10(np.linspace(0, 1, len(all_models_data)))
-    
+
     # Find min and max values for better y-axis scaling
     all_values = np.concatenate(all_models_data)
     min_val = max(0, np.min(all_values) - 0.05)  # Add some padding below
     max_val = min(1, np.max(all_values) + 0.05)  # Add some padding above
-    
+
     for i, (model_data, model_name) in enumerate(zip(all_models_data, model_names)):
         rounds = np.arange(len(model_data))
         plt.plot(
@@ -221,7 +223,7 @@ def _create_combined_plot(
             markersize=6,
             label=f"{model_name}",
         )
-    
+
     # Title and labels
     if plot_title:
         plt.title(plot_title, pad=15)
@@ -232,9 +234,9 @@ def _create_combined_plot(
     plt.xlabel("Round Number")
     plt.ylabel("Correct Rate")
     plt.grid(True, linestyle="--", alpha=0.7)
-    
-    plt.legend(loc='best')
-    
+
+    plt.legend(loc="best")
+
     # Set y-axis limits and ticks dynamically based on data
     # Ensure we maintain a reasonable minimum range for visibility
     y_range = max_val - min_val
@@ -242,25 +244,29 @@ def _create_combined_plot(
         mid = (max_val + min_val) / 2
         min_val = max(0, mid - 0.1)
         max_val = min(1, mid + 0.1)
-    
+
     plt.ylim(min_val, max_val)
     # Calculate appropriate tick spacing
     tick_spacing = 0.05 if (max_val - min_val) <= 0.3 else 0.1
-    plt.yticks(np.arange(
-        np.floor(min_val * 20) / 20,  # Round down to nearest 0.05
-        np.ceil(max_val * 20) / 20 + tick_spacing,  # Round up to nearest 0.05
-        tick_spacing
-    ))
+    plt.yticks(
+        np.arange(
+            np.floor(min_val * 20) / 20,  # Round down to nearest 0.05
+            np.ceil(max_val * 20) / 20 + tick_spacing,  # Round up to nearest 0.05
+            tick_spacing,
+        )
+    )
     plt.xticks(range(min(11, max_round_number + 1)))
-    
+
     plt.tight_layout()
-    
+
     # Save the plot
     output_dir.mkdir(parents=True, exist_ok=True)
-    plot_path = output_dir / f"{task_name.replace(' ', '_')}_comparison_majority_aggregated.png"
+    plot_path = (
+        output_dir / f"{task_name.replace(' ', '_')}_comparison_majority_aggregated.png"
+    )
     plt.savefig(plot_path)
     print(f"Combined plot saved to: {plot_path}")
-    
+
     # Then show it
     plt.show()
 
@@ -276,9 +282,9 @@ def process_model_majority_aggregated(
     compare_func: Callable = None,
 ) -> None:
     """Process model data and create visualizations for the aggregated majority correct rate.
-    
+
     This is a wrapper around process_multiple_models_majority_aggregated for backward compatibility.
-    
+
     Args:
         model_dir: Path to the model directory containing debate data.
         output_dir: Path to the output directory for saving visualizations.

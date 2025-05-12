@@ -80,7 +80,9 @@ def _process_debate_entry(
 
         responses_dir = response_base_dir / id_
 
-        final_response_file = get_latest_round_file(responses_dir=responses_dir, max_rounds=max_rounds)
+        final_response_file = get_latest_round_file(
+            responses_dir=responses_dir, max_rounds=max_rounds
+        )
 
         with open(final_response_file, "r") as f:
             responses = json.load(f)
