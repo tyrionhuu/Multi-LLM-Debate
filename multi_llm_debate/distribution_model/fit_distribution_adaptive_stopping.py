@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -77,7 +77,7 @@ def ks_statistic_beta_mixtures(params1: dict, params2: dict) -> float:
 
 def analyze_distributions_adaptive_stopping(
     dataframe: pd.DataFrame,
-    debates_csv_path: Path,
+    debates_csv_path: Union[str, Path],
     fitting_method: str = "direct",
     max_rounds: Optional[int] = None,
     n_restarts: int = 2,
@@ -88,7 +88,7 @@ def analyze_distributions_adaptive_stopping(
     adaptive_stopping: bool = False,
     ks_threshold: float = 0.05,
     stability_rounds: int = 2,
-) -> tuple[pd.DataFrame, list[dict]]:
+) -> tuple[pd.DataFrame, list[dict], list[Optional[float]]]:
     """
     Analyze the correct rate distribution across debate rounds and fit
     Beta-Binomial mixture models to the data.
@@ -108,9 +108,10 @@ def analyze_distributions_adaptive_stopping(
         stability_rounds: Number of consecutive rounds below threshold to stop
 
     Returns:
-        tuple: (aggregated_df, fit_results) where:
+        tuple: (aggregated_df, fit_results, ks_statistics) where:
             - aggregated_df: DataFrame with correct rate distribution per round
             - fit_results: List of dictionaries containing fitted model parameters
+            - ks_statistics: List of KS statistics per round (None for first round)
     """
     # Load answers data
     try:
@@ -167,6 +168,9 @@ def analyze_distributions_adaptive_stopping(
     consecutive_stable_rounds = 0
     stopped_early = False
 
+    # List to store KS statistics per round
+    ks_statistics: list[Optional[float]] = []
+
     # Process each round in the aggregated data
     for _, row in aggregated_df.iterrows():
         round_number = int(row["round_number"])
@@ -210,38 +214,40 @@ def analyze_distributions_adaptive_stopping(
         fit_result = ensure_consistent_component_ordering(fit_result)
         fit_results.append(fit_result)
 
-        # Check adaptive stopping criteria
-        if adaptive_stopping and prev_fit_result is not None:
-            # Calculate KS statistic between current and previous distribution
+        # Check adaptive stopping criteria and compute KS statistic
+        if prev_fit_result is not None:
             ks_stat = ks_statistic_beta_mixtures(fit_result, prev_fit_result)
-
-            if ks_stat < ks_threshold:
-                consecutive_stable_rounds += 1
-                if verbose:
-                    print(
-                        f"  KS statistic: {ks_stat:.4f} (below threshold {ks_threshold})"
-                    )
-                    print(
-                        f"  Consecutive stable rounds: {consecutive_stable_rounds}/{stability_rounds}"
-                    )
-
-                if consecutive_stable_rounds >= stability_rounds:
+            ks_statistics.append(ks_stat)
+            if adaptive_stopping:
+                if ks_stat < ks_threshold:
+                    consecutive_stable_rounds += 1
                     if verbose:
                         print(
-                            f"Adaptive stopping criteria met after round {round_number}."
+                            f"  KS statistic: {ks_stat:.4f} (below threshold {ks_threshold})"
                         )
                         print(
-                            f"Distribution has stabilized for {stability_rounds} consecutive rounds."
+                            f"  Consecutive stable rounds: {consecutive_stable_rounds}/{stability_rounds}"
                         )
-                    stopped_early = True
-                    break
-            else:
-                consecutive_stable_rounds = 0
-                if verbose:
-                    print(
-                        f"  KS statistic: {ks_stat:.4f} (above threshold {ks_threshold})"
-                    )
-                    print("  Consecutive stable rounds reset to 0")
+
+                    if consecutive_stable_rounds >= stability_rounds:
+                        if verbose:
+                            print(
+                                f"Adaptive stopping criteria met after round {round_number}."
+                            )
+                            print(
+                                f"Distribution has stabilized for {stability_rounds} consecutive rounds."
+                            )
+                        stopped_early = True
+                        break
+                else:
+                    consecutive_stable_rounds = 0
+                    if verbose:
+                        print(
+                            f"  KS statistic: {ks_stat:.4f} (above threshold {ks_threshold})"
+                        )
+                        print("  Consecutive stable rounds reset to 0")
+        else:
+            ks_statistics.append(None)
 
         # Calculate expected success probability for next round constraints
         if enforce_increasing_success:
@@ -298,7 +304,7 @@ def analyze_distributions_adaptive_stopping(
     if adaptive_stopping and verbose and not stopped_early:
         print("Adaptive stopping criteria not met after all rounds.")
 
-    return aggregated_df, fit_results
+    return aggregated_df, fit_results, ks_statistics
 
 
 # -------------------------------------------------------------------
@@ -324,7 +330,7 @@ if __name__ == "__main__":
     MAX_ROUNDS = 10  # or an int
     OUTPUT_DIR = Path("output/visualizations/llm_bar")
     task_name = "LLMBar"
-    aggregated_df, fit_results = analyze_distributions_adaptive_stopping(
+    aggregated_df, fit_results, ks_statistics = analyze_distributions_adaptive_stopping(
         dataframe=df,
         debates_csv_path=debate_round_csv_path,
         fitting_method=FIT_METHOD,
@@ -343,3 +349,5 @@ if __name__ == "__main__":
     print("Fit Results:")
     for fit_result in fit_results:
         print(fit_result)
+    print("KS Statistics:")
+    print(ks_statistics)
