@@ -33,10 +33,10 @@ def calculate_average_token_count(
     average_token_count = total_tokens / len(text_list)
 
     return average_token_count
+if __name__ == "__main__":
+    from multi_llm_debate.run.big_bench.utils import load_big_bench_dataset
 
-
-# Example usage:
-text_list = ["This is a sentence.", "Here's another sentence!", "And a third one."]
-image_tokens = 5
-average_tokens = calculate_average_token_count(text_list, image_tokens)
-print(f"Average token count (including image tokens): {average_tokens}")
+    big_bench_df = load_big_bench_dataset(sample_size=1000)
+    big_bench_list = big_bench_df["input"].tolist()
+    average_token_count = calculate_average_token_count(big_bench_list)
+    print(f"Average token count for BIG_Bench dataset: {average_token_count}")
