@@ -19,9 +19,16 @@ def calculate_average_token_count(
     """
     # Load the tokenizer from HuggingFace
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+    
+    # Get the model's max token length
+    max_length = tokenizer.model_max_length
 
     # Tokenize each string and calculate the number of tokens
-    token_counts = [len(tokenizer.tokenize(text)) for text in text_list]
+    token_counts = []
+    for text in text_list:
+        # Tokenize with truncation and padding to ensure it fits the max length
+        tokens = tokenizer.tokenize(text)
+        token_counts.append(min(len(tokens), max_length))  # Ensure we don't exceed max_length
 
     # Add image tokens if any
     total_tokens = sum(token_counts) + image_tokens
@@ -33,10 +40,22 @@ def calculate_average_token_count(
     average_token_count = total_tokens / len(text_list)
 
     return average_token_count
+
 if __name__ == "__main__":
     from multi_llm_debate.run.big_bench.utils import load_big_bench_dataset
+    from multi_llm_debate.run.judge_bench.utils import load_judge_bench_dataset
+    from multi_llm_debate.run.llm_bar.utils import load_llm_bar_dataset
 
-    big_bench_df = load_big_bench_dataset(sample_size=1000)
-    big_bench_list = big_bench_df["input"].tolist()
-    average_token_count = calculate_average_token_count(big_bench_list)
-    print(f"Average token count for BIG_Bench dataset: {average_token_count}")
+    # big_bench_df = load_big_bench_dataset(sample_size=1000)
+    # big_bench_list = big_bench_df["input"].tolist()
+    # average_token_count = calculate_average_token_count(big_bench_list)
+    # print(f"Average token count for BIG_Bench dataset: {average_token_count}")
+    
+    # judge_bench_df = load_judge_bench_dataset()
+    # judge_bench_df["merged_input"] = judge_bench_df["question"] + " " + judge_bench_df["response_A"] + " " + judge_bench_df["response_B"]
+    # judge_bench_list = judge_bench_df["merged_input"].tolist()
+    # average_token_count = calculate_average_token_count(judge_bench_list)
+    # print(f"Average token count for Judge_Bench dataset: {average_token_count}")
+    
+    llm_bar_df = load_llm_bar_dataset()
+    print(llm_bar_df.columns)
