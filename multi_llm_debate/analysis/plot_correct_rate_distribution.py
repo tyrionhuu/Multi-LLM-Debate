@@ -480,11 +480,6 @@ def combine_correct_rate_plots(
             x_positions = [b + offset for b in bins]
             
             bars = ax.bar(x_positions, values, width=bar_width, label=model)
-            
-            # Add text labels for significant values (>5%)
-            for x, y in zip(x_positions, values):
-                if y > 5:  # Only show labels for values > 5% to avoid clutter
-                    ax.text(x, y + 1, f"{y:.1f}%", ha="center", va="bottom", fontsize=8)
         
         ax.set_title(f"Round {round_number}", fontsize=14)
         ax.set_xlabel("Number of Correct Agents", fontsize=12)
@@ -565,7 +560,7 @@ if __name__ == "__main__":
     rows = 2
     columns = 3
     show_plot = True
-    combined_title = "Comparison of Correct Agent Distributions"
+    combined_title = "Distribution of the number of correct agents across debate rounds for the JudgeBench dataset"
     file_name = "combined_correct_rate_plots.png"
     progress_bar = True
     combine_correct_rate_plots(
