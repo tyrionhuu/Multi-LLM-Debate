@@ -318,11 +318,11 @@ def combine_correct_rate_plots(
     progress_bar: bool = False,
 ) -> None:
     """Combine multiple correct rate plots into a single figure with subplots.
-    
+
     This version creates bar chart comparisons of the distributions across
     different models. Each subplot represents a single round, with bars for
     each model's distribution of correct agents.
-    
+
     Args:
         df: DataFrame containing the "ground truth" answer data for all models.
         model_dirs: List of directories containing model output data.
@@ -340,32 +340,34 @@ def combine_correct_rate_plots(
         progress_bar: Whether to show progress bars during processing.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     if len(model_dirs) != len(model_configs):
         logger.error("model_dirs and model_configs must have the same length")
         return
-    
+
     # Collect all distributions from processing each model configuration
     model_distributions = {}
-    
+
     # Process each model configuration
     for model_dir, model_config in zip(model_dirs, model_configs):
         config_output_dir = output_dir / model_config.replace(" ", "_")
         config_output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         logger.info(f"Processing model: {model_config}")
-        
+
         try:
             # Load the debate data for this model configuration
             df_debates = load_debate_data(model_dir)
             if df_debates is None:
-                logger.error(f"Could not load debate data for {model_config}. Skipping.")
+                logger.error(
+                    f"Could not load debate data for {model_config}. Skipping."
+                )
                 continue
 
             logger.info(f"Processed debate data: {len(df_debates)} records")
-            
+
             all_distributions = []
-            
+
             # Process each round for this model configuration
             for round_number in range(max_rounds):
                 logger.info(f"Processing round {round_number}...")
@@ -388,12 +390,16 @@ def combine_correct_rate_plots(
                         all_distributions.append((round_number, bin_percentages))
 
                 except Exception as err:
-                    logger.error(f"Error processing round {round_number} for {model_config}: {err}")
-            
+                    logger.error(
+                        f"Error processing round {round_number} for {model_config}: {err}"
+                    )
+
             # If we have distributions for this model, store them
             if all_distributions:
                 # Create the individual plot for this model
-                title = f"Correct Agent Distribution by Round {model_config} - {task_name}"
+                title = (
+                    f"Correct Agent Distribution by Round {model_config} - {task_name}"
+                )
                 plot_all_rounds_multi_rows(
                     all_distributions=all_distributions,
                     output_dir=config_output_dir,
@@ -402,24 +408,24 @@ def combine_correct_rate_plots(
                     plot_title=title,
                     file_name=f"correct_agent_distribution_{model_config}_{task_name}.png",
                 )
-                
+
                 # Store distributions by model
                 model_distributions[model_config] = all_distributions
 
         except Exception as e:
             logger.error(f"Error processing {model_config}: {e}")
-    
+
     # Create combined plots - one subplot per round with multiple models in each
     if not model_distributions:
         logger.warning("No distributions to plot in the combined figure.")
         return
-    
+
     # Determine which rounds we have data for (across all models)
     available_rounds = set()
     for distributions in model_distributions.values():
         available_rounds.update(round_num for round_num, _ in distributions)
     available_rounds = sorted(available_rounds)
-    
+
     # Determine grid layout for subplots (one subplot per round)
     n_rounds = len(available_rounds)
     if rows is None and columns is None:
@@ -434,19 +440,21 @@ def combine_correct_rate_plots(
         rows = math.ceil(n_rounds / columns)
     elif columns is None:
         columns = math.ceil(n_rounds / rows)
-    
+
     # Create figure for subplots
     fig = plt.figure(figsize=(6 * columns, 5 * rows))
-    
+
     # For each round, create a subplot comparing all models
     for subplot_idx, round_number in enumerate(available_rounds):
         if subplot_idx >= rows * columns:
-            logger.warning(f"Not enough subplots for all rounds. Skipping remaining rounds.")
+            logger.warning(
+                f"Not enough subplots for all rounds. Skipping remaining rounds."
+            )
             break
-            
+
         # Create subplot for this round
         ax = fig.add_subplot(rows, columns, subplot_idx + 1)
-        
+
         # Collect data for all models for this round
         round_data = {}
         for model, distributions in model_distributions.items():
@@ -455,72 +463,80 @@ def combine_correct_rate_plots(
                 if r == round_number:
                     round_data[model] = bin_percentages
                     break
-        
+
         if not round_data:
-            ax.text(0.5, 0.5, f"No data for round {round_number}", 
-                   ha="center", va="center", fontsize=12)
+            ax.text(
+                0.5,
+                0.5,
+                f"No data for round {round_number}",
+                ha="center",
+                va="center",
+                fontsize=12,
+            )
             ax.set_title(f"Round {round_number}", fontsize=14)
             continue
-            
+
         # Find all unique bin values across models
         all_bins = set()
         for bin_percentages in round_data.values():
             all_bins.update(int(b) for b in bin_percentages.keys())
         all_bins = sorted(all_bins)
-        
+
         # Set up bar positions
         n_models = len(round_data)
         bar_width = 0.8 / n_models  # Adjust width based on number of models
-        offsets = [i * bar_width - (n_models-1) * bar_width / 2 for i in range(n_models)]
-        
+        offsets = [
+            i * bar_width - (n_models - 1) * bar_width / 2 for i in range(n_models)
+        ]
+
         # Plot bars for each model
         for (model, bin_percentages), offset in zip(round_data.items(), offsets):
             bins = all_bins
             values = [bin_percentages.get(str(b), 0) for b in bins]
             x_positions = [b + offset for b in bins]
-            
+
             bars = ax.bar(x_positions, values, width=bar_width, label=model)
-        
+
         ax.set_title(f"Round {round_number}", fontsize=14)
         ax.set_xlabel("Number of Correct Agents", fontsize=12)
-        
+
         # Only add y-label to leftmost subplots in each row
         if subplot_idx % columns == 0:
             ax.set_ylabel("Tasks (%)", fontsize=12)
-            
+
         # Set x-ticks to be exactly at the bin positions
         ax.set_xticks(all_bins)
         ax.set_xticklabels(all_bins)
-        
+
         # Add grid lines for readability
         ax.grid(axis="y", alpha=0.3)
-        
+
         # Set consistent y-axis range for better comparison
         ax.set_ylim(0, 100)
-        
+
         # Add legend if this is the first subplot
         if subplot_idx == 0:
             ax.legend(loc="upper right", fontsize=10)
-    
+
     # Turn off any extra subplots
     for j in range(n_rounds, rows * columns):
         fig.add_subplot(rows, columns, j + 1).axis("off")
-    
+
     # Set overall figure title
     task_subtitle = f" for {task_name}" if task_name else ""
     fig.suptitle(f"{combined_title}{task_subtitle}", fontsize=16)
-    
+
     # Adjust layout
     plt.tight_layout(rect=[0, 0, 1, 0.95])  # Leave room for the suptitle
-    
+
     # Save figure
     output_path = output_dir / file_name
     plt.savefig(output_path, dpi=300)
-    
+
     if show_plot:
         plt.show()
     plt.close()
-    
+
     logger.info(f"Saved combined plot to {output_path}")
 
 
@@ -529,8 +545,8 @@ if __name__ == "__main__":
     from pathlib import Path
 
     from multi_llm_debate.run.judge_bench.utils import (
-        extract_caption_a_b_answer,
         compare_judge_bench_response,
+        extract_caption_a_b_answer,
         load_judge_bench_dataset,
     )
 
@@ -547,7 +563,7 @@ if __name__ == "__main__":
         Path("data/judge_bench/Qwen2_5-7B-Instruct(7)"),
         Path("data/judge_bench/gemini-2_0-flash-001(7)"),
     ]
-    
+
     model_configs = [
         "Gemini-3-4B",
         "Llama-3-1-8B",
