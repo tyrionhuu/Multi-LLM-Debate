@@ -58,4 +58,7 @@ if __name__ == "__main__":
     # print(f"Average token count for Judge_Bench dataset: {average_token_count}")
     
     llm_bar_df = load_llm_bar_dataset()
-    print(llm_bar_df.columns)
+    llm_bar_df["merged_input"] = llm_bar_df["question"] + " " + llm_bar_df["response_1"] + " " + llm_bar_df["response_2"]
+    llm_bar_list = llm_bar_df["merged_input"].tolist()
+    average_token_count = calculate_average_token_count(llm_bar_list)
+    print(f"Average token count for LLM_Bar dataset: {average_token_count}")
