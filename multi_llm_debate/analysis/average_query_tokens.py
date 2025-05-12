@@ -1,5 +1,6 @@
-from transformers import AutoTokenizer
 from typing import List
+
+from transformers import AutoTokenizer
 
 
 def calculate_average_token_count(
