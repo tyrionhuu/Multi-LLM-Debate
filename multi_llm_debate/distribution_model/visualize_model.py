@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-from .fit_distribution import analyze_rounds_distribution
+from .fit_distribution_adaptive_stopping import analyze_rounds_distribution
 from .pmf import beta_binomial_pmf
 
 

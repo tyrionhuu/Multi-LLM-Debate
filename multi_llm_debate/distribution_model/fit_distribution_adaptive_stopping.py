@@ -75,7 +75,7 @@ def ks_statistic_beta_mixtures(params1: dict, params2: dict) -> float:
     return np.max(np.abs(cdf1 - cdf2))
 
 
-def analyze_rounds_distribution(
+def analyze_distributions_adaptive_stopping(
     answers_csv_path: Path,
     debates_csv_path: Path,
     fitting_method: str = "direct",
@@ -326,7 +326,7 @@ if __name__ == "__main__":
     MAX_ROUNDS = None  # or an int
     OUTPUT_DIR = Path("output/visualizations/llm_bar")
     task_name = "LLMBar"
-    analyze_rounds_distribution(
+    analyze_distributions_adaptive_stopping(
         answers_csv_path=Path("output/llm_bar/processed_data.csv"),
         debates_csv_path=Path(
             "data/llm_bar/Llama-3_1-8B-Instruct(11)/debate_rounds.csv"
