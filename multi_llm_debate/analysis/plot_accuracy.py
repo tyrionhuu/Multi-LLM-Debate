@@ -107,7 +107,7 @@ def process_multiple_models_majority_aggregated(
     for model_dir in model_dirs:
         model_name = model_dir.name
         model_names.append(model_name)
-        print(f"\nProcessing model: {model_name}")
+        logger.info(f"\nProcessing model: {model_name}")
 
         # 1) Analyze accuracy
         result_df = analyze_task_accuracy(
@@ -134,7 +134,7 @@ def process_multiple_models_majority_aggregated(
 
             # Calculate and print the percentage of tasks with this accuracy
             accuracy_percentage = (len(filtered_df) / length) * 100
-            print(f"Accuracy = {accuracy:.2f}: {accuracy_percentage:.2f}% of total tasks")
+            logger.info(f"Accuracy = {accuracy:.2f}: {accuracy_percentage:.2f}% of total tasks")
 
             try:
                 # Calculate majority correct rates for this accuracy
@@ -161,15 +161,6 @@ def process_multiple_models_majority_aggregated(
                 np.vstack(majority_by_rounds_list), axis=0
             )
             all_models_data.append(aggregated_majority_by_round)
-            
-            # Also create individual plots for each model
-            create_plot_majority_aggregated(
-                aggregated_majority_by_round=aggregated_majority_by_round,
-                model_name=model_name,
-                output_dir=output_dir,
-                max_round_number=max_round_number,
-                task_name=task_name,
-            )
     
     # 6) Create a combined plot for all models
     if all_models_data:
@@ -203,6 +194,11 @@ def _create_combined_plot(
     # Create x-axis values (round numbers)
     colors = plt.cm.tab10(np.linspace(0, 1, len(all_models_data)))
     
+    # Find min and max values for better y-axis scaling
+    all_values = np.concatenate(all_models_data)
+    min_val = max(0, np.min(all_values) - 0.05)  # Add some padding below
+    max_val = min(1, np.max(all_values) + 0.05)  # Add some padding above
+    
     for i, (model_data, model_name) in enumerate(zip(all_models_data, model_names)):
         rounds = np.arange(len(model_data))
         plt.plot(
@@ -226,9 +222,22 @@ def _create_combined_plot(
     
     plt.legend(loc='best')
     
-    # Set y-axis limits and ticks
-    plt.ylim(0, 1)
-    plt.yticks(np.arange(0, 1.1, 0.1))
+    # Set y-axis limits and ticks dynamically based on data
+    # Ensure we maintain a reasonable minimum range for visibility
+    y_range = max_val - min_val
+    if y_range < 0.2:  # If range is too small, expand it
+        mid = (max_val + min_val) / 2
+        min_val = max(0, mid - 0.1)
+        max_val = min(1, mid + 0.1)
+    
+    plt.ylim(min_val, max_val)
+    # Calculate appropriate tick spacing
+    tick_spacing = 0.05 if (max_val - min_val) <= 0.3 else 0.1
+    plt.yticks(np.arange(
+        np.floor(min_val * 20) / 20,  # Round down to nearest 0.05
+        np.ceil(max_val * 20) / 20 + tick_spacing,  # Round up to nearest 0.05
+        tick_spacing
+    ))
     plt.xticks(range(min(11, max_round_number + 1)))
     
     plt.tight_layout()
