@@ -301,145 +301,253 @@ def create_heatmap(
     logger.info(f"Saved heatmap to {output_path}")
 
 
-def correct_rate_main(
+def combine_correct_rate_plots(
     df: pd.DataFrame,
-    model_dir: Path,
+    model_dirs: List[Path],
+    model_configs: List[str],
     output_dir: Path,
     extract_func: Callable,
     compare_func: Callable,
-    max_rounds: int = 6,
-    show_plots: bool = False,
-    model_config: str = "",
-    show_heatmap: bool = False,
     task_name: str = "",
+    max_rounds: int = 6,
+    rows: int = None,
+    columns: int = None,
+    show_plot: bool = False,
+    combined_title: str = "Comparison of Correct Agent Distributions",
+    file_name: str = "combined_correct_rate_plots.png",
     progress_bar: bool = False,
 ) -> None:
-    """
-    Loads data, calculates correct-rate distributions for each round,
-    and plots them in two rows of subplots.
-
+    """Combine multiple correct rate plots into a single figure with subplots.
+    
+    This version integrates the functionality of correct_rate_main directly,
+    calculating distributions for each model configuration and displaying them
+    together. It assumes the same dataframe, extract_func, compare_func, and
+    task_name for all configurations, with only model_dirs and model_configs
+    being different.
+    
     Args:
-        df: DataFrame containing the "ground truth" answer data.
-        model_dir: Directory containing model output data.
-        output_dir: Directory where output plots should be saved.
+        df: DataFrame containing the "ground truth" answer data for all models.
+        model_dirs: List of directories containing model output data.
+        model_configs: List of model configuration names (same length as model_dirs).
+        output_dir: Directory where the combined plot should be saved.
         extract_func: Function to extract answers from the debate data.
         compare_func: Function to compare judge bench responses.
-        max_rounds: Maximum number of rounds to process.
-        show_plots: Whether to display plots interactively.
-        show_heatmap: Whether to display the heatmap interactively.
-        task_name: Name of the task for logging purposes.
-        progress_bar: Whether to show a progress bar during processing.
+        task_name: Name of the task for all configurations.
+        max_rounds: Maximum number of rounds to process for all configurations.
+        rows: Number of rows in the subplot grid. If None, will be calculated.
+        columns: Number of columns in the subplot grid. If None, will be calculated.
+        show_plot: Whether to display the plot interactively.
+        combined_title: Title for the overall combined figure.
+        file_name: Name of the file to save the combined plot as.
+        progress_bar: Whether to show progress bars during processing.
     """
-    # Create output directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    try:
-        # Load the "ground truth" answer data
-        df_answers = df
-
-        # Load the debate data
-        df_debates = load_debate_data(model_dir)
-        if df_debates is None:
-            logger.error("Could not load debate data. Aborting.")
-            return
-
-        logger.info(f"Processed debate data: {len(df_debates)} records")
-
-    except Exception as e:
-        logger.error(f"Error loading data: {e}")
+    
+    if len(model_dirs) != len(model_configs):
+        logger.error("model_dirs and model_configs must have the same length")
         return
-
-    all_distributions = []
-
-    # Process each round from 0 up to max_rounds-1
-    for round_number in range(max_rounds):
-        logger.info(f"Processing round {round_number}...")
-
+    
+    # Collect all distributions from processing each model configuration
+    all_config_distributions = []
+    config_labels = []
+    
+    # Process each model configuration
+    for model_dir, model_config in zip(model_dirs, model_configs):
+        config_output_dir = output_dir / model_config.replace(" ", "_")
+        config_output_dir.mkdir(parents=True, exist_ok=True)
+        
+        logger.info(f"Processing model: {model_config}")
+        
         try:
-            # Calculate distribution for this round
-            result_df = calculate_correct_rate_distribution_for_round_n(
-                df_answers=df_answers,
-                df_debates=df_debates,
-                round_number=round_number,
-                extract_func=extract_func,
-                compare_func=compare_func,
-                progress_bar=progress_bar,
+            # Load the debate data for this model configuration
+            df_debates = load_debate_data(model_dir)
+            if df_debates is None:
+                logger.error(f"Could not load debate data for {model_config}. Skipping.")
+                continue
+
+            logger.info(f"Processed debate data: {len(df_debates)} records")
+            
+            all_distributions = []
+            
+            # Process each round for this model configuration
+            for round_number in range(max_rounds):
+                logger.info(f"Processing round {round_number}...")
+
+                try:
+                    # Calculate distribution for this round
+                    result_df = calculate_correct_rate_distribution_for_round_n(
+                        df_answers=df,
+                        df_debates=df_debates,
+                        round_number=round_number,
+                        extract_func=extract_func,
+                        compare_func=compare_func,
+                        progress_bar=progress_bar,
+                    )
+
+                    # Convert distribution to a simple dict for plotting
+                    bin_percentages = process_distribution_data(result_df, round_number)
+
+                    if bin_percentages:
+                        all_distributions.append((round_number, bin_percentages))
+
+                except Exception as err:
+                    logger.error(f"Error processing round {round_number} for {model_config}: {err}")
+            
+            # If we have distributions for this model, create individual plots and add to collection
+            if all_distributions:
+                # Create the individual plot for this model
+                title = f"Correct Agent Distribution by Round {model_config} - {task_name}"
+                plot_all_rounds_multi_rows(
+                    all_distributions=all_distributions,
+                    output_dir=config_output_dir,
+                    rows=2,
+                    show_plot=False,  # Don't show individual plots
+                    plot_title=title,
+                    file_name=f"correct_agent_distribution_{model_config}_{task_name}.png",
+                )
+                
+                # Create individual heatmap
+                create_heatmap(
+                    all_distributions=all_distributions,
+                    output_dir=config_output_dir,
+                    show_plot=False,  # Don't show individual heatmaps
+                    file_name=f"correct_agent_heatmap_{model_config}_{task_name}.png",
+                )
+                
+                # Add to collection for combined plot
+                all_config_distributions.append(all_distributions)
+                config_labels.append(f"{model_config}" if not task_name else 
+                                   f"{model_config} - {task_name}")
+
+        except Exception as e:
+            logger.error(f"Error processing {model_config}: {e}")
+    
+    # Create combined plot if we have data from multiple models
+    if not all_config_distributions:
+        logger.warning("No distributions to plot in the combined figure.")
+        return
+    
+    # Determine grid dimensions if not specified
+    if rows is None and columns is None:
+        # Default to a square-ish grid
+        n_configs = len(all_config_distributions)
+        columns = math.ceil(math.sqrt(n_configs))
+        rows = math.ceil(n_configs / columns)
+    elif rows is None:
+        rows = math.ceil(len(all_config_distributions) / columns)
+    elif columns is None:
+        columns = math.ceil(len(all_config_distributions) / rows)
+    
+    # Create figure for subplots
+    fig = plt.figure(figsize=(6 * columns, 5 * rows))
+    
+    # Plot each configuration's distributions
+    for idx, (distributions, label) in enumerate(zip(all_config_distributions, config_labels)):
+        if idx >= rows * columns:
+            logger.warning(f"Not enough subplots for all configs. Skipping {len(all_config_distributions) - rows * columns} configs.")
+            break
+        
+        # Create subplot
+        ax = fig.add_subplot(rows, columns, idx + 1)
+        
+        # Add mini-heatmap to the subplot
+        data = []
+        for round_num, bin_percentages in distributions:
+            for bin_label, percentage in bin_percentages.items():
+                data.append({
+                    "Round": round_num,
+                    "Correct Agents": int(bin_label),
+                    "Percentage": percentage
+                })
+        
+        df_heatmap = pd.DataFrame(data)
+        if not df_heatmap.empty:
+            pivot_df = df_heatmap.pivot(
+                index="Round", columns="Correct Agents", values="Percentage"
+            ).fillna(0)
+            
+            sns.heatmap(
+                pivot_df,
+                annot=True,
+                fmt=".1f",
+                cmap="YlGnBu",
+                linewidths=0.5,
+                ax=ax,
+                cbar_kws={"label": "%"},
             )
-
-            # Convert that distribution to a simple dict for plotting
-            bin_percentages = process_distribution_data(result_df, round_number)
-
-            if bin_percentages:
-                all_distributions.append((round_number, bin_percentages))
-
-        except Exception as err:
-            logger.error(f"Error processing round {round_number}: {err}")
-
-    # Create the single, combined plot in 2 rows if we have data
-    title = f"Correct Agent Distribution by Round {model_config} - {task_name}"
-    if all_distributions:
-        plot_all_rounds_multi_rows(
-            all_distributions=all_distributions,
-            output_dir=output_dir,
-            rows=2,
-            show_plot=show_plots,
-            plot_title=title,
-            file_name=f"correct_agent_distribution_{model_config}_{task_name}.png",
-        )
-
-    logger.info("Visualization complete!")
-
-    # Create heatmap
-    create_heatmap(
-        all_distributions=all_distributions,
-        output_dir=output_dir,
-        show_plot=show_heatmap,
-        file_name=f"correct_agent_heatmap_{model_config}_{task_name}.png",
-    )
-
-    logger.info("Heatmap creation complete.")
-
-
-def main() -> None:
-    """Test function for file count distribution visualization.
-
-    Analyzes the file count in the Qwen2_5-3B-Instruct(11) directory and
-    visualizes the distribution using plot_file_count_distribution.
-    """
-    # Set path to the model directory
-    model_dir_path = Path(
-        "/Users/tyrionhuu/projects/research_projects/Multi-LLM-Debate/data/judge_bench/Qwen2_5-3B-Instruct(11)"
-    )
-
-    if not model_dir_path.exists():
-        print(f"Error: Directory {model_dir_path} does not exist.")
-        return
-
-    print(f"Analyzing file count distribution in: {model_dir_path}")
-
-    # Count files in each subdirectory
-    distribution = {}
-    for subdir in [d for d in model_dir_path.iterdir() if d.is_dir()]:
-        file_count = len([f for f in subdir.iterdir() if f.is_file()])
-
-        # Add to distribution
-        if file_count in distribution:
-            distribution[file_count] += 1
-        else:
-            distribution[file_count] = 1
-
-    if not distribution:
-        print(f"No subdirectories with files found in {model_dir_path}")
-        return
-
-    print(f"Found file count distribution: {distribution}")
-
-    # Visualize the distribution
-    fig, _ = plot_file_count_distribution(distribution)
-    if fig:
+            
+            ax.set_title(label, fontsize=12)
+    
+    # Set overall figure title
+    task_subtitle = f" for {task_name}" if task_name else ""
+    fig.suptitle(f"{combined_title}{task_subtitle}", fontsize=16)
+    
+    # Adjust layout
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Leave room for the suptitle
+    
+    # Save figure
+    output_path = output_dir / file_name
+    plt.savefig(output_path, dpi=300)
+    
+    if show_plot:
         plt.show()
-    print("Plot displayed. Close the plot window to exit.")
+    plt.close()
+    
+    logger.info(f"Saved combined plot to {output_path}")
 
 
 if __name__ == "__main__":
-    main()
+    import logging
+    from pathlib import Path
+
+    from multi_llm_debate.run.judge_bench.utils import (
+        extract_caption_a_b_answer,
+        compare_judge_bench_response,
+        load_judge_bench_dataset,
+    )
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.ERROR)
+
+    df = load_judge_bench_dataset()
+    OUTPUT_DIR = Path("../output/visualizations/judge_bench")
+    task_name = "Judge Bench"
+
+    model_dirs = [
+        Path("data/judge_bench/gemma-3-4b-it(7)"),
+        Path("data/judge_bench/Llama-3_1-8B-Instruct(7)"),
+        Path("data/judge_bench/Qwen2_5-7B-Instruct(7)"),
+        Path("data/judge_bench/gemini-2_0-flash-001(7)"),
+    ]
+    
+    model_configs = [
+        "Gemini-3-4B",
+        "Llama-3-1-8B",
+        "Qwen-2.5-7B",
+        "Gemini-2.0-Flash",
+    ]
+    extract_func = extract_caption_a_b_answer
+    compare_func = compare_judge_bench_response
+    max_rounds = 5
+    rows = 1
+    columns = 5
+    show_plot = True
+    combined_title = "Comparison of Correct Agent Distributions"
+    file_name = "combined_correct_rate_plots.png"
+    progress_bar = True
+    combine_correct_rate_plots(
+        df,
+        model_dirs,
+        model_configs,
+        OUTPUT_DIR,
+        extract_func,
+        compare_func,
+        task_name=task_name,
+        max_rounds=max_rounds,
+        rows=rows,
+        columns=columns,
+        show_plot=show_plot,
+        combined_title=combined_title,
+        file_name=file_name,
+        progress_bar=progress_bar,
+    )
