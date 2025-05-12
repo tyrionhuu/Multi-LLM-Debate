@@ -103,11 +103,48 @@ def load_responses_from_model_dir(model_dir: str) -> List[str]:
             responses.extend(_load_responses_from_round_dir(dir_path))
     return responses
 
-if __name__ == "__main__":
-    model_dir = "data/hallu_dial/gemini-2_0-flash-001(7)"
+def calculate_average_token_count_from_model_dir(
+    model_dir: str, image_tokens: int = 0, model_name: str = "o200k_base"
+) -> float:
+    """
+    Calculate the average token count of responses from a model directory.
+
+    Parameters:
+    model_dir (str): Path to the model directory.
+    image_tokens (int, optional): The number of tokens associated with an image. Defaults to 0.
+    model_name (str, optional): The name of the model for tokenization (default is "gpt-3.5-turbo").
+
+    Returns:
+    float: The average number of tokens in the responses from the model directory.
+    """
     responses = load_responses_from_model_dir(model_dir)
     print(f"Loaded {len(responses)} responses from model directory {model_dir}")
-    average_token_count = calculate_average_token_count(responses)
+    return calculate_average_token_count(responses, image_tokens, model_name)
+
+
+if __name__ == "__main__":
+    model_dir = "data/big_bench/gemma-3-4b-it(7)"
+    average_token_count = calculate_average_token_count_from_model_dir(model_dir)
+    print(f"Average token count for model directory {model_dir}: {average_token_count}")
+    
+    model_dir = "data/judge_bench/gemma-3-4b-it(7)"
+    average_token_count = calculate_average_token_count_from_model_dir(model_dir)
+    print(f"Average token count for model directory {model_dir}: {average_token_count}")
+    
+    model_dir = "data/llm_bar/gemma-3-4b-it(7)"
+    average_token_count = calculate_average_token_count_from_model_dir(model_dir)
+    print(f"Average token count for model directory {model_dir}: {average_token_count}")
+    
+    model_dir = "data/mllm_judge_pairs/gemma-3-4b-it(7)"
+    average_token_count = calculate_average_token_count_from_model_dir(model_dir)
+    print(f"Average token count for model directory {model_dir}: {average_token_count}")
+    
+    model_dir = "data/judge_anything_pairs/gemma-3-4b-it(7)"
+    average_token_count = calculate_average_token_count_from_model_dir(model_dir)
+    print(f"Average token count for model directory {model_dir}: {average_token_count}")
+    
+    model_dir = "data/truthful_qa/gemma-3-4b-it(7)"
+    average_token_count = calculate_average_token_count_from_model_dir(model_dir)
     print(f"Average token count for model directory {model_dir}: {average_token_count}")
     # from multi_llm_debate.run.big_bench.utils import load_big_bench_dataset
     # from multi_llm_debate.run.judge_anything_pair.utils import (
