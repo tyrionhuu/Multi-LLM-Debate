@@ -173,6 +173,7 @@ def diversity_pruning_by_answer(
             remaining_indices[: selected_amount - len(selected_indices)]
         )
 
+<<<<<<< HEAD
     selected_responses = [responses[i] for i in selected_indices]
 
     # Save responses if output directory is provided
@@ -257,3 +258,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+=======
+    return [responses[i] for i in selected_indices]
+>>>>>>> parent of c64d0b5c (feat: Add main function to demonstrate diversity pruning algorithms)
