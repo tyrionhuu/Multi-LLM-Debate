@@ -302,7 +302,7 @@ def create_heatmap(
 
 
 def correct_rate_main(
-    data_path: Path,
+    df: pd.DataFrame,
     model_dir: Path,
     output_dir: Path,
     extract_func: Callable,
@@ -319,7 +319,7 @@ def correct_rate_main(
     and plots them in two rows of subplots.
 
     Args:
-        data_path: Path to the CSV file with task data (contains correct labels).
+        df: DataFrame containing the "ground truth" answer data.
         model_dir: Directory containing model output data.
         output_dir: Directory where output plots should be saved.
         extract_func: Function to extract answers from the debate data.
@@ -335,8 +335,7 @@ def correct_rate_main(
 
     try:
         # Load the "ground truth" answer data
-        df_answers = pd.read_csv(data_path)
-        logger.info(f"Loaded answer data from {data_path}")
+        df_answers = df
 
         # Load the debate data
         df_debates = load_debate_data(model_dir)
