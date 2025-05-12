@@ -51,6 +51,7 @@ if __name__ == "__main__":
     from multi_llm_debate.run.llm_bar.utils import load_llm_bar_dataset
     from multi_llm_debate.run.truthful_qa.utils import load_truthful_qa_dataset
     from multi_llm_debate.run.mllm_judge_pair.utils import load_mllm_judge_pairs
+    from multi_llm_debate.run.judge_anything_pair.utils import load_judge_anything_pairs_dataset
 
     # big_bench_df = load_big_bench_dataset(sample_size=1000)
     # big_bench_list = big_bench_df["input"].tolist()
@@ -80,3 +81,9 @@ if __name__ == "__main__":
     # mllm_judge_pairs_list = mllm_judge_pairs["merged_input"].tolist()
     # average_token_count = calculate_average_token_count(mllm_judge_pairs_list, image_tokens=256)
     # print(f"Average token count for MLLM_Judge_Pairs dataset: {average_token_count}")
+    
+    judge_anything_pairs = load_judge_anything_pairs_dataset(sample_size=1000)
+    judge_anything_pairs["merged_input"] = judge_anything_pairs["question"] + " " + judge_anything_pairs["response_A"] + " " + judge_anything_pairs["response_B"]
+    judge_anything_pairs_list = judge_anything_pairs["merged_input"].tolist()
+    average_token_count = calculate_average_token_count(judge_anything_pairs_list, image_tokens=256)
+    print(f"Average token count for Judge_Anything_Pairs dataset: {average_token_count}")
