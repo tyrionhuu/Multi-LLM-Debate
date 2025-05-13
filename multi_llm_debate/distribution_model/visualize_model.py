@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-from .fit_distribution_adaptive_stopping import analyze_rounds_distribution
+from .fit_distribution_adaptive_stopping import analyze_distributions_adaptive_stopping
 from .pmf import beta_binomial_pmf
 
 
@@ -96,7 +96,7 @@ def plot_mixture_model(
 
     # Configure the plot
     ax.set_title(title)
-    ax.set_xlabel("Number of Agents with Correct Response")
+    ax.set_xlabel("Correct Agents Count")
     ax.set_ylabel("Probability Mass")
     ax.set_xticks(range(k + 1))
     ax.legend()
@@ -112,7 +112,7 @@ def plot_model_evolution(
     output_dir: Optional[Path] = None,
     model_config: str = "",
     row_number: int = 2,
-    task_name: str = "judge_bench",
+    title: str = "Model Evolution",
 ) -> List[Figure]:
     """Plot the evolution of the mixture model across rounds.
 
@@ -145,12 +145,12 @@ def plot_model_evolution(
 
     for i, (params, obs_data) in enumerate(zip(model_results, observed_data)):
         # Plot in the combined figure
-        title = f"Debate Round {i+1}"
+        _title = f"Debate Round {i+1}"
         plot_mixture_model(
             params,
             k,
             obs_data,
-            title=title,
+            title=_title,
             ax=axes[i],
             color=colors[i],
         )
@@ -162,7 +162,7 @@ def plot_model_evolution(
     # Adjust the combined figure layout
     plt.tight_layout()
     fig.suptitle(
-        f"Agent Performance Distribution Across All Debate Rounds {model_config} - {task_name}",
+        title,
         fontsize=16,
     )
     fig.subplots_adjust(top=0.93)  # Make room for the title
@@ -361,11 +361,11 @@ def visualize_parameter_trends(
 
 
 def run_visualization(
-    answers_csv_path: Path,
+    dataframe: pd.DataFrame,
     debates_csv_path: Path,
     output_dir: Path,
     max_rounds: Optional[int] = None,
-    fitting_method: str = "direct",
+    fitting_method: str = "em",
     n_restarts: int = 2,
     verbose: bool = True,
     enforce_increasing_success: bool = False,
@@ -376,12 +376,13 @@ def run_visualization(
     task_name: str = "judge_bench",
     ks_threshold: float = 0.05,
     adaptive_stopping: bool = False,
-    stability_rounds: int = 3,
+    stability_rounds: int = 2,
+    title: str = "Model Evolution",
 ) -> tuple[pd.DataFrame, list[dict], List[Figure]]:
     """Run the complete visualization pipeline from data loading to generating plots.
 
     Args:
-        answers_csv_path: Path to CSV with correct answers
+        dataframe: DataFrame containing the debate rounds data
         debates_csv_path: Path to CSV with debate rounds data
         output_dir: Directory to save visualization outputs
         max_rounds: Maximum number of rounds to analyze (None for all)
@@ -398,7 +399,8 @@ def run_visualization(
         ks_threshold: Threshold for KS test to determine model fit
         adaptive_stopping: Whether to use adaptive stopping criteria
         stability_rounds: Number of rounds to check for stability in adaptive stopping
-
+        title: Title for the plots
+        
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
                results and generated figures
@@ -410,8 +412,8 @@ def run_visualization(
         print("Analyzing debate rounds and fitting models...")
 
     # Use the analysis function
-    aggregated_df, model_results = analyze_rounds_distribution(
-        answers_csv_path=answers_csv_path,
+    aggregated_df, model_results, _, _ = analyze_distributions_adaptive_stopping(
+        dataframe=dataframe,
         debates_csv_path=debates_csv_path,
         fitting_method=fitting_method,
         max_rounds=max_rounds,
@@ -458,7 +460,7 @@ def run_visualization(
         output_dir=output_dir,
         model_config=model_config,
         row_number=row_number,
-        task_name=task_name,
+        title=title,
     )
     if verbose:
         print(f"Saved model evolution plots to {output_dir}")
