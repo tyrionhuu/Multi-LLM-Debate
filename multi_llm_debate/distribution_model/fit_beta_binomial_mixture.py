@@ -1,12 +1,15 @@
 from typing import Dict, Optional
+
 import numpy as np
 from scipy.optimize import minimize
+
 from .pmf import (
     ensure_consistent_component_ordering,
     fit_mixture_direct,
     log_beta_binomial_pmf,
 )
 from .utils import chi_square_goodness_of_fit
+
 
 # -------------------------------------------------------------------
 # 2) EM Optimization for Beta-Binomial mixture
@@ -194,7 +197,13 @@ def fit_mixture_beta_binomial(
 
     # Now we calculate the Chi-square statistic and p-value
     chi_square_stat, p_value = chi_square_goodness_of_fit(
-        counts, k, result["w"], result["alpha1"], result["beta1"], result["alpha2"], result["beta2"]
+        counts,
+        k,
+        result["w"],
+        result["alpha1"],
+        result["beta1"],
+        result["alpha2"],
+        result["beta2"],
     )
 
     # Add Chi-square and p-value to the result dictionary
