@@ -60,9 +60,10 @@ if __name__ == "__main__":
     from .utils import load_llm_bar_dataset
 
     df = load_llm_bar_dataset()
-    response_base_dir = Path("data/llm_bar/gemma-3-4b-it(7)")
-    evaluate_all_llm_bar(
+    response_base_dir = Path("data/llm_bar/Qwen2_5-7B-Instruct(7)")
+    result = evaluate_all_llm_bar(
         response_base_dir=response_base_dir,
         dataframe=df,
         max_rounds=5,
     )
+    print(result)
