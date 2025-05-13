@@ -1,14 +1,12 @@
 from typing import Dict, Optional
-
 import numpy as np
 from scipy.optimize import minimize
-
 from .pmf import (
     ensure_consistent_component_ordering,
     fit_mixture_direct,
     log_beta_binomial_pmf,
 )
-
+from .utils import chi_square_goodness_of_fit
 
 # -------------------------------------------------------------------
 # 2) EM Optimization for Beta-Binomial mixture
@@ -183,126 +181,24 @@ def fit_mixture_beta_binomial(
         n_restarts: number of random initializations to try
 
     Returns:
-        Dict[str, float]: Fitted model parameters
+        Dict[str, float]: Fitted model parameters including Chi-square and p-value
     """
     if fitting_method == "em":
-        return em_mixture_beta_binomial(
+        result = em_mixture_beta_binomial(
             counts, k, max_iter, tol, random_state, n_restarts
         )
     elif fitting_method == "direct":
-        return fit_mixture_direct(counts, k, max_iter, tol, random_state, n_restarts)
+        result = fit_mixture_direct(counts, k, max_iter, tol, random_state, n_restarts)
     else:
         raise ValueError(f"Unknown fitting_method: {fitting_method}")
 
-
-def fit_mixture_beta_binomial_with_constraints(
-    counts: np.ndarray,
-    k: int,
-    fitting_method: str = "em",
-    max_iter: int = 100,
-    tol: float = 1e-6,
-    random_state: int = 42,
-    n_restarts: int = 2,
-    prev_exp_success: Optional[float] = None,
-) -> Dict[str, float]:
-    """
-    Fit a 2-component Beta-Binomial mixture with the constraint that the
-    expected success probability should not decrease from the previous rounds.
-
-    Args:
-        counts: Array of observed counts in [0..k]
-        k: Number of trials
-        fitting_method: "em" or "direct"
-        max_iter: Maximum iteration limit
-        tol: Convergence tolerance
-        random_state: Random seed for initialization
-        n_restarts: Number of random initializations to try
-        prev_exp_success: Previous round's expected success probability
-
-    Returns:
-        Dict[str, float]: Fitted model parameters
-    """
-    # First, get an unconstrained fit
-    result = fit_mixture_beta_binomial(
-        counts, k, fitting_method, max_iter, tol, random_state, n_restarts
+    # Now we calculate the Chi-square statistic and p-value
+    chi_square_stat, p_value = chi_square_goodness_of_fit(
+        counts, k, result["w"], result["alpha1"], result["beta1"], result["alpha2"], result["beta2"]
     )
 
-    # If no previous success probability or no constraint needed, return the result
-    if prev_exp_success is None:
-        return result
-
-    # Calculate the expected success probability of the current fit
-    w = result["w"]
-    alpha1 = result["alpha1"]
-    beta1 = result["beta1"]
-    alpha2 = result["alpha2"]
-    beta2 = result["beta2"]
-
-    exp1 = alpha1 / (alpha1 + beta1)
-    exp2 = alpha2 / (alpha2 + beta2)
-
-    # Weighted average of the two components' expected probabilities
-    curr_exp_success = w * exp1 + (1 - w) * exp2
-
-    # Check if constraint is satisfied
-    if curr_exp_success >= prev_exp_success:
-        return result  # Constraint already satisfied
-
-    # If constraint not satisfied, adjust parameters to meet it
-    # Approach: Scale alpha and beta to increase the expected value while
-    # preserving the shape characteristics of the distribution
-
-    # Calculate how much we need to increase the expected probability
-    target_increase = (prev_exp_success - curr_exp_success) * 1.01  # Add small buffer
-
-    # Option 1: Adjust component 1 (higher success probability)
-    if exp1 < 0.95:  # Make sure we don't push it too close to 1
-        # How much we need to increase exp1 to achieve target
-        delta_exp1 = target_increase / w
-        # New expected value for component 1
-        new_exp1 = min(0.95, exp1 + delta_exp1)
-
-        # Scale parameters to achieve the new expected value
-        scale1 = (new_exp1 * (1 - exp1)) / (exp1 * (1 - new_exp1))
-        new_alpha1 = alpha1 * scale1
-        new_beta1 = beta1
-
-        # Calculate the new overall expected probability
-        new_curr_exp_success = w * new_exp1 + (1 - w) * exp2
-
-        if new_curr_exp_success >= prev_exp_success:
-            result["alpha1"] = new_alpha1
-            result["beta1"] = new_beta1
-            return result
-
-    # Option 2: Adjust component 2 (lower success probability)
-    if exp2 < 0.9:  # Make sure we don't push it too close to 1
-        # How much we need to increase exp2 to achieve target
-        delta_exp2 = target_increase / (1 - w)
-        # New expected value for component 2
-        new_exp2 = min(0.9, exp2 + delta_exp2)
-
-        # Scale parameters to achieve the new expected value
-        scale2 = (new_exp2 * (1 - exp2)) / (exp2 * (1 - new_exp2))
-        new_alpha2 = alpha2 * scale2
-        new_beta2 = beta2
-
-        # Calculate the new overall expected probability
-        new_curr_exp_success = w * exp1 + (1 - w) * new_exp2
-
-        if new_curr_exp_success >= prev_exp_success:
-            result["alpha2"] = new_alpha2
-            result["beta2"] = new_beta2
-            return result
-
-    # Option 3: Adjust mixture weight
-    # If individual components can't be adjusted enough, try adjusting the weight
-    if exp1 > exp2:  # Ensure component 1 has higher success probability
-        target_exp = prev_exp_success
-        # Solve for w: w*exp1 + (1-w)*exp2 = target_exp
-        new_w = (target_exp - exp2) / (exp1 - exp2)
-        new_w = min(max(new_w, 0.1), 0.9)  # Ensure w stays in reasonable range
-
-        result["w"] = new_w
+    # Add Chi-square and p-value to the result dictionary
+    result["chi_square_stat"] = chi_square_stat
+    result["p_value"] = p_value
 
     return result
