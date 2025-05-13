@@ -29,6 +29,7 @@ def evaluate_big_bench_responses(
 def evaluate_all_big_bench(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
+    max_rounds: int = 10,
 ) -> EvaluationResults:
     """Run all BIG-Bench evaluations with BIG-Bench-specific settings.
 
@@ -37,7 +38,8 @@ def evaluate_all_big_bench(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
-
+        max_rounds: Maximum number of debate rounds.
+        
     Returns:
         EvaluationResults: Results of the evaluation.
     """
@@ -46,6 +48,7 @@ def evaluate_all_big_bench(
         dataframe=dataframe,
         extract_func=extract_0_1_answer,
         evaluation_func=evaluate_big_bench_responses,
+        max_rounds=max_rounds,
     )
 
 
@@ -57,7 +60,8 @@ if __name__ == "__main__":
     df = load_big_bench_dataset(sample_size=1000)
 
     result = evaluate_all_big_bench(
-        response_base_dir=Path("data/big_bench/Qwen2_5-7B-Instruct(11)"),
+        response_base_dir=Path("data/big_bench/gemma-3-4b-it(7)"),
         dataframe=df,
+        max_rounds=5,
     )
     print(result)

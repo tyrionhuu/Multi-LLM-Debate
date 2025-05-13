@@ -8,10 +8,9 @@ from scipy import stats
 from ..analysis.calculate_correct_rate_distribution import (
     calculate_correct_rate_distribution,
 )
-from .fit_beta_binomial_mixture import (
+from .fit_beta_binomial_mixture import (  # fit_mixture_beta_binomial_with_constraints,
     ensure_consistent_component_ordering,
     fit_mixture_beta_binomial,
-    # fit_mixture_beta_binomial_with_constraints,
 )
 
 
@@ -223,10 +222,12 @@ def analyze_distributions_adaptive_stopping(
         fit_results.append(fit_result)
 
         # Collect chi-square test results for this round
-        chi_test_results.append({
-            "chi_square_stat": fit_result.get("chi_square_stat"),
-            "p_value": fit_result.get("p_value"),
-        })
+        chi_test_results.append(
+            {
+                "chi_square_stat": fit_result.get("chi_square_stat"),
+                "p_value": fit_result.get("p_value"),
+            }
+        )
 
         # Check adaptive stopping criteria and compute KS statistic
         if prev_fit_result is not None:
@@ -353,19 +354,21 @@ if __name__ == "__main__":
     MAX_ROUNDS = 10  # or an int
     OUTPUT_DIR = Path("output/visualizations/llm_bar")
     task_name = "LLMBar"
-    aggregated_df, fit_results, ks_statistics, chi_test_results = analyze_distributions_adaptive_stopping(
-        dataframe=df,
-        debates_csv_path=debate_round_csv_path,
-        fitting_method=FIT_METHOD,
-        max_rounds=MAX_ROUNDS,
-        n_restarts=N_RESTARTS,
-        verbose=True,
-        enforce_increasing_success=ENFORCE_INCREASING,
-        extract_func=extract_1_2_answer,
-        compare_func=compare_llm_bar_response,
-        adaptive_stopping=True,
-        ks_threshold=0.05,
-        stability_rounds=2,
+    aggregated_df, fit_results, ks_statistics, chi_test_results = (
+        analyze_distributions_adaptive_stopping(
+            dataframe=df,
+            debates_csv_path=debate_round_csv_path,
+            fitting_method=FIT_METHOD,
+            max_rounds=MAX_ROUNDS,
+            n_restarts=N_RESTARTS,
+            verbose=True,
+            enforce_increasing_success=ENFORCE_INCREASING,
+            extract_func=extract_1_2_answer,
+            compare_func=compare_llm_bar_response,
+            adaptive_stopping=True,
+            ks_threshold=0.05,
+            stability_rounds=2,
+        )
     )
     print("Aggregated DataFrame:")
     print(aggregated_df)
