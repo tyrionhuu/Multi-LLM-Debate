@@ -14,12 +14,12 @@ CONFIG='[
 ]'
 
 
-python -m multi_llm_debate.run.big_bench.main \
-    --config-json "$CONFIG" \
-    --task-name "big_bench" \
-    --batch \
-    --batch-size 11 \
-    --sample-size 1000 \
+# python -m multi_llm_debate.run.big_bench.main \
+#     --config-json "$CONFIG" \
+#     --task-name "big_bench" \
+#     --batch \
+#     --batch-size 11 \
+#     --sample-size 1000 \
 
 # # Run the evaluation using module path with direct JSON config
 # python -m multi_llm_debate.run.big_bench.main \
@@ -31,15 +31,15 @@ python -m multi_llm_debate.run.big_bench.main \
 #     --batch-size 11 \
 #     --sample-size 1000 \
 
-# python -m multi_llm_debate.run.big_bench.main \
-#     --config-json "$CONFIG" \
-#     --task-name "big_bench_pruning_all" \
-#     --quality-pruning \
-#     --quality-pruning-amount 7 \
-#     --diversity-pruning "answer" \
-#     --diversity-pruning-amount 5 \
-#     --batch \
-#     --batch-size 11 \
-#     --sample-size 1000 \
+python -m multi_llm_debate.run.big_bench.main \
+    --config-json "$CONFIG" \
+    --task-name "big_bench_pruning_all" \
+    --quality-pruning \
+    --quality-pruning-amount 7 \
+    --diversity-pruning "answer" \
+    --diversity-pruning-amount 5 \
+    --batch \
+    --batch-size 11 \
+    --sample-size 1000 \
 
 echo "BIG-Bench Gemini-2 Flash evaluation completed. "

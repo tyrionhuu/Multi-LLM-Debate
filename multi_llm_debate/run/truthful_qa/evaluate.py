@@ -67,6 +67,5 @@ if __name__ == "__main__":
     result = evaluate_all_truthful_qa(
         response_base_dir=Path("data/truthful_qa/gemini-2_0-flash-001(7)"),
         dataframe=df,
-        max_rounds=5,
     )
     print(result)

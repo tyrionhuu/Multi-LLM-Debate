@@ -14,20 +14,20 @@ CONFIG='[
 ]'
 
 
-python -m multi_llm_debate.run.truthful_qa.main \
-    --config-json "$CONFIG" \
-    --task-name "truthful_qa" \
-    --batch \
-    --batch-size 11 \
-
-# # Run the evaluation using module path with direct JSON config
 # python -m multi_llm_debate.run.truthful_qa.main \
 #     --config-json "$CONFIG" \
-#     --task-name "truthful_qa_pruning" \
-#     --diversity-pruning "answer" \
-#     --diversity-pruning-amount 5 \
+#     --task-name "truthful_qa" \
 #     --batch \
 #     --batch-size 11 \
+
+# # Run the evaluation using module path with direct JSON config
+python -m multi_llm_debate.run.truthful_qa.main \
+    --config-json "$CONFIG" \
+    --task-name "truthful_qa_pruning" \
+    --diversity-pruning "answer" \
+    --diversity-pruning-amount 5 \
+    --batch \
+    --batch-size 11 \
 
 # python -m multi_llm_debate.run.truthful_qa.main \
 #     --config-json "$CONFIG" \
