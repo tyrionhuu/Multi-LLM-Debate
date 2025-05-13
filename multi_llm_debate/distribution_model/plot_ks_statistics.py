@@ -1,6 +1,7 @@
-from typing import Dict, List, Optional, Union
-from pathlib import Path
 import os
+from pathlib import Path
+from typing import Dict, List, Optional, Union
+
 import matplotlib.pyplot as plt
 
 
@@ -61,7 +62,9 @@ def plot_ks_statistics(
     plt.tight_layout()
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
-        output_path = os.path.join(output_dir, f"{title.replace(' ', '_')}_ks_statistics.png")
+        output_path = os.path.join(
+            output_dir, f"{title.replace(' ', '_')}_ks_statistics.png"
+        )
         plt.savefig(output_path, dpi=300)
         print(f"Plot saved to {output_path}")
     else:
@@ -70,7 +73,7 @@ def plot_ks_statistics(
 
 
 if __name__ == "__main__":
-    
+
     ks_statistics = {
         "Gemini-3-4B": [
             None,
@@ -116,4 +119,6 @@ if __name__ == "__main__":
             0.017549209995945864,
         ],
     }
-    plot_ks_statistics(ks_statistics, round_number=10, ks_threshold=0.05, output_dir="plots")
+    plot_ks_statistics(
+        ks_statistics, round_number=10, ks_threshold=0.05, output_dir="plots"
+    )
