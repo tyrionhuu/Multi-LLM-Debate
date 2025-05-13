@@ -11,7 +11,7 @@ from ..analysis.calculate_correct_rate_distribution import (
 from .fit_beta_binomial_mixture import (
     ensure_consistent_component_ordering,
     fit_mixture_beta_binomial,
-    fit_mixture_beta_binomial_with_constraints,
+    # fit_mixture_beta_binomial_with_constraints,
 )
 
 
@@ -197,12 +197,15 @@ def analyze_distributions_adaptive_stopping(
 
         # Fit the model with constraints if requested
         if enforce_increasing_success and prev_exp_success is not None:
-            fit_result = fit_mixture_beta_binomial_with_constraints(
-                counts_array,
-                k=k,
-                fitting_method=fitting_method,
-                n_restarts=n_restarts,
-                prev_exp_success=prev_exp_success,
+            # fit_result = fit_mixture_beta_binomial_with_constraints(
+            #     counts_array,
+            #     k=k,
+            #     fitting_method=fitting_method,
+            #     n_restarts=n_restarts,
+            #     prev_exp_success=prev_exp_success,
+            # )
+            raise NotImplementedError(
+                "Fitting with constraints is not implemented yet."
             )
         else:
             # Standard fitting without constraints
