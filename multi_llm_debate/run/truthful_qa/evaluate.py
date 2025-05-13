@@ -65,7 +65,7 @@ if __name__ == "__main__":
     df = load_truthful_qa_dataset()
 
     result = evaluate_all_truthful_qa(
-        response_base_dir=Path("data/truthful_qa/Qwen2_5-7B-Instruct(7)"),
+        response_base_dir=Path("data/truthful_qa/gemini-2_0-flash-001(7)"),
         dataframe=df,
         max_rounds=5,
     )
