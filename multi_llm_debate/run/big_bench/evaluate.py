@@ -60,8 +60,8 @@ if __name__ == "__main__":
     df = load_big_bench_dataset(sample_size=1000)
 
     result = evaluate_all_big_bench(
-        response_base_dir=Path("data/big_bench/gemma-3-4b-it(7)"),
+        response_base_dir=Path("data/big_bench/gemini-2_0-flash-001(7)"),
         dataframe=df,
-        max_rounds=5,
+        max_rounds=4,
     )
     print(result)
