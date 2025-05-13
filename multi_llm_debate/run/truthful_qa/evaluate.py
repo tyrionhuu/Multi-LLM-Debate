@@ -34,6 +34,7 @@ def evaluate_truthful_qa_responses(
 def evaluate_all_truthful_qa(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
+    max_rounds: int = 10,
 ) -> EvaluationResults:
     """Run all truthful QA evaluations with truthful QA-specific settings.
 
@@ -42,7 +43,8 @@ def evaluate_all_truthful_qa(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
-
+        max_rounds: Maximum number of debate rounds.
+        
     Returns:
         EvaluationResults: Results of the evaluation.
     """
@@ -51,6 +53,7 @@ def evaluate_all_truthful_qa(
         dataframe=dataframe,
         extract_func=extract_caption_a_b_c_answer,
         evaluation_func=evaluate_truthful_qa_responses,
+        max_rounds=max_rounds,
     )
 
 
@@ -59,10 +62,11 @@ if __name__ == "__main__":
 
     from .utils import load_truthful_qa_dataset
 
-    df = load_truthful_qa_dataset(sample_size=1000)
+    df = load_truthful_qa_dataset()
 
     result = evaluate_all_truthful_qa(
-        response_base_dir=Path("data/truthful_qa/Qwen2_5-7B-Instruct(11)"),
+        response_base_dir=Path("data/truthful_qa/Qwen2_5-7B-Instruct(7)"),
         dataframe=df,
+        max_rounds=5,
     )
     print(result)
