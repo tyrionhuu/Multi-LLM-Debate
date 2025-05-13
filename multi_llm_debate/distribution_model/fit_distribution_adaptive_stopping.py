@@ -175,8 +175,10 @@ def analyze_distributions_adaptive_stopping(
     chi_test_results: list[Optional[dict]] = []
 
     # Process each round in the aggregated data
+    rounds_processed = 0
     for _, row in aggregated_df.iterrows():
         round_number = int(row["round_number"])
+        rounds_processed += 1
         if verbose:
             print(
                 f"Processing round {round_number} using fitting method: {fitting_method}"
@@ -317,6 +319,10 @@ def analyze_distributions_adaptive_stopping(
             print("-" * 80)
 
         prev_fit_result = fit_result.copy()
+
+    # After stopping, set the round_number for all fit results to the number of rounds processed
+    for fit_result in fit_results:
+        fit_result["round_number"] = rounds_processed
 
     if adaptive_stopping and verbose and not stopped_early:
         print("Adaptive stopping criteria not met after all rounds.")
