@@ -1,5 +1,6 @@
-from typing import Dict, List, Optional
-
+from typing import Dict, List, Optional, Union
+from pathlib import Path
+import os
 import matplotlib.pyplot as plt
 
 
@@ -10,6 +11,7 @@ def plot_ks_statistics(
     xlabel: str = "Step",
     ylabel: str = "KS Statistic",
     ks_threshold: Optional[float] = None,
+    output_dir: Union[str, Path] = None,
 ) -> None:
     """Plot KS statistics for multiple models.
 
@@ -23,6 +25,8 @@ def plot_ks_statistics(
         ylabel (str): Y-axis label.
         ks_threshold (Optional[float]): If provided, plot a horizontal dotted
             line at this KS statistic value.
+        output_dir (Optional[str]): If provided, save the plot to this directory
+            as 'ks_statistics.png'.
     """
     ks_length = round_number - 1
     for model, stats in ks_stats.items():
@@ -55,6 +59,13 @@ def plot_ks_statistics(
     plt.legend()
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, "ks_statistics.png")
+        plt.savefig(output_path, dpi=300)
+        print(f"Plot saved to {output_path}")
+    else:
+        plt.show()
     plt.show()
 
 
@@ -103,4 +114,4 @@ ks_statistics = {
         0.017549209995945864,
     ],
 }
-plot_ks_statistics(ks_statistics, round_number=10, ks_threshold=0.05)
+plot_ks_statistics(ks_statistics, round_number=10, ks_threshold=0.05, output_dir="plots")
