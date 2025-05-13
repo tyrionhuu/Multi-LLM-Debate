@@ -58,11 +58,11 @@ if __name__ == "__main__":
 
     from .utils import load_mllm_judge_pairs
 
-    df = load_mllm_judge_pairs()
-    response_base_dir = Path("data/mllm_judge_pair/Qwen2_5-VL-7B-Instruct(7)")
+    df = load_mllm_judge_pairs(sample_size=800)
+    response_base_dir = Path("data/mllm_judge_pair/gemini-2_0-flash-001(7)")
     result = evaluate_all_mllm_judge_pairs(
         response_base_dir=response_base_dir,
         dataframe=df,
-        max_rounds=4,
+        max_rounds=5,
     )
     print(result)
