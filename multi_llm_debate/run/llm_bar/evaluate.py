@@ -32,6 +32,7 @@ def evaluate_llm_bar_responses(
 def evaluate_all_llm_bar(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
+    max_rounds: int = 10,
 ) -> EvaluationResults:
     """Run all LLM Bar evaluations with LLM Bar-specific settings.
 
@@ -40,7 +41,8 @@ def evaluate_all_llm_bar(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
-
+        max_rounds: Maximum number of debate rounds.
+        
     Returns:
         EvaluationResults: Results of the evaluation.
     """
@@ -49,4 +51,18 @@ def evaluate_all_llm_bar(
         dataframe=dataframe,
         extract_func=extract_1_2_answer,
         evaluation_func=evaluate_llm_bar_responses,
+        max_rounds=max_rounds,
+    )
+
+if __name__ == "__main__":
+    from pathlib import Path
+
+    from .utils import load_llm_bar_dataset
+
+    df = load_llm_bar_dataset()
+    response_base_dir = Path("data/llm_bar/gemma-3-4b-it(7)")
+    evaluate_all_llm_bar(
+        response_base_dir=response_base_dir,
+        dataframe=df,
+        max_rounds=5,
     )

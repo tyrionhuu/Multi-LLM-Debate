@@ -31,6 +31,7 @@ def evaluate_judge_bench_responses(
 def evaluate_all_judge_bench(
     response_base_dir: Path,
     dataframe: pd.DataFrame,
+    max_rounds: int = 10,
 ) -> EvaluationResults:
     """Run all judge bench evaluations with judge bench-specific settings.
 
@@ -39,7 +40,8 @@ def evaluate_all_judge_bench(
     Args:
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
-
+        max_rounds: Maximum number of debate rounds.
+        
     Returns:
         EvaluationResults: Results of the evaluation.
     """
@@ -48,24 +50,21 @@ def evaluate_all_judge_bench(
         dataframe=dataframe,
         extract_func=extract_caption_a_b_answer,
         evaluation_func=evaluate_judge_bench_responses,
+        max_rounds=max_rounds,
     )
 
 
 if __name__ == "__main__":
     from pathlib import Path
 
-    from ..shared.utils import Parser
     from .utils import load_judge_bench_dataset
 
-    args = Parser(description="Run JudgeBench evaluation").parse_args()
-
     # Load the dataset
-    dataset_path = Path("datasets/JudgeBench")
-    dataframe = load_judge_bench_dataset(
-        dataset_path=dataset_path,
-    )
-    print(dataframe.columns)
-    evaluate_all_judge_bench(
-        response_base_dir=Path("data/judge_bench/Llama-3_1-8B-Instruct(11)"),
+    dataframe = load_judge_bench_dataset()
+    # print(dataframe.columns)
+    result = evaluate_all_judge_bench(
+        response_base_dir=Path("data/judge_bench/gemini-2_0-flash-001(7)"),
         dataframe=dataframe,
+        max_rounds=6,
     )
+    print(result)
