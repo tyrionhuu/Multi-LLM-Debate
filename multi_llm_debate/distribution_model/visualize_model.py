@@ -400,7 +400,7 @@ def run_visualization(
         adaptive_stopping: Whether to use adaptive stopping criteria
         stability_rounds: Number of rounds to check for stability in adaptive stopping
         title: Title for the plots
-        
+
     Returns:
         tuple: (aggregated_df, model_results, figures) containing the analysis
                results and generated figures

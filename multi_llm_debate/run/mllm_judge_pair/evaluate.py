@@ -41,7 +41,7 @@ def evaluate_all_mllm_judge_pairs(
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge pair data.
         max_rounds: Maximum number of debate rounds.
-        
+
     Returns:
         EvaluationResults: Results of the evaluation.
     """
@@ -52,7 +52,8 @@ def evaluate_all_mllm_judge_pairs(
         evaluation_func=evaluate_mllm_judge_pairs_responses,
         max_rounds=max_rounds,
     )
-    
+
+
 if __name__ == "__main__":
     from pathlib import Path
 

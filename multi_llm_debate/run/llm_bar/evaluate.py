@@ -42,7 +42,7 @@ def evaluate_all_llm_bar(
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
         max_rounds: Maximum number of debate rounds.
-        
+
     Returns:
         EvaluationResults: Results of the evaluation.
     """
@@ -53,6 +53,7 @@ def evaluate_all_llm_bar(
         evaluation_func=evaluate_llm_bar_responses,
         max_rounds=max_rounds,
     )
+
 
 if __name__ == "__main__":
     from pathlib import Path

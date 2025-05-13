@@ -44,7 +44,7 @@ def evaluate_all_truthful_qa(
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge bench data.
         max_rounds: Maximum number of debate rounds.
-        
+
     Returns:
         EvaluationResults: Results of the evaluation.
     """

@@ -41,7 +41,7 @@ def evaluate_all_judge_anything_pair(
         response_base_dir: Directory containing response files.
         dataframe: Pandas DataFrame containing judge anything pair data.
         max_rounds: Maximum number of debate rounds.
-        
+
     Returns:
         EvaluationResults: Results of the evaluation.
     """
@@ -52,6 +52,7 @@ def evaluate_all_judge_anything_pair(
         evaluation_func=evaluate_judge_anything_pair_responses,
         max_rounds=max_rounds,
     )
+
 
 if __name__ == "__main__":
     from pathlib import Path
