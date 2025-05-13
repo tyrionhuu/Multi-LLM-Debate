@@ -88,7 +88,7 @@ def analyze_distributions_adaptive_stopping(
     adaptive_stopping: bool = False,
     ks_threshold: float = 0.05,
     stability_rounds: int = 2,
-) -> tuple[pd.DataFrame, list[dict], list[Optional[float]]]:
+) -> tuple[pd.DataFrame, list[dict], list[Optional[float]], list[Optional[dict]]]:
     """
     Analyze the correct rate distribution across debate rounds and fit
     Beta-Binomial mixture models to the data.
@@ -108,10 +108,11 @@ def analyze_distributions_adaptive_stopping(
         stability_rounds: Number of consecutive rounds below threshold to stop
 
     Returns:
-        tuple: (aggregated_df, fit_results, ks_statistics) where:
+        tuple: (aggregated_df, fit_results, ks_statistics, chi_test_results) where:
             - aggregated_df: DataFrame with correct rate distribution per round
             - fit_results: List of dictionaries containing fitted model parameters
             - ks_statistics: List of KS statistics per round (None for first round)
+            - chi_test_results: List of chi-square test results per round
     """
     # Load answers data
     try:
@@ -170,6 +171,8 @@ def analyze_distributions_adaptive_stopping(
 
     # List to store KS statistics per round
     ks_statistics: list[Optional[float]] = []
+    # List to store chi-square test results per round
+    chi_test_results: list[Optional[dict]] = []
 
     # Process each round in the aggregated data
     for _, row in aggregated_df.iterrows():
@@ -216,6 +219,12 @@ def analyze_distributions_adaptive_stopping(
         # Ensure consistent ordering
         fit_result = ensure_consistent_component_ordering(fit_result)
         fit_results.append(fit_result)
+
+        # Collect chi-square test results for this round
+        chi_test_results.append({
+            "chi_square_stat": fit_result.get("chi_square_stat"),
+            "p_value": fit_result.get("p_value"),
+        })
 
         # Check adaptive stopping criteria and compute KS statistic
         if prev_fit_result is not None:
@@ -282,6 +291,11 @@ def analyze_distributions_adaptive_stopping(
             print(f"  Number of iterations: {fit_result['n_iter']}")
             print(f"  Total tasks analyzed: {row['total_tasks']}")
 
+            # Print chi-square test results
+            print(f"  Chi-square test results:")
+            print(f"    Chi-square statistic: {fit_result.get('chi_square_stat')}")
+            print(f"    p-value: {fit_result.get('p_value')}")
+
             # Print deltas from previous round if available
             if round_number > 0 and prev_fit_result is not None:
                 print("  Deltas from previous round:")
@@ -307,7 +321,7 @@ def analyze_distributions_adaptive_stopping(
     if adaptive_stopping and verbose and not stopped_early:
         print("Adaptive stopping criteria not met after all rounds.")
 
-    return aggregated_df, fit_results, ks_statistics
+    return aggregated_df, fit_results, ks_statistics, chi_test_results
 
 
 # -------------------------------------------------------------------
@@ -333,7 +347,7 @@ if __name__ == "__main__":
     MAX_ROUNDS = 10  # or an int
     OUTPUT_DIR = Path("output/visualizations/llm_bar")
     task_name = "LLMBar"
-    aggregated_df, fit_results, ks_statistics = analyze_distributions_adaptive_stopping(
+    aggregated_df, fit_results, ks_statistics, chi_test_results = analyze_distributions_adaptive_stopping(
         dataframe=df,
         debates_csv_path=debate_round_csv_path,
         fitting_method=FIT_METHOD,
@@ -354,3 +368,6 @@ if __name__ == "__main__":
         print(fit_result)
     print("KS Statistics:")
     print(ks_statistics)
+    print("Chi-square Test Results:")
+    for chi_result in chi_test_results:
+        print(chi_result)
