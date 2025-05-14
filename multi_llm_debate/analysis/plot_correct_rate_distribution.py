@@ -544,14 +544,14 @@ def combine_correct_rate_plots(
             x_positions = [b + offset for b in bins]
 
             _ = ax.bar(x_positions, values, width=bar_width, label=model)
+            ax.legend(fontsize=12)
 
-        ax.set_title(f"Round {round_number}", fontsize=14)
-        ax.set_xlabel("Number of Correct Agents", fontsize=12)
+        ax.set_title(f"Round {round_number}", fontsize=16)
+        ax.set_xlabel("Number of Correct Agents", fontsize=14)
 
         # Only add y-label to leftmost subplots in each row
         if subplot_idx % columns == 0:
-            ax.set_ylabel("Tasks (%)", fontsize=12)
-
+            ax.set_ylabel("Tasks (%)", fontsize=14)
         # Set x-ticks to be exactly at the bin positions
         ax.set_xticks(all_bins)
         ax.set_xticklabels(all_bins)
@@ -564,17 +564,18 @@ def combine_correct_rate_plots(
 
         # Add legend if this is the first subplot
         if subplot_idx == 0:
-            ax.legend(loc="upper right", fontsize=10)
+            ax.legend(loc="upper right", fontsize=12)
 
     # Turn off any extra subplots
     for j in range(n_rounds, rows * columns):
         fig.add_subplot(rows, columns, j + 1).axis("off")
 
     # Set overall figure title
-    fig.suptitle(f"{combined_title}", fontsize=16)
+    # fig.suptitle(f"{combined_title}", fontsize=16)
 
     # Adjust layout
-    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Leave room for the suptitle
+    plt.tight_layout()
+    # plt.tight_layout(rect=[0, 0, 1, 0.95])  # Leave room for the suptitle
 
     # Save figure
     output_path = output_dir / file_name

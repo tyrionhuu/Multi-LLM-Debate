@@ -54,9 +54,9 @@ def plot_ks_statistics(
             linewidth=2,
             label=f"KS Threshold ({ks_threshold})",
         )
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+    # plt.title(title)
+    plt.xlabel(xlabel, fontsize=12)
+    plt.ylabel(ylabel, fontsize=12)
     plt.legend()
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()

@@ -94,13 +94,13 @@ def plot_mixture_model(
         obs_y = [observed_probs.get(i, 0) for i in range(k + 1)]
         ax.bar(range(k + 1), obs_y, alpha=0.3, color="gray", label="Observed Data")
 
-    # Configure the plot
-    ax.set_title(title)
-    ax.set_xlabel("Correct Agents Count")
-    ax.set_ylabel("Probability Mass")
+    ax.set_title(title, fontsize=16)  # Increase title font size and add padding
+    ax.set_xlabel("Correct Agents Count", fontsize=14)
+    ax.set_ylabel("Probability Mass", fontsize=14)
     ax.set_xticks(range(k + 1))
-    ax.legend()
+    ax.legend(fontsize=12)
     ax.grid(alpha=0.3)
+    plt.tight_layout()  # Adjust layout to prevent overlap and add padding
 
     return ax
 
@@ -161,11 +161,11 @@ def plot_model_evolution(
 
     # Adjust the combined figure layout
     plt.tight_layout()
-    fig.suptitle(
-        title,
-        fontsize=16,
-    )
-    fig.subplots_adjust(top=0.93)  # Make room for the title
+    # fig.suptitle(
+    #     title,
+    #     fontsize=18,
+    # )
+    # fig.subplots_adjust(top=0.85)
 
     # Save the combined figure if output directory is provided
     if output_dir is not None:
@@ -238,7 +238,7 @@ def visualize_parameter_trends(
     axes[0].set_ylabel("Mixture Weight (w)")
     axes[0].grid(alpha=0.3)
     axes[0].set_xticks(rounds)
-    axes[0].set_xticklabels([str(i + 1) for i in rounds])  # Just integers
+    axes[0].set_xticklabels([str(i + 1) for i in rounds])
 
     # Plot expected success probabilities
     axes[1].plot(
