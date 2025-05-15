@@ -36,7 +36,7 @@ def plot_mixture_model(
         The matplotlib axes object with the plot
     """
     if ax is None:
-        _, ax = plt.subplots(figsize=(10, 6))
+        _, ax = plt.subplots(figsize=(16, 9))  # 16:9 aspect ratio
 
     # Extract model parameters
     w = params["w"]
@@ -62,6 +62,7 @@ def plot_mixture_model(
         color=color,
         alpha=alpha,
         label="Combined Mixture Model",
+        linewidth=5,
     )
 
     # Plot the individual components
@@ -71,6 +72,7 @@ def plot_mixture_model(
         linestyle="--",
         color=color,
         alpha=alpha * 0.7,
+        linewidth=5,
         label=f"Component 1 (weight={w:.2f})",
     )
     ax.plot(
@@ -79,6 +81,7 @@ def plot_mixture_model(
         linestyle=":",
         color=color,
         alpha=alpha * 0.7,
+        linewidth=5,
         label=f"Component 2 (weight={1-w:.2f})",
     )
 
@@ -94,11 +97,12 @@ def plot_mixture_model(
         obs_y = [observed_probs.get(i, 0) for i in range(k + 1)]
         ax.bar(range(k + 1), obs_y, alpha=0.3, color="gray", label="Observed Data")
 
-    ax.set_title(title, fontsize=16)  # Increase title font size and add padding
-    ax.set_xlabel("Correct Agents Count", fontsize=14)
-    ax.set_ylabel("Probability Mass", fontsize=14)
+    ax.set_title(title, fontsize=32)  # Title font size 32
+    ax.set_xlabel("Correct Agents Count", fontsize=32)  # Label font size 32
+    ax.set_ylabel("Probability Mass", fontsize=32)      # Label font size 32
     ax.set_xticks(range(k + 1))
-    ax.legend(fontsize=12)
+    ax.tick_params(axis='both', which='major', labelsize=28)  # Tick size 28
+    ax.legend(fontsize=30)  # Legend font size 30
     ax.grid(alpha=0.3)
     plt.tight_layout()  # Adjust layout to prevent overlap and add padding
 
@@ -130,11 +134,12 @@ def plot_model_evolution(
     """
     figures = []
 
-    # Create a figure for all rounds combined
+    # Set 16:9 aspect ratio for each subplot
+    ncols = math.ceil(len(model_results) / row_number)
     fig, axes = plt.subplots(
         nrows=row_number,
-        ncols=math.ceil(len(model_results) / row_number),
-        figsize=(15, 5 * row_number),
+        ncols=ncols,
+        figsize=(12 * ncols, 7 * row_number),
     )
     axes = axes.flatten()
 
@@ -154,6 +159,11 @@ def plot_model_evolution(
             ax=axes[i],
             color=colors[i],
         )
+        axes[i].set_title(_title, fontsize=36)
+        axes[i].set_xlabel("Correct Agents Count", fontsize=36)
+        axes[i].set_ylabel("Probability Mass", fontsize=36)
+        axes[i].tick_params(axis='both', which='major', labelsize=28)
+        axes[i].legend(fontsize=28)
 
     # Hide any unused subplots
     for j in range(len(model_results), len(axes)):

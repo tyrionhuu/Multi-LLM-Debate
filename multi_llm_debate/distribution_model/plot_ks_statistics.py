@@ -29,6 +29,7 @@ def plot_ks_statistics(
         output_dir (Optional[str]): If provided, save the plot to this directory
             as 'ks_statistics.png'.
     """
+    plt.figure(figsize=(10, 6))
     ks_length = round_number - 1
     for model, stats in ks_stats.items():
         # Drop None values and truncate to ks_length
@@ -41,9 +42,9 @@ def plot_ks_statistics(
             steps,
             processed_stats,
             marker="o",
-            markersize=8,
+            markersize=16,
             markerfacecolor="white",
-            markeredgewidth=2,
+            markeredgewidth=3,
             label=model,
         )
     if ks_threshold is not None:
@@ -51,13 +52,15 @@ def plot_ks_statistics(
             y=ks_threshold,
             color="red",
             linestyle=":",
-            linewidth=2,
+            linewidth=3,
             label=f"KS Threshold ({ks_threshold})",
         )
     # plt.title(title)
-    plt.xlabel(xlabel, fontsize=12)
-    plt.ylabel(ylabel, fontsize=12)
-    plt.legend()
+    plt.xlabel(xlabel, fontsize=28)
+    plt.ylabel(ylabel, fontsize=28)
+    plt.xticks(steps, fontsize=22)
+    plt.yticks(fontsize=22)
+    plt.legend(fontsize=28, loc="upper right")
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
     if output_dir:

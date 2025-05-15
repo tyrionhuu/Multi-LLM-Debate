@@ -165,7 +165,7 @@ def plot_all_rounds_multi_rows(
     fig, axs = plt.subplots(
         nrows=rows,
         ncols=num_cols,
-        figsize=(5 * num_cols, 5 * rows),
+        figsize=(16 * num_cols, 9 * rows),
         sharey=True,  # share the Y-axis for comparison
     )
 
@@ -490,7 +490,7 @@ def combine_correct_rate_plots(
         columns = math.ceil(n_rounds / rows)
 
     # Create figure for subplots
-    fig = plt.figure(figsize=(6 * columns, 5 * rows))
+    fig = plt.figure(figsize=(10 * columns, 6 * rows))
 
     # For each round, create a subplot comparing all models
     for subplot_idx, round_number in enumerate(available_rounds):
@@ -519,9 +519,9 @@ def combine_correct_rate_plots(
                 f"No data for round {round_number}",
                 ha="center",
                 va="center",
-                fontsize=12,
+                fontsize=24,
             )
-            ax.set_title(f"Round {round_number}", fontsize=14)
+            ax.set_title(f"Round {round_number}", fontsize=32)
             continue
 
         # Find all unique bin values across models
@@ -544,18 +544,18 @@ def combine_correct_rate_plots(
             x_positions = [b + offset for b in bins]
 
             _ = ax.bar(x_positions, values, width=bar_width, label=model)
-            ax.legend(fontsize=12)
+            # ax.legend(fontsize=24)
 
-        ax.set_title(f"Round {round_number}", fontsize=16)
-        ax.set_xlabel("Number of Correct Agents", fontsize=14)
+        ax.set_title(f"Round {round_number}", fontsize=32)
+        ax.set_xlabel("Number of Correct Agents", fontsize=32)
 
         # Only add y-label to leftmost subplots in each row
         if subplot_idx % columns == 0:
-            ax.set_ylabel("Tasks (%)", fontsize=14)
+            ax.set_ylabel("Tasks (%)", fontsize=32)
         # Set x-ticks to be exactly at the bin positions
         ax.set_xticks(all_bins)
         ax.set_xticklabels(all_bins)
-
+        ax.tick_params(axis="both", labelsize=28)
         # Add grid lines for readability
         ax.grid(axis="y", alpha=0.3)
 
@@ -564,7 +564,7 @@ def combine_correct_rate_plots(
 
         # Add legend if this is the first subplot
         if subplot_idx == 0:
-            ax.legend(loc="upper right", fontsize=12)
+            ax.legend(loc="upper right", fontsize=24)
 
     # Turn off any extra subplots
     for j in range(n_rounds, rows * columns):
@@ -586,60 +586,3 @@ def combine_correct_rate_plots(
     plt.close()
 
     logger.info(f"Saved combined plot to {output_path}")
-
-
-if __name__ == "__main__":
-    import logging
-    from pathlib import Path
-
-    from multi_llm_debate.run.judge_bench.utils import (
-        compare_judge_bench_response,
-        extract_caption_a_b_answer,
-        load_judge_bench_dataset,
-    )
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.ERROR)
-
-    df = load_judge_bench_dataset()
-    OUTPUT_DIR = Path("output/visualizations/judge_bench")
-    task_name = "Judge Bench"
-
-    model_dirs = [
-        Path("data/judge_bench/gemma-3-4b-it(7)"),
-        Path("data/judge_bench/Llama-3_1-8B-Instruct(7)"),
-        Path("data/judge_bench/Qwen2_5-7B-Instruct(7)"),
-        Path("data/judge_bench/gemini-2_0-flash-001(7)"),
-    ]
-
-    model_configs = [
-        "Gemini-3-4B",
-        "Llama-3-1-8B",
-        "Qwen-2.5-7B",
-        "Gemini-2.0-Flash",
-    ]
-    extract_func = extract_caption_a_b_answer
-    compare_func = compare_judge_bench_response
-    max_rounds = 6
-    rows = 2
-    columns = 3
-    show_plot = True
-    combined_title = "Distribution of the number of correct agents across debate rounds for the JudgeBench dataset"
-    file_name = "combined_correct_rate_plots.png"
-    progress_bar = True
-    combine_correct_rate_plots(
-        df,
-        model_dirs,
-        model_configs,
-        OUTPUT_DIR,
-        extract_func,
-        compare_func,
-        task_name=task_name,
-        max_rounds=max_rounds,
-        rows=rows,
-        columns=columns,
-        show_plot=show_plot,
-        combined_title=combined_title,
-        file_name=file_name,
-        progress_bar=progress_bar,
-    )
