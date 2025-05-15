@@ -99,9 +99,9 @@ def plot_mixture_model(
 
     ax.set_title(title, fontsize=32)  # Title font size 32
     ax.set_xlabel("Correct Agents Count", fontsize=32)  # Label font size 32
-    ax.set_ylabel("Probability Mass", fontsize=32)      # Label font size 32
+    ax.set_ylabel("Probability Mass", fontsize=32)  # Label font size 32
     ax.set_xticks(range(k + 1))
-    ax.tick_params(axis='both', which='major', labelsize=28)  # Tick size 28
+    ax.tick_params(axis="both", which="major", labelsize=28)  # Tick size 28
     ax.legend(fontsize=30)  # Legend font size 30
     ax.grid(alpha=0.3)
     plt.tight_layout()  # Adjust layout to prevent overlap and add padding
@@ -162,7 +162,7 @@ def plot_model_evolution(
         axes[i].set_title(_title, fontsize=36)
         axes[i].set_xlabel("Correct Agents Count", fontsize=36)
         axes[i].set_ylabel("Probability Mass", fontsize=36)
-        axes[i].tick_params(axis='both', which='major', labelsize=28)
+        axes[i].tick_params(axis="both", which="major", labelsize=28)
         axes[i].legend(fontsize=28)
 
     # Hide any unused subplots
