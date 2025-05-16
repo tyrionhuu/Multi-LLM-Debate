@@ -55,7 +55,8 @@ def plot_ks_statistics(
             linewidth=3,
             label=f"KS Threshold ({ks_threshold})",
         )
-    # plt.title(title)
+
+    plt.title(title, fontsize=28)
     plt.xlabel(xlabel, fontsize=28)
     plt.ylabel(ylabel, fontsize=28)
     plt.xticks(steps, fontsize=22)

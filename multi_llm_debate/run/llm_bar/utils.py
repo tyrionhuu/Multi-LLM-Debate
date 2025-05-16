@@ -129,7 +129,7 @@ def compare_llm_bar_response(
 
 def main():
     dataset = load_llm_bar_dataset()
-    print(dataset.iloc[0].to_dict())
+    print(dataset.iloc[10].to_dict())
 
 
 if __name__ == "__main__":
