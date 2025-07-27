@@ -6,7 +6,7 @@ It provides a structured approach to conducting debates between multiple AI agen
 with a moderator to evaluate and reach consensus.
 """
 
-from .debate import Debate, DebatePlayer
 from .agent import Agent
+from .debate import Debate, DebatePlayer
 
 __all__ = ["Debate", "DebatePlayer", "Agent"]

@@ -65,10 +65,10 @@ class Agent:
 
         try:
             temp = temperature if temperature is not None else self.temperature
-            
+
             # Convert messages to a single prompt string for the call_model function
             prompt = self._messages_to_prompt(messages)
-            
+
             response = call_model(
                 model_name=self.model_name,
                 base_url=self.base_url or "",
@@ -94,10 +94,10 @@ class Agent:
 
     def _messages_to_prompt(self, messages: List[Dict[str, Any]]) -> str:
         """Convert a list of messages to a single prompt string.
-        
+
         Args:
             messages (List[Dict[str, str]]): List of message dictionaries
-            
+
         Returns:
             str: Combined prompt string
         """
@@ -105,14 +105,14 @@ class Agent:
         for message in messages:
             role = message.get("role", "")  # type: ignore
             content = message.get("content", "")  # type: ignore
-            
+
             if role == "system":
                 prompt_parts.append(f"System: {content}")
             elif role == "user":
                 prompt_parts.append(f"User: {content}")
             elif role == "assistant":
                 prompt_parts.append(f"Assistant: {content}")
-        
+
         return "\n\n".join(prompt_parts)
 
     def set_meta_prompt(self, meta_prompt: str) -> None:

@@ -11,14 +11,14 @@ from pathlib import Path
 
 from multi_llm_debate.mad.debate import Debate
 from multi_llm_debate.mad.prompts import (
-    PLAYER_META_PROMPT,
-    MODERATOR_META_PROMPT,
     AFFIRMATIVE_PROMPT,
-    NEGATIVE_PROMPT,
-    MODERATOR_PROMPT,
+    DEBATE_PROMPT,
     JUDGE_PROMPT_1,
     JUDGE_PROMPT_2,
-    DEBATE_PROMPT,
+    MODERATOR_META_PROMPT,
+    MODERATOR_PROMPT,
+    NEGATIVE_PROMPT,
+    PLAYER_META_PROMPT,
 )
 
 # Set up logging
@@ -28,10 +28,10 @@ logger = logging.getLogger(__name__)
 
 def test_mad_framework():
     """Test the MAD framework with a sample debate topic."""
-    
+
     # Sample debate topic
     debate_topic = "Is artificial intelligence beneficial for society?"
-    
+
     # Create MAD configuration
     config = {
         "debate_topic": debate_topic,
@@ -44,10 +44,10 @@ def test_mad_framework():
         "judge_prompt_last2": JUDGE_PROMPT_2,
         "debate_prompt": DEBATE_PROMPT,
     }
-    
+
     print(f"Testing MAD framework with topic: {debate_topic}")
-    print("="*60)
-    
+    print("=" * 60)
+
     try:
         # Create and run debate
         debate = Debate(
@@ -62,22 +62,22 @@ def test_mad_framework():
             # base_url="http://localhost:11434/v1",  # For Ollama
             # api_key="your-api-key",  # For OpenAI
         )
-        
+
         # Run the debate
         result = debate.run()
-        
-        print("\n" + "="*60)
+
+        print("\n" + "=" * 60)
         print("DEBATE COMPLETED SUCCESSFULLY!")
-        print("="*60)
-        
+        print("=" * 60)
+
         # Print results
         print(f"Success: {result.get('success', False)}")
         print(f"Base Answer: {result.get('base_answer', 'N/A')}")
         print(f"Debate Answer: {result.get('debate_answer', 'N/A')}")
         print(f"Reason: {result.get('Reason', 'N/A')}")
-        
+
         return True
-        
+
     except Exception as e:
         print(f"Error testing MAD framework: {str(e)}")
         logger.error(f"Error testing MAD framework: {str(e)}", exc_info=True)
@@ -86,61 +86,63 @@ def test_mad_framework():
 
 def test_mad_benchmark_integration():
     """Test the MAD benchmark integration."""
-    
+
     try:
-        from multi_llm_debate.run.mad.utils import load_mad_dataset, create_mad_config
-        from multi_llm_debate.run.mad.run_debate import process_mad_dataset
         from multi_llm_debate.run.mad.evaluate import evaluate_mad_results
-        
+        from multi_llm_debate.run.mad.run_debate import process_mad_dataset
+        from multi_llm_debate.run.mad.utils import create_mad_config, load_mad_dataset
+
         print("\nTesting MAD benchmark integration...")
-        
+
         # Load sample dataset
         df = load_mad_dataset(sample_size=2)
         print(f"Loaded dataset with {len(df)} samples")
-        
+
         # Create model configs
         model_configs = [
             {
                 "name": "gpt-3.5-turbo",
                 "base_url": "https://api.openai.com/v1",
-                "quantity": 1
+                "quantity": 1,
             }
         ]
-        
+
         # Create output directory
         output_dir = Path("test_output")
         output_dir.mkdir(exist_ok=True)
-        
+
         # Process dataset (this would normally run debates, but we'll skip for testing)
         print("MAD benchmark integration test completed successfully!")
-        
+
         return True
-        
+
     except Exception as e:
         print(f"Error testing MAD benchmark integration: {str(e)}")
-        logger.error(f"Error testing MAD benchmark integration: {str(e)}", exc_info=True)
+        logger.error(
+            f"Error testing MAD benchmark integration: {str(e)}", exc_info=True
+        )
         return False
 
 
 if __name__ == "__main__":
     print("MAD Framework Test")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Test basic MAD framework
     success1 = test_mad_framework()
-    
+
     # Test benchmark integration
     success2 = test_mad_benchmark_integration()
-    
-    print("\n" + "="*60)
+
+    print("\n" + "=" * 60)
     print("TEST SUMMARY")
-    print("="*60)
+    print("=" * 60)
     print(f"MAD Framework Test: {'PASSED' if success1 else 'FAILED'}")
     print(f"Benchmark Integration Test: {'PASSED' if success2 else 'FAILED'}")
-    
+
     if success1 and success2:
         print("\n🎉 All tests passed! The MAD framework is ready to use.")
         print("\nTo run a full benchmark, use:")
         print("python -m multi_llm_debate.run.mad.main --sample_size 5")
     else:
-        print("\n❌ Some tests failed. Please check the error messages above.") 
+        print("\n❌ Some tests failed. Please check the error messages above.")
