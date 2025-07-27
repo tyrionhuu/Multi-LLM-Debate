@@ -183,7 +183,7 @@ def _entry_correct_fraction(
         answer = entry["answer"]
         id_ = str(entry["id"])
         responses_dir = response_base_dir / id_
-        first_response_file = responses_dir / f"debate_round_0.json"
+        first_response_file = responses_dir / "debate_round_0.json"
         with open(first_response_file, "r") as f:
             responses = json.load(f)
         if not responses:
@@ -307,7 +307,7 @@ def _process_ensemble_entry(
         id_ = str(entry[id_entry])
 
         responses_dir = response_base_dir / id_
-        first_response_file = responses_dir / f"debate_round_0.json"
+        first_response_file = responses_dir / "debate_round_0.json"
 
         with open(first_response_file, "r") as f:
             responses = json.load(f)

@@ -34,6 +34,7 @@ class Args:
     diversity_pruning_func: Callable = None
     diversity_pruning_amount: int = 5
     task_name: str = "debate"
+    mad: bool = False
 
 
 class Parser:
@@ -117,6 +118,12 @@ class Parser:
             type=int,
             help="Amount for pruning quality",
             default=5,
+        )
+        self.parser.add_argument(
+            "--mad",
+            action="store_true",
+            default=False,
+            help="Use MAD (Multi-Agent Debate) framework",
         )
 
     def parse_args(self) -> Args:

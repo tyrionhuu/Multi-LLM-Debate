@@ -33,7 +33,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 def _get_google_access_token_and_url(
-    project_id: str = "multi-llm-debate",
+    project_id: str = "civic-origin-466805-e1",
     location: str = "us-central1",
     endpoint_id: str = "openapi",
 ) -> Tuple[str, str]:
@@ -83,7 +83,7 @@ def call_model(
         Union[str, Path, bytes, List[str], List[Path], List[bytes]]
     ] = None,
     api_key: Optional[str] = None,
-    project_id: Optional[str] = "multi-llm-debate",
+    project_id: Optional[str] = "civic-origin-466805-e1",
     location: str = "us-central1",
     endpoint_id: str = "openapi",
 ) -> str:
@@ -147,7 +147,7 @@ def call_model(
                     )
 
         # Detect Gemini model
-        if "google" in model_name.lower():
+        if "gemini" in model_name.lower():
             if not project_id:
                 raise ValueError("project_id is required for Google models.")
             access_token, gemini_url = _get_google_access_token_and_url(
@@ -296,7 +296,7 @@ async def call_model_async(
         Union[str, Path, bytes, List[str], List[Path], List[bytes]]
     ] = None,
     api_key: Optional[str] = None,
-    project_id: Optional[str] = "multi-llm-debate",
+    project_id: Optional[str] = "civic-origin-466805-e1",
     location: str = "us-central1",
     endpoint_id: str = "openapi",
 ) -> str:
@@ -350,7 +350,7 @@ async def call_model_batch(
         List[Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]]]
     ] = None,
     api_key: Optional[str] = None,
-    project_id: Optional[str] = "multi-llm-debate",
+    project_id: Optional[str] = "civic-origin-466805-e1",
     location: str = "us-central1",
     endpoint_id: str = "openapi",
     batch_size: int = 5,

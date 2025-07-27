@@ -295,7 +295,7 @@ def analyze_distributions_adaptive_stopping(
             print(f"  Total tasks analyzed: {row['total_tasks']}")
 
             # Print chi-square test results
-            print(f"  Chi-square test results:")
+            print("  Chi-square test results:")
             print(f"    Chi-square statistic: {fit_result.get('chi_square_stat')}")
             print(f"    p-value: {fit_result.get('p_value')}")
 
