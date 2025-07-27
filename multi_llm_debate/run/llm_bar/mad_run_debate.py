@@ -12,25 +12,25 @@ logger = logging.getLogger(__name__)
 
 def convert_llm_bar_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Convert LLMBar format to MAD debate format.
-    
+
     LLMBar format: question, response_1, response_2, answer
     MAD format: debate_topic, id
-    
+
     Args:
         dataframe: LLMBar DataFrame with columns [question, response_1, response_2, answer, id]
-        
+
     Returns:
         DataFrame in MAD format with columns [debate_topic, id]
     """
     mad_data = []
-    
+
     for _, row in dataframe.iterrows():
         question = row["question"]
         response_1 = row["response_1"]
         response_2 = row["response_2"]
         answer = row["answer"]
         entry_id = row["id"]
-        
+
         # Create debate topic that includes the question and both responses
         debate_topic = f"""Question: {question}
 
@@ -40,16 +40,18 @@ Response 2: {response_2}
 
 Please debate which response (Response 1 or Response 2) better answers the question. 
 Consider factors such as accuracy, completeness, relevance, and helpfulness."""
-        
-        mad_data.append({
-            "debate_topic": debate_topic,
-            "id": entry_id,
-            "original_question": question,
-            "response_1": response_1,
-            "response_2": response_2,
-            "correct_answer": answer,
-        })
-    
+
+        mad_data.append(
+            {
+                "debate_topic": debate_topic,
+                "id": entry_id,
+                "original_question": question,
+                "response_1": response_1,
+                "response_2": response_2,
+                "correct_answer": answer,
+            }
+        )
+
     return pd.DataFrame(mad_data)
 
 
@@ -104,13 +106,13 @@ def process_llm_bar_mad_dataset(
     missing_columns = [col for col in required_columns if col not in dataframe.columns]
     if missing_columns:
         raise ValueError(f"Missing required columns: {missing_columns}")
-    
+
     # Convert LLMBar format to MAD format
     logger.info("Converting LLMBar format to MAD debate format...")
     mad_dataframe = convert_llm_bar_to_mad_format(dataframe)
-    
+
     logger.info(f"Converted {len(mad_dataframe)} entries to MAD format")
-    
+
     # Run MAD debate workflow
     return run_mad_debate_workflow(
         dataframe=mad_dataframe,
@@ -190,4 +192,4 @@ def run_llm_bar_mad_debate(
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
-    ) 
+    )

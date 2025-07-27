@@ -14,18 +14,18 @@ if __name__ == "__main__":
     logger = setup_logging(__name__, log_level=logging.INFO)
 
     args = Parser(description="Run LLMBar evaluation").parse_args()
-    
+
     # Check if MAD mode is requested
     use_mad = args.mad or args.task_name == "llm_bar_mad"
-    
+
     if args.task_name is None:
         task_name = "llm_bar_mad" if use_mad else "llm_bar"
     else:
         task_name = args.task_name
-    
+
     print(f"Running evaluation for task: {task_name}")
     print(f"Using MAD framework: {use_mad}")
-    
+
     # Load the dataset
     dataframe = load_llm_bar_dataset(sample_size=args.sample_size)
 

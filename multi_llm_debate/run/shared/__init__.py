@@ -1,5 +1,4 @@
 from .evaluate import EvaluationResults
-from .main import main
 from .mad_debate_runner import MADDebateRunner, run_mad_debate_workflow
 from .mad_run import (
     build_mad_prompt_builder,
@@ -7,7 +6,12 @@ from .mad_run import (
     process_mad_dataset,
     run_mad_debate,
 )
-from .run import execute_debate_workflow, process_debate_dataset, process_single_debate_entry
+from .main import main
+from .run import (
+    execute_debate_workflow,
+    process_debate_dataset,
+    process_single_debate_entry,
+)
 from .utils import format_time, model_configs_to_string
 
 __all__ = [

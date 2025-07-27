@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import pandas as pd
 
 from multi_llm_debate.utils.logging_config import setup_logging
+
 from ..shared.utils import Parser
 from .mad_run_debate import run_llm_bar_mad_debate
 from .utils import load_llm_bar_dataset
@@ -54,16 +55,17 @@ def main(
         api_key: API key for the provider
         max_rounds: Maximum number of debate rounds
     """
-    
+
     if not run_debate:
         logger.info("Skipping debate execution as run_debate=False")
         return
-    
+
     # Parse model configurations
     model_configs_list = []
-    
+
     if config_json is not None:
         import json
+
         try:
             model_configs_list = json.loads(config_json)
         except json.JSONDecodeError:
@@ -77,13 +79,16 @@ def main(
 
         # Load configuration from file
         import json
+
         with open(config) as f:
             model_configs_list = json.load(f)
-    
+
     # Run MAD debates for each model configuration
     for i, model_configs in enumerate(model_configs_list):
-        logger.info(f"Running MAD debate with model config {i+1}/{len(model_configs_list)}")
-        
+        logger.info(
+            f"Running MAD debate with model config {i+1}/{len(model_configs_list)}"
+        )
+
         try:
             results = run_llm_bar_mad_debate(
                 dataframe=dataframe,
@@ -103,7 +108,7 @@ def main(
                 api_key=api_key,
                 max_rounds=max_rounds,
             )
-            
+
             # Print execution summary
             print(f"\nMAD Debate Execution Summary for {task_name}:")
             print("-" * 50)
@@ -114,7 +119,7 @@ def main(
             print(f"Number of players: {results['num_players']}")
             print(f"Provider: {results['provider']}")
             print(f"Max rounds: {results['max_rounds']}")
-            
+
         except Exception as e:
             logger.error(f"Error running MAD debate with config {i+1}: {str(e)}")
             raise
@@ -122,14 +127,14 @@ def main(
 
 if __name__ == "__main__":
     args = Parser(description="Run LLMBar MAD evaluation").parse_args()
-    
+
     if args.task_name is None:
         task_name = "llm_bar_mad"
     else:
         task_name = args.task_name
-    
+
     print(f"Running MAD evaluation for task: {task_name}")
-    
+
     # Load the dataset
     dataframe = load_llm_bar_dataset(sample_size=args.sample_size)
 
@@ -149,4 +154,4 @@ if __name__ == "__main__":
         num_players=3,
         provider="ollama",
         max_rounds=3,
-    ) 
+    )

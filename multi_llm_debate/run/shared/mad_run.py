@@ -65,7 +65,7 @@ def process_mad_dataset(
     # For MAD, we'll use the direct workflow instead of the generic process_debate_dataset
     # since MAD has specific requirements that don't fit the generic pattern
     from .mad_debate_runner import run_mad_debate_workflow
-    
+
     return run_mad_debate_workflow(
         dataframe=dataframe,
         base_dir=base_dir,
@@ -170,13 +170,15 @@ class MADPromptBuilder:
         """
         if round_num == 0:
             return self.build_round_zero()
-        
+
         # Build context from previous responses
         context = self._build_context_from_previous_responses(previous_responses)
-        
+
         return f"Debate Topic: {self.debate_topic}\n\nPrevious round responses:\n{context}\n\nPlease provide your response for round {round_num + 1}."
 
-    def _build_context_from_previous_responses(self, previous_responses: List[Dict]) -> str:
+    def _build_context_from_previous_responses(
+        self, previous_responses: List[Dict]
+    ) -> str:
         """Build context string from previous responses.
 
         Args:
@@ -192,7 +194,7 @@ class MADPromptBuilder:
                 agent_name = response.get("agent_name", f"Agent {j + 1}")
                 content = response.get("content", "")
                 context_parts.append(f"  {agent_name}: {content}")
-        
+
         return "\n".join(context_parts)
 
 
@@ -251,4 +253,4 @@ def run_mad_debate(
         provider=provider,
         base_url=base_url,
         api_key=api_key,
-    ) 
+    )

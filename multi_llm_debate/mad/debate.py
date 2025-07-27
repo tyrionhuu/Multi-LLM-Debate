@@ -1,7 +1,7 @@
 import json
 import os
 import random
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 from .agent import Agent
 
@@ -88,7 +88,7 @@ class Debate:
         """Initialize prompts by replacing placeholders with actual content."""
         if not self.config:
             return
-            
+
         def prompt_replace(key):
             if key in self.config and "##debate_topic##" in self.config[key]:
                 self.config[key] = self.config[key].replace(
@@ -130,7 +130,7 @@ class Debate:
 
         # start: first round debate, state opinions
         print("===== Debate Round-1 =====\n")
-        
+
         if "affirmative_prompt" in self.config:
             self.affirmative.add_event(self.config["affirmative_prompt"])
             self.aff_ans = self.affirmative.ask()
@@ -138,18 +138,28 @@ class Debate:
             self.config["base_answer"] = self.aff_ans
 
         # Convert JSON response to string for prompt replacement
-        aff_ans_str = str(self.aff_ans) if isinstance(self.aff_ans, (dict, list)) else self.aff_ans
+        aff_ans_str = (
+            str(self.aff_ans)
+            if isinstance(self.aff_ans, (dict, list))
+            else self.aff_ans
+        )
 
         if "negative_prompt" in self.config:
-            neg_prompt = self.config["negative_prompt"].replace("##aff_ans##", aff_ans_str)
+            neg_prompt = self.config["negative_prompt"].replace(
+                "##aff_ans##", aff_ans_str
+            )
             self.negative.add_event(neg_prompt)
             self.neg_ans = self.negative.ask()
             self.negative.add_memory(self.neg_ans)
 
         if "moderator_prompt" in self.config:
             # Convert responses to strings for prompt replacement
-            neg_ans_str = str(self.neg_ans) if isinstance(self.neg_ans, (dict, list)) else self.neg_ans
-            
+            neg_ans_str = (
+                str(self.neg_ans)
+                if isinstance(self.neg_ans, (dict, list))
+                else self.neg_ans
+            )
+
             mod_prompt = (
                 self.config["moderator_prompt"]
                 .replace("##aff_ans##", aff_ans_str)
@@ -164,7 +174,10 @@ class Debate:
                 if isinstance(self.mod_ans, str):
                     self.mod_ans = eval(self.mod_ans)
             except (ValueError, SyntaxError, NameError):
-                self.mod_ans = {"debate_answer": "", "Whether there is a preference": "No"}
+                self.mod_ans = {
+                    "debate_answer": "",
+                    "Whether there is a preference": "No",
+                }
 
     def round_dct(self, num: int):
         """Convert round number to text representation."""
@@ -228,20 +241,27 @@ class Debate:
     def run(self):
         """Run the complete debate process."""
         for round in range(self.max_round - 1):
-            if isinstance(self.mod_ans, dict) and self.mod_ans.get("debate_answer", "") != "":
+            if (
+                isinstance(self.mod_ans, dict)
+                and self.mod_ans.get("debate_answer", "") != ""
+            ):
                 break
             else:
                 print(f"===== Debate Round-{round+2} =====\n")
-                
+
                 if "debate_prompt" in self.config:
                     self.affirmative.add_event(
-                        self.config["debate_prompt"].replace("##oppo_ans##", self.neg_ans)
+                        self.config["debate_prompt"].replace(
+                            "##oppo_ans##", self.neg_ans
+                        )
                     )
                     self.aff_ans = self.affirmative.ask()
                     self.affirmative.add_memory(self.aff_ans)
 
                     self.negative.add_event(
-                        self.config["debate_prompt"].replace("##oppo_ans##", self.aff_ans)
+                        self.config["debate_prompt"].replace(
+                            "##oppo_ans##", self.aff_ans
+                        )
                     )
                     self.neg_ans = self.negative.ask()
                     self.negative.add_memory(self.neg_ans)
@@ -259,9 +279,15 @@ class Debate:
                     try:
                         self.mod_ans = eval(self.mod_ans)
                     except (ValueError, SyntaxError, NameError):
-                        self.mod_ans = {"debate_answer": "", "Whether there is a preference": "No"}
+                        self.mod_ans = {
+                            "debate_answer": "",
+                            "Whether there is a preference": "No",
+                        }
 
-        if isinstance(self.mod_ans, dict) and self.mod_ans.get("debate_answer", "") != "":
+        if (
+            isinstance(self.mod_ans, dict)
+            and self.mod_ans.get("debate_answer", "") != ""
+        ):
             self.config.update(self.mod_ans)
             self.config["success"] = True
 
@@ -276,12 +302,12 @@ class Debate:
                 base_url=self.base_url,
                 api_key=self.api_key,
             )
-            
+
             if len(self.affirmative.memory_lst) > 2:
                 aff_ans = self.affirmative.memory_lst[2]["content"]
             else:
                 aff_ans = ""
-                
+
             if len(self.negative.memory_lst) > 2:
                 neg_ans = self.negative.memory_lst[2]["content"]
             else:
@@ -311,7 +337,7 @@ class Debate:
                     ans = eval(ans)
                 except (ValueError, SyntaxError, NameError):
                     ans = {"debate_answer": "", "Reason": ""}
-                    
+
                 if ans.get("debate_answer", "") != "":
                     self.config["success"] = True
                 self.config.update(ans)
@@ -337,16 +363,16 @@ if __name__ == "__main__":
         else:
             # Use default prompts from prompts.py
             from .prompts import (
-                PLAYER_META_PROMPT,
-                MODERATOR_META_PROMPT,
                 AFFIRMATIVE_PROMPT,
-                NEGATIVE_PROMPT,
-                MODERATOR_PROMPT,
+                DEBATE_PROMPT,
                 JUDGE_PROMPT_1,
                 JUDGE_PROMPT_2,
-                DEBATE_PROMPT,
+                MODERATOR_META_PROMPT,
+                MODERATOR_PROMPT,
+                NEGATIVE_PROMPT,
+                PLAYER_META_PROMPT,
             )
-            
+
             config = {
                 "debate_topic": debate_topic,
                 "player_meta_prompt": PLAYER_META_PROMPT,
@@ -358,14 +384,10 @@ if __name__ == "__main__":
                 "judge_prompt_last2": JUDGE_PROMPT_2,
                 "debate_prompt": DEBATE_PROMPT,
             }
-        
+
         config["debate_topic"] = debate_topic
 
         debate = Debate(
-            num_players=3, 
-            provider="ollama", 
-            config=config, 
-            temperature=0, 
-            sleep_time=0
+            num_players=3, provider="ollama", config=config, temperature=0, sleep_time=0
         )
         debate.run()

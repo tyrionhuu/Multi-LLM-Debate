@@ -73,16 +73,18 @@ class MADDebateRunner:
             Dict containing debate results
         """
         logger.info(f"Running MAD debate for topic: {debate_topic[:100]}...")
-        
+
         # Create output directory
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Prepare MAD configuration
         mad_config = self._prepare_mad_config(debate_topic)
-        
+
         # Get model name from configs (use first one for simplicity)
-        model_name = self.model_configs[0]["name"] if self.model_configs else "gpt-3.5-turbo"
-        
+        model_name = (
+            self.model_configs[0]["name"] if self.model_configs else "gpt-3.5-turbo"
+        )
+
         try:
             # Create and run MAD debate
             debate = Debate(
@@ -95,18 +97,18 @@ class MADDebateRunner:
                 base_url=self.base_url,
                 api_key=self.api_key,
             )
-            
+
             # Run the debate
             debate_results = debate.run()
-            
+
             # Save results
             results = self._save_debate_results(
                 debate_results, output_dir, entry_id, debate_topic
             )
-            
+
             logger.info(f"MAD debate completed for entry {entry_id}")
             return results
-            
+
         except Exception as e:
             logger.error(f"Error running MAD debate for entry {entry_id}: {str(e)}")
             raise
@@ -122,8 +124,12 @@ class MADDebateRunner:
         """
         return {
             "debate_topic": debate_topic,
-            "player_meta_prompt": PLAYER_META_PROMPT.replace("##debate_topic##", debate_topic),
-            "moderator_meta_prompt": MODERATOR_META_PROMPT.replace("##debate_topic##", debate_topic),
+            "player_meta_prompt": PLAYER_META_PROMPT.replace(
+                "##debate_topic##", debate_topic
+            ),
+            "moderator_meta_prompt": MODERATOR_META_PROMPT.replace(
+                "##debate_topic##", debate_topic
+            ),
             "affirmative_prompt": AFFIRMATIVE_PROMPT,
             "negative_prompt": NEGATIVE_PROMPT,
             "moderator_prompt": MODERATOR_PROMPT,
@@ -160,21 +166,21 @@ class MADDebateRunner:
             "debate_results": debate_results,
             "timestamp": datetime.now().isoformat(),
         }
-        
+
         # Save results to JSON file
         results_file = output_dir / f"{entry_id}_results.json"
         with open(results_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
-        
+
         # Extract final answer if available
         final_answer = self._extract_final_answer(debate_results)
         results["final_answer"] = final_answer
-        
+
         # Save final answer separately
         answer_file = output_dir / f"{entry_id}_answer.txt"
         with open(answer_file, "w") as f:
             f.write(str(final_answer))
-        
+
         return results
 
     def _extract_final_answer(self, debate_results: Any) -> str:
@@ -193,7 +199,7 @@ class MADDebateRunner:
                 if isinstance(decision, dict) and "debate_answer" in decision:
                     return decision["debate_answer"]
                 return str(decision)
-            
+
             # Try to extract from the last round
             if hasattr(debate_results, "rounds") and debate_results.rounds:
                 last_round = debate_results.rounds[-1]
@@ -207,10 +213,10 @@ class MADDebateRunner:
                         except json.JSONDecodeError:
                             pass
                     return str(response)
-            
+
             # Fallback to string representation
             return str(debate_results)
-            
+
         except Exception as e:
             logger.warning(f"Could not extract final answer: {str(e)}")
             return str(debate_results)
@@ -262,11 +268,11 @@ def run_mad_debate_workflow(
     missing_columns = [col for col in required_columns if col not in dataframe.columns]
     if missing_columns:
         raise ValueError(f"Missing required columns: {missing_columns}")
-    
+
     # Use default model configs if none provided
     if model_configs is None:
         model_configs = [{"name": "gpt-3.5-turbo", "quantity": 1, "provider": "ollama"}]
-    
+
     # Create MAD debate runner
     runner = MADDebateRunner(
         model_configs=model_configs,
@@ -278,48 +284,52 @@ def run_mad_debate_workflow(
         api_key=api_key,
         max_rounds=max_rounds,
     )
-    
+
     # Process entries
     total_entries = len(dataframe)
     processed_count = 0
     failed_entries = []
-    
+
     logger.info(f"Starting MAD debate workflow with {total_entries} entries")
-    
+
     for idx, row in dataframe.iterrows():
         entry_id = str(row["id"])
         debate_topic = row["debate_topic"]
-        
+
         # Create output directory for this entry
         entry_output_dir = base_dir / entry_id
-        
+
         try:
             logger.info(f"Processing entry {entry_id} ({int(idx) + 1}/{total_entries})")
-            
+
             # Run debate for this entry
             runner.run_debate(
                 debate_topic=str(debate_topic),
                 output_dir=entry_output_dir,
                 entry_id=entry_id,
             )
-            
+
             processed_count += 1
             logger.info(f"Successfully processed entry {entry_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to process entry {entry_id}: {str(e)}")
-            failed_entries.append({
-                "entry_id": entry_id,
-                "error": str(e),
-                "index": idx,
-            })
-    
+            failed_entries.append(
+                {
+                    "entry_id": entry_id,
+                    "error": str(e),
+                    "index": idx,
+                }
+            )
+
     # Prepare execution report
     execution_report = {
         "total_entries": total_entries,
         "processed_count": processed_count,
         "failed_entries": failed_entries,
-        "success_rate": (processed_count / total_entries * 100) if total_entries > 0 else 0,
+        "success_rate": (
+            (processed_count / total_entries * 100) if total_entries > 0 else 0
+        ),
         "model_configs": model_configs,
         "temperature": temperature,
         "max_tokens": max_tokens,
@@ -327,7 +337,9 @@ def run_mad_debate_workflow(
         "provider": provider,
         "max_rounds": max_rounds,
     }
-    
-    logger.info(f"MAD debate workflow completed. Success rate: {execution_report['success_rate']:.2f}%")
-    
-    return execution_report 
+
+    logger.info(
+        f"MAD debate workflow completed. Success rate: {execution_report['success_rate']:.2f}%"
+    )
+
+    return execution_report
