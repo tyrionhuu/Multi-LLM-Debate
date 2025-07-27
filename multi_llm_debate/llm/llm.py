@@ -6,7 +6,7 @@ import os
 import random
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import google.auth
 import google.auth.transport.requests
@@ -79,7 +79,9 @@ def call_model(
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,
+    images: Optional[
+        Union[str, Path, bytes, List[str], List[Path], List[bytes]]
+    ] = None,
     api_key: Optional[str] = None,
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",
@@ -127,8 +129,10 @@ def call_model(
             elif isinstance(images, list):
                 images_list = images  # type: ignore
             else:
-                raise ValueError("Images must be a string, Path, bytes, or list of these types.")
-            
+                raise ValueError(
+                    "Images must be a string, Path, bytes, or list of these types."
+                )
+
             for img in images_list:
                 if isinstance(img, (str, Path)):
                     img_path = Path(img)
@@ -288,7 +292,9 @@ async def call_model_async(
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,
+    images: Optional[
+        Union[str, Path, bytes, List[str], List[Path], List[bytes]]
+    ] = None,
     api_key: Optional[str] = None,
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",

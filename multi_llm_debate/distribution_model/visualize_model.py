@@ -56,7 +56,8 @@ def plot_mixture_model(
     y_comp1_smooth = [beta_binomial_pmf(s, k, alpha1, beta1) for s in x_smooth]
     y_comp2_smooth = [beta_binomial_pmf(s, k, alpha2, beta2) for s in x_smooth]
     y_mixture_smooth = [
-        w * y_comp1_smooth[i] + (1 - w) * y_comp2_smooth[i] for i in range(len(x_smooth))
+        w * y_comp1_smooth[i] + (1 - w) * y_comp2_smooth[i]
+        for i in range(len(x_smooth))
     ]
 
     # Calculate discrete points for markers
