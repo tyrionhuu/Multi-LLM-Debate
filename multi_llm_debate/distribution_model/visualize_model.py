@@ -45,30 +45,51 @@ def plot_mixture_model(
     alpha2 = params["alpha2"]
     beta2 = params["beta2"]
 
-    # Generate points for plotting
-    x = np.arange(k + 1)
+    # Generate high-resolution points for smooth curve plotting
+    # Use 10 points between each integer for a smooth curve
+    x_smooth = np.linspace(0, k, 10 * (k + 1) - 9)
+
+    # For the discrete data points (markers and observed data)
+    x_discrete = np.arange(k + 1)
 
     # Calculate PMF values for each component and the mixture
-    y_comp1 = [beta_binomial_pmf(s, k, alpha1, beta1) for s in x]
-    y_comp2 = [beta_binomial_pmf(s, k, alpha2, beta2) for s in x]
-    y_mixture = [w * y_comp1[i] + (1 - w) * y_comp2[i] for i in range(len(x))]
+    y_comp1_smooth = [beta_binomial_pmf(s, k, alpha1, beta1) for s in x_smooth]
+    y_comp2_smooth = [beta_binomial_pmf(s, k, alpha2, beta2) for s in x_smooth]
+    y_mixture_smooth = [
+        w * y_comp1_smooth[i] + (1 - w) * y_comp2_smooth[i] for i in range(len(x_smooth))
+    ]
 
-    # Plot the mixture model
+    # Calculate discrete points for markers
+    y_comp1_discrete = [beta_binomial_pmf(s, k, alpha1, beta1) for s in x_discrete]
+    y_comp2_discrete = [beta_binomial_pmf(s, k, alpha2, beta2) for s in x_discrete]
+    y_mixture_discrete = [
+        w * y_comp1_discrete[i] + (1 - w) * y_comp2_discrete[i]
+        for i in range(len(x_discrete))
+    ]
+
+    # Plot the mixture model as a smooth curve with markers at discrete points
     ax.plot(
-        x,
-        y_mixture,
-        marker="o",
+        x_smooth,
+        y_mixture_smooth,
         linestyle="-",
         color=color,
         alpha=alpha,
         label="Combined Mixture Model",
         linewidth=5,
     )
+    ax.plot(
+        x_discrete,
+        y_mixture_discrete,
+        marker="o",
+        linestyle="",
+        color=color,
+        alpha=alpha,
+    )
 
     # Plot the individual components
     ax.plot(
-        x,
-        [w * y for y in y_comp1],
+        x_smooth,
+        [w * y for y in y_comp1_smooth],
         linestyle="--",
         color=color,
         alpha=alpha * 0.7,
@@ -76,8 +97,8 @@ def plot_mixture_model(
         label=f"Component 1 (weight={w:.2f})",
     )
     ax.plot(
-        x,
-        [(1 - w) * y for y in y_comp2],
+        x_smooth,
+        [(1 - w) * y for y in y_comp2_smooth],
         linestyle=":",
         color=color,
         alpha=alpha * 0.7,

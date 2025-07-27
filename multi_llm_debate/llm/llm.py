@@ -6,7 +6,7 @@ import os
 import random
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Sequence
 
 import google.auth
 import google.auth.transport.requests
@@ -73,13 +73,13 @@ def _is_bytes_like(obj: Any) -> bool:
 
 def call_model(
     model_name: str = "gpt-4",
-    base_url: str = None,
+    base_url: str = "",
     prompt: str = "",
     temperature: float = 1.0,
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Union[str, Path, List[str], List[Path], bytes, List[bytes], None] = None,
+    images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,
     api_key: Optional[str] = None,
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",
@@ -97,7 +97,7 @@ def call_model(
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request. Defaults to 30.
-        images (Union[str, Path, List[str], List[Path], bytes, List[bytes], None]):
+        images (Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]]):
             Image file paths or raw image bytes when using vision models.
         api_key (Optional[str]): The API key to use. Defaults to the one from config.
         project_id (Optional[str]): GCP project ID for Gemini.
@@ -121,9 +121,15 @@ def call_model(
         # Process images if provided
         processed_images: List[Union[str, bytes]] = []
         if images is not None:
-            if not isinstance(images, list):
-                images = [images]
-            for img in images:
+            # Normalize images to a list, handling all allowed types
+            if isinstance(images, (str, Path, bytes)):
+                images_list: List[Union[str, Path, bytes]] = [images]
+            elif isinstance(images, list):
+                images_list = images  # type: ignore
+            else:
+                raise ValueError("Images must be a string, Path, bytes, or list of these types.")
+            
+            for img in images_list:
                 if isinstance(img, (str, Path)):
                     img_path = Path(img)
                     if not img_path.exists():
@@ -161,10 +167,10 @@ def call_model(
 
         response = client.chat.completions.create(
             model=model_name,
-            messages=messages,
+            messages=messages,  # type: ignore
             max_tokens=max_tokens,
             temperature=temperature,
-            response_format={"type": "json_object"} if json_mode else None,
+            response_format={"type": "json_object"} if json_mode else None,  # type: ignore
             seed=random.randint(0, 2**10 - 1),
         )
         logger.debug(f"API response: {response}")
@@ -172,14 +178,14 @@ def call_model(
 
         if json_mode:
             try:
-                return json.dumps(json.loads(response_str))
+                return json.dumps(json.loads(response_str or ""))
             except json.JSONDecodeError:
                 logger.warning("API returned invalid JSON despite json_mode=True")
-                return response_str
+                return response_str or ""
 
         elapsed = time.time() - start_time
         logger.info(f"Call to {model_name} completed in {elapsed:.2f}s")
-        return response_str
+        return response_str or ""
 
     except RateLimitError as e:
         logger.error(f"Rate limit error calling {model_name}: {str(e)}", exc_info=False)
@@ -204,14 +210,14 @@ def call_model(
 
 def generate_api_messages(
     prompt: str,
-    images: Optional[List[Union[str, Path, bytes]]] = None,
+    images: Optional[Sequence[Union[str, bytes]]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Prepares the messages payload for the API call with optional images and a prompt.
 
     Args:
         prompt (str): The text prompt for the model.
-        images (Optional[List[Union[str, Path, bytes]]]): List of image file paths
+        images (Optional[Sequence[Union[str, bytes]]]): List of image file paths
             or raw image bytes. If None, returns text-only message format.
 
     Returns:
@@ -223,9 +229,9 @@ def generate_api_messages(
     if len(images) == 1:
         img = images[0]
         if _is_bytes_like(img):
-            base64_image = base64.b64encode(img).decode("utf-8")
+            base64_image = base64.b64encode(img).decode("utf-8")  # type: ignore
         else:
-            base64_image = encode_image(img)
+            base64_image = encode_image(str(img))
 
         messages = [
             {
@@ -246,11 +252,11 @@ def generate_api_messages(
         base64_images = []
         for img in images:
             if _is_bytes_like(img):
-                base64_images.append(base64.b64encode(img).decode("utf-8"))
+                base64_images.append(base64.b64encode(img).decode("utf-8"))  # type: ignore
             else:
-                base64_images.append(encode_image(img))
+                base64_images.append(encode_image(str(img)))
 
-        content = [
+        content: List[Dict[str, Any]] = [
             {
                 "type": "text",
                 "text": prompt,
@@ -276,13 +282,13 @@ def generate_api_messages(
 
 async def call_model_async(
     model_name: str = "gpt-4",
-    base_url: str = None,
+    base_url: Optional[str] = None,
     prompt: str = "",
     temperature: float = 1.0,
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Union[str, Path, List[str], List[Path], bytes, List[bytes], None] = None,
+    images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,
     api_key: Optional[str] = None,
     project_id: Optional[str] = "multi-llm-debate",
     location: str = "us-central1",
@@ -298,7 +304,7 @@ async def call_model_async(
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request.
-        images (Union[str, Path, List[str], List[Path], bytes, List[bytes], None]):
+        images (Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]]):
             Image file paths or raw image bytes when using vision models.
         api_key (Optional[str]): The API key to use.
         project_id (Optional[str]): GCP project ID for Gemini.
@@ -312,7 +318,7 @@ async def call_model_async(
     return await asyncio.to_thread(
         call_model,
         model_name=model_name,
-        base_url=base_url,
+        base_url=base_url or "",
         prompt=prompt,
         temperature=temperature,
         max_tokens=max_tokens,
@@ -328,14 +334,14 @@ async def call_model_async(
 
 async def call_model_batch(
     model_name: str = "gpt-4",
-    base_url: str = None,
-    prompts: List[str] = None,
+    base_url: Optional[str] = None,
+    prompts: Optional[List[str]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     json_mode: bool = False,
     timeout: Optional[int] = 30,
-    images: Union[
-        List[Union[str, Path, List[str], List[Path], bytes, List[bytes], None]], None
+    images: Optional[
+        List[Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]]]
     ] = None,
     api_key: Optional[str] = None,
     project_id: Optional[str] = "multi-llm-debate",
@@ -348,12 +354,12 @@ async def call_model_batch(
     Args:
         model_name (str): The name of the model to use.
         base_url (Optional[str]): The base URL for the API.
-        prompts (List[str]): List of text prompts for the model.
+        prompts (Optional[List[str]]): List of text prompts for the model.
         temperature (float): Sampling temperature for the model.
         max_tokens (int): Maximum number of tokens in the response.
         json_mode (bool): Whether the response should be in JSON format.
         timeout (Optional[int]): Timeout in seconds for the request.
-        images (List[Union[str, Path, List[str], List[Path], bytes, List[bytes], None]], optional):
+        images (Optional[List[Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]]]], optional):
             List of image file paths, raw image bytes, or lists of paths/bytes when using vision models.
             Should match the length of prompts or be None.
         api_key (Optional[str]): The API key to use.
@@ -380,7 +386,7 @@ async def call_model_batch(
             )
     else:
         # Set to None for each prompt when not provided
-        images = [None] * len(prompts)
+        images = [None] * len(prompts)  # type: ignore
 
     logger.info(f"Processing batch of {len(prompts)} prompts with model {model_name}")
     start_time = time.time()
@@ -390,7 +396,7 @@ async def call_model_batch(
     for i in range(0, len(prompts), batch_size):
         batch_end = min(i + batch_size, len(prompts))
         batch_prompts = prompts[i:batch_end]
-        batch_images = images[i:batch_end]
+        batch_images = images[i:batch_end]  # type: ignore
 
         logger.info(f"Processing batch {i//batch_size + 1}: {i} to {batch_end-1}")
 
