@@ -1,6 +1,6 @@
 import json
 import time
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import backoff
 
@@ -15,6 +15,8 @@ class Agent:
         temperature: float,
         provider: str = "ollama",
         sleep_time: float = 0,
+        base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
     ) -> None:
         """Create an agent
 
@@ -23,8 +25,10 @@ class Agent:
             name (str): name of this agent
             temperature (float): higher values make the output more random, while
                 lower values make it more focused and deterministic
-            provider (str): name of the model provider (e.g., 'OpenAI', 'Anthropic')
+            provider (str): name of the model provider (e.g., 'ollama', 'openai')
             sleep_time (float): sleep because of rate limits
+            base_url (Optional[str]): Base URL for the API calls
+            api_key (Optional[str]): API key for the agent
         """
         self.model_name = model_name
         self.name = name
@@ -32,8 +36,10 @@ class Agent:
         self.provider = provider.lower()
         self.memory_lst = []
         self.sleep_time = sleep_time
+        self.base_url = base_url
+        self.api_key = api_key
 
-    @backoff.on_exception(backoff.expo, ConnectionError, max_tries=20)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=20)
     def query(
         self,
         messages: List[Dict[str, str]],
@@ -50,8 +56,7 @@ class Agent:
             json_mode (bool): Whether to expect JSON response.
 
         Raises:
-            ConnectionError: If there is a connection error with the LLM service.
-            Exception: For other exceptions raised by the model call.
+            Exception: For any exceptions raised by the model call.
 
         Returns:
             str: The response from the model.
@@ -60,18 +65,23 @@ class Agent:
 
         try:
             temp = temperature if temperature is not None else self.temperature
+            
+            # Convert messages to a single prompt string for the call_model function
+            prompt = self._messages_to_prompt(messages)
+            
             response = call_model(
                 model_name=self.model_name,
-                provider=self.provider,
-                prompt=messages,
+                base_url=self.base_url or "",
+                prompt=prompt,
                 json_mode=json_mode,
                 temperature=temp,
                 max_tokens=max_tokens,
+                api_key=self.api_key,
             )
 
             # Handle different response formats
             if isinstance(response, dict) and "content" in response:
-                return response["content"]
+                return response["content"]  # type: ignore
             else:
                 try:
                     parsed_response = json.loads(response)
@@ -79,12 +89,31 @@ class Agent:
                 except json.JSONDecodeError:
                     return response
 
-        except ConnectionError as e:
-            raise ConnectionError(
-                f"Failed to connect to {self.provider} service: {str(e)}"
-            )
         except Exception as e:
-            raise e
+            raise Exception(f"Failed to query {self.provider} service: {str(e)}")
+
+    def _messages_to_prompt(self, messages: List[Dict[str, Any]]) -> str:
+        """Convert a list of messages to a single prompt string.
+        
+        Args:
+            messages (List[Dict[str, str]]): List of message dictionaries
+            
+        Returns:
+            str: Combined prompt string
+        """
+        prompt_parts = []
+        for message in messages:
+            role = message.get("role", "")  # type: ignore
+            content = message.get("content", "")  # type: ignore
+            
+            if role == "system":
+                prompt_parts.append(f"System: {content}")
+            elif role == "user":
+                prompt_parts.append(f"User: {content}")
+            elif role == "assistant":
+                prompt_parts.append(f"Assistant: {content}")
+        
+        return "\n\n".join(prompt_parts)
 
     def set_meta_prompt(self, meta_prompt: str) -> None:
         """Set the meta_prompt
