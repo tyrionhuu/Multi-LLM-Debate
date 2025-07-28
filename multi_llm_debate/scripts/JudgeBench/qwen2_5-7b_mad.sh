@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="Qwen/Qwen2.5-7B-Instruct"
+MODEL_NAME="/data/share_weight/Qwen2.5-7B-Instruct"
 MODEL_QUANTITY=3
 PORT=8000
 GPU="0"  # Change this to your GPU ID(s), e.g., "0" for single GPU or "0,1" for 2 GPUs
