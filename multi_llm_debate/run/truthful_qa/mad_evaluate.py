@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
+from ..shared.utils import model_configs_to_string
+
 logger = logging.getLogger(__name__)
 
 
@@ -145,6 +147,13 @@ def evaluate_truthful_qa_mad_results(
         "model_configs": model_configs,
     }
 
+    # Find the model-specific subdirectory
+    model_config_str = model_configs_to_string(model_configs) if model_configs else "unknown"
+    model_dir_name = model_config_str.replace(" ", "_").replace(".", "_").replace("/", "_")
+    model_results_dir = base_dir / model_dir_name
+    
+    logger.info(f"Looking for MAD results in: {model_results_dir}")
+    
     for _, row in original_dataframe.iterrows():
         entry_id = str(row["id"])
 
@@ -156,9 +165,9 @@ def evaluate_truthful_qa_mad_results(
             logger.warning(f"No _correct_is_1 flag for entry {entry_id}")
             continue
 
-        # Look for MAD results file
-        results_file = base_dir / entry_id / f"{entry_id}_results.json"
-        answer_file = base_dir / entry_id / f"{entry_id}_answer.txt"
+        # Look for MAD results file in the model-specific directory
+        results_file = model_results_dir / entry_id / f"{entry_id}_results.json"
+        answer_file = model_results_dir / entry_id / f"{entry_id}_answer.txt"
 
         if results_file.exists():
             mad_answer = extract_mad_answer_from_results(results_file)

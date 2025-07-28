@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import csv
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -15,10 +17,102 @@ from ...mad.prompts import (
     NEGATIVE_PROMPT,
     PLAYER_META_PROMPT,
 )
-from ...utils.model_config import ModelConfig
 from ..shared.utils import format_time, model_configs_to_string
 
 logger = logging.getLogger(__name__)
+
+
+def save_mad_results_to_csv(
+    evaluation_results: Dict[str, Any],
+    task_name: str,
+    model_configs: List[Dict[str, Any]],
+    report_path: Path,
+    running_time: float,
+) -> None:
+    """Save MAD evaluation results to CSV file.
+    
+    Args:
+        evaluation_results: Results from MAD evaluation
+        task_name: Name of the task
+        model_configs: Model configurations used
+        report_path: Path to save the CSV file
+        running_time: Total running time in seconds
+    """
+    csv_path = report_path / "results.csv"
+    logger.info(f"Saving MAD results to {csv_path}")
+    
+    # Calculate error margin (using standard error for now)
+    accuracy = evaluation_results.get("accuracy", 0.0)
+    total_entries = evaluation_results.get("total_entries", 0)
+    processed_entries = evaluation_results.get("processed_entries", 0)
+    
+    # Calculate standard error of proportion
+    if processed_entries > 0:
+        # Standard error = sqrt(p * (1-p) / n)
+        error_margin = ((accuracy * (1 - accuracy)) / processed_entries) ** 0.5
+    else:
+        error_margin = 0.0
+    
+    # Format running time
+    display_time, csv_time = format_time(running_time)
+    
+    # Create model configuration string
+    current_config = model_configs_to_string(model_configs)
+    
+    # Create new row for MAD results
+    new_row = [
+        current_config,
+        task_name,
+        f"{accuracy:.4f}",
+        f"{error_margin:.4f}",
+        csv_time,
+    ]
+    
+    # Read existing data if file exists
+    existing_data = []
+    if csv_path.exists():
+        try:
+            with open(csv_path, "r", newline="") as f:
+                reader = csv.reader(f)
+                existing_data = list(reader)
+        except Exception as e:
+            logger.error(f"Error reading existing CSV: {str(e)}")
+            existing_data = []
+    
+    # Create header if file doesn't exist
+    if not existing_data:
+        existing_data = [
+            [
+                "Model Configuration",
+                "Task Name",
+                "MAD Accuracy",
+                "MAD Error Margin",
+                "Running Time",
+            ]
+        ]
+    
+    # Update existing entry or append new one
+    found = False
+    for i, row in enumerate(existing_data[1:], 1):
+        if row and row[0] == current_config and row[1] == task_name:
+            existing_data[i] = new_row
+            found = True
+            break
+    if not found:
+        existing_data.append(new_row)
+    
+    # Create directory if it doesn't exist
+    report_path.mkdir(parents=True, exist_ok=True)
+    
+    # Write all data back to CSV
+    try:
+        with open(csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerows(existing_data)
+        print(f"\nMAD results saved to {csv_path}")
+    except Exception as e:
+        logger.error(f"Error writing MAD results to CSV: {str(e)}")
+        print(f"\nFailed to save MAD results: {str(e)}")
 
 
 class MADDebateRunner:
@@ -26,7 +120,7 @@ class MADDebateRunner:
 
     def __init__(
         self,
-        model_configs: List[ModelConfig],
+        model_configs: List[Dict[str, Any]],
         temperature: float = 1.0,
         max_tokens: int = 6400,
         num_players: int = 3,
@@ -225,7 +319,7 @@ class MADDebateRunner:
 def run_mad_debate_workflow(
     dataframe: pd.DataFrame,
     base_dir: Path = Path("data") / "mad",
-    model_configs: Optional[List[ModelConfig]] = None,
+    model_configs: Optional[List[Dict[str, Any]]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
@@ -277,6 +371,14 @@ def run_mad_debate_workflow(
     if provider == "ollama" and model_configs:
         provider = model_configs[0].get("provider", "ollama")
 
+    # Create model configuration directory name
+    model_config_str = model_configs_to_string(model_configs)
+    model_dir_name = model_config_str.replace(" ", "_").replace(".", "_").replace("/", "_")
+    model_output_dir = base_dir / model_dir_name
+    
+    logger.info(f"Creating MAD debate directory: {model_output_dir}")
+    model_output_dir.mkdir(parents=True, exist_ok=True)
+
     # Create MAD debate runner
     runner = MADDebateRunner(
         model_configs=model_configs,
@@ -300,20 +402,20 @@ def run_mad_debate_workflow(
         entry_id = str(row["id"])
         debate_topic = row["debate_topic"]
 
-        # Create output directory for this entry
-        entry_output_dir = base_dir / entry_id
+        # Create output directory for this entry within the model-specific directory
+        entry_output_dir = model_output_dir / entry_id
         results_file = entry_output_dir / f"{entry_id}_results.json"
 
         # Check if results already exist
         if results_file.exists():
             logger.info(
-                f"Skipping entry {entry_id} ({int(idx) + 1}/{total_entries}) - results already exist"
+                f"Skipping entry {entry_id} ({processed_count + 1}/{total_entries}) - results already exist"
             )
             processed_count += 1
             continue
 
         try:
-            logger.info(f"Processing entry {entry_id} ({int(idx) + 1}/{total_entries})")
+            logger.info(f"Processing entry {entry_id} ({processed_count + 1}/{total_entries})")
 
             # Run debate for this entry
             runner.run_debate(

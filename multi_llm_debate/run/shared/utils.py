@@ -291,14 +291,27 @@ def model_configs_to_string(model_configs: List[Dict]) -> str:
         >>> model_configs_to_string(configs)
         'llama2(3)+llama3(3)'
     """
+    # Handle missing quantity field by defaulting to 1
+    def get_quantity(config):
+        return config.get("quantity", 1)
+    
+    # Handle different configuration formats
+    def get_model_info(config):
+        name = config.get("name", "unknown")
+        quantity = get_quantity(config)
+        provider = config.get("provider", "")
+        
+        # For vLLM configs, include provider info
+        if provider == "vllm":
+            return f"{model_path_to_model_name(name)}_vllm({quantity})"
+        else:
+            return f"{model_path_to_model_name(name)}({quantity})"
+    
     sorted_configs = sorted(
         model_configs,
-        key=lambda x: (model_path_to_model_name(x["name"]), x["quantity"]),
+        key=lambda x: (model_path_to_model_name(x["name"]), get_quantity(x)),
     )
-    formatted_configs = [
-        f"{model_path_to_model_name(config['name'])}({config['quantity']})"
-        for config in sorted_configs
-    ]
+    formatted_configs = [get_model_info(config) for config in sorted_configs]
     return "+".join(formatted_configs)
 
 

@@ -1,4 +1,5 @@
 import logging
+import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -7,6 +8,7 @@ import pandas as pd
 from multi_llm_debate.utils.logging_config import setup_logging
 
 from ..shared.utils import Parser
+from ..shared.mad_debate_runner import save_mad_results_to_csv
 from .mad_evaluate import evaluate_all_truthful_qa_mad
 from .mad_run_debate import run_truthful_qa_mad_debate
 from .utils import load_truthful_qa_dataset
@@ -137,6 +139,16 @@ def main(
                     base_dir=Path(f"data/{task_name}"),
                     original_dataframe=dataframe,
                     model_configs=model_configs,
+                )
+                
+                # Save results to CSV
+                # Use a reasonable default running time since we don't track it precisely
+                save_mad_results_to_csv(
+                    evaluation_results=evaluation_results,
+                    task_name=task_name,
+                    model_configs=model_configs,
+                    report_path=Path(f"data/{task_name}"),
+                    running_time=0.0,  # We'll calculate this properly later
                 )
             else:
                 print(f"\nSkipping evaluation as run_evaluation=False")

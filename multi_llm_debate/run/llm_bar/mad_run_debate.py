@@ -4,7 +4,6 @@ from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
 
-from ...utils.model_config import ModelConfig
 from ..shared.mad_debate_runner import run_mad_debate_workflow
 
 logger = logging.getLogger(__name__)
@@ -59,7 +58,7 @@ def process_llm_bar_mad_dataset(
     dataframe: pd.DataFrame,
     max_rounds: int = 3,
     base_dir: Path = Path("data") / "llm_bar_mad",
-    model_configs: Optional[List[ModelConfig]] = None,
+    model_configs: Optional[List[Dict[str, Any]]] = None,
     overwrite: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -137,7 +136,7 @@ def process_llm_bar_mad_dataset(
 def run_llm_bar_mad_debate(
     dataframe: pd.DataFrame,
     base_dir: Path = Path("data") / "llm_bar_mad",
-    model_configs: Optional[List[ModelConfig]] = None,
+    model_configs: Optional[List[Dict[str, Any]]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
