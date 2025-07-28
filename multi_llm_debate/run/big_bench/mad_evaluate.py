@@ -154,12 +154,16 @@ def evaluate_big_bench_mad_results(
     }
 
     # Find the model-specific subdirectory
-    model_config_str = model_configs_to_string(model_configs) if model_configs else "unknown"
-    model_dir_name = model_config_str.replace(" ", "_").replace(".", "_").replace("/", "_")
+    model_config_str = (
+        model_configs_to_string(model_configs) if model_configs else "unknown"
+    )
+    model_dir_name = (
+        model_config_str.replace(" ", "_").replace(".", "_").replace("/", "_")
+    )
     model_results_dir = base_dir / model_dir_name
-    
+
     logger.info(f"Looking for MAD results in: {model_results_dir}")
-    
+
     for _, row in original_dataframe.iterrows():
         entry_id = str(row["id"])
         correct_answer = str(row["answer"])

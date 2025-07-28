@@ -1,7 +1,7 @@
+import csv
 import json
 import logging
 import os
-import csv
 import time
 from datetime import datetime
 from pathlib import Path
@@ -30,7 +30,7 @@ def save_mad_results_to_csv(
     running_time: float,
 ) -> None:
     """Save MAD evaluation results to CSV file.
-    
+
     Args:
         evaluation_results: Results from MAD evaluation
         task_name: Name of the task
@@ -40,25 +40,25 @@ def save_mad_results_to_csv(
     """
     csv_path = report_path / "results.csv"
     logger.info(f"Saving MAD results to {csv_path}")
-    
+
     # Calculate error margin (using standard error for now)
     accuracy = evaluation_results.get("accuracy", 0.0)
     total_entries = evaluation_results.get("total_entries", 0)
     processed_entries = evaluation_results.get("processed_entries", 0)
-    
+
     # Calculate standard error of proportion
     if processed_entries > 0:
         # Standard error = sqrt(p * (1-p) / n)
         error_margin = ((accuracy * (1 - accuracy)) / processed_entries) ** 0.5
     else:
         error_margin = 0.0
-    
+
     # Format running time
     display_time, csv_time = format_time(running_time)
-    
+
     # Create model configuration string
     current_config = model_configs_to_string(model_configs)
-    
+
     # Create new row for MAD results
     new_row = [
         current_config,
@@ -67,7 +67,7 @@ def save_mad_results_to_csv(
         f"{error_margin:.4f}",
         csv_time,
     ]
-    
+
     # Read existing data if file exists
     existing_data = []
     if csv_path.exists():
@@ -78,7 +78,7 @@ def save_mad_results_to_csv(
         except Exception as e:
             logger.error(f"Error reading existing CSV: {str(e)}")
             existing_data = []
-    
+
     # Create header if file doesn't exist
     if not existing_data:
         existing_data = [
@@ -90,7 +90,7 @@ def save_mad_results_to_csv(
                 "Running Time",
             ]
         ]
-    
+
     # Update existing entry or append new one
     found = False
     for i, row in enumerate(existing_data[1:], 1):
@@ -100,10 +100,10 @@ def save_mad_results_to_csv(
             break
     if not found:
         existing_data.append(new_row)
-    
+
     # Create directory if it doesn't exist
     report_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Write all data back to CSV
     try:
         with open(csv_path, "w", newline="") as f:
@@ -373,9 +373,11 @@ def run_mad_debate_workflow(
 
     # Create model configuration directory name
     model_config_str = model_configs_to_string(model_configs)
-    model_dir_name = model_config_str.replace(" ", "_").replace(".", "_").replace("/", "_")
+    model_dir_name = (
+        model_config_str.replace(" ", "_").replace(".", "_").replace("/", "_")
+    )
     model_output_dir = base_dir / model_dir_name
-    
+
     logger.info(f"Creating MAD debate directory: {model_output_dir}")
     model_output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -415,7 +417,9 @@ def run_mad_debate_workflow(
             continue
 
         try:
-            logger.info(f"Processing entry {entry_id} ({processed_count + 1}/{total_entries})")
+            logger.info(
+                f"Processing entry {entry_id} ({processed_count + 1}/{total_entries})"
+            )
 
             # Run debate for this entry
             runner.run_debate(

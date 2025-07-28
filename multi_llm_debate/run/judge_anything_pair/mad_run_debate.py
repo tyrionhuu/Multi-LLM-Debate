@@ -4,7 +4,6 @@ from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
 
-
 from ..shared.mad_debate_runner import run_mad_debate_workflow
 
 logger = logging.getLogger(__name__)

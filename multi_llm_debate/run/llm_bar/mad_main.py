@@ -7,8 +7,8 @@ import pandas as pd
 
 from multi_llm_debate.utils.logging_config import setup_logging
 
-from ..shared.utils import Parser
 from ..shared.mad_debate_runner import save_mad_results_to_csv
+from ..shared.utils import Parser
 from .mad_evaluate import evaluate_all_llm_bar_mad
 from .mad_run_debate import run_llm_bar_mad_debate
 from .utils import load_llm_bar_dataset
@@ -142,7 +142,7 @@ def main(
                     original_dataframe=dataframe,
                     model_configs=model_configs,
                 )
-                
+
                 # Save results to CSV
                 # Use a reasonable default running time since we don't track it precisely
                 save_mad_results_to_csv(
