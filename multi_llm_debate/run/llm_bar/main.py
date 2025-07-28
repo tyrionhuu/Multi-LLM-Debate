@@ -30,11 +30,18 @@ if __name__ == "__main__":
     dataframe = load_llm_bar_dataset(sample_size=args.sample_size)
 
     if use_mad:
+        # Set default config for LLMBar MAD if none provided
+        config = args.config
+        if config is None and args.config_json is None:
+            from pathlib import Path
+            config = Path("multi_llm_debate/run/llm_bar/config_gemini.json")
+            logger.info(f"Using default config for LLMBar MAD: {config}")
+        
         # Use MAD framework
         mad_main(
             dataframe=dataframe,
             task_name=task_name,
-            config=args.config,
+            config=config,
             config_json=args.config_json,
             temperature=args.temperature,
             max_tokens=args.max_tokens,

@@ -27,11 +27,18 @@ if __name__ == "__main__":
     dataframe = load_judge_anything_pairs_dataset(sample_size=args.sample_size)
 
     if use_mad:
+        # Set default config for JudgeAnything pair MAD if none provided
+        config = args.config
+        if config is None and args.config_json is None:
+            from pathlib import Path
+            config = Path("multi_llm_debate/run/judge_anything_pair/config_gemini.json")
+            logger.info(f"Using default config for JudgeAnything pair MAD: {config}")
+        
         # Run MAD framework
         mad_main(
             dataframe=dataframe,
             task_name=task_name,
-            config=args.config,
+            config=config,
             config_json=args.config_json,
             temperature=args.temperature,
             max_tokens=args.max_tokens,

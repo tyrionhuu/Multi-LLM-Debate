@@ -58,9 +58,10 @@ def main(
         elif isinstance(config, list):
             model_configs_list = config
         else:
-            # Use provided config path or default to config.json in task directory
+            # Use provided config path or default to config_gemini.json in task directory
             if config is None:
-                config = Path(f"multi_llm_debate/run/{task_name}/config.json")
+                config = Path(f"multi_llm_debate/run/{task_name}/config_gemini.json")
+                logger.info(f"Using default config for {task_name}: {config}")
 
             # Load configuration from file
             with open(config) as f:

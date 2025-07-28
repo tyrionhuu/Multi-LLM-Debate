@@ -28,11 +28,18 @@ if __name__ == "__main__":
     df = load_truthful_qa_dataset(sample_size=args.sample_size)
 
     if use_mad:
+        # Set default config for TruthfulQA MAD if none provided
+        config = args.config
+        if config is None and args.config_json is None:
+            from pathlib import Path
+            config = Path("multi_llm_debate/run/truthful_qa/config_gemini.json")
+            logger.info(f"Using default config for TruthfulQA MAD: {config}")
+        
         # Run MAD framework
         mad_main(
             dataframe=df,
             task_name=task_name,
-            config=args.config,
+            config=config,
             config_json=args.config_json,
             temperature=args.temperature,
             max_tokens=args.max_tokens,
