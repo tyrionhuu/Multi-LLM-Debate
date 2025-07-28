@@ -72,58 +72,65 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
         return None
 
 
-def analyze_mad_response_for_llm_bar(
+def analyze_mad_response_for_judge_bench(
     mad_answer: str, correct_answer: str
 ) -> Dict[str, Any]:
     """Analyze MAD response to determine if it correctly identifies the better response.
 
     Args:
         mad_answer: The final answer from MAD debate
-        correct_answer: The correct answer from LLMBar dataset
+        correct_answer: The correct answer from JudgeBench dataset (e.g., "A>B")
 
     Returns:
         Dict containing analysis results
     """
     # Convert answers to strings for comparison
     mad_answer = str(mad_answer).strip().lower()
-    correct_answer = str(correct_answer).strip().lower()
+    correct_answer = str(correct_answer).strip()
 
-    # Try to extract "Response 1" or "Response 2" from MAD answer
+    # Extract the correct choice from "A>B" format
+    if '>' in correct_answer:
+        correct_choice = correct_answer.split('>')[0].strip()
+    else:
+        correct_choice = correct_answer[0] if correct_answer else 'A'
+
+    # Try to extract "Response A" or "Response B" from MAD answer
     mad_choice = None
     
-    # First, try to find exact "Response 1" or "Response 2" matches
-    if "response 1" in mad_answer.lower() or "response1" in mad_answer.lower():
-        mad_choice = "1"
-    elif "response 2" in mad_answer.lower() or "response2" in mad_answer.lower():
-        mad_choice = "2"
-    # Fallback: look for isolated "1" or "2" (but be more careful)
-    elif re.search(r'\b1\b', mad_answer) and not re.search(r'\b2\b', mad_answer):
-        mad_choice = "1"
-    elif re.search(r'\b2\b', mad_answer) and not re.search(r'\b1\b', mad_answer):
-        mad_choice = "2"
+    # First, try to find exact "Response A" or "Response B" matches
+    if "response a" in mad_answer.lower() or "responsea" in mad_answer.lower():
+        mad_choice = "A"
+    elif "response b" in mad_answer.lower() or "responseb" in mad_answer.lower():
+        mad_choice = "B"
+    # Fallback: look for isolated "A" or "B" (but be more careful)
+    elif re.search(r'\bA\b', mad_answer) and not re.search(r'\bB\b', mad_answer):
+        mad_choice = "A"
+    elif re.search(r'\bB\b', mad_answer) and not re.search(r'\bA\b', mad_answer):
+        mad_choice = "B"
 
-    # Check if MAD choice matches correct answer
-    is_correct = mad_choice == correct_answer if mad_choice else False
+    # Check if MAD choice matches the correct choice
+    is_correct = (mad_choice == correct_choice)
 
     return {
         "mad_answer": mad_answer,
         "mad_choice": mad_choice,
         "correct_answer": correct_answer,
+        "correct_choice": correct_choice,
         "is_correct": is_correct,
         "confidence": "high" if mad_choice else "low",
     }
 
 
-def evaluate_llm_bar_mad_results(
+def evaluate_judge_bench_mad_results(
     base_dir: Path,
     original_dataframe: pd.DataFrame,
     model_configs: Optional[List[Dict]] = None,
 ) -> Dict[str, Any]:
-    """Evaluate MAD debate results on LLMBar dataset.
+    """Evaluate MAD debate results on JudgeBench dataset.
 
     Args:
         base_dir: Base directory containing MAD results
-        original_dataframe: Original LLMBar DataFrame
+        original_dataframe: Original JudgeBench DataFrame
         model_configs: Model configurations used
 
     Returns:
@@ -156,7 +163,7 @@ def evaluate_llm_bar_mad_results(
             continue
 
         if mad_answer:
-            analysis = analyze_mad_response_for_llm_bar(mad_answer, correct_answer)
+            analysis = analyze_mad_response_for_judge_bench(mad_answer, correct_answer)
             analysis["entry_id"] = entry_id
             analysis["question"] = row["question"]
 
@@ -173,14 +180,14 @@ def evaluate_llm_bar_mad_results(
     return results
 
 
-def print_llm_bar_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -> None:
-    """Print a summary of LLMBar MAD evaluation results.
+def print_judge_bench_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -> None:
+    """Print a summary of JudgeBench MAD evaluation results.
 
     Args:
-        evaluation_results: Results from evaluate_llm_bar_mad_results
+        evaluation_results: Results from evaluate_judge_bench_mad_results
     """
     print("\n" + "=" * 60)
-    print("LLMBar MAD Evaluation Summary")
+    print("JudgeBench MAD Evaluation Summary")
     print("=" * 60)
     print(f"Total entries: {evaluation_results['total_entries']}")
     print(f"Processed entries: {evaluation_results['processed_entries']}")
@@ -197,32 +204,32 @@ def print_llm_bar_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -> 
             print(f"  Question: {result['question'][:100]}...")
             print(f"  MAD Answer: {result['mad_answer'][:100]}...")
             print(f"  MAD Choice: {result['mad_choice']}")
-            print(f"  Correct Answer: {result['correct_answer']}")
+            print(f"  Correct Choice: {result['correct_choice']}")
             print(f"  Correct: {'✓' if result['is_correct'] else '✗'}")
             print()
 
 
-def evaluate_all_llm_bar_mad(
+def evaluate_all_judge_bench_mad(
     base_dir: Path,
     original_dataframe: pd.DataFrame,
     model_configs: Optional[List[Dict]] = None,
 ) -> Dict[str, Any]:
-    """Evaluate all LLMBar MAD results and print summary.
+    """Evaluate all JudgeBench MAD results and print summary.
 
     Args:
         base_dir: Base directory containing MAD results
-        original_dataframe: Original LLMBar DataFrame
+        original_dataframe: Original JudgeBench DataFrame
         model_configs: Model configurations used
 
     Returns:
         Dict containing evaluation results
     """
-    evaluation_results = evaluate_llm_bar_mad_results(
+    evaluation_results = evaluate_judge_bench_mad_results(
         base_dir=base_dir,
         original_dataframe=original_dataframe,
         model_configs=model_configs,
     )
 
-    print_llm_bar_mad_evaluation_summary(evaluation_results)
+    print_judge_bench_mad_evaluation_summary(evaluation_results)
 
-    return evaluation_results
+    return evaluation_results 

@@ -90,7 +90,7 @@ class Debate:
             return
 
         def prompt_replace(key):
-            if key in self.config and "##debate_topic##" in self.config[key]:
+            if key in self.config and isinstance(self.config[key], str) and "##debate_topic##" in self.config[key]:
                 self.config[key] = self.config[key].replace(
                     "##debate_topic##", self.config.get("debate_topic", "")
                 )
@@ -250,34 +250,46 @@ class Debate:
                 print(f"===== Debate Round-{round+2} =====\n")
 
                 if "debate_prompt" in self.config:
+                    # Convert responses to strings for prompt replacement
+                    neg_ans_str = str(self.neg_ans) if isinstance(self.neg_ans, (dict, list)) else self.neg_ans
+                    
                     self.affirmative.add_event(
                         self.config["debate_prompt"].replace(
-                            "##oppo_ans##", self.neg_ans
+                            "##oppo_ans##", neg_ans_str
                         )
                     )
                     self.aff_ans = self.affirmative.ask()
                     self.affirmative.add_memory(self.aff_ans)
 
+                    # Convert responses to strings for prompt replacement
+                    aff_ans_str = str(self.aff_ans) if isinstance(self.aff_ans, (dict, list)) else self.aff_ans
+                    
                     self.negative.add_event(
                         self.config["debate_prompt"].replace(
-                            "##oppo_ans##", self.aff_ans
+                            "##oppo_ans##", aff_ans_str
                         )
                     )
                     self.neg_ans = self.negative.ask()
                     self.negative.add_memory(self.neg_ans)
 
                 if "moderator_prompt" in self.config:
+                    # Convert responses to strings for prompt replacement
+                    aff_ans_str = str(self.aff_ans) if isinstance(self.aff_ans, (dict, list)) else self.aff_ans
+                    neg_ans_str = str(self.neg_ans) if isinstance(self.neg_ans, (dict, list)) else self.neg_ans
+                    
                     mod_prompt = (
                         self.config["moderator_prompt"]
-                        .replace("##aff_ans##", self.aff_ans)
-                        .replace("##neg_ans##", self.neg_ans)
+                        .replace("##aff_ans##", aff_ans_str)
+                        .replace("##neg_ans##", neg_ans_str)
                         .replace("##round##", self.round_dct(round + 2))
                     )
                     self.moderator.add_event(mod_prompt)
                     self.mod_ans = self.moderator.ask()
                     self.moderator.add_memory(self.mod_ans)
                     try:
-                        self.mod_ans = eval(self.mod_ans)
+                        # Only eval if it's a string, otherwise assume it's already parsed
+                        if isinstance(self.mod_ans, str):
+                            self.mod_ans = eval(self.mod_ans)
                     except (ValueError, SyntaxError, NameError):
                         self.mod_ans = {
                             "debate_answer": "",
@@ -334,7 +346,9 @@ class Debate:
                 judge_player.add_memory(ans)
 
                 try:
-                    ans = eval(ans)
+                    # Only eval if it's a string, otherwise assume it's already parsed
+                    if isinstance(ans, str):
+                        ans = eval(ans)
                 except (ValueError, SyntaxError, NameError):
                     ans = {"debate_answer": "", "Reason": ""}
 

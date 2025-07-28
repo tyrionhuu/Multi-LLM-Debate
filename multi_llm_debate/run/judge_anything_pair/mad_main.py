@@ -7,16 +7,16 @@ import pandas as pd
 from multi_llm_debate.utils.logging_config import setup_logging
 
 from ..shared.utils import Parser
-from .mad_run_debate import run_llm_bar_mad_debate
-from .mad_evaluate import evaluate_all_llm_bar_mad
-from .utils import load_llm_bar_dataset
+from .mad_run_debate import run_judge_anything_pair_mad_debate
+from .mad_evaluate import evaluate_all_judge_anything_pair_mad
+from .utils import load_judge_anything_pairs_dataset
 
 logger = setup_logging(__name__, log_level=logging.INFO)
 
 
 def main(
     dataframe: pd.DataFrame,
-    task_name: str = "llm_bar_mad",
+    task_name: str = "judge_anything_pair_mad",
     config: Optional[Union[Path, List[Dict]]] = None,
     config_json: Optional[str] = None,
     run_debate: bool = True,
@@ -35,11 +35,11 @@ def main(
     api_key: Optional[str] = None,
     max_rounds: int = 3,
 ) -> None:
-    """Run MAD debate evaluation on LLMBar dataset with configured models.
+    """Run MAD debate evaluation on JudgeAnything-pair dataset with configured models.
 
     Args:
-        dataframe: Input DataFrame containing the LLMBar data
-        task_name: Name of the debate task (default: "llm_bar_mad")
+        dataframe: Input DataFrame containing the JudgeAnything-pair data
+        task_name: Name of the debate task (default: "judge_anything_pair_mad")
         config: Path to JSON config file or list of model configurations
         config_json: JSON string containing model configurations
         run_debate: Whether to run the debate or just evaluate existing results
@@ -78,7 +78,7 @@ def main(
     else:
         # Use provided config path or default to config_gemini.json in task directory
         if config is None:
-            config = Path(f"multi_llm_debate/run/llm_bar/config_gemini.json")
+            config = Path(f"multi_llm_debate/run/judge_anything_pair/config_gemini.json")
 
         # Load configuration from file
         import json
@@ -98,7 +98,7 @@ def main(
         )
 
         try:
-            results = run_llm_bar_mad_debate(
+            results = run_judge_anything_pair_mad_debate(
                 dataframe=dataframe,
                 base_dir=Path(f"data/{task_name}"),
                 model_configs=model_configs,
@@ -131,7 +131,7 @@ def main(
             # Run evaluation on the results if requested
             if run_evaluation:
                 print(f"\nRunning evaluation for {task_name}...")
-                evaluation_results = evaluate_all_llm_bar_mad(
+                evaluation_results = evaluate_all_judge_anything_pair_mad(
                     base_dir=Path(f"data/{task_name}"),
                     original_dataframe=dataframe,
                     model_configs=model_configs,
@@ -145,17 +145,17 @@ def main(
 
 
 if __name__ == "__main__":
-    args = Parser(description="Run LLMBar MAD evaluation").parse_args()
+    args = Parser(description="Run JudgeAnything-pair MAD evaluation").parse_args()
 
     if args.task_name is None:
-        task_name = "llm_bar_mad"
+        task_name = "judge_anything_pair_mad"
     else:
         task_name = args.task_name
 
     print(f"Running MAD evaluation for task: {task_name}")
 
     # Load the dataset
-    dataframe = load_llm_bar_dataset(sample_size=args.sample_size)
+    dataframe = load_judge_anything_pairs_dataset(sample_size=args.sample_size)
 
     main(
         dataframe=dataframe,
@@ -174,4 +174,4 @@ if __name__ == "__main__":
         num_players=3,
         provider="google",  # Use Google provider for Gemini models
         max_rounds=3,
-    )
+    ) 

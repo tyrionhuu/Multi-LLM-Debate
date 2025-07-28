@@ -34,6 +34,7 @@ if __name__ == "__main__":
         mad_main(
             dataframe=dataframe,
             task_name=task_name,
+            config=args.config,
             config_json=args.config_json,
             temperature=args.temperature,
             max_tokens=args.max_tokens,

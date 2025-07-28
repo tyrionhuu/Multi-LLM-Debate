@@ -2,7 +2,6 @@
 
 # Define variables
 MODEL_NAME="google/gemini-2.0-flash-001"
-MODEL_QUANTITY=11
 
 # Parse command line arguments
 SAMPLE_SIZE=""
@@ -22,7 +21,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo "Using model: $MODEL_NAME"
-echo "Model quantity: $MODEL_QUANTITY"
 if [[ -n "$SAMPLE_SIZE" ]]; then
     echo "Sample size: $SAMPLE_SIZE"
 fi
@@ -36,12 +34,12 @@ else
 fi
 
 # Define the configuration as a JSON string for MAD
-CONFIG='[[{"name":"'$MODEL_NAME'","quantity":'$MODEL_QUANTITY',"provider":"google"}]]'
+CONFIG='[[{"name":"'$MODEL_NAME'","provider":"google"}]]'
 
 echo "Configuration: $CONFIG"
 
 # Build the command
-CMD="python -m multi_llm_debate.run.llm_bar.main --mad --config-json \"$CONFIG\" --task-name \"llm_bar_mad\""
+CMD="python -m multi_llm_debate.run.judge_bench.main --mad --config-json '$CONFIG' --task-name \"judge_bench_mad\""
 
 # Add sample size if specified
 if [[ -n "$SAMPLE_SIZE" ]]; then
@@ -51,10 +49,10 @@ fi
 # Add batch processing
 CMD="$CMD --batch --batch-size 11"
 
-echo "Running MAD LLMBar evaluation..."
+echo "Running MAD JudgeBench evaluation..."
 echo "Command: $CMD"
 
 # Run the evaluation
 eval $CMD
 
-echo "MAD LLMBar evaluation completed!" 
+echo "MAD JudgeBench evaluation completed!" 

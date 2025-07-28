@@ -273,6 +273,10 @@ def run_mad_debate_workflow(
     if model_configs is None:
         model_configs = [{"name": "gpt-3.5-turbo", "quantity": 1, "provider": "ollama"}]
 
+    # Extract provider from model configs if not explicitly provided
+    if provider == "ollama" and model_configs:
+        provider = model_configs[0].get("provider", "ollama")
+
     # Create MAD debate runner
     runner = MADDebateRunner(
         model_configs=model_configs,
@@ -298,6 +302,13 @@ def run_mad_debate_workflow(
 
         # Create output directory for this entry
         entry_output_dir = base_dir / entry_id
+        results_file = entry_output_dir / f"{entry_id}_results.json"
+
+        # Check if results already exist
+        if results_file.exists():
+            logger.info(f"Skipping entry {entry_id} ({int(idx) + 1}/{total_entries}) - results already exist")
+            processed_count += 1
+            continue
 
         try:
             logger.info(f"Processing entry {entry_id} ({int(idx) + 1}/{total_entries})")

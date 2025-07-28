@@ -1,18 +1,119 @@
-PLAYER_META_PROMPT = "You are a debater. Hello and welcome to the debate. It's not necessary to fully agree with each other's perspectives, as our objective is to find the correct answer.\nThe debate topic is stated as follows:\n##debate_topic##"
+from typing import Dict, List
 
-MODERATOR_META_PROMPT = 'You are a moderator. There will be two debaters involved in a debate. They will present their answers and discuss their perspectives on the following topic: "##debate_topic##"\nAt the end of each round, you will evaluate answers and decide which is correct.'
+NEW_LINE = "\n"
+DIVIDER = "#" * 80
 
-AFFIRMATIVE_PROMPT = "##debate_topic##"
+# JSON format for MAD responses
+JSON_FORMAT = """
+{
+    "reasoning": "your reasoning based on the debate",
+    "Final Answer": "Response 1/Response 2"
+}
+"""
 
-NEGATIVE_PROMPT = (
-    "##aff_ans##\n\nYou disagree with my answer. Provide your answer and reasons."
-)
+JSON_FORMAT_COT = """
+{
+    "reasoning": {
+        "step_1": "first step of your reasoning",
+        "step_2": "second step of your reasoning", 
+        "step_3": "third step of your reasoning",
+        "...": "continue with as many steps as needed"
+    },
+    "Final Answer": "Response 1/Response 2"
+}
+"""
 
+NON_JSON_FORMAT = """
+Reasoning: your reasoning based on the debate
+Final Answer: Response 1/Response 2
+"""
 
-MODERATOR_PROMPT = 'Now the ##round## round of debate for both sides has ended.\n\nAffirmative side arguing:\n##aff_ans##\n\nNegative side arguing: ##neg_ans##\n\nYou, as the moderator, will evaluate both sides\' answers and determine if there is a clear preference for an answer candidate. If so, please summarize your reasons for supporting affirmative/negative side and give the final answer that you think is correct, and the debate will conclude. If not, the debate will continue to the next round. Now please output your answer in json format, with the format as follows: {"Whether there is a preference": "Yes or No", "Supported Side": "Affirmative or Negative", "Reason": "", "debate_answer": ""}. Please strictly output in JSON format, do not output irrelevant content.'
+NON_JSON_FORMAT_COT = """
+Reasoning:
+Step 1: first step of your reasoning
+Step 2: second step of your reasoning
+Step 3: third step of your reasoning
+...
+Final Answer: Response 1/Response 2
+"""
 
-JUDGE_PROMPT_1 = "Affirmative side arguing: ##aff_ans##\n\nNegative side arguing: ##neg_ans##\n\nNow, what answer candidates do we have? Present them without reasons."
+# Player meta prompt - follows your debate framework style
+PLAYER_META_PROMPT = """As an assistant, your task is to serve as a debater in a structured debate.
 
-JUDGE_PROMPT_2 = 'Therefore, ##debate_topic##\nPlease summarize your reasons and give the final answer that you think is correct. Now please output your answer in json format, with the format as follows: {"Reason": "", "debate_answer": ""}. Please strictly output in JSON format, do not output irrelevant content.'
+Your goal is to find the correct answer through reasoned discussion between two responses labeled "Response 1" and "Response 2".
 
-DEBATE_PROMPT = "##oppo_ans##\n\nDo you agree with my perspective? Please provide your reasons and answer."
+The debate topic is:
+##debate_topic##
+
+Remember: Your final choice must be either "Response 1" or "Response 2"."""
+
+# Moderator meta prompt - follows your debate framework style  
+MODERATOR_META_PROMPT = """As an assistant, your task is to serve as a moderator in a structured debate.
+
+You will evaluate a debate between two responses labeled "Response 1" and "Response 2" and determine which response is better.
+
+The debate topic is:
+##debate_topic##
+
+At the end of each round, you will evaluate both sides and decide which response is correct."""
+
+# Affirmative prompt - follows your debate framework style
+AFFIRMATIVE_PROMPT = """##debate_topic##
+
+As a debater, analyze both responses carefully and argue for which one is better.
+
+IMPORTANT: You must choose between "Response 1" and "Response 2"."""
+
+# Negative prompt - follows your debate framework style
+NEGATIVE_PROMPT = """##aff_ans##
+
+You disagree with the affirmative side's answer. Provide your own analysis and reasoning.
+
+IMPORTANT: You must choose between "Response 1" and "Response 2"."""
+
+# Moderator prompt - follows your debate framework style with JSON format
+MODERATOR_PROMPT = """Now the ##round## round of debate for both sides has ended.
+
+Affirmative side arguing:
+##aff_ans##
+
+Negative side arguing: 
+##neg_ans##
+
+As the moderator, evaluate both sides' arguments and determine which response is better.
+
+You MUST answer in the following JSON format:
+{
+    "reasoning": "your reasoning based on the debate",
+    "Final Answer": "Response 1/Response 2"
+}
+
+Note that the 'Final Answer' MUST be placed at the end of your response, 
+and the value must be only "Response 1" or "Response 2". 
+Do not include any other text after the JSON response."""
+
+# Judge prompts - following your debate framework style
+JUDGE_PROMPT_1 = """Affirmative side arguing: ##aff_ans##
+
+Negative side arguing: ##neg_ans##
+
+Now, what answer candidates do we have? Present them without reasons."""
+
+JUDGE_PROMPT_2 = """Therefore, ##debate_topic##
+
+Please summarize your reasons and give the final answer that you think is correct.
+
+You MUST answer in the following JSON format:
+{
+    "reasoning": "your reasoning based on the debate",
+    "Final Answer": "Response 1/Response 2"
+}
+
+Note that the 'Final Answer' MUST be placed at the end of your response, 
+and the value must be only "Response 1" or "Response 2". 
+Do not include any other text after the JSON response."""
+
+# Debate prompt - following your debate framework style
+DEBATE_PROMPT = """##oppo_ans##
+
+Do you agree with my perspective? Please provide your reasons and answer."""

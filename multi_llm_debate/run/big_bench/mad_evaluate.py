@@ -72,21 +72,21 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
         return None
 
 
-def analyze_mad_response_for_llm_bar(
+def analyze_mad_response_for_big_bench(
     mad_answer: str, correct_answer: str
 ) -> Dict[str, Any]:
     """Analyze MAD response to determine if it correctly identifies the better response.
 
     Args:
         mad_answer: The final answer from MAD debate
-        correct_answer: The correct answer from LLMBar dataset
+        correct_answer: The correct answer from BIG-Bench dataset (0 or 1)
 
     Returns:
         Dict containing analysis results
     """
     # Convert answers to strings for comparison
     mad_answer = str(mad_answer).strip().lower()
-    correct_answer = str(correct_answer).strip().lower()
+    correct_answer = str(correct_answer).strip()
 
     # Try to extract "Response 1" or "Response 2" from MAD answer
     mad_choice = None
@@ -102,8 +102,14 @@ def analyze_mad_response_for_llm_bar(
     elif re.search(r'\b2\b', mad_answer) and not re.search(r'\b1\b', mad_answer):
         mad_choice = "2"
 
-    # Check if MAD choice matches correct answer
-    is_correct = mad_choice == correct_answer if mad_choice else False
+    # For BIG-Bench, we need to map the MAD choice to the correct answer
+    # If MAD chose Response 1 and correct_answer is 1, then MAD is correct
+    # If MAD chose Response 2 and correct_answer is 0, then MAD is correct
+    is_correct = False
+    if mad_choice == "1":
+        is_correct = (correct_answer == "1")
+    elif mad_choice == "2":
+        is_correct = (correct_answer == "0")
 
     return {
         "mad_answer": mad_answer,
@@ -114,16 +120,16 @@ def analyze_mad_response_for_llm_bar(
     }
 
 
-def evaluate_llm_bar_mad_results(
+def evaluate_big_bench_mad_results(
     base_dir: Path,
     original_dataframe: pd.DataFrame,
     model_configs: Optional[List[Dict]] = None,
 ) -> Dict[str, Any]:
-    """Evaluate MAD debate results on LLMBar dataset.
+    """Evaluate MAD debate results on BIG-Bench dataset.
 
     Args:
         base_dir: Base directory containing MAD results
-        original_dataframe: Original LLMBar DataFrame
+        original_dataframe: Original BIG-Bench DataFrame
         model_configs: Model configurations used
 
     Returns:
@@ -156,9 +162,9 @@ def evaluate_llm_bar_mad_results(
             continue
 
         if mad_answer:
-            analysis = analyze_mad_response_for_llm_bar(mad_answer, correct_answer)
+            analysis = analyze_mad_response_for_big_bench(mad_answer, correct_answer)
             analysis["entry_id"] = entry_id
-            analysis["question"] = row["question"]
+            analysis["question"] = row["input"]
 
             results["detailed_results"].append(analysis)
             results["processed_entries"] += 1
@@ -173,14 +179,14 @@ def evaluate_llm_bar_mad_results(
     return results
 
 
-def print_llm_bar_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -> None:
-    """Print a summary of LLMBar MAD evaluation results.
+def print_big_bench_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -> None:
+    """Print a summary of BIG-Bench MAD evaluation results.
 
     Args:
-        evaluation_results: Results from evaluate_llm_bar_mad_results
+        evaluation_results: Results from evaluate_big_bench_mad_results
     """
     print("\n" + "=" * 60)
-    print("LLMBar MAD Evaluation Summary")
+    print("BIG-Bench MAD Evaluation Summary")
     print("=" * 60)
     print(f"Total entries: {evaluation_results['total_entries']}")
     print(f"Processed entries: {evaluation_results['processed_entries']}")
@@ -202,27 +208,27 @@ def print_llm_bar_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -> 
             print()
 
 
-def evaluate_all_llm_bar_mad(
+def evaluate_all_big_bench_mad(
     base_dir: Path,
     original_dataframe: pd.DataFrame,
     model_configs: Optional[List[Dict]] = None,
 ) -> Dict[str, Any]:
-    """Evaluate all LLMBar MAD results and print summary.
+    """Evaluate all BIG-Bench MAD results and print summary.
 
     Args:
         base_dir: Base directory containing MAD results
-        original_dataframe: Original LLMBar DataFrame
+        original_dataframe: Original BIG-Bench DataFrame
         model_configs: Model configurations used
 
     Returns:
         Dict containing evaluation results
     """
-    evaluation_results = evaluate_llm_bar_mad_results(
+    evaluation_results = evaluate_big_bench_mad_results(
         base_dir=base_dir,
         original_dataframe=original_dataframe,
         model_configs=model_configs,
     )
 
-    print_llm_bar_mad_evaluation_summary(evaluation_results)
+    print_big_bench_mad_evaluation_summary(evaluation_results)
 
-    return evaluation_results
+    return evaluation_results 
