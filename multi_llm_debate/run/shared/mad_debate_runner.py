@@ -440,7 +440,7 @@ def run_mad_debate_workflow(
                     }
                 )
                 pbar.set_postfix({"status": "failed", "entry": entry_id})
-            
+
             pbar.update(1)
 
     # Prepare execution report

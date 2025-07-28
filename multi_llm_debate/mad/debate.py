@@ -133,7 +133,7 @@ class Debate:
             self.moderator.set_meta_prompt(self.config["moderator_meta_prompt"])
 
         # start: first round debate, state opinions
-                        # Debate Round-1 in progress
+        # Debate Round-1 in progress
 
         if "affirmative_prompt" in self.config:
             self.affirmative.add_event(self.config["affirmative_prompt"])
