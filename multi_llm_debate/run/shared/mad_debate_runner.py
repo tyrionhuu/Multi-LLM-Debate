@@ -367,9 +367,15 @@ def run_mad_debate_workflow(
     if model_configs is None:
         model_configs = [{"name": "gpt-3.5-turbo", "quantity": 1, "provider": "ollama"}]
 
-    # Extract provider from model configs if not explicitly provided
-    if provider == "ollama" and model_configs:
-        provider = model_configs[0].get("provider", "ollama")
+    # Extract provider, base_url, and api_key from model configs if not explicitly provided
+    if model_configs:
+        first_config = model_configs[0]
+        if provider == "ollama":
+            provider = first_config.get("provider", "ollama")
+        if base_url is None:
+            base_url = first_config.get("base_url")
+        if api_key is None:
+            api_key = first_config.get("api_key")
 
     # Create model configuration directory name
     model_config_str = model_configs_to_string(model_configs)

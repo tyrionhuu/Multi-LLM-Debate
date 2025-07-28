@@ -118,6 +118,8 @@ def main(
                 diversity_pruning_amount=diversity_pruning_amount,
                 num_players=num_players,
                 provider=provider,
+                base_url=base_url,
+                api_key=api_key,
                 max_rounds=max_rounds,
             )
 
