@@ -306,7 +306,9 @@ def run_mad_debate_workflow(
 
         # Check if results already exist
         if results_file.exists():
-            logger.info(f"Skipping entry {entry_id} ({int(idx) + 1}/{total_entries}) - results already exist")
+            logger.info(
+                f"Skipping entry {entry_id} ({int(idx) + 1}/{total_entries}) - results already exist"
+            )
             processed_count += 1
             continue
 

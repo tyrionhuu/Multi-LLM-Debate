@@ -39,7 +39,10 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
                 return debate_results["debate_answer"]
 
             # Look for moderator decision
-            if isinstance(debate_results, dict) and "moderator_decision" in debate_results:
+            if (
+                isinstance(debate_results, dict)
+                and "moderator_decision" in debate_results
+            ):
                 decision = debate_results["moderator_decision"]
                 if isinstance(decision, dict):
                     if "Final Answer" in decision:
@@ -49,7 +52,11 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
                 return str(decision)
 
             # Look for rounds
-            if isinstance(debate_results, dict) and "rounds" in debate_results and debate_results["rounds"]:
+            if (
+                isinstance(debate_results, dict)
+                and "rounds" in debate_results
+                and debate_results["rounds"]
+            ):
                 last_round = debate_results["rounds"][-1]
                 if isinstance(last_round, dict) and "moderator_response" in last_round:
                     response = last_round["moderator_response"]
@@ -89,27 +96,27 @@ def analyze_mad_response_for_judge_bench(
     correct_answer = str(correct_answer).strip()
 
     # Extract the correct choice from "A>B" format
-    if '>' in correct_answer:
-        correct_choice = correct_answer.split('>')[0].strip()
+    if ">" in correct_answer:
+        correct_choice = correct_answer.split(">")[0].strip()
     else:
-        correct_choice = correct_answer[0] if correct_answer else 'A'
+        correct_choice = correct_answer[0] if correct_answer else "A"
 
     # Try to extract "Response A" or "Response B" from MAD answer
     mad_choice = None
-    
+
     # First, try to find exact "Response A" or "Response B" matches
     if "response a" in mad_answer.lower() or "responsea" in mad_answer.lower():
         mad_choice = "A"
     elif "response b" in mad_answer.lower() or "responseb" in mad_answer.lower():
         mad_choice = "B"
     # Fallback: look for isolated "A" or "B" (but be more careful)
-    elif re.search(r'\bA\b', mad_answer) and not re.search(r'\bB\b', mad_answer):
+    elif re.search(r"\bA\b", mad_answer) and not re.search(r"\bB\b", mad_answer):
         mad_choice = "A"
-    elif re.search(r'\bB\b', mad_answer) and not re.search(r'\bA\b', mad_answer):
+    elif re.search(r"\bB\b", mad_answer) and not re.search(r"\bA\b", mad_answer):
         mad_choice = "B"
 
     # Check if MAD choice matches the correct choice
-    is_correct = (mad_choice == correct_choice)
+    is_correct = mad_choice == correct_choice
 
     return {
         "mad_answer": mad_answer,
@@ -180,7 +187,9 @@ def evaluate_judge_bench_mad_results(
     return results
 
 
-def print_judge_bench_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -> None:
+def print_judge_bench_mad_evaluation_summary(
+    evaluation_results: Dict[str, Any],
+) -> None:
     """Print a summary of JudgeBench MAD evaluation results.
 
     Args:
@@ -232,4 +241,4 @@ def evaluate_all_judge_bench_mad(
 
     print_judge_bench_mad_evaluation_summary(evaluation_results)
 
-    return evaluation_results 
+    return evaluation_results

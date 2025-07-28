@@ -39,7 +39,10 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
                 return debate_results["debate_answer"]
 
             # Look for moderator decision
-            if isinstance(debate_results, dict) and "moderator_decision" in debate_results:
+            if (
+                isinstance(debate_results, dict)
+                and "moderator_decision" in debate_results
+            ):
                 decision = debate_results["moderator_decision"]
                 if isinstance(decision, dict):
                     if "Final Answer" in decision:
@@ -49,7 +52,11 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
                 return str(decision)
 
             # Look for rounds
-            if isinstance(debate_results, dict) and "rounds" in debate_results and debate_results["rounds"]:
+            if (
+                isinstance(debate_results, dict)
+                and "rounds" in debate_results
+                and debate_results["rounds"]
+            ):
                 last_round = debate_results["rounds"][-1]
                 if isinstance(last_round, dict) and "moderator_response" in last_round:
                     response = last_round["moderator_response"]
@@ -90,23 +97,30 @@ def analyze_mad_response_for_judge_anything_pair(
 
     # Try to extract "Response A" or "Response B" from MAD answer
     mad_choice = None
-    
+
     # First, try to find exact "Response A" or "Response B" matches
     if "response a" in mad_answer.lower() or "responsea" in mad_answer.lower():
         mad_choice = "A"
     elif "response b" in mad_answer.lower() or "responseb" in mad_answer.lower():
         mad_choice = "B"
     # Fallback: look for isolated "A" or "B" (but be more careful)
-    elif re.search(r'\bA\b', mad_answer) and not re.search(r'\bB\b', mad_answer):
+    elif re.search(r"\bA\b", mad_answer) and not re.search(r"\bB\b", mad_answer):
         mad_choice = "A"
-    elif re.search(r'\bB\b', mad_answer) and not re.search(r'\bA\b', mad_answer):
+    elif re.search(r"\bB\b", mad_answer) and not re.search(r"\bA\b", mad_answer):
         mad_choice = "B"
     # If both A and B are mentioned, try to determine preference
-    elif re.search(r'\bA\b', mad_answer) and re.search(r'\bB\b', mad_answer):
+    elif re.search(r"\bA\b", mad_answer) and re.search(r"\bB\b", mad_answer):
         # Look for preference indicators
-        if any(word in mad_answer for word in ["better", "superior", "prefer", "choose", "select"]):
+        if any(
+            word in mad_answer
+            for word in ["better", "superior", "prefer", "choose", "select"]
+        ):
             # Try to find which one comes after preference words
-            preference_match = re.search(r'(?:better|superior|prefer|choose|select).*?([AB])', mad_answer, re.IGNORECASE)
+            preference_match = re.search(
+                r"(?:better|superior|prefer|choose|select).*?([AB])",
+                mad_answer,
+                re.IGNORECASE,
+            )
             if preference_match:
                 mad_choice = preference_match.group(1)
 
@@ -155,7 +169,7 @@ def evaluate_judge_anything_pair_mad_results(
         try:
             # Extract entry ID from file path
             entry_id = int(result_file.parent.name)
-            
+
             if entry_id not in id_to_answer:
                 logger.warning(f"Entry ID {entry_id} not found in original dataset")
                 continue
@@ -168,17 +182,21 @@ def evaluate_judge_anything_pair_mad_results(
                 continue
 
             # Analyze the MAD response
-            analysis = analyze_mad_response_for_judge_anything_pair(mad_answer, correct_answer)
-            
-            evaluation_results.append({
-                "entry_id": entry_id,
-                "mad_answer": mad_answer,
-                "mad_choice": analysis["mad_choice"],
-                "correct_answer": correct_answer,
-                "is_correct": analysis["is_correct"],
-                "confidence": analysis["confidence"],
-                "result_file": str(result_file),
-            })
+            analysis = analyze_mad_response_for_judge_anything_pair(
+                mad_answer, correct_answer
+            )
+
+            evaluation_results.append(
+                {
+                    "entry_id": entry_id,
+                    "mad_answer": mad_answer,
+                    "mad_choice": analysis["mad_choice"],
+                    "correct_answer": correct_answer,
+                    "is_correct": analysis["is_correct"],
+                    "confidence": analysis["confidence"],
+                    "result_file": str(result_file),
+                }
+            )
 
             successful_evaluations += 1
             if analysis["is_correct"]:
@@ -188,8 +206,14 @@ def evaluate_judge_anything_pair_mad_results(
             logger.error(f"Error evaluating {result_file}: {str(e)}")
 
     # Calculate metrics
-    accuracy = (correct_predictions / successful_evaluations * 100) if successful_evaluations > 0 else 0
-    success_rate = (successful_evaluations / total_entries * 100) if total_entries > 0 else 0
+    accuracy = (
+        (correct_predictions / successful_evaluations * 100)
+        if successful_evaluations > 0
+        else 0
+    )
+    success_rate = (
+        (successful_evaluations / total_entries * 100) if total_entries > 0 else 0
+    )
 
     # Create summary
     summary = {
@@ -201,11 +225,15 @@ def evaluate_judge_anything_pair_mad_results(
         "evaluation_results": evaluation_results,
     }
 
-    logger.info(f"Evaluation completed: {accuracy:.2f}% accuracy ({correct_predictions}/{successful_evaluations})")
+    logger.info(
+        f"Evaluation completed: {accuracy:.2f}% accuracy ({correct_predictions}/{successful_evaluations})"
+    )
     return summary
 
 
-def print_judge_anything_pair_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -> None:
+def print_judge_anything_pair_mad_evaluation_summary(
+    evaluation_results: Dict[str, Any],
+) -> None:
     """Print a summary of JudgeAnything-pair MAD evaluation results.
 
     Args:
@@ -220,15 +248,27 @@ def print_judge_anything_pair_mad_evaluation_summary(evaluation_results: Dict[st
     print(f"Accuracy: {evaluation_results['accuracy']:.2f}%")
 
     # Print breakdown by confidence
-    high_confidence = [r for r in evaluation_results['evaluation_results'] if r['confidence'] == 'high']
-    low_confidence = [r for r in evaluation_results['evaluation_results'] if r['confidence'] == 'low']
-    
+    high_confidence = [
+        r for r in evaluation_results["evaluation_results"] if r["confidence"] == "high"
+    ]
+    low_confidence = [
+        r for r in evaluation_results["evaluation_results"] if r["confidence"] == "low"
+    ]
+
     if high_confidence:
-        high_accuracy = sum(1 for r in high_confidence if r['is_correct']) / len(high_confidence) * 100
-        print(f"\nHigh confidence predictions: {len(high_confidence)} ({high_accuracy:.2f}% accuracy)")
-    
+        high_accuracy = (
+            sum(1 for r in high_confidence if r["is_correct"])
+            / len(high_confidence)
+            * 100
+        )
+        print(
+            f"\nHigh confidence predictions: {len(high_confidence)} ({high_accuracy:.2f}% accuracy)"
+        )
+
     if low_confidence:
-        print(f"\nLow confidence predictions: {len(low_confidence)} (accuracy not calculated)")
+        print(
+            f"\nLow confidence predictions: {len(low_confidence)} (accuracy not calculated)"
+        )
 
 
 def evaluate_all_judge_anything_pair_mad(
@@ -258,4 +298,4 @@ def evaluate_all_judge_anything_pair_mad(
     # Print summary
     print_judge_anything_pair_mad_evaluation_summary(evaluation_results)
 
-    return evaluation_results 
+    return evaluation_results

@@ -7,8 +7,8 @@ import pandas as pd
 from multi_llm_debate.utils.logging_config import setup_logging
 
 from ..shared.utils import Parser
-from .mad_run_debate import run_judge_anything_pair_mad_debate
 from .mad_evaluate import evaluate_all_judge_anything_pair_mad
+from .mad_run_debate import run_judge_anything_pair_mad_debate
 from .utils import load_judge_anything_pairs_dataset
 
 logger = setup_logging(__name__, log_level=logging.INFO)
@@ -78,7 +78,9 @@ def main(
     else:
         # Use provided config path or default to config_gemini.json in task directory
         if config is None:
-            config = Path(f"multi_llm_debate/run/judge_anything_pair/config_gemini.json")
+            config = Path(
+                f"multi_llm_debate/run/judge_anything_pair/config_gemini.json"
+            )
 
         # Load configuration from file
         import json
@@ -86,7 +88,11 @@ def main(
         with open(config) as f:
             loaded_config = json.load(f)
             # Wrap in list if it's not already a list of lists
-            if isinstance(loaded_config, list) and loaded_config and isinstance(loaded_config[0], dict):
+            if (
+                isinstance(loaded_config, list)
+                and loaded_config
+                and isinstance(loaded_config[0], dict)
+            ):
                 model_configs_list = [loaded_config]
             else:
                 model_configs_list = loaded_config
@@ -174,4 +180,4 @@ if __name__ == "__main__":
         num_players=3,
         provider="google",  # Use Google provider for Gemini models
         max_rounds=3,
-    ) 
+    )

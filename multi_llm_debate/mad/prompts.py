@@ -47,7 +47,7 @@ The debate topic is:
 
 Remember: Your final choice must be either "Response 1" or "Response 2"."""
 
-# Moderator meta prompt - follows your debate framework style  
+# Moderator meta prompt - follows your debate framework style
 MODERATOR_META_PROMPT = """As an assistant, your task is to serve as a moderator in a structured debate.
 
 You will evaluate a debate between two responses labeled "Response 1" and "Response 2" and determine which response is better.

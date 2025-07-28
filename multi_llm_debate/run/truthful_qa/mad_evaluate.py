@@ -39,7 +39,10 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
                 return debate_results["debate_answer"]
 
             # Look for moderator decision
-            if isinstance(debate_results, dict) and "moderator_decision" in debate_results:
+            if (
+                isinstance(debate_results, dict)
+                and "moderator_decision" in debate_results
+            ):
                 decision = debate_results["moderator_decision"]
                 if isinstance(decision, dict):
                     if "Final Answer" in decision:
@@ -49,7 +52,11 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
                 return str(decision)
 
             # Look for rounds
-            if isinstance(debate_results, dict) and "rounds" in debate_results and debate_results["rounds"]:
+            if (
+                isinstance(debate_results, dict)
+                and "rounds" in debate_results
+                and debate_results["rounds"]
+            ):
                 last_round = debate_results["rounds"][-1]
                 if isinstance(last_round, dict) and "moderator_response" in last_round:
                     response = last_round["moderator_response"]
@@ -89,21 +96,21 @@ def analyze_mad_response_for_truthful_qa(
 
     # Try to extract "Response 1" or "Response 2" from MAD answer
     mad_choice = None
-    
+
     # First, try to find exact "Response 1" or "Response 2" matches
     if "response 1" in mad_answer.lower() or "response1" in mad_answer.lower():
         mad_choice = "1"
     elif "response 2" in mad_answer.lower() or "response2" in mad_answer.lower():
         mad_choice = "2"
     # Fallback: look for isolated "1" or "2" (but be more careful)
-    elif re.search(r'\b1\b', mad_answer) and not re.search(r'\b2\b', mad_answer):
+    elif re.search(r"\b1\b", mad_answer) and not re.search(r"\b2\b", mad_answer):
         mad_choice = "1"
-    elif re.search(r'\b2\b', mad_answer) and not re.search(r'\b1\b', mad_answer):
+    elif re.search(r"\b2\b", mad_answer) and not re.search(r"\b1\b", mad_answer):
         mad_choice = "2"
 
     # Check if MAD choice matches the correct choice
     correct_choice = "1" if correct_is_1 else "2"
-    is_correct = (mad_choice == correct_choice)
+    is_correct = mad_choice == correct_choice
 
     return {
         "mad_answer": mad_answer,
@@ -140,10 +147,10 @@ def evaluate_truthful_qa_mad_results(
 
     for _, row in original_dataframe.iterrows():
         entry_id = str(row["id"])
-        
+
         # Get the correct_is_1 flag from the original data
         # This was set during the conversion process
-        correct_is_1 = getattr(row, '_correct_is_1', None)
+        correct_is_1 = getattr(row, "_correct_is_1", None)
         if correct_is_1 is None:
             # If not available, we can't evaluate this entry
             logger.warning(f"No _correct_is_1 flag for entry {entry_id}")
@@ -180,7 +187,9 @@ def evaluate_truthful_qa_mad_results(
     return results
 
 
-def print_truthful_qa_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -> None:
+def print_truthful_qa_mad_evaluation_summary(
+    evaluation_results: Dict[str, Any],
+) -> None:
     """Print a summary of TruthfulQA MAD evaluation results.
 
     Args:
@@ -232,4 +241,4 @@ def evaluate_all_truthful_qa_mad(
 
     print_truthful_qa_mad_evaluation_summary(evaluation_results)
 
-    return evaluation_results 
+    return evaluation_results

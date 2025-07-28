@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from multi_llm_debate.utils.logging_config import setup_logging
+
 from ..shared.mad_debate_runner import run_mad_debate_workflow
 
 logger = setup_logging(__name__, log_level=logging.INFO)
@@ -12,31 +13,31 @@ logger = setup_logging(__name__, log_level=logging.INFO)
 
 def convert_judge_bench_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Convert JudgeBench data to MAD debate format.
-    
+
     JudgeBench format: question, response_A, response_B, answer (A>B format)
     MAD format: debate_topic (question with two responses to choose from)
-    
+
     Args:
         dataframe: JudgeBench DataFrame with 'question', 'response_A', 'response_B', 'answer' columns
-        
+
     Returns:
         DataFrame with 'debate_topic' column for MAD
     """
     mad_dataframe = dataframe.copy()
-    
+
     def create_debate_topic(row):
-        question = row['question']
-        response_a = row['response_A']
-        response_b = row['response_B']
-        
+        question = row["question"]
+        response_a = row["response_A"]
+        response_b = row["response_B"]
+
         # Extract the correct answer from the "A>B" format
-        correct_answer = row['answer']
-        if '>' in correct_answer:
-            better_response = correct_answer.split('>')[0].strip()
+        correct_answer = row["answer"]
+        if ">" in correct_answer:
+            better_response = correct_answer.split(">")[0].strip()
         else:
             # Fallback if format is different
-            better_response = correct_answer[0] if correct_answer else 'A'
-        
+            better_response = correct_answer[0] if correct_answer else "A"
+
         debate_topic = f"""Question: {question}
 
 Response A: {response_a}
@@ -45,11 +46,11 @@ Response B: {response_b}
 
 Please debate which response (Response A or Response B) better answers the question. 
 Consider factors such as accuracy, completeness, relevance, helpfulness, and legal reasoning."""
-        
+
         return debate_topic
-    
-    mad_dataframe['debate_topic'] = mad_dataframe.apply(create_debate_topic, axis=1)
-    
+
+    mad_dataframe["debate_topic"] = mad_dataframe.apply(create_debate_topic, axis=1)
+
     logger.info(f"Converted {len(mad_dataframe)} entries to MAD format")
     return mad_dataframe
 
@@ -71,7 +72,7 @@ def process_judge_bench_mad_dataset(
     max_rounds: int = 3,
 ) -> Dict[str, Any]:
     """Process JudgeBench dataset using MAD framework.
-    
+
     Args:
         dataframe: JudgeBench DataFrame
         base_dir: Output directory
@@ -87,13 +88,13 @@ def process_judge_bench_mad_dataset(
         num_players: Number of players in debate
         provider: LLM provider
         max_rounds: Maximum debate rounds
-        
+
     Returns:
         Execution results dictionary
     """
     logger.info("Converting JudgeBench format to MAD debate format...")
     mad_dataframe = convert_judge_bench_to_mad_format(dataframe)
-    
+
     return run_mad_debate_workflow(
         dataframe=mad_dataframe,
         base_dir=base_dir,
@@ -129,9 +130,9 @@ def run_judge_bench_mad_debate(
     max_rounds: int = 3,
 ) -> Dict[str, Any]:
     """Run JudgeBench MAD debate workflow.
-    
+
     Wrapper function for process_judge_bench_mad_dataset.
-    
+
     Args:
         dataframe: JudgeBench DataFrame
         base_dir: Output directory
@@ -147,7 +148,7 @@ def run_judge_bench_mad_debate(
         num_players: Number of players in debate
         provider: LLM provider
         max_rounds: Maximum debate rounds
-        
+
     Returns:
         Execution results dictionary
     """
@@ -166,4 +167,4 @@ def run_judge_bench_mad_debate(
         num_players=num_players,
         provider=provider,
         max_rounds=max_rounds,
-    ) 
+    )

@@ -7,8 +7,8 @@ import pandas as pd
 from multi_llm_debate.utils.logging_config import setup_logging
 
 from ..shared.utils import Parser
-from .mad_run_debate import run_llm_bar_mad_debate
 from .mad_evaluate import evaluate_all_llm_bar_mad
+from .mad_run_debate import run_llm_bar_mad_debate
 from .utils import load_llm_bar_dataset
 
 logger = setup_logging(__name__, log_level=logging.INFO)
@@ -86,7 +86,11 @@ def main(
         with open(config) as f:
             loaded_config = json.load(f)
             # Wrap in list if it's not already a list of lists
-            if isinstance(loaded_config, list) and loaded_config and isinstance(loaded_config[0], dict):
+            if (
+                isinstance(loaded_config, list)
+                and loaded_config
+                and isinstance(loaded_config[0], dict)
+            ):
                 model_configs_list = [loaded_config]
             else:
                 model_configs_list = loaded_config

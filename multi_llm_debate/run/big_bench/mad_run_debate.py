@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from multi_llm_debate.utils.logging_config import setup_logging
+
 from ..shared.mad_debate_runner import run_mad_debate_workflow
 
 logger = setup_logging(__name__, log_level=logging.INFO)
@@ -12,22 +13,22 @@ logger = setup_logging(__name__, log_level=logging.INFO)
 
 def convert_big_bench_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Convert BIG-Bench data to MAD debate format.
-    
+
     BIG-Bench format: input (question), answer (0 or 1)
     MAD format: debate_topic (question with two responses to choose from)
-    
+
     Args:
         dataframe: BIG-Bench DataFrame with 'input' and 'answer' columns
-        
+
     Returns:
         DataFrame with 'debate_topic' column for MAD
     """
     mad_dataframe = dataframe.copy()
-    
+
     def create_debate_topic(row):
-        question = row['input']
-        correct_answer = str(row['answer'])
-        
+        question = row["input"]
+        correct_answer = str(row["answer"])
+
         # Create two responses - one correct, one incorrect
         if correct_answer == "1":
             response_1 = "Yes, this is correct."
@@ -35,7 +36,7 @@ def convert_big_bench_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
         else:  # correct_answer == "0"
             response_1 = "No, this is incorrect."
             response_2 = "Yes, this is correct."
-        
+
         debate_topic = f"""Question: {question}
 
 Response 1: {response_1}
@@ -44,11 +45,11 @@ Response 2: {response_2}
 
 Please debate which response (Response 1 or Response 2) better answers the question. 
 Consider factors such as accuracy, completeness, relevance, and helpfulness."""
-        
+
         return debate_topic
-    
-    mad_dataframe['debate_topic'] = mad_dataframe.apply(create_debate_topic, axis=1)
-    
+
+    mad_dataframe["debate_topic"] = mad_dataframe.apply(create_debate_topic, axis=1)
+
     logger.info(f"Converted {len(mad_dataframe)} entries to MAD format")
     return mad_dataframe
 
@@ -70,7 +71,7 @@ def process_big_bench_mad_dataset(
     max_rounds: int = 3,
 ) -> Dict[str, Any]:
     """Process BIG-Bench dataset using MAD framework.
-    
+
     Args:
         dataframe: BIG-Bench DataFrame
         base_dir: Output directory
@@ -86,13 +87,13 @@ def process_big_bench_mad_dataset(
         num_players: Number of players in debate
         provider: LLM provider
         max_rounds: Maximum debate rounds
-        
+
     Returns:
         Execution results dictionary
     """
     logger.info("Converting BIG-Bench format to MAD debate format...")
     mad_dataframe = convert_big_bench_to_mad_format(dataframe)
-    
+
     return run_mad_debate_workflow(
         dataframe=mad_dataframe,
         base_dir=base_dir,
@@ -128,9 +129,9 @@ def run_big_bench_mad_debate(
     max_rounds: int = 3,
 ) -> Dict[str, Any]:
     """Run BIG-Bench MAD debate workflow.
-    
+
     Wrapper function for process_big_bench_mad_dataset.
-    
+
     Args:
         dataframe: BIG-Bench DataFrame
         base_dir: Output directory
@@ -146,7 +147,7 @@ def run_big_bench_mad_debate(
         num_players: Number of players in debate
         provider: LLM provider
         max_rounds: Maximum debate rounds
-        
+
     Returns:
         Execution results dictionary
     """
@@ -165,4 +166,4 @@ def run_big_bench_mad_debate(
         num_players=num_players,
         provider=provider,
         max_rounds=max_rounds,
-    ) 
+    )

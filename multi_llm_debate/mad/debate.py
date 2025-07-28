@@ -90,7 +90,11 @@ class Debate:
             return
 
         def prompt_replace(key):
-            if key in self.config and isinstance(self.config[key], str) and "##debate_topic##" in self.config[key]:
+            if (
+                key in self.config
+                and isinstance(self.config[key], str)
+                and "##debate_topic##" in self.config[key]
+            ):
                 self.config[key] = self.config[key].replace(
                     "##debate_topic##", self.config.get("debate_topic", "")
                 )
@@ -251,8 +255,12 @@ class Debate:
 
                 if "debate_prompt" in self.config:
                     # Convert responses to strings for prompt replacement
-                    neg_ans_str = str(self.neg_ans) if isinstance(self.neg_ans, (dict, list)) else self.neg_ans
-                    
+                    neg_ans_str = (
+                        str(self.neg_ans)
+                        if isinstance(self.neg_ans, (dict, list))
+                        else self.neg_ans
+                    )
+
                     self.affirmative.add_event(
                         self.config["debate_prompt"].replace(
                             "##oppo_ans##", neg_ans_str
@@ -262,8 +270,12 @@ class Debate:
                     self.affirmative.add_memory(self.aff_ans)
 
                     # Convert responses to strings for prompt replacement
-                    aff_ans_str = str(self.aff_ans) if isinstance(self.aff_ans, (dict, list)) else self.aff_ans
-                    
+                    aff_ans_str = (
+                        str(self.aff_ans)
+                        if isinstance(self.aff_ans, (dict, list))
+                        else self.aff_ans
+                    )
+
                     self.negative.add_event(
                         self.config["debate_prompt"].replace(
                             "##oppo_ans##", aff_ans_str
@@ -274,9 +286,17 @@ class Debate:
 
                 if "moderator_prompt" in self.config:
                     # Convert responses to strings for prompt replacement
-                    aff_ans_str = str(self.aff_ans) if isinstance(self.aff_ans, (dict, list)) else self.aff_ans
-                    neg_ans_str = str(self.neg_ans) if isinstance(self.neg_ans, (dict, list)) else self.neg_ans
-                    
+                    aff_ans_str = (
+                        str(self.aff_ans)
+                        if isinstance(self.aff_ans, (dict, list))
+                        else self.aff_ans
+                    )
+                    neg_ans_str = (
+                        str(self.neg_ans)
+                        if isinstance(self.neg_ans, (dict, list))
+                        else self.neg_ans
+                    )
+
                     mod_prompt = (
                         self.config["moderator_prompt"]
                         .replace("##aff_ans##", aff_ans_str)

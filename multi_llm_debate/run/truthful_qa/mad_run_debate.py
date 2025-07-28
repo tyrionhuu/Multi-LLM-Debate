@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from multi_llm_debate.utils.logging_config import setup_logging
+
 from ..shared.mad_debate_runner import run_mad_debate_workflow
 
 logger = setup_logging(__name__, log_level=logging.INFO)
@@ -12,42 +13,42 @@ logger = setup_logging(__name__, log_level=logging.INFO)
 
 def convert_truthful_qa_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Convert TruthfulQA data to MAD debate format.
-    
+
     TruthfulQA format: question, response_A, response_B, response_C, answer (A/B/C)
     MAD format: debate_topic (question with two responses to choose from)
-    
+
     Args:
         dataframe: TruthfulQA DataFrame with 'question', 'response_A', 'response_B', 'response_C', 'answer' columns
-        
+
     Returns:
         DataFrame with 'debate_topic' column for MAD
     """
     mad_dataframe = dataframe.copy()
-    
+
     def create_debate_topic(row):
-        question = row['question']
-        response_a = row['response_A']
-        response_b = row['response_B']
-        response_c = row['response_C']
-        correct_answer = row['answer']
-        
+        question = row["question"]
+        response_a = row["response_A"]
+        response_b = row["response_B"]
+        response_c = row["response_C"]
+        correct_answer = row["answer"]
+
         # For TruthfulQA, we'll create a debate between the correct answer and one incorrect answer
         # We'll randomly choose which incorrect answer to use for variety
         import random
-        
-        if correct_answer == 'A':
+
+        if correct_answer == "A":
             correct_response = response_a
             incorrect_responses = [response_b, response_c]
-        elif correct_answer == 'B':
+        elif correct_answer == "B":
             correct_response = response_b
             incorrect_responses = [response_a, response_c]
         else:  # correct_answer == 'C'
             correct_response = response_c
             incorrect_responses = [response_a, response_b]
-        
+
         # Randomly choose one incorrect response
         incorrect_response = random.choice(incorrect_responses)
-        
+
         # Randomly assign correct and incorrect to Response 1 or Response 2
         if random.choice([True, False]):
             response_1 = correct_response
@@ -57,7 +58,7 @@ def convert_truthful_qa_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
             response_1 = incorrect_response
             response_2 = correct_response
             correct_is_1 = False
-        
+
         debate_topic = f"""Question: {question}
 
 Response 1: {response_1}
@@ -66,14 +67,14 @@ Response 2: {response_2}
 
 Please debate which response (Response 1 or Response 2) better answers the question. 
 Consider factors such as accuracy, truthfulness, completeness, and helpfulness."""
-        
+
         # Store which response is correct for evaluation
-        row['_correct_is_1'] = correct_is_1
-        
+        row["_correct_is_1"] = correct_is_1
+
         return debate_topic
-    
-    mad_dataframe['debate_topic'] = mad_dataframe.apply(create_debate_topic, axis=1)
-    
+
+    mad_dataframe["debate_topic"] = mad_dataframe.apply(create_debate_topic, axis=1)
+
     logger.info(f"Converted {len(mad_dataframe)} entries to MAD format")
     return mad_dataframe
 
@@ -95,7 +96,7 @@ def process_truthful_qa_mad_dataset(
     max_rounds: int = 3,
 ) -> Dict[str, Any]:
     """Process TruthfulQA dataset using MAD framework.
-    
+
     Args:
         dataframe: TruthfulQA DataFrame
         base_dir: Output directory
@@ -111,13 +112,13 @@ def process_truthful_qa_mad_dataset(
         num_players: Number of players in debate
         provider: LLM provider
         max_rounds: Maximum debate rounds
-        
+
     Returns:
         Execution results dictionary
     """
     logger.info("Converting TruthfulQA format to MAD debate format...")
     mad_dataframe = convert_truthful_qa_to_mad_format(dataframe)
-    
+
     return run_mad_debate_workflow(
         dataframe=mad_dataframe,
         base_dir=base_dir,
@@ -153,9 +154,9 @@ def run_truthful_qa_mad_debate(
     max_rounds: int = 3,
 ) -> Dict[str, Any]:
     """Run TruthfulQA MAD debate workflow.
-    
+
     Wrapper function for process_truthful_qa_mad_dataset.
-    
+
     Args:
         dataframe: TruthfulQA DataFrame
         base_dir: Output directory
@@ -171,7 +172,7 @@ def run_truthful_qa_mad_debate(
         num_players: Number of players in debate
         provider: LLM provider
         max_rounds: Maximum debate rounds
-        
+
     Returns:
         Execution results dictionary
     """
@@ -190,4 +191,4 @@ def run_truthful_qa_mad_debate(
         num_players=num_players,
         provider=provider,
         max_rounds=max_rounds,
-    ) 
+    )

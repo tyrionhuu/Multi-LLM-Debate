@@ -197,4 +197,4 @@ def run_mllm_judge_pair_mad_debate(
     )
 
     logger.info(f"MAD debate completed for MLLM-Judge-pairs dataset")
-    return results 
+    return results

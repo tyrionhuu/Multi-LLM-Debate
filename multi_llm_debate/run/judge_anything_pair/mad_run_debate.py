@@ -197,4 +197,4 @@ def run_judge_anything_pair_mad_debate(
     )
 
     logger.info(f"MAD debate completed for JudgeAnything-pair dataset")
-    return results 
+    return results

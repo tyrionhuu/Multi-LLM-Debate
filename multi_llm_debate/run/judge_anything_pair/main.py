@@ -6,9 +6,9 @@ if __name__ == "__main__":
     from ..shared.main import main as shared_main
     from ..shared.utils import Parser
     from .evaluate import evaluate_all_judge_anything_pair
+    from .mad_main import main as mad_main
     from .run_debate import process_judge_anything_pair_dataset
     from .utils import load_judge_anything_pairs_dataset
-    from .mad_main import main as mad_main
 
     logger = setup_logging(__name__, log_level=logging.INFO)
 
