@@ -130,6 +130,7 @@ def process_llm_bar_mad_dataset(
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
+        task_name="llm_bar",
     )
 
 

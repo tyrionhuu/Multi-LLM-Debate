@@ -110,6 +110,7 @@ def process_judge_bench_mad_dataset(
         num_players=num_players,
         provider=provider,
         max_rounds=max_rounds,
+        task_name="judge_bench",
     )
 
 

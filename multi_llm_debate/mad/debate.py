@@ -206,10 +206,10 @@ class Debate:
         print(self.config.get("debate_topic", ""))
         print("\n----- Base Answer -----")
         print(self.config.get("base_answer", ""))
-        print("\n----- Debate Answer -----")
-        print(self.config.get("debate_answer", ""))
-        print("\n----- Debate Reason -----")
-        print(self.config.get("Reason", ""))
+        print("\n----- Final Answer -----")
+        print(self.config.get("Final Answer", ""))
+        print("\n----- Reasoning -----")
+        print(self.config.get("reasoning", ""))
 
     def broadcast(self, msg: str):
         """Broadcast a message to all players.
@@ -251,7 +251,8 @@ class Debate:
             ):
                 break
             else:
-                print(f"===== Debate Round-{round+2} =====\n")
+                # Removed verbose round printing - progress is shown via progress bars
+                pass
 
                 if "debate_prompt" in self.config:
                     # Convert responses to strings for prompt replacement
@@ -307,18 +308,20 @@ class Debate:
                     self.mod_ans = self.moderator.ask()
                     self.moderator.add_memory(self.mod_ans)
                     try:
-                        # Only eval if it's a string, otherwise assume it's already parsed
+                        # Parse JSON response properly
                         if isinstance(self.mod_ans, str):
-                            self.mod_ans = eval(self.mod_ans)
-                    except (ValueError, SyntaxError, NameError):
+                            import json
+                            self.mod_ans = json.loads(self.mod_ans)
+                    except (ValueError, SyntaxError, NameError, json.JSONDecodeError):
+                        # Fallback to unified format
                         self.mod_ans = {
-                            "debate_answer": "",
-                            "Whether there is a preference": "No",
+                            "reasoning": "Unable to parse moderator response",
+                            "Final Answer": "Response 1"
                         }
 
         if (
             isinstance(self.mod_ans, dict)
-            and self.mod_ans.get("debate_answer", "") != ""
+            and self.mod_ans.get("Final Answer", "") != ""
         ):
             self.config.update(self.mod_ans)
             self.config["success"] = True
@@ -366,13 +369,14 @@ class Debate:
                 judge_player.add_memory(ans)
 
                 try:
-                    # Only eval if it's a string, otherwise assume it's already parsed
+                    # Parse JSON response properly
                     if isinstance(ans, str):
-                        ans = eval(ans)
-                except (ValueError, SyntaxError, NameError):
-                    ans = {"debate_answer": "", "Reason": ""}
+                        import json
+                        ans = json.loads(ans)
+                except (ValueError, SyntaxError, NameError, json.JSONDecodeError):
+                    ans = {"reasoning": "Unable to parse judge response", "Final Answer": "Response 1"}
 
-                if ans.get("debate_answer", "") != "":
+                if ans.get("Final Answer", "") != "":
                     self.config["success"] = True
                 self.config.update(ans)
                 self.players.append(judge_player)

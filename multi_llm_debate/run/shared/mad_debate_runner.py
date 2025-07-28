@@ -16,6 +16,7 @@ from ...mad.prompts import (
     MODERATOR_PROMPT,
     NEGATIVE_PROMPT,
     PLAYER_META_PROMPT,
+    build_mad_prompts_for_task,
 )
 from ..shared.utils import format_time, model_configs_to_string
 
@@ -155,6 +156,7 @@ class MADDebateRunner:
         debate_topic: str,
         output_dir: Path,
         entry_id: str,
+        task_name: str = "default",
     ) -> Dict[str, Any]:
         """Run a MAD debate for the given topic.
 
@@ -172,7 +174,7 @@ class MADDebateRunner:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Prepare MAD configuration
-        mad_config = self._prepare_mad_config(debate_topic)
+        mad_config = self._prepare_mad_config(debate_topic, task_name)
 
         # Get model name from configs (use first one for simplicity)
         model_name = (
@@ -207,26 +209,56 @@ class MADDebateRunner:
             logger.error(f"Error running MAD debate for entry {entry_id}: {str(e)}")
             raise
 
-    def _prepare_mad_config(self, debate_topic: str) -> Dict[str, Any]:
+    def _prepare_mad_config(self, debate_topic: str, task_name: str = "default") -> Dict[str, Any]:
         """Prepare configuration for MAD debate.
 
         Args:
             debate_topic: The topic for the debate
+            task_name: Name of the task for task-specific prompts
 
         Returns:
             MAD configuration dictionary
         """
+        # Import task-specific prompts
+        if task_name == "judge_anything_pair":
+            from ..judge_anything_pair.mad_prompts import build_judge_anything_pair_mad_prompts
+            task_prompts = build_judge_anything_pair_mad_prompts(debate_topic)
+        elif task_name == "big_bench":
+            from ..big_bench.mad_prompts import build_big_bench_mad_prompts
+            task_prompts = build_big_bench_mad_prompts(debate_topic)
+        elif task_name == "judge_bench":
+            from ..judge_bench.mad_prompts import build_judge_bench_mad_prompts
+            task_prompts = build_judge_bench_mad_prompts(debate_topic)
+        elif task_name == "llm_bar":
+            from ..llm_bar.mad_prompts import build_llm_bar_mad_prompts
+            task_prompts = build_llm_bar_mad_prompts(debate_topic)
+        elif task_name == "mllm_judge_pair":
+            from ..mllm_judge_pair.mad_prompts import build_mllm_judge_pair_mad_prompts
+            task_prompts = build_mllm_judge_pair_mad_prompts(debate_topic)
+        elif task_name == "truthful_qa":
+            from ..truthful_qa.mad_prompts import build_truthful_qa_mad_prompts
+            task_prompts = build_truthful_qa_mad_prompts(debate_topic)
+        else:
+            # Fallback to generic prompts
+            task_prompts = build_mad_prompts_for_task(task_name)
+            # Replace debate topic in meta prompts
+            task_prompts["player_meta_prompt"] = task_prompts["player_meta_prompt"].replace(
+                "##debate_topic##", debate_topic
+            )
+            task_prompts["moderator_meta_prompt"] = task_prompts["moderator_meta_prompt"].replace(
+                "##debate_topic##", debate_topic
+            )
+        
         return {
             "debate_topic": debate_topic,
-            "player_meta_prompt": PLAYER_META_PROMPT.replace(
-                "##debate_topic##", debate_topic
-            ),
-            "moderator_meta_prompt": MODERATOR_META_PROMPT.replace(
-                "##debate_topic##", debate_topic
-            ),
-            "affirmative_prompt": AFFIRMATIVE_PROMPT,
-            "negative_prompt": NEGATIVE_PROMPT,
-            "moderator_prompt": MODERATOR_PROMPT,
+            "player_meta_prompt": task_prompts["player_meta_prompt"],
+            "moderator_meta_prompt": task_prompts["moderator_meta_prompt"],
+            "affirmative_prompt": task_prompts["affirmative_prompt"],
+            "negative_prompt": task_prompts["negative_prompt"],
+            "moderator_prompt": task_prompts["moderator_prompt"],
+            "judge_prompt_last1": task_prompts["judge_prompt_last1"],
+            "judge_prompt_last2": task_prompts["judge_prompt_last2"],
+            "debate_prompt": task_prompts["debate_prompt"],
         }
 
     def _save_debate_results(
@@ -302,17 +334,70 @@ class MADDebateRunner:
                     if isinstance(response, str):
                         try:
                             parsed = json.loads(response)
-                            if isinstance(parsed, dict) and "debate_answer" in parsed:
-                                return parsed["debate_answer"]
+                            if isinstance(parsed, dict) and "Final Answer" in parsed:
+                                return parsed["Final Answer"]
                         except json.JSONDecodeError:
                             pass
                     return str(response)
 
-            # Fallback to string representation
+            # Try to extract from base_answer structure (unified format)
+            if hasattr(debate_results, "base_answer"):
+                base_answer = debate_results.base_answer
+                
+                # Look for final_choice directly in base_answer (highest priority)
+                if hasattr(base_answer, "final_choice"):
+                    return base_answer.final_choice
+                
+                # Look for conclusion directly in base_answer
+                if hasattr(base_answer, "conclusion"):
+                    return base_answer.conclusion
+                
+                # Look for winner directly in base_answer
+                if hasattr(base_answer, "winner"):
+                    return base_answer.winner
+                
+                # Look in debate structure
+                if hasattr(base_answer, "debate"):
+                    debate = base_answer.debate
+                    
+                    # Handle debate as object
+                    if hasattr(debate, "final_choice"):
+                        return debate.final_choice
+                    elif hasattr(debate, "conclusion"):
+                        return debate.conclusion
+                    elif hasattr(debate, "verdict"):
+                        return debate.verdict
+                    
+                    # Handle debate as list
+                    if isinstance(debate, list) and debate:
+                        # First, look for final_choice in any element (highest priority)
+                        for item in debate:
+                            if hasattr(item, "final_choice"):
+                                return item.final_choice
+                        
+                        # Then look for choice in any element
+                        for item in debate:
+                            if hasattr(item, "choice"):
+                                return item.choice
+                        
+                        # Finally look for conclusion in any element (lowest priority)
+                        for item in debate:
+                            if hasattr(item, "conclusion"):
+                                return item.conclusion
+
+            # Try to extract from debate_answer field
+            if hasattr(debate_results, "debate_answer"):
+                return debate_results.debate_answer
+
+            # Try to extract from Final Answer field
+            if hasattr(debate_results, "Final Answer"):
+                return debate_results["Final Answer"]
+
+            # Fallback: return the entire results as string
             return str(debate_results)
 
         except Exception as e:
-            logger.warning(f"Could not extract final answer: {str(e)}")
+            logger.warning(f"Error extracting final answer: {str(e)}")
             return str(debate_results)
 
 
@@ -333,6 +418,7 @@ def run_mad_debate_workflow(
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
     max_rounds: int = 3,
+    task_name: str = "default",
 ) -> Dict[str, Any]:
     """Run MAD debate workflow on the given dataframe.
 
@@ -426,6 +512,7 @@ def run_mad_debate_workflow(
                 debate_topic=str(debate_topic),
                 output_dir=entry_output_dir,
                 entry_id=entry_id,
+                task_name=task_name,
             )
 
             processed_count += 1

@@ -134,6 +134,7 @@ def process_truthful_qa_mad_dataset(
         num_players=num_players,
         provider=provider,
         max_rounds=max_rounds,
+        task_name="truthful_qa",
     )
 
 

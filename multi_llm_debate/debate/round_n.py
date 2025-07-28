@@ -56,7 +56,7 @@ def run_debate_round_n(
         json.JSONDecodeError: If unable to serialize responses to JSON.
         Exception: If any error occurs when requesting agent responses.
     """
-    logger.info(
+    logger.debug(
         f"Starting debate round {round_num} with "
         f"{len(agents_ensemble.agents)} agents"
     )
@@ -84,7 +84,7 @@ def run_debate_round_n(
             batch_size=batch_size,
         )
         response_time = time.time() - response_start_time
-        logger.info(
+        logger.debug(
             f"All agent responses for round {round_num} received "
             f"in {response_time:.2f} seconds"
         )
@@ -113,7 +113,7 @@ def run_debate_round_n(
     try:
         with open(output_file, "w") as f:
             json.dump(responses, f, indent=2)
-        logger.info(f"Round {round_num} responses saved to {output_file}")
+        logger.debug(f"Round {round_num} responses saved to {output_file}")
     except (OSError, json.JSONDecodeError) as e:
         logger.error(
             f"Failed to save responses to {output_file}: {str(e)}", exc_info=True
@@ -121,5 +121,5 @@ def run_debate_round_n(
         raise
 
     total_time = time.time() - start_time
-    logger.info(f"Debate round {round_num} completed in {total_time:.2f} seconds")
+    logger.debug(f"Debate round {round_num} completed in {total_time:.2f} seconds")
     return responses

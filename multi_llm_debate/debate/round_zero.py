@@ -56,7 +56,7 @@ def run_debate_round_zero(
         json.JSONDecodeError: If unable to serialize responses to JSON.
         Exception: If any error occurs when requesting agent responses.
     """
-    logger.info(f"Starting debate round zero with {len(agents_ensemble.agents)} agents")
+    logger.debug(f"Starting debate round zero with {len(agents_ensemble.agents)} agents")
     logger.debug(f"Initial prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
 
     start_time = time.time()
@@ -78,7 +78,7 @@ def run_debate_round_zero(
             batch_size=batch_size,
         )
         response_time = time.time() - response_start_time
-        logger.info(f"All agent responses received in {response_time:.2f} seconds")
+        logger.debug(f"All agent responses received in {response_time:.2f} seconds")
     except Exception as e:
         logger.error(f"Error in round zero: {str(e)}", exc_info=False)
         logger.debug(
@@ -101,7 +101,7 @@ def run_debate_round_zero(
     try:
         with open(output_file, "w") as f:
             json.dump(responses, f, indent=2)
-        logger.info(f"Round zero responses saved to {output_file}")
+        logger.debug(f"Round zero responses saved to {output_file}")
     except (OSError, json.JSONDecodeError) as e:
         logger.error(
             f"Failed to save responses to {output_file}: {str(e)}", exc_info=True
@@ -109,5 +109,5 @@ def run_debate_round_zero(
         raise
 
     total_time = time.time() - start_time
-    logger.info(f"Round zero completed in {total_time:.2f} seconds")
+    logger.debug(f"Round zero completed in {total_time:.2f} seconds")
     return responses

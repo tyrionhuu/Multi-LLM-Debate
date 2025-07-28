@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
 
 from ..llm.prompt_builder import PromptBuilder
+from ..utils.progress import progress
 from .agents_ensemble import AgentsEnsemble
 from .round_n import run_debate_round_n
 from .round_zero import run_debate_round_zero
@@ -68,7 +69,7 @@ def debate(
         raise ValueError("extract_func function must be provided")
 
     logger.info(f"Starting debate with max_rounds={max_rounds}, json_mode={json_mode}")
-    logger.info(f"Using agents ensemble: {agents_ensemble}")
+    logger.debug(f"Using agents ensemble: {agents_ensemble}")
 
     # Create a temporary directory for intermediate files
     if output_dir is None:
@@ -86,103 +87,104 @@ def debate(
     images = prompt_builder.images  # This can now contain paths, URLs, or byte data
 
     try:
-        for i in range(max_rounds):
-            if i == 0:
-                logger.info("Running round 0 (initial statements)")
-                prompt = prompt_builder.build_round_zero()
-                logger.debug(f"Round 0 prompt built: {prompt[:100]}...")
-                round_responses = run_debate_with_retry(
-                    max_rounds=max_rounds,
-                    prompt=prompt,
-                    images=images,
-                    agents_ensemble=agents_ensemble,
-                    output_dir=temp_dir,
-                    round_num=i,
-                    extract_func=extract_func,
-                    json_mode=json_mode,
-                    max_retries=max_retries,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                    batch=batch,
-                    batch_size=batch_size,
-                )
-            else:
-                extracted_responses = [
-                    response["response"] for response in all_responses[-1]
-                ]
-                logger.info(
-                    f"Running debate round {i} with {len(extracted_responses)} previous responses"
-                )
-                logger.debug(
-                    f"Extracted responses for round {i}: {extracted_responses}"
-                )
-                try:
-                    if check_convergence(extracted_responses, extract_func):
-                        logger.info(
-                            f"Convergence detected after round {i-1}, ending debate early"
-                        )
-                        break
-                except Exception as e:
-                    logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
-                    raise
-
-                pruned_responses = extracted_responses
-
-                # Apply quality pruning if specified
-                if quality_pruning_func:
-                    logger.info(
-                        f"Applying quality pruning for round {i} with amount={quality_pruning_amount}"
-                    )
-                    pruned_dir = temp_dir / "quality_pruned"
-                    pruned_dir.mkdir(parents=True, exist_ok=True)
-
-                    pruned_responses = quality_pruning_func(
-                        responses=extracted_responses,
-                        input=prompt_builder.query,
-                        selected_amount=quality_pruning_amount,
-                        round_number=i,
-                        output_dir=pruned_dir,
-                    )
-
-                # Apply diversity pruning if specified
-                if diversity_pruning_func:
-                    logger.info(
-                        f"Applying diversity pruning for round {i} with amount={diversity_pruning_amount}"
-                    )
-                    pruned_dir = temp_dir / "diversity_pruned"
-                    pruned_dir.mkdir(parents=True, exist_ok=True)
-
-                    pruned_responses = diversity_pruning_func(
-                        responses=extracted_responses,
-                        selected_amount=diversity_pruning_amount,
+        # Use progress bar for debate rounds
+        with progress.sub_bar(total=max_rounds, desc="Debate rounds", unit="round") as pbar:
+            for i in range(max_rounds):
+                if i == 0:
+                    pbar.set_description(f"Round 0 (initial)")
+                    prompt = prompt_builder.build_round_zero()
+                    logger.debug(f"Round 0 prompt built: {prompt[:100]}...")
+                    round_responses = run_debate_with_retry(
+                        max_rounds=max_rounds,
+                        prompt=prompt,
+                        images=images,
+                        agents_ensemble=agents_ensemble,
+                        output_dir=temp_dir,
+                        round_num=i,
                         extract_func=extract_func,
-                        round_number=i,
-                        output_dir=pruned_dir,
+                        json_mode=json_mode,
+                        max_retries=max_retries,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        batch=batch,
+                        batch_size=batch_size,
                     )
+                else:
+                    extracted_responses = [
+                        response["response"] for response in all_responses[-1]
+                    ]
+                    pbar.set_description(f"Round {i}")
+                    logger.debug(
+                        f"Extracted responses for round {i}: {extracted_responses}"
+                    )
+                    try:
+                        if check_convergence(extracted_responses, extract_func):
+                            logger.info(
+                                f"Convergence detected after round {i-1}, ending debate early"
+                            )
+                            break
+                    except Exception as e:
+                        logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
+                        raise
 
-                # Run the debate round with the pruned responses
-                prompt = prompt_builder.build_round_n(pruned_responses)
+                    pruned_responses = extracted_responses
 
-                logger.debug(f"Round {i} prompt built: {prompt[:100]}...")
-                round_responses = run_debate_with_retry(
-                    max_rounds=max_rounds,
-                    prompt=prompt,
-                    images=images,
-                    agents_ensemble=agents_ensemble,
-                    output_dir=temp_dir,
-                    round_num=i,
-                    extract_func=extract_func,
-                    json_mode=json_mode,
-                    max_retries=max_retries,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                    batch=batch,
-                    batch_size=batch_size,
+                    # Apply quality pruning if specified
+                    if quality_pruning_func:
+                        logger.debug(
+                            f"Applying quality pruning for round {i} with amount={quality_pruning_amount}"
+                        )
+                        pruned_dir = temp_dir / "quality_pruned"
+                        pruned_dir.mkdir(parents=True, exist_ok=True)
+
+                        pruned_responses = quality_pruning_func(
+                            responses=extracted_responses,
+                            input=prompt_builder.query,
+                            selected_amount=quality_pruning_amount,
+                            round_number=i,
+                            output_dir=pruned_dir,
+                        )
+
+                    # Apply diversity pruning if specified
+                    if diversity_pruning_func:
+                        logger.debug(
+                            f"Applying diversity pruning for round {i} with amount={diversity_pruning_amount}"
+                        )
+                        pruned_dir = temp_dir / "diversity_pruned"
+                        pruned_dir.mkdir(parents=True, exist_ok=True)
+
+                        pruned_responses = diversity_pruning_func(
+                            responses=extracted_responses,
+                            selected_amount=diversity_pruning_amount,
+                            extract_func=extract_func,
+                            round_number=i,
+                            output_dir=pruned_dir,
+                        )
+
+                    # Run the debate round with the pruned responses
+                    prompt = prompt_builder.build_round_n(pruned_responses)
+
+                    logger.debug(f"Round {i} prompt built: {prompt[:100]}...")
+                    round_responses = run_debate_with_retry(
+                        max_rounds=max_rounds,
+                        prompt=prompt,
+                        images=images,
+                        agents_ensemble=agents_ensemble,
+                        output_dir=temp_dir,
+                        round_num=i,
+                        extract_func=extract_func,
+                        json_mode=json_mode,
+                        max_retries=max_retries,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        batch=batch,
+                        batch_size=batch_size,
+                    )
+                all_responses.append(round_responses)
+                pbar.update(1)
+                logger.debug(
+                    f"Completed debate round {i} with {len(round_responses)} agent responses"
                 )
-            all_responses.append(round_responses)
-            logger.info(
-                f"Completed debate round {i} with {len(round_responses)} agent responses"
-            )
 
         # Debate completed successfully, move files from temp_dir to output_dir
         file_count = len(list(temp_dir.glob("**/*")))
@@ -290,7 +292,7 @@ def run_debate_with_retry(
         raise ValueError("extract_func function must be provided")
 
     # Log the start of the debate round with retries
-    logger.info(f"Starting debate round {round_num} with max_retries={max_retries}")
+    logger.debug(f"Starting debate round {round_num} with max_retries={max_retries}")
 
     for attempt in range(1, max_retries + 1):
         try:
@@ -328,7 +330,7 @@ def run_debate_with_retry(
                 logger.warning(f"Error processing response with extract_func: {str(e)}")
                 raise  # Re-raise to trigger retry
 
-            logger.info(
+            logger.debug(
                 f"Debate round {round_num} completed successfully on attempt {attempt}"
             )
             return responses
@@ -374,7 +376,7 @@ def check_convergence(
         ]
         is_converged = len(set(hashable_answers)) == 1
         if is_converged:
-            logger.info(
+            logger.debug(
                 f"Debate has converged on answer: {list(set(hashable_answers))[0]}"
             )
         return is_converged

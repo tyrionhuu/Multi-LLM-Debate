@@ -30,9 +30,58 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
         if "debate_results" in results:
             debate_results = results["debate_results"]
 
-            # Look for Final Answer in debate_results (new format)
+            # Look for Final Answer in debate_results (MAD format)
             if isinstance(debate_results, dict) and "Final Answer" in debate_results:
                 return debate_results["Final Answer"]
+
+            # Look for conclusion in debate_results
+            if isinstance(debate_results, dict) and "conclusion" in debate_results:
+                return debate_results["conclusion"]
+
+            # Look for nested conclusion in base_answer.debate.conclusion (MAD format)
+            if isinstance(debate_results, dict) and "base_answer" in debate_results:
+                base_answer = debate_results["base_answer"]
+                
+                # Look for final_choice directly in base_answer (MAD format) - highest priority
+                if isinstance(base_answer, dict) and "final_choice" in base_answer:
+                    return base_answer["final_choice"]
+                
+                # Look for conclusion directly in base_answer (MAD format)
+                if isinstance(base_answer, dict) and "conclusion" in base_answer:
+                    return base_answer["conclusion"]
+                
+                # Look for winner directly in base_answer (MAD format)
+                if isinstance(base_answer, dict) and "winner" in base_answer:
+                    return base_answer["winner"]
+                
+                if isinstance(base_answer, dict) and "debate" in base_answer:
+                    debate = base_answer["debate"]
+                    
+                    # Handle debate as object
+                    if isinstance(debate, dict):
+                        if "conclusion" in debate:
+                            return debate["conclusion"]
+                        elif "final_choice" in debate:
+                            return debate["final_choice"]
+                        elif "verdict" in debate:
+                            return debate["verdict"]
+                    
+                    # Handle debate as array
+                    if isinstance(debate, list) and debate:
+                        # First, look for final_choice in any element (highest priority)
+                        for item in debate:
+                            if isinstance(item, dict) and "final_choice" in item:
+                                return item["final_choice"]
+                        
+                        # Then look for choice in any element
+                        for item in debate:
+                            if isinstance(item, dict) and "choice" in item:
+                                return item["choice"]
+                        
+                        # Finally look for conclusion in any element (lowest priority)
+                        for item in debate:
+                            if isinstance(item, dict) and "conclusion" in item:
+                                return item["conclusion"]
 
             # Look for debate_answer directly in debate_results (old format)
             if isinstance(debate_results, dict) and "debate_answer" in debate_results:
@@ -156,8 +205,8 @@ def evaluate_mllm_judge_pair_mad_results(
     # Create a mapping from id to correct answer
     id_to_answer = dict(zip(original_dataframe["id"], original_dataframe["answer"]))
 
-    # Find all result files
-    result_files = list(base_dir.glob("**/results.json"))
+    # Find all result files (MAD saves them as {entry_id}_results.json)
+    result_files = list(base_dir.glob("**/*_results.json"))
     logger.info(f"Found {len(result_files)} result files")
 
     evaluation_results = []
