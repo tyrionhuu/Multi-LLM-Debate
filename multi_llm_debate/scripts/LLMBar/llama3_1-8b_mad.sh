@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="meta-llama/Meta-Llama-3.1-8B-Instruct"
+MODEL_NAME="/data/share_weight/Llama-3.1-8B-Instruct"
 MODEL_QUANTITY=3
 PORT=8000
 GPU="0"  # Change this to your GPU ID(s), e.g., "0" for single GPU or "0,1" for 2 GPUs
@@ -71,7 +71,7 @@ if [[ "$GPU" == *","* ]]; then
     fi
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 32000 --gpu-memory-utilization 0.98 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.98 &
 fi
 
 SERVER_PID=$!

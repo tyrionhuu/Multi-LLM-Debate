@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
+from tqdm import tqdm
 
 from ...mad.debate import Debate
 from ...mad.prompts import (
@@ -168,7 +169,7 @@ class MADDebateRunner:
         Returns:
             Dict containing debate results
         """
-        logger.info(f"Running MAD debate for topic: {debate_topic[:100]}...")
+        # Running MAD debate silently
 
         # Create output directory
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -202,7 +203,6 @@ class MADDebateRunner:
                 debate_results, output_dir, entry_id, debate_topic
             )
 
-            logger.info(f"MAD debate completed for entry {entry_id}")
             return results
 
         except Exception as e:
@@ -453,9 +453,15 @@ def run_mad_debate_workflow(
     if model_configs is None:
         model_configs = [{"name": "gpt-3.5-turbo", "quantity": 1, "provider": "ollama"}]
 
-    # Extract provider from model configs if not explicitly provided
-    if provider == "ollama" and model_configs:
-        provider = model_configs[0].get("provider", "ollama")
+    # Extract provider, base_url, and api_key from model configs if not explicitly provided
+    if model_configs:
+        first_config = model_configs[0]
+        if provider == "ollama":
+            provider = first_config.get("provider", "ollama")
+        if base_url is None:
+            base_url = first_config.get("base_url")
+        if api_key is None:
+            api_key = first_config.get("api_key")
 
     # Create model configuration directory name
     model_config_str = model_configs_to_string(model_configs)
@@ -479,33 +485,32 @@ def run_mad_debate_workflow(
         max_rounds=max_rounds,
     )
 
-    # Process entries
+    # Process entries with progress bar
     total_entries = len(dataframe)
     processed_count = 0
     failed_entries = []
 
     logger.info(f"Starting MAD debate workflow with {total_entries} entries")
 
-    for idx, row in dataframe.iterrows():
-        entry_id = str(row["id"])
-        debate_topic = row["debate_topic"]
+    # Create progress bar
+    with tqdm(total=total_entries, desc="MAD Debates", unit="entry") as pbar:
+        for idx, row in dataframe.iterrows():
+            entry_id = str(row["id"])
+            debate_topic = row["debate_topic"]
 
-        # Create output directory for this entry within the model-specific directory
-        entry_output_dir = model_output_dir / entry_id
-        results_file = entry_output_dir / f"{entry_id}_results.json"
+            # Create output directory for this entry within the model-specific directory
+            entry_output_dir = model_output_dir / entry_id
+            results_file = entry_output_dir / f"{entry_id}_results.json"
 
-        # Check if results already exist
-        if results_file.exists():
-            logger.info(
-                f"Skipping entry {entry_id} ({processed_count + 1}/{total_entries}) - results already exist"
-            )
-            processed_count += 1
-            continue
+            # Check if results already exist
+            if results_file.exists():
+                pbar.set_postfix({"status": "skipped", "entry": entry_id})
+                processed_count += 1
+                pbar.update(1)
+                continue
 
-        try:
-            logger.info(
-                f"Processing entry {entry_id} ({processed_count + 1}/{total_entries})"
-            )
+            try:
+                pbar.set_postfix({"status": "processing", "entry": entry_id})
 
             # Run debate for this entry
             runner.run_debate(
@@ -515,18 +520,21 @@ def run_mad_debate_workflow(
                 task_name=task_name,
             )
 
-            processed_count += 1
-            logger.info(f"Successfully processed entry {entry_id}")
+                processed_count += 1
+                pbar.set_postfix({"status": "completed", "entry": entry_id})
 
-        except Exception as e:
-            logger.error(f"Failed to process entry {entry_id}: {str(e)}")
-            failed_entries.append(
-                {
-                    "entry_id": entry_id,
-                    "error": str(e),
-                    "index": idx,
-                }
-            )
+            except Exception as e:
+                logger.error(f"Failed to process entry {entry_id}: {str(e)}")
+                failed_entries.append(
+                    {
+                        "entry_id": entry_id,
+                        "error": str(e),
+                        "index": idx,
+                    }
+                )
+                pbar.set_postfix({"status": "failed", "entry": entry_id})
+
+            pbar.update(1)
 
     # Prepare execution report
     execution_report = {

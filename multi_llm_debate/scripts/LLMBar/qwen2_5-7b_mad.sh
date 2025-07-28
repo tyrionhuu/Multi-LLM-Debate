@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-MODEL_NAME="Qwen/Qwen2.5-7B-Instruct"
+MODEL_NAME="/data/share_weight/Qwen2.5-7B-Instruct"
 MODEL_QUANTITY=3
 PORT=8000
 GPU="0"  # Change this to your GPU ID(s), e.g., "0" for single GPU or "0,1" for 2 GPUs
@@ -64,14 +64,14 @@ if [[ "$GPU" == *","* ]]; then
     if [[ ${#GPU_ARRAY[@]} -eq 2 ]]; then
         echo "Using tensor parallelism with 2 GPUs"
         # Start VLLM server with tensor parallelism
-        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 32000 --tensor-parallel-size 2 &
+        env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --tensor-parallel-size 2 &
     else
         echo "Error: Currently only supporting either 1 GPU or exactly 2 GPUs for tensor parallelism"
         exit 1
     fi
 else
     # Single GPU mode
-    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 32000 --gpu-memory-utilization 0.98 &
+    env CUDA_VISIBLE_DEVICES=$GPU vllm serve $MODEL_NAME --host 0.0.0.0 --port $PORT --max-model-len 16000 --gpu-memory-utilization 0.98 &
 fi
 
 SERVER_PID=$!

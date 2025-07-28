@@ -69,6 +69,8 @@ def process_judge_bench_mad_dataset(
     diversity_pruning_amount: int = 5,
     num_players: int = 3,
     provider: str = "google",
+    base_url: Optional[str] = None,
+    api_key: Optional[str] = None,
     max_rounds: int = 3,
 ) -> Dict[str, Any]:
     """Process JudgeBench dataset using MAD framework.
@@ -87,6 +89,8 @@ def process_judge_bench_mad_dataset(
         diversity_pruning_amount: Diversity pruning amount
         num_players: Number of players in debate
         provider: LLM provider
+        base_url: Base URL for API calls
+        api_key: API key for the provider
         max_rounds: Maximum debate rounds
 
     Returns:
@@ -109,6 +113,8 @@ def process_judge_bench_mad_dataset(
         diversity_pruning_amount=diversity_pruning_amount,
         num_players=num_players,
         provider=provider,
+        base_url=base_url,
+        api_key=api_key,
         max_rounds=max_rounds,
         task_name="judge_bench",
     )
@@ -128,6 +134,8 @@ def run_judge_bench_mad_debate(
     diversity_pruning_amount: int = 5,
     num_players: int = 3,
     provider: str = "google",
+    base_url: Optional[str] = None,
+    api_key: Optional[str] = None,
     max_rounds: int = 3,
 ) -> Dict[str, Any]:
     """Run JudgeBench MAD debate workflow.
@@ -148,6 +156,8 @@ def run_judge_bench_mad_debate(
         diversity_pruning_amount: Diversity pruning amount
         num_players: Number of players in debate
         provider: LLM provider
+        base_url: Base URL for API calls
+        api_key: API key for the provider
         max_rounds: Maximum debate rounds
 
     Returns:
@@ -167,5 +177,7 @@ def run_judge_bench_mad_debate(
         diversity_pruning_amount=diversity_pruning_amount,
         num_players=num_players,
         provider=provider,
+        base_url=base_url,
+        api_key=api_key,
         max_rounds=max_rounds,
     )

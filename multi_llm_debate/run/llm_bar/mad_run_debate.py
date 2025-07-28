@@ -106,14 +106,11 @@ def process_llm_bar_mad_dataset(
     if missing_columns:
         raise ValueError(f"Missing required columns: {missing_columns}")
 
-    # Convert LLMBar format to MAD format
-    logger.info("Converting LLMBar format to MAD debate format...")
+    # Convert to MAD format
     mad_dataframe = convert_llm_bar_to_mad_format(dataframe)
 
-    logger.info(f"Converted {len(mad_dataframe)} entries to MAD format")
-
     # Run MAD debate workflow
-    return run_mad_debate_workflow(
+    results = run_mad_debate_workflow(
         dataframe=mad_dataframe,
         base_dir=base_dir,
         model_configs=model_configs,
@@ -132,6 +129,8 @@ def process_llm_bar_mad_dataset(
         max_rounds=max_rounds,
         task_name="llm_bar",
     )
+
+    return results
 
 
 def run_llm_bar_mad_debate(
