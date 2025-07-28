@@ -133,7 +133,7 @@ class Debate:
             self.moderator.set_meta_prompt(self.config["moderator_meta_prompt"])
 
         # start: first round debate, state opinions
-        print("===== Debate Round-1 =====\n")
+                        # Debate Round-1 in progress
 
         if "affirmative_prompt" in self.config:
             self.affirmative.add_event(self.config["affirmative_prompt"])
@@ -201,15 +201,7 @@ class Debate:
 
     def print_answer(self):
         """Print the final debate results."""
-        print("\n\n===== Debate Done! =====")
-        print("\n----- Debate Topic -----")
-        print(self.config.get("debate_topic", ""))
-        print("\n----- Base Answer -----")
-        print(self.config.get("base_answer", ""))
-        print("\n----- Debate Answer -----")
-        print(self.config.get("debate_answer", ""))
-        print("\n----- Debate Reason -----")
-        print(self.config.get("Reason", ""))
+        # Debate completed
 
     def broadcast(self, msg: str):
         """Broadcast a message to all players.
@@ -251,7 +243,7 @@ class Debate:
             ):
                 break
             else:
-                print(f"===== Debate Round-{round+2} =====\n")
+                # Debate round in progress
 
                 if "debate_prompt" in self.config:
                     # Convert responses to strings for prompt replacement
