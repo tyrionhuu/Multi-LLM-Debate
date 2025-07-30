@@ -379,7 +379,7 @@ def build_judge_anything_pair_mad_debater_prompt(debate_topic: str) -> str:
         str: The formatted debater prompt for N-debater framework
     """
     prompt = f"**Debate Topic:** {debate_topic}\n" + NEW_LINE
-    
+
     prompt += "**Debate History:** ##debate_history##\n" + NEW_LINE
 
     prompt += (
@@ -565,7 +565,10 @@ def build_judge_anything_pair_mad_judge_extractive_prompt(debate_topic: str) -> 
         "- Provide clear reasoning for your final decision\n"
     ) + NEW_LINE
 
-    prompt += "Please summarize your reasons and give the final answer that you think is correct.\n" + NEW_LINE
+    prompt += (
+        "Please summarize your reasons and give the final answer that you think is correct.\n"
+        + NEW_LINE
+    )
 
     prompt += "You MUST answer in the following JSON format:\n"
     prompt += JSON_FORMAT + NEW_LINE
@@ -653,9 +656,7 @@ def build_judge_anything_pair_mad_prompts(debate_topic: str) -> Dict[str, str]:
             "##oppo_ans##"
         ),  # Placeholder
         # N-debater framework prompts
-        "debater_prompt": build_judge_anything_pair_mad_debater_prompt(
-            debate_topic
-        ),
+        "debater_prompt": build_judge_anything_pair_mad_debater_prompt(debate_topic),
         "judge_discriminative_prompt": build_judge_anything_pair_mad_judge_discriminative_prompt(
             debate_topic
         ),

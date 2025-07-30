@@ -189,7 +189,7 @@ class Debate:
                 if "debater_prompt" in self.config:
                     # Detect task type from debate topic to assign appropriate positions
                     debate_topic = self.config.get("debate_topic", "")
-                    
+
                     # Check if this is a judge_anything_pair task (contains "Response A" and "Response B")
                     if "Response A" in debate_topic and "Response B" in debate_topic:
                         # Judge Anything Pair task - assign Response A vs Response B positions
@@ -197,24 +197,32 @@ class Debate:
                             # First debater argues for Response A
                             debater_position = "You are ASSIGNED to argue for Response A. You MUST defend Response A and find weaknesses in Response B. Even if you think Response B is better, you must argue for Response A. Focus on Response A's strengths like detailed equipment lists, specific instructions, and accuracy to the image."
                             if self.verbose:
-                                print(f"DEBUG: Debater {debater_idx + 1} assigned position: Response A")
+                                print(
+                                    f"DEBUG: Debater {debater_idx + 1} assigned position: Response A"
+                                )
                         else:
                             # Second debater argues for Response B
                             debater_position = "You are ASSIGNED to argue for Response B. You MUST defend Response B and find weaknesses in Response A. Even if you think Response A is better, you must argue for Response B. Focus on Response B's strengths like conciseness, simplicity, and practical approach."
                             if self.verbose:
-                                print(f"DEBUG: Debater {debater_idx + 1} assigned position: Response B")
+                                print(
+                                    f"DEBUG: Debater {debater_idx + 1} assigned position: Response B"
+                                )
                     else:
                         # Default to big_bench style (plausibility debate)
                         if debater_idx == 0:
                             # First debater argues for plausibility (1)
                             debater_position = "You are arguing that the statement is PLAUSIBLE (1). Defend the position that the statement could be true."
                             if self.verbose:
-                                print(f"DEBUG: Debater {debater_idx + 1} assigned position: PLAUSIBLE")
+                                print(
+                                    f"DEBUG: Debater {debater_idx + 1} assigned position: PLAUSIBLE"
+                                )
                         else:
                             # Second debater argues against plausibility (0)
                             debater_position = "You are arguing that the statement is IMPLAUSIBLE (0). Defend the position that the statement is unlikely to be true."
                             if self.verbose:
-                                print(f"DEBUG: Debater {debater_idx + 1} assigned position: IMPLAUSIBLE")
+                                print(
+                                    f"DEBUG: Debater {debater_idx + 1} assigned position: IMPLAUSIBLE"
+                                )
 
                     debater_prompt = (
                         self.config["debater_prompt"]
@@ -223,8 +231,6 @@ class Debate:
                         .replace("##debater_number##", str(debater_idx + 1))
                         .replace("##debater_position##", debater_position)
                     )
-
-
 
                     debater.add_event(debater_prompt)
                     # Temporarily reduce logging verbosity for cleaner output
@@ -273,8 +279,6 @@ class Debate:
                     .replace("##debate_history##", history_context)
                     .replace("##current_round##", str(current_round))
                 )
-
-
 
                 self.judge.add_event(discriminative_prompt)
                 # Temporarily reduce logging verbosity for cleaner output
@@ -333,13 +337,17 @@ class Debate:
                     self.config["success"] = True
                     self.config["iterations_used"] = current_round
                     self.config["solution_found_in_discriminative"] = True
-                    
+
                     # Check if the discriminative judge provided the final answer
-                    final_answer = self.judge_discriminative_decision.get("Final Answer", "")
+                    final_answer = self.judge_discriminative_decision.get(
+                        "Final Answer", ""
+                    )
                     if final_answer:
                         # Discriminative judge provided the final answer - use it directly
                         if self.verbose:
-                            print(f"Final Answer from Discriminative Judge: {final_answer}")
+                            print(
+                                f"Final Answer from Discriminative Judge: {final_answer}"
+                            )
                         self.config.update(self.judge_discriminative_decision)
                     else:
                         # Discriminative judge didn't provide final answer - run Extractive Mode
@@ -348,33 +356,41 @@ class Debate:
                                 print(f"\n{'='*60}")
                                 print("JUDGE EXTRACTIVE MODE")
                                 print(f"{'='*60}")
-                                print("Solution found but no final answer - extracting final answer from debate history...")
+                                print(
+                                    "Solution found but no final answer - extracting final answer from debate history..."
+                                )
 
                             # Build complete debate history context
-                            complete_history_context = self._build_debate_history_context(
-                                debate_history
+                            complete_history_context = (
+                                self._build_debate_history_context(debate_history)
                             )
 
-                            extractive_prompt = self.config["judge_extractive_prompt"].replace(
-                                "##debate_history##", complete_history_context
-                            )
-
-
+                            extractive_prompt = self.config[
+                                "judge_extractive_prompt"
+                            ].replace("##debate_history##", complete_history_context)
 
                             self.judge.add_event(extractive_prompt)
                             # Temporarily reduce logging verbosity for cleaner output
                             import logging
 
-                            original_level = logging.getLogger("multi_llm_debate.llm.llm").level
-                            logging.getLogger("multi_llm_debate.llm.llm").setLevel(logging.WARNING)
+                            original_level = logging.getLogger(
+                                "multi_llm_debate.llm.llm"
+                            ).level
+                            logging.getLogger("multi_llm_debate.llm.llm").setLevel(
+                                logging.WARNING
+                            )
 
                             self.judge_extractive_decision = self.judge.ask(
                                 json_mode=True
                             )  # Judge needs JSON for structured decisions
 
                             # Restore original logging level
-                            logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
-                            self.judge.add_memory(self.judge_extractive_decision, verbose=self.verbose)
+                            logging.getLogger("multi_llm_debate.llm.llm").setLevel(
+                                original_level
+                            )
+                            self.judge.add_memory(
+                                self.judge_extractive_decision, verbose=self.verbose
+                            )
 
                             try:
                                 # Parse JSON response properly
@@ -384,7 +400,12 @@ class Debate:
                                     self.judge_extractive_decision = json.loads(
                                         self.judge_extractive_decision
                                     )
-                            except (ValueError, SyntaxError, NameError, json.JSONDecodeError):
+                            except (
+                                ValueError,
+                                SyntaxError,
+                                NameError,
+                                json.JSONDecodeError,
+                            ):
                                 # Fallback to unified format
                                 self.judge_extractive_decision = {
                                     "reasoning": "Unable to parse judge response",
@@ -394,13 +415,22 @@ class Debate:
                             # Update config with final decision from Extractive Mode
                             if (
                                 isinstance(self.judge_extractive_decision, dict)
-                                and self.judge_extractive_decision.get("Final Answer", "") != ""
+                                and self.judge_extractive_decision.get(
+                                    "Final Answer", ""
+                                )
+                                != ""
                             ):
                                 self.config.update(self.judge_extractive_decision)
                             else:
                                 # Fallback: use reasoning from discriminative mode
-                                self.config["reasoning"] = self.judge_discriminative_decision.get("reasoning", "No reasoning provided")
-                                self.config["Final Answer"] = "Response 1"  # Default fallback
+                                self.config["reasoning"] = (
+                                    self.judge_discriminative_decision.get(
+                                        "reasoning", "No reasoning provided"
+                                    )
+                                )
+                                self.config["Final Answer"] = (
+                                    "Response 1"  # Default fallback
+                                )
                         else:
                             # No extractive prompt available, use discriminative decision as fallback
                             if isinstance(self.judge_discriminative_decision, dict):
@@ -435,8 +465,6 @@ class Debate:
             extractive_prompt = self.config["judge_extractive_prompt"].replace(
                 "##debate_history##", complete_history_context
             )
-
-
 
             self.judge.add_event(extractive_prompt)
             # Temporarily reduce logging verbosity for cleaner output
