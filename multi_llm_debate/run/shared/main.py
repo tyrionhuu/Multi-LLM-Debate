@@ -14,7 +14,7 @@ def main(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable[..., Dict],
     evaluate_fn: Callable[..., Any],
-    task_name: str = "debate",
+    task_name: str = "default_task",
     config: Optional[Union[Path, List[Dict]]] = None,
     config_json: Optional[str] = None,
     run_debate: bool = True,

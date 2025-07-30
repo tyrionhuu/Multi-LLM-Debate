@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # Check if MAD mode is requested
     use_mad = args.mad or args.task_name == "big_bench_mad"
 
-    if args.task_name is None:
+    if args.task_name is None or args.task_name == "default_task":
         task_name = "big_bench_mad" if use_mad else "big_bench"
     else:
         task_name = args.task_name

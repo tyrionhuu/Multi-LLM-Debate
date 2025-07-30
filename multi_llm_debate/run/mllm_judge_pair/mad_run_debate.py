@@ -117,7 +117,7 @@ def process_mllm_judge_pair_mad_dataset(
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
-        task_name="mllm_judge_pair",
+        task_name="default",  # Let auto-detection work
     )
 
     return results

@@ -33,7 +33,7 @@ class Args:
     diversity_pruning: Optional[str] = None
     diversity_pruning_func: Callable = None
     diversity_pruning_amount: int = 5
-    task_name: str = "debate"
+    task_name: str = "default_task"
     mad: bool = False
     verbose: bool = False
 
@@ -107,7 +107,7 @@ class Parser:
             "--task-name",
             type=str,
             help="Name of the task",
-            default="debate",
+            default="default_task",
         )
         self.parser.add_argument(
             "--quality-pruning",

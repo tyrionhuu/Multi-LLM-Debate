@@ -116,7 +116,7 @@ def process_judge_bench_mad_dataset(
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
-        task_name="judge_bench",
+        task_name="default",  # Let auto-detection work
     )
 
 

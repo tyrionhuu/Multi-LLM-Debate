@@ -173,8 +173,6 @@ class Debate:
                 print(f"\n{'='*60}")
                 print(f"ITERATION {current_round}")
                 print(f"{'='*60}")
-            else:
-                print(f"\n--- Iteration {current_round} ---")
 
             iteration_responses = []
 
@@ -183,8 +181,6 @@ class Debate:
                 if self.verbose:
                     print(f"\n{debater.name} speaking...")
                     print("-" * 40)
-                else:
-                    print(f"  {debater.name} speaking...")
 
                 # Build debate history context for this debater
                 history_context = self._build_debate_history_context(debate_history)
@@ -224,7 +220,7 @@ class Debate:
                     logging.getLogger("multi_llm_debate.llm.llm").setLevel(
                         original_level
                     )
-                    debater.add_memory(debater_response)
+                    debater.add_memory(debater_response, verbose=self.verbose)
 
                     iteration_responses.append(
                         {
@@ -238,8 +234,6 @@ class Debate:
                         print(f"----- {debater.name} -----")
                         print(debater_response)
                         print("-" * 40)
-                    else:
-                        print(f"    {debater.name}: {debater_response[:100]}...")
 
             # Add iteration to debate history
             debate_history.append(
@@ -270,7 +264,7 @@ class Debate:
 
                 # Restore original logging level
                 logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
-                self.judge.add_memory(self.judge_discriminative_decision)
+                self.judge.add_memory(self.judge_discriminative_decision, verbose=self.verbose)
 
                 try:
                     # Parse JSON response properly
@@ -308,10 +302,6 @@ class Debate:
                         print(
                             f"✓ Correct solution obtained in iteration {current_round} - debate concluded successfully"
                         )
-                    else:
-                        print(
-                            f"✓ Correct solution obtained in iteration {current_round}"
-                        )
                     # Solution found - debate is over, no need for Extractive Mode
                     self.config["success"] = True
                     self.config["iterations_used"] = current_round
@@ -324,10 +314,6 @@ class Debate:
                     if self.verbose:
                         print(
                             f"⚠ No clear solution in iteration {current_round} - continuing to next iteration"
-                        )
-                    else:
-                        print(
-                            f"⚠ No clear solution in iteration {current_round}, continuing..."
                         )
                     # Continue to next iteration
                     continue
@@ -367,7 +353,7 @@ class Debate:
 
             # Restore original logging level
             logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
-            self.judge.add_memory(self.judge_extractive_decision)
+            self.judge.add_memory(self.judge_extractive_decision, verbose=self.verbose)
 
             try:
                 # Parse JSON response properly
@@ -400,7 +386,11 @@ class Debate:
             # No Extractive Mode needed - solution was found in Discriminative Mode
             pass
 
-        self.print_answer()
+        # Save debate history to config for output
+        self.config["debate_history"] = debate_history
+        
+        if self.verbose:
+            self.print_answer()
         return self.config
 
     def _build_debate_history_context(self, debate_history: list) -> str:
@@ -462,9 +452,6 @@ class Debate:
                 else:
                     print(f"Raw Decision: {self.judge_discriminative_decision}")
                 print("-" * 40)
-            else:
-                print(f"\nJudge Discriminative Decision:")
-                print(f"{self.judge_discriminative_decision}")
 
         # Show which mode found the solution
         if self.config.get("solution_found_in_discriminative", False):
@@ -472,15 +459,11 @@ class Debate:
                 print(
                     f"\nSolution found in Discriminative Mode (Iteration {self.config.get('iterations_used', 0)})"
                 )
-            else:
-                print(f"\nSolution found in Discriminative Mode")
         elif self.config.get("solution_found_in_extractive", False):
             if self.verbose:
                 print(
                     f"\nSolution found in Extractive Mode (after {self.config.get('iterations_used', 0)} iterations)"
                 )
-            else:
-                print(f"\nSolution found in Extractive Mode")
 
         if hasattr(self, "judge_extractive_decision") and self.config.get(
             "solution_found_in_extractive", False
@@ -498,15 +481,14 @@ class Debate:
                 else:
                     print(f"Raw Decision: {self.judge_extractive_decision}")
                 print("-" * 40)
-            else:
-                print(f"\nJudge Extractive Decision:")
-                print(f"{self.judge_extractive_decision}")
 
         if self.config.get("success", False):
-            print(f"\nFinal Answer: {self.config.get('Final Answer', 'Unknown')}")
-            print(f"Reasoning: {self.config.get('reasoning', 'No reasoning provided')}")
+            if self.verbose:
+                print(f"\nFinal Answer: {self.config.get('Final Answer', 'Unknown')}")
+                print(f"Reasoning: {self.config.get('reasoning', 'No reasoning provided')}")
         else:
-            print(f"\nNo clear decision reached")
+            if self.verbose:
+                print(f"\nNo clear decision reached")
 
     def broadcast(self, msg: str):
         """Broadcast a message to all players.
@@ -536,7 +518,7 @@ class Debate:
     def ask_and_speak(self, player: DebatePlayer):
         """Ask a player to respond and broadcast their answer."""
         ans = player.ask()
-        player.add_memory(ans)
+        player.add_memory(ans, verbose=self.verbose)
         self.speak(player.name, ans)
 
 

@@ -22,7 +22,7 @@ def execute_debate_workflow(
     dataframe: pd.DataFrame,
     run_debate_fn: Callable,
     evaluate_fn: Callable,
-    task_name: str = "debate",
+    task_name: str = "default_task",
     report_path: Path = Path("data"),
     model_configs: List[ModelConfig] = [
         {
@@ -198,7 +198,7 @@ def process_debate_dataset(
     max_rounds: int = 10,
     model_configs: Optional[List[ModelConfig]] = None,
     overwrite: bool = False,
-    task_name: str = "debate task",
+    task_name: str = "default_task",
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
@@ -259,7 +259,7 @@ def process_debate_dataset(
 
         # Using progress manager for the main progress bar
         with progress.main_bar(
-            total=len(dataframe), desc=f"Running {task_name}", unit="debate"
+            total=len(dataframe), desc=f"Running {task_name}", unit="task"
         ) as pbar:
             # Always process sequentially
             for _, entry in dataframe.iterrows():

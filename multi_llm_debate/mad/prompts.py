@@ -530,6 +530,11 @@ def build_mad_prompts_for_task(task_name: str) -> Dict[str, str]:
             "judge_meta_prompt": JUDGE_META_PROMPT.replace(
                 "Response 1", "Response 1 (Yes)"
             ).replace("Response 2", "Response 2 (No)"),
+            "debater_prompt": DEBATER_PROMPT,
+            "judge_discriminative_prompt": JUDGE_DISCRIMINATIVE_PROMPT,
+            "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
             "debater_a_initial_prompt": DEBATER_A_INITIAL_PROMPT.replace(
                 "Response 1", "Response 1 (Yes)"
             ).replace("Response 2", "Response 2 (No)"),
@@ -537,10 +542,6 @@ def build_mad_prompts_for_task(task_name: str) -> Dict[str, str]:
                 "Response 1", "Response 1 (Yes)"
             ).replace("Response 2", "Response 2 (No)"),
             "debater_a_rebuttal_prompt": DEBATER_A_REBUTTAL_PROMPT,
-            "judge_discriminative_prompt": JUDGE_DISCRIMINATIVE_PROMPT,
-            "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT.replace(
-                "Response 1", "Response 1 (Yes)"
-            ).replace("Response 2", "Response 2 (No)"),
             # Legacy prompts for backward compatibility
             "judge_decision_prompt": JUDGE_DECISION_PROMPT.replace(
                 "Response 1", "Response 1 (Yes)"
@@ -569,6 +570,9 @@ def build_mad_prompts_for_task(task_name: str) -> Dict[str, str]:
         return {
             "player_meta_prompt": PLAYER_META_PROMPT,
             "judge_meta_prompt": JUDGE_META_PROMPT,
+            "debater_prompt": DEBATER_PROMPT,
+            "judge_discriminative_prompt": JUDGE_DISCRIMINATIVE_PROMPT,
+            "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT,
             "debater_a_initial_prompt": DEBATER_A_INITIAL_PROMPT,
             "debater_b_disagree_prompt": DEBATER_B_DISAGREE_PROMPT,
             "debater_a_rebuttal_prompt": DEBATER_A_REBUTTAL_PROMPT,
@@ -588,6 +592,9 @@ def build_mad_prompts_for_task(task_name: str) -> Dict[str, str]:
         return {
             "player_meta_prompt": PLAYER_META_PROMPT,
             "judge_meta_prompt": JUDGE_META_PROMPT,
+            "debater_prompt": DEBATER_PROMPT,
+            "judge_discriminative_prompt": JUDGE_DISCRIMINATIVE_PROMPT,
+            "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT,
             "debater_a_initial_prompt": DEBATER_A_INITIAL_PROMPT,
             "debater_b_disagree_prompt": DEBATER_B_DISAGREE_PROMPT,
             "debater_a_rebuttal_prompt": DEBATER_A_REBUTTAL_PROMPT,
@@ -607,6 +614,9 @@ def build_mad_prompts_for_task(task_name: str) -> Dict[str, str]:
         return {
             "player_meta_prompt": PLAYER_META_PROMPT,
             "judge_meta_prompt": JUDGE_META_PROMPT,
+            "debater_prompt": DEBATER_PROMPT,
+            "judge_discriminative_prompt": JUDGE_DISCRIMINATIVE_PROMPT,
+            "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT,
             "debater_a_initial_prompt": DEBATER_A_INITIAL_PROMPT,
             "debater_b_disagree_prompt": DEBATER_B_DISAGREE_PROMPT,
             "debater_a_rebuttal_prompt": DEBATER_A_REBUTTAL_PROMPT,

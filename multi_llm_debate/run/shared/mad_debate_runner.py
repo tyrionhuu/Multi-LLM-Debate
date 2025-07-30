@@ -315,11 +315,28 @@ class MADDebateRunner:
 
         # Save final answer separately as JSON for better structure
         answer_file = output_dir / f"{entry_id}_answer.json"
+        
+        # Create a clean, readable answer structure
         answer_data = {
             "final_answer": final_answer,
             "extraction_method": "from_debate_results",
             "timestamp": datetime.now().isoformat(),
+            "debate_summary": {
+                "success": getattr(debate_results, "success", False),
+                "iterations_used": getattr(debate_results, "iterations_used", 0),
+                "solution_found_in_discriminative": getattr(debate_results, "solution_found_in_discriminative", False),
+                "solution_found_in_extractive": getattr(debate_results, "solution_found_in_extractive", False)
+            }
         }
+        
+        # Add reasoning if available
+        if hasattr(debate_results, "reasoning"):
+            answer_data["debate_summary"]["reasoning"] = debate_results.reasoning
+            
+        # Add debate topic if available
+        if hasattr(debate_results, "debate_topic"):
+            answer_data["debate_summary"]["debate_topic"] = debate_results.debate_topic
+            
         with open(answer_file, "w") as f:
             json.dump(answer_data, f, indent=2, default=str)
 
@@ -426,8 +443,14 @@ class MADDebateRunner:
             if hasattr(debate_results, "Final Answer"):
                 return debate_results["Final Answer"]
 
-            # Fallback: return the entire results as string
-            return str(debate_results)
+            # Fallback: return only essential information
+            if hasattr(debate_results, "Final Answer"):
+                return debate_results["Final Answer"]
+            elif hasattr(debate_results, "final_answer"):
+                return debate_results.final_answer
+            else:
+                # Last resort: return a summary instead of the entire object
+                return f"Debate completed - Success: {getattr(debate_results, 'success', False)}, Iterations: {getattr(debate_results, 'iterations_used', 0)}"
 
         except Exception as e:
             logger.warning(f"Error extracting final answer: {str(e)}")
@@ -436,7 +459,7 @@ class MADDebateRunner:
 
 def run_mad_debate_workflow(
     dataframe: pd.DataFrame,
-    base_dir: Path = Path("data") / "mad",
+    base_dir: Path = Path("data") / "mad",  # This will be overridden by benchmark-specific paths
     model_configs: Optional[List[Dict[str, Any]]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -477,6 +500,15 @@ def run_mad_debate_workflow(
     Returns:
         Dict containing execution results
     """
+    # Auto-detect benchmark name from base_dir if task_name is default
+    if task_name == "default":
+        # Extract benchmark name from base_dir path
+        # e.g., "data/big_bench_mad" -> "big_bench_mad"
+        benchmark_name = base_dir.name
+        if benchmark_name and benchmark_name != "data":
+            task_name = benchmark_name
+            logger.info(f"Auto-detected benchmark name: {task_name}")
+    
     # Validate required columns
     required_columns = ["debate_topic", "id"]
     missing_columns = [col for col in required_columns if col not in dataframe.columns]

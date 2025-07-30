@@ -108,7 +108,7 @@ def process_big_bench_mad_dataset(
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
-        task_name="big_bench",
+        task_name="default",  # Let auto-detection work
         verbose=verbose,  # Pass verbose setting
     )
 
