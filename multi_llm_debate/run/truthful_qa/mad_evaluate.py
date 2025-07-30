@@ -104,6 +104,11 @@ def analyze_mad_response_for_truthful_qa(
         mad_choice = "1"
     elif "response 2" in mad_answer.lower() or "response2" in mad_answer.lower():
         mad_choice = "2"
+    # Handle MAD format "Response A" and "Response B" (A corresponds to 1, B to 2)
+    elif "response a" in mad_answer.lower() or "responsea" in mad_answer.lower():
+        mad_choice = "1"  # Response A corresponds to Response 1
+    elif "response b" in mad_answer.lower() or "responseb" in mad_answer.lower():
+        mad_choice = "2"  # Response B corresponds to Response 2
     # Fallback: look for isolated "1" or "2" (but be more careful)
     elif re.search(r"\b1\b", mad_answer) and not re.search(r"\b2\b", mad_answer):
         mad_choice = "1"

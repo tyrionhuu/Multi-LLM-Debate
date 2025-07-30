@@ -112,7 +112,7 @@ def analyze_mad_response_for_llm_bar(
         mad_choice = "2"
 
     # Check if MAD choice matches correct answer
-    is_correct = mad_choice == correct_answer if mad_choice else False
+    is_correct = mad_choice.upper() == correct_answer.upper() if mad_choice else False
 
     return {
         "mad_answer": mad_answer,

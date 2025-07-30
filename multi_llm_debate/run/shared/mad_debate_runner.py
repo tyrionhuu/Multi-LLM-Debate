@@ -512,13 +512,13 @@ def run_mad_debate_workflow(
             try:
                 pbar.set_postfix({"status": "processing", "entry": entry_id})
 
-            # Run debate for this entry
-            runner.run_debate(
-                debate_topic=str(debate_topic),
-                output_dir=entry_output_dir,
-                entry_id=entry_id,
-                task_name=task_name,
-            )
+                # Run debate for this entry
+                runner.run_debate(
+                    debate_topic=str(debate_topic),
+                    output_dir=entry_output_dir,
+                    entry_id=entry_id,
+                    task_name=task_name,
+                )
 
                 processed_count += 1
                 pbar.set_postfix({"status": "completed", "entry": entry_id})

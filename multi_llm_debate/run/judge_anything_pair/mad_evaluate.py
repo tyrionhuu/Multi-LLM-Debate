@@ -178,8 +178,8 @@ def analyze_mad_response_for_judge_anything_pair(
             if preference_match:
                 mad_choice = preference_match.group(1)
 
-    # Determine if the answer is correct
-    is_correct = mad_choice == correct_answer if mad_choice is not None else False
+    # Determine if the answer is correct (case-insensitive comparison)
+    is_correct = mad_choice.upper() == correct_answer.upper() if mad_choice is not None else False
 
     return {
         "mad_answer": mad_answer,
