@@ -315,7 +315,7 @@ class MADDebateRunner:
 
         # Save final answer separately as JSON for better structure
         answer_file = output_dir / f"{entry_id}_answer.json"
-        
+
         # Create a clean, readable answer structure
         answer_data = {
             "final_answer": final_answer,
@@ -324,19 +324,23 @@ class MADDebateRunner:
             "debate_summary": {
                 "success": getattr(debate_results, "success", False),
                 "iterations_used": getattr(debate_results, "iterations_used", 0),
-                "solution_found_in_discriminative": getattr(debate_results, "solution_found_in_discriminative", False),
-                "solution_found_in_extractive": getattr(debate_results, "solution_found_in_extractive", False)
-            }
+                "solution_found_in_discriminative": getattr(
+                    debate_results, "solution_found_in_discriminative", False
+                ),
+                "solution_found_in_extractive": getattr(
+                    debate_results, "solution_found_in_extractive", False
+                ),
+            },
         }
-        
+
         # Add reasoning if available
         if hasattr(debate_results, "reasoning"):
             answer_data["debate_summary"]["reasoning"] = debate_results.reasoning
-            
+
         # Add debate topic if available
         if hasattr(debate_results, "debate_topic"):
             answer_data["debate_summary"]["debate_topic"] = debate_results.debate_topic
-            
+
         with open(answer_file, "w") as f:
             json.dump(answer_data, f, indent=2, default=str)
 
@@ -459,7 +463,8 @@ class MADDebateRunner:
 
 def run_mad_debate_workflow(
     dataframe: pd.DataFrame,
-    base_dir: Path = Path("data") / "mad",  # This will be overridden by benchmark-specific paths
+    base_dir: Path = Path("data")
+    / "mad",  # This will be overridden by benchmark-specific paths
     model_configs: Optional[List[Dict[str, Any]]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
@@ -508,7 +513,7 @@ def run_mad_debate_workflow(
         if benchmark_name and benchmark_name != "data":
             task_name = benchmark_name
             logger.info(f"Auto-detected benchmark name: {task_name}")
-    
+
     # Validate required columns
     required_columns = ["debate_topic", "id"]
     missing_columns = [col for col in required_columns if col not in dataframe.columns]

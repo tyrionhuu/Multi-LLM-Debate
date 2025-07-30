@@ -264,7 +264,9 @@ class Debate:
 
                 # Restore original logging level
                 logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
-                self.judge.add_memory(self.judge_discriminative_decision, verbose=self.verbose)
+                self.judge.add_memory(
+                    self.judge_discriminative_decision, verbose=self.verbose
+                )
 
                 try:
                     # Parse JSON response properly
@@ -388,7 +390,7 @@ class Debate:
 
         # Save debate history to config for output
         self.config["debate_history"] = debate_history
-        
+
         if self.verbose:
             self.print_answer()
         return self.config
@@ -485,7 +487,9 @@ class Debate:
         if self.config.get("success", False):
             if self.verbose:
                 print(f"\nFinal Answer: {self.config.get('Final Answer', 'Unknown')}")
-                print(f"Reasoning: {self.config.get('reasoning', 'No reasoning provided')}")
+                print(
+                    f"Reasoning: {self.config.get('reasoning', 'No reasoning provided')}"
+                )
         else:
             if self.verbose:
                 print(f"\nNo clear decision reached")
