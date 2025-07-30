@@ -190,23 +190,37 @@ class Debate:
                     # Detect task type from debate topic to assign appropriate positions
                     debate_topic = self.config.get("debate_topic", "")
 
-                    # Check if this is a judge_anything_pair task (contains "Response A" and "Response B")
-                    if "Response A" in debate_topic and "Response B" in debate_topic:
-                        # Judge Anything Pair task - assign Response A vs Response B positions
+                    # Check if this is a response comparison task (contains "Response A" and "Response B" or "Response 1" and "Response 2")
+                    if ("Response A" in debate_topic and "Response B" in debate_topic) or ("Response 1" in debate_topic and "Response 2" in debate_topic):
+                        # Response comparison task - assign Response A/1 vs Response B/2 positions
                         if debater_idx == 0:
-                            # First debater argues for Response A
-                            debater_position = "You are ASSIGNED to argue for Response A. You MUST defend Response A and find weaknesses in Response B. Even if you think Response B is better, you must argue for Response A. Focus on Response A's strengths like detailed equipment lists, specific instructions, and accuracy to the image."
-                            if self.verbose:
-                                print(
-                                    f"DEBUG: Debater {debater_idx + 1} assigned position: Response A"
-                                )
+                            # First debater argues for Response A/1
+                            if "Response A" in debate_topic and "Response B" in debate_topic:
+                                debater_position = "You are ASSIGNED to argue for Response A. You MUST defend Response A and find weaknesses in Response B. Even if you think Response B is better, you must argue for Response A. Focus on Response A's strengths like detailed equipment lists, specific instructions, and accuracy to the image."
+                                if self.verbose:
+                                    print(
+                                        f"DEBUG: Debater {debater_idx + 1} assigned position: Response A"
+                                    )
+                            else:
+                                debater_position = "You are ASSIGNED to argue for Response 1. You MUST defend Response 1 and find weaknesses in Response 2. Even if you think Response 2 is better, you must argue for Response 1. Focus on Response 1's strengths like detailed explanations, comprehensive analysis, and thorough coverage of the topic."
+                                if self.verbose:
+                                    print(
+                                        f"DEBUG: Debater {debater_idx + 1} assigned position: Response 1"
+                                    )
                         else:
-                            # Second debater argues for Response B
-                            debater_position = "You are ASSIGNED to argue for Response B. You MUST defend Response B and find weaknesses in Response A. Even if you think Response A is better, you must argue for Response B. Focus on Response B's strengths like conciseness, simplicity, and practical approach."
-                            if self.verbose:
-                                print(
-                                    f"DEBUG: Debater {debater_idx + 1} assigned position: Response B"
-                                )
+                            # Second debater argues for Response B/2
+                            if "Response A" in debate_topic and "Response B" in debate_topic:
+                                debater_position = "You are ASSIGNED to argue for Response B. You MUST defend Response B and find weaknesses in Response A. Even if you think Response A is better, you must argue for Response B. Focus on Response B's strengths like conciseness, simplicity, and practical approach."
+                                if self.verbose:
+                                    print(
+                                        f"DEBUG: Debater {debater_idx + 1} assigned position: Response B"
+                                    )
+                            else:
+                                debater_position = "You are ASSIGNED to argue for Response 2. You MUST defend Response 2 and find weaknesses in Response 1. Even if you think Response 1 is better, you must argue for Response 2. Focus on Response 2's strengths like conciseness, clarity, and practical approach."
+                                if self.verbose:
+                                    print(
+                                        f"DEBUG: Debater {debater_idx + 1} assigned position: Response 2"
+                                    )
                     else:
                         # Default to big_bench style (plausibility debate)
                         if debater_idx == 0:

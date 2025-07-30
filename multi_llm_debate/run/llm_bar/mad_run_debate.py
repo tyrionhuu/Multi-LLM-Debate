@@ -56,10 +56,8 @@ Consider factors such as accuracy, completeness, relevance, and helpfulness."""
 
 def process_llm_bar_mad_dataset(
     dataframe: pd.DataFrame,
-    max_rounds: int = 3,
     base_dir: Path = Path("data") / "llm_bar_mad",
     model_configs: Optional[List[Dict[str, Any]]] = None,
-    overwrite: bool = False,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
@@ -68,37 +66,36 @@ def process_llm_bar_mad_dataset(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Optional[Callable] = None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
-    provider: str = "ollama",
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
+    provider: str = "google",  # Changed from ollama to google
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
+    task_name: str = "llm_bar_mad",  # Add task_name parameter
 ) -> Dict[str, Any]:
-    """Run MAD debate on LLMBar dataset.
+    """Process LLMBar dataset using MAD framework.
 
     Args:
         dataframe: LLMBar DataFrame with columns [question, response_1, response_2, answer, id]
-        max_rounds: Maximum number of debate rounds (default: 3 for MAD)
-        base_dir: Base directory for output files
-        model_configs: Optional list of model configurations
-        overwrite: Whether to overwrite existing debate results
+        base_dir: Output directory
+        model_configs: Model configurations
         temperature: Temperature for model responses
-        max_tokens: Maximum number of tokens for model responses
+        max_tokens: Maximum tokens for responses
         batch: Whether to run in batch mode
-        batch_size: Number of entries to process in a single batch
-        quality_pruning_func: Optional function for quality pruning
-        quality_pruning_amount: Amount for pruning quality
-        diversity_pruning_func: Optional function for diversity pruning
-        diversity_pruning_amount: Amount for pruning diversity
-        num_players: Number of players in the debate (default: 3)
-        provider: LLM provider (default: "ollama")
+        batch_size: Batch size
+        quality_pruning_func: Quality pruning function
+        quality_pruning_amount: Quality pruning amount
+        diversity_pruning_func: Diversity pruning function
+        diversity_pruning_amount: Diversity pruning amount
+        num_debaters: Number of debaters in debate
+        provider: LLM provider
         base_url: Base URL for API calls
         api_key: API key for the provider
+        max_rounds: Maximum debate rounds
 
     Returns:
-        Dict containing summary of execution including failed entries
-
-    Raises:
-        ValueError: If DataFrame format is invalid
+        Execution results dictionary
     """
     # Validate required columns
     required_columns = ["question", "response_1", "response_2", "answer", "id"]
@@ -106,11 +103,10 @@ def process_llm_bar_mad_dataset(
     if missing_columns:
         raise ValueError(f"Missing required columns: {missing_columns}")
 
-    # Convert to MAD format
+    logger.info("Converting LLMBar format to MAD debate format...")
     mad_dataframe = convert_llm_bar_to_mad_format(dataframe)
 
-    # Run MAD debate workflow
-    results = run_mad_debate_workflow(
+    return run_mad_debate_workflow(
         dataframe=mad_dataframe,
         base_dir=base_dir,
         model_configs=model_configs,
@@ -122,15 +118,16 @@ def process_llm_bar_mad_dataset(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
-        task_name="default",  # Let auto-detection work
+        task_name=task_name,  # Pass the actual task name
+        verbose=verbose,  # Pass verbose setting
     )
 
-    return results
+
 
 
 def run_llm_bar_mad_debate(
@@ -145,34 +142,38 @@ def run_llm_bar_mad_debate(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Optional[Callable] = None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
-    provider: str = "ollama",
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
+    provider: str = "google",  # Changed from ollama to google
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-    max_rounds: int = 3,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
+    task_name: str = "llm_bar_mad",  # Add task_name parameter
 ) -> Dict[str, Any]:
-    """Run MAD debate on LLMBar dataset.
+    """Run LLMBar MAD debate workflow.
+
+    Wrapper function for process_llm_bar_mad_dataset.
 
     Args:
         dataframe: LLMBar DataFrame
-        base_dir: Base directory for output files
-        model_configs: List of model configurations
+        base_dir: Output directory
+        model_configs: Model configurations
         temperature: Temperature for model responses
-        max_tokens: Maximum number of tokens for model responses
+        max_tokens: Maximum tokens for responses
         batch: Whether to run in batch mode
-        batch_size: Number of entries to process in a single batch
-        quality_pruning_func: Optional function for quality pruning
-        quality_pruning_amount: Amount for pruning quality
-        diversity_pruning_func: Optional function for diversity pruning
-        diversity_pruning_amount: Amount for pruning diversity
-        num_players: Number of players in the debate
+        batch_size: Batch size
+        quality_pruning_func: Quality pruning function
+        quality_pruning_amount: Quality pruning amount
+        diversity_pruning_func: Diversity pruning function
+        diversity_pruning_amount: Diversity pruning amount
+        num_debaters: Number of debaters in debate
         provider: LLM provider
         base_url: Base URL for API calls
         api_key: API key for the provider
-        max_rounds: Maximum number of debate rounds
+        max_rounds: Maximum debate rounds
 
     Returns:
-        Dict containing execution results
+        Execution results dictionary
     """
     return process_llm_bar_mad_dataset(
         dataframe=dataframe,
@@ -186,9 +187,11 @@ def run_llm_bar_mad_debate(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
+        verbose=verbose,  # Pass verbose setting
+        task_name=task_name,  # Pass task_name parameter
     )

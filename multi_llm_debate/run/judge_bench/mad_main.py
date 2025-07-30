@@ -31,11 +31,12 @@ def main(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Optional[Callable] = None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
     provider: str = "ollama",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
     max_rounds: int = 3,
+    verbose: bool = False,
 ) -> None:
     """Run MAD debate evaluation on JudgeBench dataset with configured models.
 
@@ -54,7 +55,7 @@ def main(
         quality_pruning_amount: Amount of pruning to apply
         diversity_pruning_func: Function for diversity pruning
         diversity_pruning_amount: Amount of pruning to apply
-        num_players: Number of players in the debate
+        num_debaters: Number of debaters in the debate
         provider: LLM provider
         base_url: Base URL for API calls
         api_key: API key for the provider
@@ -116,11 +117,12 @@ def main(
                 quality_pruning_amount=quality_pruning_amount,
                 diversity_pruning_func=diversity_pruning_func,
                 diversity_pruning_amount=diversity_pruning_amount,
-                num_players=num_players,
+                num_debaters=num_debaters,
                 provider=provider,
                 base_url=base_url,
                 api_key=api_key,
                 max_rounds=max_rounds,
+                verbose=verbose,  # Pass verbose setting
             )
 
             # Print execution summary
@@ -130,7 +132,7 @@ def main(
             print(f"Successfully processed: {results['processed_count']}")
             print(f"Failed entries: {len(results['failed_entries'])}")
             print(f"Success rate: {results['success_rate']:.2f}%")
-            print(f"Number of players: {results['num_players']}")
+            print(f"Number of debaters: {results['num_debaters']}")
             print(f"Provider: {results['provider']}")
             print(f"Max rounds: {results['max_rounds']}")
 
@@ -163,7 +165,7 @@ def main(
 if __name__ == "__main__":
     args = Parser(description="Run JudgeBench MAD evaluation").parse_args()
 
-    if args.task_name is None:
+    if args.task_name is None or args.task_name == "default_task":
         task_name = "judge_bench_mad"
     else:
         task_name = args.task_name
@@ -187,7 +189,8 @@ if __name__ == "__main__":
         diversity_pruning_func=args.diversity_pruning_func,
         diversity_pruning_amount=args.diversity_pruning_amount,
         # MAD-specific parameters (you can add these to the Parser if needed)
-        num_players=3,
+        num_debaters=2,  # Changed from num_players to num_debaters, default to 2 for practical use
         provider="google",  # Use Google provider for Gemini models
         max_rounds=3,
+        verbose=args.verbose,  # Pass verbose from command line arguments
     )

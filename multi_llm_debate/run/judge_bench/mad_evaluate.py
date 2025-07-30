@@ -111,6 +111,11 @@ def analyze_mad_response_for_judge_bench(
         mad_choice = "A"
     elif "response b" in mad_answer.lower() or "responseb" in mad_answer.lower():
         mad_choice = "B"
+    # Also check for "Response 1" and "Response 2" format
+    elif "response 1" in mad_answer.lower() or "response1" in mad_answer.lower():
+        mad_choice = "A"  # Response 1 corresponds to Response A
+    elif "response 2" in mad_answer.lower() or "response2" in mad_answer.lower():
+        mad_choice = "B"  # Response 2 corresponds to Response B
     # Fallback: look for isolated "A" or "B" (but be more careful)
     elif re.search(r"\bA\b", mad_answer) and not re.search(r"\bB\b", mad_answer):
         mad_choice = "A"

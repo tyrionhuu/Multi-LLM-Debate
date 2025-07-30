@@ -236,15 +236,15 @@ class MADDebateRunner:
             from ..big_bench.mad_prompts import build_big_bench_mad_prompts
 
             task_prompts = build_big_bench_mad_prompts(debate_topic)
-        elif task_name == "judge_bench":
+        elif task_name == "judge_bench" or task_name == "judge_bench_mad":
             from ..judge_bench.mad_prompts import build_judge_bench_mad_prompts
 
             task_prompts = build_judge_bench_mad_prompts(debate_topic)
-        elif task_name == "llm_bar":
+        elif task_name == "llm_bar" or task_name == "llm_bar_mad":
             from ..llm_bar.mad_prompts import build_llm_bar_mad_prompts
 
             task_prompts = build_llm_bar_mad_prompts(debate_topic)
-        elif task_name == "mllm_judge_pair":
+        elif task_name == "mllm_judge_pair" or task_name == "mllm_judge_pair_mad":
             from ..mllm_judge_pair.mad_prompts import build_mllm_judge_pair_mad_prompts
 
             task_prompts = build_mllm_judge_pair_mad_prompts(debate_topic)

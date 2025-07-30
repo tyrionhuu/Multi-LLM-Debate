@@ -67,11 +67,12 @@ def process_judge_bench_mad_dataset(
     quality_pruning_amount: int = 5,
     diversity_pruning_func=None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
     provider: str = "google",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
     max_rounds: int = 3,
+    verbose: bool = False,  # Add verbose mode
 ) -> Dict[str, Any]:
     """Process JudgeBench dataset using MAD framework.
 
@@ -87,11 +88,12 @@ def process_judge_bench_mad_dataset(
         quality_pruning_amount: Quality pruning amount
         diversity_pruning_func: Diversity pruning function
         diversity_pruning_amount: Diversity pruning amount
-        num_players: Number of players in debate
+        num_debaters: Number of debaters in debate
         provider: LLM provider
         base_url: Base URL for API calls
         api_key: API key for the provider
         max_rounds: Maximum debate rounds
+        verbose: Verbose mode for debugging
 
     Returns:
         Execution results dictionary
@@ -111,12 +113,13 @@ def process_judge_bench_mad_dataset(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
         task_name="default",  # Let auto-detection work
+        verbose=verbose,  # Pass verbose setting
     )
 
 
@@ -132,11 +135,12 @@ def run_judge_bench_mad_debate(
     quality_pruning_amount: int = 5,
     diversity_pruning_func=None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
     provider: str = "google",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
     max_rounds: int = 3,
+    verbose: bool = False,  # Add verbose mode
 ) -> Dict[str, Any]:
     """Run JudgeBench MAD debate workflow.
 
@@ -154,11 +158,12 @@ def run_judge_bench_mad_debate(
         quality_pruning_amount: Quality pruning amount
         diversity_pruning_func: Diversity pruning function
         diversity_pruning_amount: Diversity pruning amount
-        num_players: Number of players in debate
+        num_debaters: Number of debaters in debate
         provider: LLM provider
         base_url: Base URL for API calls
         api_key: API key for the provider
         max_rounds: Maximum debate rounds
+        verbose: Verbose mode for debugging
 
     Returns:
         Execution results dictionary
@@ -175,9 +180,10 @@ def run_judge_bench_mad_debate(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
+        verbose=verbose,  # Pass verbose setting
     )

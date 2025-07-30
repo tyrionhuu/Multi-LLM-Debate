@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 def convert_mllm_judge_pair_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Convert MLLM-Judge-pairs format to MAD debate format.
 
-    MLLM-Judge-pairs format: question, response_A, response_B, answer, id
+    MLLM-Judge-pairs format: question, response_A, response_B, answer, id, image
     MAD format: debate_topic, id
 
     Args:
-        dataframe: MLLM-Judge-pairs DataFrame with columns [question, response_A, response_B, answer, id]
+        dataframe: MLLM-Judge-pairs DataFrame with columns [question, response_A, response_B, answer, id, image]
 
     Returns:
         DataFrame in MAD format with columns [debate_topic, id]
@@ -29,9 +29,22 @@ def convert_mllm_judge_pair_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFra
         response_B = row["response_B"]
         answer = row["answer"]
         entry_id = row["id"]
+        image = row.get("image", "")  # Get image (base64 or path)
 
-        # Create debate topic that includes the question and both responses
-        debate_topic = f"""Question: {question}
+        # Include image in debate topic if available
+        if image:
+            debate_topic = f"""Question: {question}
+
+Image: {image}
+
+Response A: {response_A}
+
+Response B: {response_B}
+
+Please debate which response (Response A or Response B) better answers the question about the image. 
+Consider factors such as accuracy, completeness, relevance, and helpfulness."""
+        else:
+            debate_topic = f"""Question: {question}
 
 Response A: {response_A}
 
@@ -48,6 +61,7 @@ Consider factors such as accuracy, completeness, relevance, and helpfulness."""
                 "response_A": response_A,
                 "response_B": response_B,
                 "correct_answer": answer,
+                "image": image,  # Keep image in the row for reference
             }
         )
 
@@ -56,7 +70,6 @@ Consider factors such as accuracy, completeness, relevance, and helpfulness."""
 
 def process_mllm_judge_pair_mad_dataset(
     dataframe: pd.DataFrame,
-    max_rounds: int = 3,
     base_dir: Path = Path("data") / "mllm_judge_pair_mad",
     model_configs: Optional[List[Dict[str, Any]]] = None,
     temperature: float = 1.0,
@@ -67,40 +80,41 @@ def process_mllm_judge_pair_mad_dataset(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Optional[Callable] = None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
-    provider: str = "ollama",
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
+    provider: str = "google",  # Changed from ollama to google
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
+    task_name: str = "mllm_judge_pair_mad",  # Add task_name parameter
 ) -> Dict[str, Any]:
-    """Run MAD debate on MLLM-Judge-pairs dataset.
+    """Process MLLM-Judge-pairs dataset using MAD framework.
 
     Args:
         dataframe: MLLM-Judge-pairs DataFrame with columns [question, response_A, response_B, answer, id]
-        max_rounds: Maximum number of debate rounds (default: 3 for MAD)
-        base_dir: Base directory for output files
-        model_configs: Optional list of model configurations
-        overwrite: Whether to overwrite existing debate results
+        base_dir: Output directory
+        model_configs: Model configurations
         temperature: Temperature for model responses
-        max_tokens: Maximum number of tokens for model responses
+        max_tokens: Maximum tokens for responses
         batch: Whether to run in batch mode
-        batch_size: Number of entries to process in a single batch
-        quality_pruning_func: Optional function for quality pruning
-        quality_pruning_amount: Amount for pruning quality
-        diversity_pruning_func: Optional function for diversity pruning
-        diversity_pruning_amount: Amount for pruning diversity
-        num_players: Number of players in the debate (default: 3)
-        provider: LLM provider (default: "ollama")
+        batch_size: Batch size
+        quality_pruning_func: Quality pruning function
+        quality_pruning_amount: Quality pruning amount
+        diversity_pruning_func: Diversity pruning function
+        diversity_pruning_amount: Diversity pruning amount
+        num_debaters: Number of debaters in debate
+        provider: LLM provider
         base_url: Base URL for API calls
         api_key: API key for the provider
+        max_rounds: Maximum debate rounds
 
     Returns:
-        Dict containing summary of execution including failed entries
+        Execution results dictionary
     """
-    # Convert to MAD format
+    logger.info("Converting MLLM-Judge-pairs format to MAD debate format...")
     mad_dataframe = convert_mllm_judge_pair_to_mad_format(dataframe)
 
-    # Run MAD debate workflow
-    results = run_mad_debate_workflow(
+    return run_mad_debate_workflow(
         dataframe=mad_dataframe,
         base_dir=base_dir,
         model_configs=model_configs,
@@ -112,15 +126,14 @@ def process_mllm_judge_pair_mad_dataset(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
-        task_name="default",  # Let auto-detection work
+        task_name=task_name,  # Pass the actual task name
+        verbose=verbose,  # Pass verbose setting
     )
-
-    return results
 
 
 def run_mllm_judge_pair_mad_debate(
@@ -135,49 +148,41 @@ def run_mllm_judge_pair_mad_debate(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Optional[Callable] = None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
-    provider: str = "ollama",
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
+    provider: str = "google",  # Changed from ollama to google
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-    max_rounds: int = 3,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
+    task_name: str = "mllm_judge_pair_mad",  # Add task_name parameter
 ) -> Dict[str, Any]:
-    """Run MAD debate on MLLM-Judge-pairs dataset.
+    """Run MLLM-Judge-pairs MAD debate workflow.
+
+    Wrapper function for process_mllm_judge_pair_mad_dataset.
 
     Args:
         dataframe: MLLM-Judge-pairs DataFrame
-        base_dir: Base directory for output files
-        model_configs: List of model configurations
+        base_dir: Output directory
+        model_configs: Model configurations
         temperature: Temperature for model responses
-        max_tokens: Maximum number of tokens for model responses
+        max_tokens: Maximum tokens for responses
         batch: Whether to run in batch mode
-        batch_size: Number of entries to process in a single batch
-        quality_pruning_func: Optional function for quality pruning
-        quality_pruning_amount: Amount for pruning quality
-        diversity_pruning_func: Optional function for diversity pruning
-        diversity_pruning_amount: Amount for pruning diversity
-        num_players: Number of players in the debate
+        batch_size: Batch size
+        quality_pruning_func: Quality pruning function
+        quality_pruning_amount: Quality pruning amount
+        diversity_pruning_func: Diversity pruning function
+        diversity_pruning_amount: Diversity pruning amount
+        num_debaters: Number of debaters in debate
         provider: LLM provider
         base_url: Base URL for API calls
         api_key: API key for the provider
-        max_rounds: Maximum number of debate rounds
+        max_rounds: Maximum debate rounds
 
     Returns:
-        Dict containing summary of execution including failed entries
+        Execution results dictionary
     """
-    logger.info(f"Starting MAD debate for MLLM-Judge-pairs dataset")
-    logger.info(f"Total entries: {len(dataframe)}")
-    logger.info(f"Base directory: {base_dir}")
-    logger.info(f"Number of players: {num_players}")
-    logger.info(f"Provider: {provider}")
-    logger.info(f"Max rounds: {max_rounds}")
-
-    # Create base directory if it doesn't exist
-    base_dir.mkdir(parents=True, exist_ok=True)
-
-    # Run the MAD debate
-    results = process_mllm_judge_pair_mad_dataset(
+    return process_mllm_judge_pair_mad_dataset(
         dataframe=dataframe,
-        max_rounds=max_rounds,
         base_dir=base_dir,
         model_configs=model_configs,
         temperature=temperature,
@@ -188,11 +193,11 @@ def run_mllm_judge_pair_mad_debate(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
+        max_rounds=max_rounds,
+        verbose=verbose,  # Pass verbose setting
+        task_name=task_name,  # Pass task_name parameter
     )
-
-    logger.info(f"MAD debate completed for MLLM-Judge-pairs dataset")
-    return results

@@ -6,7 +6,15 @@ from typing import Literal, Optional
 
 import pandas as pd
 
-from datasets import load_dataset, load_from_disk
+# Try to import datasets library, fallback to direct loading if not available
+try:
+    from datasets import load_dataset, load_from_disk
+    DATASETS_AVAILABLE = True
+except ImportError:
+    DATASETS_AVAILABLE = False
+    import json
+    import pyarrow.parquet as pq
+    import pyarrow as pa
 
 DATASET_PATH = "datasets/JudgeBench"
 
@@ -35,24 +43,64 @@ def load_judge_bench_dataset(
     # Check if base_path is provided
     if base_path is not None:
         dataset_path = os.path.join(base_path, dataset_path)
+    else:
+        # Use absolute path from the current file location
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        dataset_path = os.path.join(current_dir, dataset_path)
 
     # Try to load local datasets first
+    print(f"Checking if dataset path exists: {dataset_path}")
+    print(f"Path exists: {os.path.exists(dataset_path)}")
     if os.path.exists(dataset_path):
         try:
-            # Define paths for the two splits
-            gpt_path = os.path.join(dataset_path, "gpt")
-            claude_path = os.path.join(dataset_path, "claude")
+            if DATASETS_AVAILABLE:
+                # Use datasets library if available
+                gpt_path = os.path.join(dataset_path, "gpt")
+                claude_path = os.path.join(dataset_path, "claude")
 
-            # Check if both splits exist and are not empty
-            if os.path.exists(gpt_path) and os.path.exists(claude_path):
-                dataset_1 = load_from_disk(gpt_path)
-                dataset_2 = load_from_disk(claude_path)
-                df_1 = pd.DataFrame(dataset_1)
-                df_2 = pd.DataFrame(dataset_2)
-                print("Loaded GPT and Claude splits from local paths.")
+                # Check if both splits exist and are not empty
+                if os.path.exists(gpt_path) and os.path.exists(claude_path):
+                    dataset_1 = load_from_disk(gpt_path)
+                    dataset_2 = load_from_disk(claude_path)
+                    df_1 = pd.DataFrame(dataset_1)
+                    df_2 = pd.DataFrame(dataset_2)
+                    print("Loaded GPT and Claude splits from local paths using datasets library.")
+                else:
+                    print("One or both of the splits are missing. Downloading datasets...")
+                    df_1, df_2 = None, None
             else:
-                print("One or both of the splits are missing. Downloading datasets...")
-                df_1, df_2 = None, None
+                # Direct loading without datasets library
+                dataset_files_path = os.path.join(dataset_path, "ScalerLab___judge_bench/default/0.0.0/57dd5e0b9817d07f05ec8f45a91b2ce1e310e308")
+                gpt_file = os.path.join(dataset_files_path, "judge_bench-gpt.arrow")
+                claude_file = os.path.join(dataset_files_path, "judge_bench-claude.arrow")
+                
+                print(f"Looking for files:")
+                print(f"  Dataset path: {dataset_path}")
+                print(f"  Dataset files path: {dataset_files_path}")
+                print(f"  GPT file: {gpt_file}")
+                print(f"  Claude file: {claude_file}")
+                print(f"  GPT file exists: {os.path.exists(gpt_file)}")
+                print(f"  Claude file exists: {os.path.exists(claude_file)}")
+                
+                if os.path.exists(gpt_file) and os.path.exists(claude_file):
+                    # Load arrow files directly
+                    try:
+                        df_1 = pa.ipc.open_file(gpt_file).read_pandas()
+                        df_2 = pa.ipc.open_file(claude_file).read_pandas()
+                        print("Loaded GPT and Claude splits from local arrow files.")
+                    except Exception as e:
+                        print(f"Error reading arrow files: {e}")
+                        # Try alternative approach
+                        try:
+                            df_1 = pa.feather.read_feather(gpt_file)
+                            df_2 = pa.feather.read_feather(claude_file)
+                            print("Loaded GPT and Claude splits using feather format.")
+                        except Exception as e2:
+                            print(f"Error reading feather files: {e2}")
+                            df_1, df_2 = None, None
+                else:
+                    print("Arrow files not found. Cannot load dataset.")
+                    df_1, df_2 = None, None
 
         except Exception as e:
             print(f"Error loading local dataset: {e}")
@@ -60,26 +108,32 @@ def load_judge_bench_dataset(
 
     # Fall back to downloading if local loading failed
     if df_1 is None:
-        print("Local GPT split not found, downloading from HuggingFace...")
-        dataset_1 = load_dataset(
-            "ScalerLab/JudgeBench",
-            split="gpt",
-            cache_dir=dataset_path,
-        )
-        if dataset_1 is None:
-            raise ValueError("Failed to load the JudgeBench GPT dataset.")
-        df_1 = pd.DataFrame(dataset_1)
+        if DATASETS_AVAILABLE:
+            print("Local GPT split not found, downloading from HuggingFace...")
+            dataset_1 = load_dataset(
+                "ScalerLab/JudgeBench",
+                split="gpt",
+                cache_dir=dataset_path,
+            )
+            if dataset_1 is None:
+                raise ValueError("Failed to load the JudgeBench GPT dataset.")
+            df_1 = pd.DataFrame(dataset_1)
+        else:
+            raise ValueError("Datasets library not available and local files not found. Cannot load JudgeBench GPT dataset.")
 
     if df_2 is None:
-        print("Local Claude split not found, downloading from HuggingFace...")
-        dataset_2 = load_dataset(
-            "ScalerLab/JudgeBench",
-            split="claude",
-            cache_dir=dataset_path,
-        )
-        if dataset_2 is None:
-            raise ValueError("Failed to load the JudgeBench Claude dataset.")
-        df_2 = pd.DataFrame(dataset_2)
+        if DATASETS_AVAILABLE:
+            print("Local Claude split not found, downloading from HuggingFace...")
+            dataset_2 = load_dataset(
+                "ScalerLab/JudgeBench",
+                split="claude",
+                cache_dir=dataset_path,
+            )
+            if dataset_2 is None:
+                raise ValueError("Failed to load the JudgeBench Claude dataset.")
+            df_2 = pd.DataFrame(dataset_2)
+        else:
+            raise ValueError("Datasets library not available and local files not found. Cannot load JudgeBench Claude dataset.")
 
     # Concatenate the two DataFrames
     df = pd.concat([df_1, df_2], ignore_index=True)
