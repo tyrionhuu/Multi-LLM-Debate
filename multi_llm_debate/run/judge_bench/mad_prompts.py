@@ -415,7 +415,7 @@ def build_judge_bench_mad_debater_prompt(debate_topic: str) -> str:
         str: The formatted debater prompt for N-debater framework
     """
     prompt = f"**Debate Topic:** {debate_topic}\n" + NEW_LINE
-    
+
     prompt += "**Debate History:** ##debate_history##\n" + NEW_LINE
 
     prompt += (
@@ -535,11 +535,14 @@ def build_judge_bench_mad_judge_discriminative_prompt(debate_topic: str) -> str:
     ) + NEW_LINE
 
     prompt += "You MUST answer in the following JSON format:\n"
-    prompt += """{
+    prompt += (
+        """{
     "solution_obtained": true/false,
     "reasoning": "your detailed reasoning for the decision",
     "Final Answer": "Response A" or "Response B" (only if solution_obtained = true)
-}""" + NEW_LINE
+}"""
+        + NEW_LINE
+    )
 
     prompt += (
         "**Note:** \n"

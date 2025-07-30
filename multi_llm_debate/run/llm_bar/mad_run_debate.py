@@ -128,8 +128,6 @@ def process_llm_bar_mad_dataset(
     )
 
 
-
-
 def run_llm_bar_mad_debate(
     dataframe: pd.DataFrame,
     base_dir: Path = Path("data") / "llm_bar_mad",

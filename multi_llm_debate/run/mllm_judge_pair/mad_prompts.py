@@ -432,10 +432,7 @@ def build_mllm_judge_pair_mad_debater_prompt(debate_topic: str) -> str:
         + NEW_LINE
     )
 
-    prompt += (
-        "**Your Assigned Position:** ##debater_position##\n"
-        + NEW_LINE
-    )
+    prompt += "**Your Assigned Position:** ##debater_position##\n" + NEW_LINE
 
     prompt += (
         "**Task:** Express your arguments based on the previous debate history.\n"
@@ -655,8 +652,14 @@ def build_mllm_judge_pair_mad_prompts(debate_topic: str) -> Dict[str, str]:
             "##oppo_ans##"
         ),  # Placeholder
         # N-debater framework prompts
-        "judge_meta_prompt": build_mllm_judge_pair_mad_moderator_meta_prompt(debate_topic),  # Reuse moderator meta prompt
+        "judge_meta_prompt": build_mllm_judge_pair_mad_moderator_meta_prompt(
+            debate_topic
+        ),  # Reuse moderator meta prompt
         "debater_prompt": build_mllm_judge_pair_mad_debater_prompt(debate_topic),
-        "judge_discriminative_prompt": build_mllm_judge_pair_mad_judge_discriminative_prompt(debate_topic),
-        "judge_extractive_prompt": build_mllm_judge_pair_mad_judge_extractive_prompt(debate_topic),
+        "judge_discriminative_prompt": build_mllm_judge_pair_mad_judge_discriminative_prompt(
+            debate_topic
+        ),
+        "judge_extractive_prompt": build_mllm_judge_pair_mad_judge_extractive_prompt(
+            debate_topic
+        ),
     }

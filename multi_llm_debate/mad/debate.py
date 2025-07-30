@@ -191,11 +191,18 @@ class Debate:
                     debate_topic = self.config.get("debate_topic", "")
 
                     # Check if this is a response comparison task (contains "Response A" and "Response B" or "Response 1" and "Response 2")
-                    if ("Response A" in debate_topic and "Response B" in debate_topic) or ("Response 1" in debate_topic and "Response 2" in debate_topic):
+                    if (
+                        "Response A" in debate_topic and "Response B" in debate_topic
+                    ) or (
+                        "Response 1" in debate_topic and "Response 2" in debate_topic
+                    ):
                         # Response comparison task - assign Response A/1 vs Response B/2 positions
                         if debater_idx == 0:
                             # First debater argues for Response A/1
-                            if "Response A" in debate_topic and "Response B" in debate_topic:
+                            if (
+                                "Response A" in debate_topic
+                                and "Response B" in debate_topic
+                            ):
                                 debater_position = "You are ASSIGNED to argue for Response A. You MUST defend Response A and find weaknesses in Response B. Even if you think Response B is better, you must argue for Response A. Focus on Response A's strengths like detailed equipment lists, specific instructions, and accuracy to the image."
                                 if self.verbose:
                                     print(
@@ -209,7 +216,10 @@ class Debate:
                                     )
                         else:
                             # Second debater argues for Response B/2
-                            if "Response A" in debate_topic and "Response B" in debate_topic:
+                            if (
+                                "Response A" in debate_topic
+                                and "Response B" in debate_topic
+                            ):
                                 debater_position = "You are ASSIGNED to argue for Response B. You MUST defend Response B and find weaknesses in Response A. Even if you think Response A is better, you must argue for Response B. Focus on Response B's strengths like conciseness, simplicity, and practical approach."
                                 if self.verbose:
                                     print(

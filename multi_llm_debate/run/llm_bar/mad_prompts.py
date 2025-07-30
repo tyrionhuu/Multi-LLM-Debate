@@ -422,10 +422,7 @@ def build_llm_bar_mad_debater_prompt(debate_topic: str) -> str:
         + NEW_LINE
     )
 
-    prompt += (
-        "**Your Assigned Position:** ##debater_position##\n"
-        + NEW_LINE
-    )
+    prompt += "**Your Assigned Position:** ##debater_position##\n" + NEW_LINE
 
     prompt += (
         "**Task:** Express your arguments based on the previous debate history.\n"
@@ -537,11 +534,14 @@ def build_llm_bar_mad_judge_discriminative_prompt(debate_topic: str) -> str:
     ) + NEW_LINE
 
     prompt += "You MUST answer in the following JSON format:\n"
-    prompt += """{
+    prompt += (
+        """{
     "solution_obtained": true/false,
     "reasoning": "your detailed reasoning for the decision",
     "Final Answer": "Response 1" or "Response 2" (only if solution_obtained = true)
-}""" + NEW_LINE
+}"""
+        + NEW_LINE
+    )
 
     prompt += (
         "**Note:** \n"
