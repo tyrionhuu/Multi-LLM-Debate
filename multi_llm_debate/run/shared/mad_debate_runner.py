@@ -248,7 +248,7 @@ class MADDebateRunner:
             from ..mllm_judge_pair.mad_prompts import build_mllm_judge_pair_mad_prompts
 
             task_prompts = build_mllm_judge_pair_mad_prompts(debate_topic)
-        elif task_name == "truthful_qa":
+        elif task_name == "truthful_qa" or task_name == "truthful_qa_mad":
             from ..truthful_qa.mad_prompts import build_truthful_qa_mad_prompts
 
             task_prompts = build_truthful_qa_mad_prompts(debate_topic)

@@ -82,45 +82,52 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
 
 
 def analyze_mad_response_for_truthful_qa(
-    mad_answer: str, correct_is_1: bool
+    mad_answer: str, correct_answer: str
 ) -> Dict[str, Any]:
     """Analyze MAD response to determine if it correctly identifies the better response.
 
     Args:
         mad_answer: The final answer from MAD debate
-        correct_is_1: Whether Response 1 is the correct answer
+        correct_answer: The correct answer ("A", "B", or "C")
 
     Returns:
         Dict containing analysis results
     """
-    # Convert answers to strings for comparison
-    mad_answer = str(mad_answer).strip().lower()
+    # Store original answer for display
+    original_mad_answer = str(mad_answer).strip()
+    
+    # Convert answers to strings for comparison (lowercase)
+    mad_answer_lower = original_mad_answer.lower()
 
     # Try to extract "Response 1" or "Response 2" from MAD answer
     mad_choice = None
 
-    # First, try to find exact "Response 1" or "Response 2" matches
-    if "response 1" in mad_answer.lower() or "response1" in mad_answer.lower():
-        mad_choice = "1"
-    elif "response 2" in mad_answer.lower() or "response2" in mad_answer.lower():
-        mad_choice = "2"
-    # Handle MAD format "Response A" and "Response B" (A corresponds to 1, B to 2)
-    elif "response a" in mad_answer.lower() or "responsea" in mad_answer.lower():
-        mad_choice = "1"  # Response A corresponds to Response 1
-    elif "response b" in mad_answer.lower() or "responseb" in mad_answer.lower():
-        mad_choice = "2"  # Response B corresponds to Response 2
-    # Fallback: look for isolated "1" or "2" (but be more careful)
-    elif re.search(r"\b1\b", mad_answer) and not re.search(r"\b2\b", mad_answer):
-        mad_choice = "1"
-    elif re.search(r"\b2\b", mad_answer) and not re.search(r"\b1\b", mad_answer):
-        mad_choice = "2"
+    # First, try to find exact "Response A", "Response B", or "Response C" matches (case insensitive)
+    if "response a" in mad_answer_lower or "responsea" in mad_answer_lower:
+        mad_choice = "A"
+    elif "response b" in mad_answer_lower or "responseb" in mad_answer_lower:
+        mad_choice = "B"
+    elif "response c" in mad_answer_lower or "responsec" in mad_answer_lower:
+        mad_choice = "C"
+    # Handle legacy format "Response 1" and "Response 2" (1 corresponds to A, 2 to B)
+    elif "response 1" in mad_answer_lower or "response1" in mad_answer_lower:
+        mad_choice = "A"  # Response 1 corresponds to Response A
+    elif "response 2" in mad_answer_lower or "response2" in mad_answer_lower:
+        mad_choice = "B"  # Response 2 corresponds to Response B
+    # Fallback: look for isolated "A", "B", "C" (but be more careful)
+    elif re.search(r"\ba\b", mad_answer_lower) and not re.search(r"\bb\b", mad_answer_lower) and not re.search(r"\bc\b", mad_answer_lower):
+        mad_choice = "A"
+    elif re.search(r"\bb\b", mad_answer_lower) and not re.search(r"\ba\b", mad_answer_lower) and not re.search(r"\bc\b", mad_answer_lower):
+        mad_choice = "B"
+    elif re.search(r"\bc\b", mad_answer_lower) and not re.search(r"\ba\b", mad_answer_lower) and not re.search(r"\bb\b", mad_answer_lower):
+        mad_choice = "C"
 
     # Check if MAD choice matches the correct choice
-    correct_choice = "1" if correct_is_1 else "2"
+    correct_choice = correct_answer
     is_correct = mad_choice == correct_choice
 
     return {
-        "mad_answer": mad_answer,
+        "mad_answer": original_mad_answer,  # Return original case for display
         "mad_choice": mad_choice,
         "correct_choice": correct_choice,
         "is_correct": is_correct,
@@ -166,29 +173,37 @@ def evaluate_truthful_qa_mad_results(
     for _, row in original_dataframe.iterrows():
         entry_id = str(row["id"])
 
-        # Get the correct_is_1 flag from the original data
-        # This was set during the conversion process
-        correct_is_1 = getattr(row, "_correct_is_1", None)
-        if correct_is_1 is None:
+        # Get the correct answer from the original data
+        correct_answer = row.get("answer", None)
+        if correct_answer is None:
             # If not available, we can't evaluate this entry
-            logger.warning(f"No _correct_is_1 flag for entry {entry_id}")
+            logger.warning(f"No answer field for entry {entry_id}")
             continue
 
         # Look for MAD results file in the model-specific directory
         results_file = model_results_dir / entry_id / f"{entry_id}_results.json"
-        answer_file = model_results_dir / entry_id / f"{entry_id}_answer.txt"
+        answer_file = model_results_dir / entry_id / f"{entry_id}_answer.json"
 
-        if results_file.exists():
+        if answer_file.exists():
+            # Try to extract from answer file first (new format)
+            try:
+                with open(answer_file, "r") as f:
+                    answer_data = json.load(f)
+                    if "final_answer" in answer_data:
+                        mad_answer = answer_data["final_answer"]
+                    else:
+                        mad_answer = None
+            except Exception as e:
+                logger.warning(f"Could not read answer file {answer_file}: {str(e)}")
+                mad_answer = None
+        elif results_file.exists():
             mad_answer = extract_mad_answer_from_results(results_file)
-        elif answer_file.exists():
-            with open(answer_file, "r") as f:
-                mad_answer = f.read().strip()
         else:
             logger.warning(f"No results found for entry {entry_id}")
             continue
 
         if mad_answer:
-            analysis = analyze_mad_response_for_truthful_qa(mad_answer, correct_is_1)
+            analysis = analyze_mad_response_for_truthful_qa(mad_answer, correct_answer)
             analysis["entry_id"] = entry_id
             analysis["question"] = row["question"]
 

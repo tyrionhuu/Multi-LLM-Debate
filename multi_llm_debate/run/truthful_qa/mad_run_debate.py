@@ -15,7 +15,7 @@ def convert_truthful_qa_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Convert TruthfulQA data to MAD debate format.
 
     TruthfulQA format: question, response_A, response_B, response_C, answer (A/B/C)
-    MAD format: debate_topic (question with two responses to choose from)
+    MAD format: debate_topic (question with three responses to choose from)
 
     Args:
         dataframe: TruthfulQA DataFrame with 'question', 'response_A', 'response_B', 'response_C', 'answer' columns
@@ -32,58 +32,24 @@ def convert_truthful_qa_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
         response_c = row["response_C"]
         correct_answer = row["answer"]
 
-        # For TruthfulQA, we'll create a debate between the correct answer and one incorrect answer
-        # We'll randomly choose which incorrect answer to use for variety
-        import random
-
-        if correct_answer == "A":
-            correct_response = response_a
-            incorrect_responses = [response_b, response_c]
-        elif correct_answer == "B":
-            correct_response = response_b
-            incorrect_responses = [response_a, response_c]
-        else:  # correct_answer == 'C'
-            correct_response = response_c
-            incorrect_responses = [response_a, response_b]
-
-        # Randomly choose one incorrect response
-        incorrect_response = random.choice(incorrect_responses)
-
-        # Randomly assign correct and incorrect to Response 1 or Response 2
-        if random.choice([True, False]):
-            response_1 = correct_response
-            response_2 = incorrect_response
-            correct_is_1 = True
-        else:
-            response_1 = incorrect_response
-            response_2 = correct_response
-            correct_is_1 = False
-
+        # For TruthfulQA, we'll create a debate with all three responses
         debate_topic = f"""Question: {question}
 
-Response 1: {response_1}
+Response A: {response_a}
 
-Response 2: {response_2}
+Response B: {response_b}
 
-Please debate which response (Response 1 or Response 2) better answers the question. 
+Response C: {response_c}
+
+Please debate which response (Response A, Response B, or Response C) better answers the question. 
 Consider factors such as accuracy, truthfulness, completeness, and helpfulness."""
 
-        return debate_topic, correct_is_1
+        return debate_topic
 
-    # Apply the conversion and get both debate topics and correct flags
-    results = mad_dataframe.apply(create_debate_topic, axis=1)
-
-    # Extract debate topics and correct flags
-    debate_topics = []
-    correct_flags = []
-
-    for result in results:
-        debate_topic, correct_is_1 = result
-        debate_topics.append(debate_topic)
-        correct_flags.append(correct_is_1)
+    # Apply the conversion and get debate topics
+    debate_topics = mad_dataframe.apply(create_debate_topic, axis=1)
 
     mad_dataframe["debate_topic"] = debate_topics
-    mad_dataframe["_correct_is_1"] = correct_flags
 
     logger.info(f"Converted {len(mad_dataframe)} entries to MAD format")
     return mad_dataframe
@@ -101,11 +67,13 @@ def process_truthful_qa_mad_dataset(
     quality_pruning_amount: int = 5,
     diversity_pruning_func=None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
+    num_debaters: int = 3,  # Changed from num_players to num_debaters, default to 3 for TruthfulQA (A/B/C)
     provider: str = "google",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-    max_rounds: int = 3,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
+    task_name: str = "truthful_qa_mad",  # Add task_name parameter
 ) -> Dict[str, Any]:
     """Process TruthfulQA dataset using MAD framework.
 
@@ -121,7 +89,7 @@ def process_truthful_qa_mad_dataset(
         quality_pruning_amount: Quality pruning amount
         diversity_pruning_func: Diversity pruning function
         diversity_pruning_amount: Diversity pruning amount
-        num_players: Number of players in debate
+        num_debaters: Number of debaters in debate
         provider: LLM provider
         base_url: Base URL for API calls
         api_key: API key for the provider
@@ -145,12 +113,13 @@ def process_truthful_qa_mad_dataset(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
-        task_name="default",  # Let auto-detection work
+        task_name=task_name,  # Pass the actual task name
+        verbose=verbose,  # Pass verbose setting
     )
 
 
@@ -166,11 +135,13 @@ def run_truthful_qa_mad_debate(
     quality_pruning_amount: int = 5,
     diversity_pruning_func=None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
+    num_debaters: int = 3,  # Changed from num_players to num_debaters, default to 3 for TruthfulQA (A/B/C)
     provider: str = "google",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-    max_rounds: int = 3,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
+    task_name: str = "truthful_qa_mad",  # Add task_name parameter
 ) -> Dict[str, Any]:
     """Run TruthfulQA MAD debate workflow.
 
@@ -188,7 +159,7 @@ def run_truthful_qa_mad_debate(
         quality_pruning_amount: Quality pruning amount
         diversity_pruning_func: Diversity pruning function
         diversity_pruning_amount: Diversity pruning amount
-        num_players: Number of players in debate
+        num_debaters: Number of debaters in debate
         provider: LLM provider
         base_url: Base URL for API calls
         api_key: API key for the provider
@@ -209,9 +180,11 @@ def run_truthful_qa_mad_debate(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
+        verbose=verbose,  # Pass verbose setting
+        task_name=task_name,  # Pass task_name parameter
     )
