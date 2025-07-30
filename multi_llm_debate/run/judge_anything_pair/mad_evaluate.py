@@ -41,22 +41,22 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
             # Look for nested conclusion in base_answer.debate.conclusion (MAD format)
             if isinstance(debate_results, dict) and "base_answer" in debate_results:
                 base_answer = debate_results["base_answer"]
-                
+
                 # Look for final_choice directly in base_answer (MAD format) - highest priority
                 if isinstance(base_answer, dict) and "final_choice" in base_answer:
                     return base_answer["final_choice"]
-                
+
                 # Look for conclusion directly in base_answer (MAD format)
                 if isinstance(base_answer, dict) and "conclusion" in base_answer:
                     return base_answer["conclusion"]
-                
+
                 # Look for winner directly in base_answer (MAD format)
                 if isinstance(base_answer, dict) and "winner" in base_answer:
                     return base_answer["winner"]
-                
+
                 if isinstance(base_answer, dict) and "debate" in base_answer:
                     debate = base_answer["debate"]
-                    
+
                     # Handle debate as object
                     if isinstance(debate, dict):
                         if "conclusion" in debate:
@@ -65,19 +65,19 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
                             return debate["final_choice"]
                         elif "verdict" in debate:
                             return debate["verdict"]
-                    
+
                     # Handle debate as array
                     if isinstance(debate, list) and debate:
                         # First, look for final_choice in any element (highest priority)
                         for item in debate:
                             if isinstance(item, dict) and "final_choice" in item:
                                 return item["final_choice"]
-                        
+
                         # Then look for choice in any element
                         for item in debate:
                             if isinstance(item, dict) and "choice" in item:
                                 return item["choice"]
-                        
+
                         # Finally look for conclusion in any element (lowest priority)
                         for item in debate:
                             if isinstance(item, dict) and "conclusion" in item:
@@ -179,7 +179,11 @@ def analyze_mad_response_for_judge_anything_pair(
                 mad_choice = preference_match.group(1)
 
     # Determine if the answer is correct (case-insensitive comparison)
-    is_correct = mad_choice.upper() == correct_answer.upper() if mad_choice is not None else False
+    is_correct = (
+        mad_choice.upper() == correct_answer.upper()
+        if mad_choice is not None
+        else False
+    )
 
     return {
         "mad_answer": mad_answer,

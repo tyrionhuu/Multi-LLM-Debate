@@ -465,60 +465,105 @@ DEBATE_PROMPT = """##oppo_ans##
 
 **Please provide your reasons and answer.**"""
 
+
 # Task-specific prompt builders
 def build_mad_prompts_for_task(task_name: str) -> Dict[str, str]:
     """Build MAD prompts specific to a given task.
-    
+
     Args:
         task_name: Name of the task (e.g., "judge_anything_pair", "big_bench", etc.)
-        
+
     Returns:
         Dict containing task-specific prompts
     """
-    
+
     if task_name in ["judge_anything_pair", "mllm_judge_pair", "judge_bench"]:
         # These tasks expect "A/B" format
         return {
-            "player_meta_prompt": PLAYER_META_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
-            "judge_meta_prompt": JUDGE_META_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
+            "player_meta_prompt": PLAYER_META_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
+            "judge_meta_prompt": JUDGE_META_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
             "debater_prompt": DEBATER_PROMPT,
             "judge_discriminative_prompt": JUDGE_DISCRIMINATIVE_PROMPT,
-            "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
+            "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
             # Legacy prompts for backward compatibility
-            "debater_a_initial_prompt": DEBATER_A_INITIAL_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
-            "debater_b_disagree_prompt": DEBATER_B_DISAGREE_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
+            "debater_a_initial_prompt": DEBATER_A_INITIAL_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
+            "debater_b_disagree_prompt": DEBATER_B_DISAGREE_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
             "debater_a_rebuttal_prompt": DEBATER_A_REBUTTAL_PROMPT,
-            "judge_decision_prompt": JUDGE_DECISION_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
-            "moderator_meta_prompt": MODERATOR_META_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
-            "affirmative_prompt": AFFIRMATIVE_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
-            "negative_prompt": NEGATIVE_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
-            "moderator_prompt": MODERATOR_PROMPT.replace("Response 1", "Response A").replace("Response 2", "Response B"),
+            "judge_decision_prompt": JUDGE_DECISION_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
+            "moderator_meta_prompt": MODERATOR_META_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
+            "affirmative_prompt": AFFIRMATIVE_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
+            "negative_prompt": NEGATIVE_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
+            "moderator_prompt": MODERATOR_PROMPT.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
             "judge_prompt_last1": JUDGE_PROMPT_1,
-            "judge_prompt_last2": JUDGE_PROMPT_2.replace("Response 1", "Response A").replace("Response 2", "Response B"),
-            "debate_prompt": DEBATE_PROMPT
+            "judge_prompt_last2": JUDGE_PROMPT_2.replace(
+                "Response 1", "Response A"
+            ).replace("Response 2", "Response B"),
+            "debate_prompt": DEBATE_PROMPT,
         }
-    
+
     elif task_name == "big_bench":
         # Big Bench expects "0/1" format
         return {
-            "player_meta_prompt": PLAYER_META_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
-            "judge_meta_prompt": JUDGE_META_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
-            "debater_a_initial_prompt": DEBATER_A_INITIAL_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
-            "debater_b_disagree_prompt": DEBATER_B_DISAGREE_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
+            "player_meta_prompt": PLAYER_META_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
+            "judge_meta_prompt": JUDGE_META_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
+            "debater_a_initial_prompt": DEBATER_A_INITIAL_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
+            "debater_b_disagree_prompt": DEBATER_B_DISAGREE_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
             "debater_a_rebuttal_prompt": DEBATER_A_REBUTTAL_PROMPT,
             "judge_discriminative_prompt": JUDGE_DISCRIMINATIVE_PROMPT,
-            "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
+            "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
             # Legacy prompts for backward compatibility
-            "judge_decision_prompt": JUDGE_DECISION_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
-            "moderator_meta_prompt": MODERATOR_META_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
-            "affirmative_prompt": AFFIRMATIVE_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
-            "negative_prompt": NEGATIVE_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
-            "moderator_prompt": MODERATOR_PROMPT.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
+            "judge_decision_prompt": JUDGE_DECISION_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
+            "moderator_meta_prompt": MODERATOR_META_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
+            "affirmative_prompt": AFFIRMATIVE_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
+            "negative_prompt": NEGATIVE_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
+            "moderator_prompt": MODERATOR_PROMPT.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
             "judge_prompt_last1": JUDGE_PROMPT_1,
-            "judge_prompt_last2": JUDGE_PROMPT_2.replace("Response 1", "Response 1 (Yes)").replace("Response 2", "Response 2 (No)"),
-            "debate_prompt": DEBATE_PROMPT
+            "judge_prompt_last2": JUDGE_PROMPT_2.replace(
+                "Response 1", "Response 1 (Yes)"
+            ).replace("Response 2", "Response 2 (No)"),
+            "debate_prompt": DEBATE_PROMPT,
         }
-    
+
     elif task_name == "truthful_qa":
         # TruthfulQA expects "A/B/C" format but converted to "Response 1/Response 2"
         return {
@@ -535,9 +580,9 @@ def build_mad_prompts_for_task(task_name: str) -> Dict[str, str]:
             "moderator_prompt": MODERATOR_PROMPT,
             "judge_prompt_last1": JUDGE_PROMPT_1,
             "judge_prompt_last2": JUDGE_PROMPT_2,
-            "debate_prompt": DEBATE_PROMPT
+            "debate_prompt": DEBATE_PROMPT,
         }
-    
+
     elif task_name == "llm_bar":
         # LLM Bar uses "Response 1/Response 2" format
         return {
@@ -554,9 +599,9 @@ def build_mad_prompts_for_task(task_name: str) -> Dict[str, str]:
             "moderator_prompt": MODERATOR_PROMPT,
             "judge_prompt_last1": JUDGE_PROMPT_1,
             "judge_prompt_last2": JUDGE_PROMPT_2,
-            "debate_prompt": DEBATE_PROMPT
+            "debate_prompt": DEBATE_PROMPT,
         }
-    
+
     else:
         # Default to "Response 1/Response 2" format
         return {
@@ -573,5 +618,5 @@ def build_mad_prompts_for_task(task_name: str) -> Dict[str, str]:
             "moderator_prompt": MODERATOR_PROMPT,
             "judge_prompt_last1": JUDGE_PROMPT_1,
             "judge_prompt_last2": JUDGE_PROMPT_2,
-            "debate_prompt": DEBATE_PROMPT
+            "debate_prompt": DEBATE_PROMPT,
         }

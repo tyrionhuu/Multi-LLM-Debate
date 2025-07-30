@@ -1,7 +1,7 @@
 import json
 import os
 import random
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 from .agent import Agent
 
@@ -10,7 +10,7 @@ random.seed(0)
 # Default names for N debaters
 DEFAULT_DEBATER_NAMES = [
     "Debater 1",
-    "Debater 2", 
+    "Debater 2",
     "Debater 3",
     "Debater 4",
     "Debater 5",
@@ -118,7 +118,7 @@ class Debate:
     def creat_agents(self):
         """Create debate players - N debaters + 1 judge."""
         # Create N debaters
-        debater_names = DEFAULT_DEBATER_NAMES[:self.num_debaters]
+        debater_names = DEFAULT_DEBATER_NAMES[: self.num_debaters]
         self.debaters = [
             DebatePlayer(
                 model_name=self.model_name,
@@ -131,7 +131,7 @@ class Debate:
             )
             for name in debater_names
         ]
-        
+
         # Create judge
         self.judge = DebatePlayer(
             model_name=self.model_name,
@@ -142,7 +142,7 @@ class Debate:
             base_url=self.base_url,
             api_key=self.api_key,
         )
-        
+
         # All players (debaters + judge)
         self.players = self.debaters + [self.judge]
 
@@ -152,7 +152,7 @@ class Debate:
         if "player_meta_prompt" in self.config:
             for debater in self.debaters:
                 debater.set_meta_prompt(self.config["player_meta_prompt"])
-        
+
         # Set meta prompt for judge
         if "judge_meta_prompt" in self.config:
             self.judge.set_meta_prompt(self.config["judge_meta_prompt"])
@@ -162,10 +162,10 @@ class Debate:
         1. Discriminative Mode (Jd): Judge decides if correct solution is obtained
         2. Extractive Mode (Je): Judge extracts final solution from debate history
         """
-        
+
         debate_history = []
         current_round = 0
-        
+
         # Iterative debate process
         for iteration in range(self.max_round):
             current_round = iteration + 1
@@ -175,9 +175,9 @@ class Debate:
                 print(f"{'='*60}")
             else:
                 print(f"\n--- Iteration {current_round} ---")
-            
+
             iteration_responses = []
-            
+
             # Each debater speaks one by one in fixed order
             for debater_idx, debater in enumerate(self.debaters):
                 if self.verbose:
@@ -185,10 +185,10 @@ class Debate:
                     print("-" * 40)
                 else:
                     print(f"  {debater.name} speaking...")
-                
+
                 # Build debate history context for this debater
                 history_context = self._build_debate_history_context(debate_history)
-                
+
                 # Create prompt for this debater based on debate history
                 if "debater_prompt" in self.config:
                     # Assign different positions to debaters for better debate
@@ -198,92 +198,120 @@ class Debate:
                     else:
                         # Second debater argues against plausibility (0)
                         debater_position = "You are arguing that the statement is IMPLAUSIBLE (0). Defend the position that the statement is unlikely to be true."
-                    
-                    debater_prompt = self.config["debater_prompt"].replace(
-                        "##debate_history##", history_context
-                    ).replace("##debater_name##", debater.name).replace(
-                        "##debater_number##", str(debater_idx + 1)
-                    ).replace("##debater_position##", debater_position)
-                    
+
+                    debater_prompt = (
+                        self.config["debater_prompt"]
+                        .replace("##debate_history##", history_context)
+                        .replace("##debater_name##", debater.name)
+                        .replace("##debater_number##", str(debater_idx + 1))
+                        .replace("##debater_position##", debater_position)
+                    )
+
                     debater.add_event(debater_prompt)
                     # Temporarily reduce logging verbosity for cleaner output
                     import logging
+
                     original_level = logging.getLogger("multi_llm_debate.llm.llm").level
-                    logging.getLogger("multi_llm_debate.llm.llm").setLevel(logging.WARNING)
-                    
-                    debater_response = debater.ask(json_mode=False)  # Debaters should provide natural language responses
-                    
+                    logging.getLogger("multi_llm_debate.llm.llm").setLevel(
+                        logging.WARNING
+                    )
+
+                    debater_response = debater.ask(
+                        json_mode=False
+                    )  # Debaters should provide natural language responses
+
                     # Restore original logging level
-                    logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
+                    logging.getLogger("multi_llm_debate.llm.llm").setLevel(
+                        original_level
+                    )
                     debater.add_memory(debater_response)
-                    
-                    iteration_responses.append({
-                        "debater_name": debater.name,
-                        "debater_number": debater_idx + 1,
-                        "response": debater_response
-                    })
-                    
+
+                    iteration_responses.append(
+                        {
+                            "debater_name": debater.name,
+                            "debater_number": debater_idx + 1,
+                            "response": debater_response,
+                        }
+                    )
+
                     if self.verbose:
                         print(f"----- {debater.name} -----")
                         print(debater_response)
                         print("-" * 40)
                     else:
                         print(f"    {debater.name}: {debater_response[:100]}...")
-            
+
             # Add iteration to debate history
-            debate_history.append({
-                "round": current_round,
-                "responses": iteration_responses
-            })
+            debate_history.append(
+                {"round": current_round, "responses": iteration_responses}
+            )
 
             # Judge Discriminative Mode (Jd) - Decide if correct solution obtained
             if "judge_discriminative_prompt" in self.config:
                 # Build debate history context
                 history_context = self._build_debate_history_context(debate_history)
-                
-                discriminative_prompt = self.config["judge_discriminative_prompt"].replace(
-                    "##debate_history##", history_context
-                ).replace("##current_round##", str(current_round))
-                
+
+                discriminative_prompt = (
+                    self.config["judge_discriminative_prompt"]
+                    .replace("##debate_history##", history_context)
+                    .replace("##current_round##", str(current_round))
+                )
+
                 self.judge.add_event(discriminative_prompt)
                 # Temporarily reduce logging verbosity for cleaner output
                 import logging
+
                 original_level = logging.getLogger("multi_llm_debate.llm.llm").level
                 logging.getLogger("multi_llm_debate.llm.llm").setLevel(logging.WARNING)
-                
-                self.judge_discriminative_decision = self.judge.ask(json_mode=True)  # Judge needs JSON for structured decisions
-                
+
+                self.judge_discriminative_decision = self.judge.ask(
+                    json_mode=True
+                )  # Judge needs JSON for structured decisions
+
                 # Restore original logging level
                 logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
                 self.judge.add_memory(self.judge_discriminative_decision)
-                
+
                 try:
                     # Parse JSON response properly
                     if isinstance(self.judge_discriminative_decision, str):
                         import json
-                        self.judge_discriminative_decision = json.loads(self.judge_discriminative_decision)
+
+                        self.judge_discriminative_decision = json.loads(
+                            self.judge_discriminative_decision
+                        )
                 except (ValueError, SyntaxError, NameError, json.JSONDecodeError):
                     # Fallback to unified format
                     self.judge_discriminative_decision = {
                         "solution_obtained": False,
-                        "reasoning": "Unable to parse judge response"
+                        "reasoning": "Unable to parse judge response",
                     }
-                
+
                 # Check if correct solution is obtained
-                solution_obtained = self.judge_discriminative_decision.get("solution_obtained", False)
-                
+                solution_obtained = self.judge_discriminative_decision.get(
+                    "solution_obtained", False
+                )
+
                 if self.verbose:
-                    print(f"\nJudge Discriminative Decision (Iteration {current_round}):")
+                    print(
+                        f"\nJudge Discriminative Decision (Iteration {current_round}):"
+                    )
                     print("-" * 40)
                     print(f"Solution Obtained: {solution_obtained}")
-                    print(f"Reasoning: {self.judge_discriminative_decision.get('reasoning', 'No reasoning provided')}")
+                    print(
+                        f"Reasoning: {self.judge_discriminative_decision.get('reasoning', 'No reasoning provided')}"
+                    )
                     print("-" * 40)
-                
+
                 if solution_obtained:
                     if self.verbose:
-                        print(f"✓ Correct solution obtained in iteration {current_round} - debate concluded successfully")
+                        print(
+                            f"✓ Correct solution obtained in iteration {current_round} - debate concluded successfully"
+                        )
                     else:
-                        print(f"✓ Correct solution obtained in iteration {current_round}")
+                        print(
+                            f"✓ Correct solution obtained in iteration {current_round}"
+                        )
                     # Solution found - debate is over, no need for Extractive Mode
                     self.config["success"] = True
                     self.config["iterations_used"] = current_round
@@ -294,51 +322,68 @@ class Debate:
                     break
                 else:
                     if self.verbose:
-                        print(f"⚠ No clear solution in iteration {current_round} - continuing to next iteration")
+                        print(
+                            f"⚠ No clear solution in iteration {current_round} - continuing to next iteration"
+                        )
                     else:
-                        print(f"⚠ No clear solution in iteration {current_round}, continuing...")
+                        print(
+                            f"⚠ No clear solution in iteration {current_round}, continuing..."
+                        )
                     # Continue to next iteration
                     continue
-        
+
         # Judge Extractive Mode (Je) - Only used when no solution found within iteration limit
-        if not self.config.get("success", False) and "judge_extractive_prompt" in self.config:
+        if (
+            not self.config.get("success", False)
+            and "judge_extractive_prompt" in self.config
+        ):
             if self.verbose:
                 print(f"\n{'='*60}")
                 print("JUDGE EXTRACTIVE MODE")
                 print(f"{'='*60}")
-                print("No solution found within iteration limit - extracting final solution from complete debate history...")
-            
+                print(
+                    "No solution found within iteration limit - extracting final solution from complete debate history..."
+                )
+
             # Build complete debate history context
-            complete_history_context = self._build_debate_history_context(debate_history)
-            
+            complete_history_context = self._build_debate_history_context(
+                debate_history
+            )
+
             extractive_prompt = self.config["judge_extractive_prompt"].replace(
                 "##debate_history##", complete_history_context
             )
-            
+
             self.judge.add_event(extractive_prompt)
             # Temporarily reduce logging verbosity for cleaner output
             import logging
+
             original_level = logging.getLogger("multi_llm_debate.llm.llm").level
             logging.getLogger("multi_llm_debate.llm.llm").setLevel(logging.WARNING)
-            
-            self.judge_extractive_decision = self.judge.ask(json_mode=True)  # Judge needs JSON for structured decisions
-            
+
+            self.judge_extractive_decision = self.judge.ask(
+                json_mode=True
+            )  # Judge needs JSON for structured decisions
+
             # Restore original logging level
             logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
             self.judge.add_memory(self.judge_extractive_decision)
-            
+
             try:
                 # Parse JSON response properly
                 if isinstance(self.judge_extractive_decision, str):
                     import json
-                    self.judge_extractive_decision = json.loads(self.judge_extractive_decision)
+
+                    self.judge_extractive_decision = json.loads(
+                        self.judge_extractive_decision
+                    )
             except (ValueError, SyntaxError, NameError, json.JSONDecodeError):
                 # Fallback to unified format
                 self.judge_extractive_decision = {
                     "reasoning": "Unable to parse judge response",
-                    "Final Answer": "Response 1"
+                    "Final Answer": "Response 1",
                 }
-            
+
             # Set success flag and update config with final decision from Extractive Mode
             if (
                 isinstance(self.judge_extractive_decision, dict)
@@ -360,89 +405,103 @@ class Debate:
 
     def _build_debate_history_context(self, debate_history: list) -> str:
         """Build context string from debate history for judge evaluation.
-        
+
         Args:
             debate_history: List of debate rounds and responses
-            
+
         Returns:
             Context string for judge evaluation
         """
         context_parts = []
-        
+
         for entry in debate_history:
             round_num = entry.get("round", 0)
             context_parts.append(f"Round {round_num}:")
-            
+
             responses = entry.get("responses", [])
             for response in responses:
                 debater_name = response.get("debater_name", "Unknown")
                 debater_response = response.get("response", "")
                 context_parts.append(f"  {debater_name}: {debater_response}")
-        
+
         return "\n".join(context_parts)
 
     def run(self):
         """Run the complete debate process following the new structure:
         N debaters speak one by one in fixed order, then judge decides
         """
-        
+
         # Use iterative debate by default
         return self.run_iterative_debate()
 
     def print_answer(self):
         """Print the final debate results."""
         if self.verbose:
-            print("\n" + "="*80)
+            print("\n" + "=" * 80)
             print("FINAL DEBATE RESULTS")
-            print("="*80)
+            print("=" * 80)
         else:
-            print("\n" + "="*80)
+            print("\n" + "=" * 80)
             print("DEBATE RESULTS")
-            print("="*80)
-        
+            print("=" * 80)
+
         print(f"\nNumber of Debaters: {self.num_debaters}")
         print(f"Iterations Used: {self.config.get('iterations_used', 0)}")
-        
-        if hasattr(self, 'judge_discriminative_decision'):
+
+        if hasattr(self, "judge_discriminative_decision"):
             if self.verbose:
                 print(f"\nJudge Discriminative Decision:")
                 print("-" * 40)
                 if isinstance(self.judge_discriminative_decision, dict):
-                    print(f"Solution Obtained: {self.judge_discriminative_decision.get('solution_obtained', False)}")
-                    print(f"Reasoning: {self.judge_discriminative_decision.get('reasoning', 'No reasoning provided')}")
+                    print(
+                        f"Solution Obtained: {self.judge_discriminative_decision.get('solution_obtained', False)}"
+                    )
+                    print(
+                        f"Reasoning: {self.judge_discriminative_decision.get('reasoning', 'No reasoning provided')}"
+                    )
                 else:
                     print(f"Raw Decision: {self.judge_discriminative_decision}")
                 print("-" * 40)
             else:
                 print(f"\nJudge Discriminative Decision:")
                 print(f"{self.judge_discriminative_decision}")
-        
+
         # Show which mode found the solution
         if self.config.get("solution_found_in_discriminative", False):
             if self.verbose:
-                print(f"\nSolution found in Discriminative Mode (Iteration {self.config.get('iterations_used', 0)})")
+                print(
+                    f"\nSolution found in Discriminative Mode (Iteration {self.config.get('iterations_used', 0)})"
+                )
             else:
                 print(f"\nSolution found in Discriminative Mode")
         elif self.config.get("solution_found_in_extractive", False):
             if self.verbose:
-                print(f"\nSolution found in Extractive Mode (after {self.config.get('iterations_used', 0)} iterations)")
+                print(
+                    f"\nSolution found in Extractive Mode (after {self.config.get('iterations_used', 0)} iterations)"
+                )
             else:
                 print(f"\nSolution found in Extractive Mode")
-        
-        if hasattr(self, 'judge_extractive_decision') and self.config.get("solution_found_in_extractive", False):
+
+        if hasattr(self, "judge_extractive_decision") and self.config.get(
+            "solution_found_in_extractive", False
+        ):
             if self.verbose:
                 print(f"\nJudge Extractive Decision:")
                 print("-" * 40)
                 if isinstance(self.judge_extractive_decision, dict):
-                    print(f"Final Answer: {self.judge_extractive_decision.get('Final Answer', 'Unknown')}")
-                    print(f"Reasoning: {self.judge_extractive_decision.get('reasoning', 'No reasoning provided')}")
+                    print(
+                        f"Final Answer: {self.judge_extractive_decision.get('Final Answer', 'Unknown')}"
+                    )
+                    print(
+                        f"Reasoning: {self.judge_extractive_decision.get('reasoning', 'No reasoning provided')}"
+                    )
                 else:
                     print(f"Raw Decision: {self.judge_extractive_decision}")
                 print("-" * 40)
             else:
                 print(f"\nJudge Extractive Decision:")
                 print(f"{self.judge_extractive_decision}")
-        
+
         if self.config.get("success", False):
             print(f"\nFinal Answer: {self.config.get('Final Answer', 'Unknown')}")
             print(f"Reasoning: {self.config.get('reasoning', 'No reasoning provided')}")
@@ -516,6 +575,10 @@ if __name__ == "__main__":
         config["debate_topic"] = debate_topic
 
         debate = Debate(
-            num_debaters=2, provider="google", config=config, temperature=0, sleep_time=0
+            num_debaters=2,
+            provider="google",
+            config=config,
+            temperature=0,
+            sleep_time=0,
         )
         debate.run()

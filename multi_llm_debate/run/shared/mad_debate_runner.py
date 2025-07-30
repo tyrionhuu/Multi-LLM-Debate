@@ -13,8 +13,8 @@ from tqdm import tqdm
 from ...mad.debate import Debate
 from ...mad.prompts import (
     DEBATER_A_INITIAL_PROMPT,
-    DEBATER_B_DISAGREE_PROMPT,
     DEBATER_A_REBUTTAL_PROMPT,
+    DEBATER_B_DISAGREE_PROMPT,
     JUDGE_DECISION_PROMPT,
     JUDGE_META_PROMPT,
     PLAYER_META_PROMPT,
@@ -213,7 +213,9 @@ class MADDebateRunner:
             logger.error(f"Error running MAD debate for entry {entry_id}: {str(e)}")
             raise
 
-    def _prepare_mad_config(self, debate_topic: str, task_name: str = "default") -> Dict[str, Any]:
+    def _prepare_mad_config(
+        self, debate_topic: str, task_name: str = "default"
+    ) -> Dict[str, Any]:
         """Prepare configuration for MAD debate.
 
         Args:
@@ -225,34 +227,42 @@ class MADDebateRunner:
         """
         # Import task-specific prompts
         if task_name == "judge_anything_pair":
-            from ..judge_anything_pair.mad_prompts import build_judge_anything_pair_mad_prompts
+            from ..judge_anything_pair.mad_prompts import (
+                build_judge_anything_pair_mad_prompts,
+            )
+
             task_prompts = build_judge_anything_pair_mad_prompts(debate_topic)
         elif task_name == "big_bench":
             from ..big_bench.mad_prompts import build_big_bench_mad_prompts
+
             task_prompts = build_big_bench_mad_prompts(debate_topic)
         elif task_name == "judge_bench":
             from ..judge_bench.mad_prompts import build_judge_bench_mad_prompts
+
             task_prompts = build_judge_bench_mad_prompts(debate_topic)
         elif task_name == "llm_bar":
             from ..llm_bar.mad_prompts import build_llm_bar_mad_prompts
+
             task_prompts = build_llm_bar_mad_prompts(debate_topic)
         elif task_name == "mllm_judge_pair":
             from ..mllm_judge_pair.mad_prompts import build_mllm_judge_pair_mad_prompts
+
             task_prompts = build_mllm_judge_pair_mad_prompts(debate_topic)
         elif task_name == "truthful_qa":
             from ..truthful_qa.mad_prompts import build_truthful_qa_mad_prompts
+
             task_prompts = build_truthful_qa_mad_prompts(debate_topic)
         else:
             # Fallback to generic prompts
             task_prompts = build_mad_prompts_for_task(task_name)
             # Replace debate topic in meta prompts
-            task_prompts["player_meta_prompt"] = task_prompts["player_meta_prompt"].replace(
-                "##debate_topic##", debate_topic
-            )
-            task_prompts["moderator_meta_prompt"] = task_prompts["moderator_meta_prompt"].replace(
-                "##debate_topic##", debate_topic
-            )
-        
+            task_prompts["player_meta_prompt"] = task_prompts[
+                "player_meta_prompt"
+            ].replace("##debate_topic##", debate_topic)
+            task_prompts["moderator_meta_prompt"] = task_prompts[
+                "moderator_meta_prompt"
+            ].replace("##debate_topic##", debate_topic)
+
         return {
             "debate_topic": debate_topic,
             "player_meta_prompt": task_prompts["player_meta_prompt"],
@@ -308,7 +318,7 @@ class MADDebateRunner:
         answer_data = {
             "final_answer": final_answer,
             "extraction_method": "from_debate_results",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
         with open(answer_file, "w") as f:
             json.dump(answer_data, f, indent=2, default=str)
@@ -336,7 +346,10 @@ class MADDebateRunner:
                     elif "final_answer" in config:
                         return config["final_answer"]
                     # Also check for solution_obtained and reasoning
-                    elif config.get("solution_obtained", False) and "Final Answer" in config:
+                    elif (
+                        config.get("solution_obtained", False)
+                        and "Final Answer" in config
+                    ):
                         return config["Final Answer"]
 
             # Try to extract from moderator's final decision
@@ -363,23 +376,23 @@ class MADDebateRunner:
             # Try to extract from base_answer structure (unified format)
             if hasattr(debate_results, "base_answer"):
                 base_answer = debate_results.base_answer
-                
+
                 # Look for final_choice directly in base_answer (highest priority)
                 if hasattr(base_answer, "final_choice"):
                     return base_answer.final_choice
-                
+
                 # Look for conclusion directly in base_answer
                 if hasattr(base_answer, "conclusion"):
                     return base_answer.conclusion
-                
+
                 # Look for winner directly in base_answer
                 if hasattr(base_answer, "winner"):
                     return base_answer.winner
-                
+
                 # Look in debate structure
                 if hasattr(base_answer, "debate"):
                     debate = base_answer.debate
-                    
+
                     # Handle debate as object
                     if hasattr(debate, "final_choice"):
                         return debate.final_choice
@@ -387,19 +400,19 @@ class MADDebateRunner:
                         return debate.conclusion
                     elif hasattr(debate, "verdict"):
                         return debate.verdict
-                    
+
                     # Handle debate as list
                     if isinstance(debate, list) and debate:
                         # First, look for final_choice in any element (highest priority)
                         for item in debate:
                             if hasattr(item, "final_choice"):
                                 return item.final_choice
-                        
+
                         # Then look for choice in any element
                         for item in debate:
                             if hasattr(item, "choice"):
                                 return item.choice
-                        
+
                         # Finally look for conclusion in any element (lowest priority)
                         for item in debate:
                             if hasattr(item, "conclusion"):

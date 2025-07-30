@@ -72,16 +72,16 @@ Consider factors such as accuracy, truthfulness, completeness, and helpfulness."
 
     # Apply the conversion and get both debate topics and correct flags
     results = mad_dataframe.apply(create_debate_topic, axis=1)
-    
+
     # Extract debate topics and correct flags
     debate_topics = []
     correct_flags = []
-    
+
     for result in results:
         debate_topic, correct_is_1 = result
         debate_topics.append(debate_topic)
         correct_flags.append(correct_is_1)
-    
+
     mad_dataframe["debate_topic"] = debate_topics
     mad_dataframe["_correct_is_1"] = correct_flags
 

@@ -88,7 +88,9 @@ def debate(
 
     try:
         # Use progress bar for debate rounds
-        with progress.sub_bar(total=max_rounds, desc="Debate rounds", unit="round") as pbar:
+        with progress.sub_bar(
+            total=max_rounds, desc="Debate rounds", unit="round"
+        ) as pbar:
             for i in range(max_rounds):
                 if i == 0:
                     pbar.set_description(f"Round 0 (initial)")
@@ -124,7 +126,9 @@ def debate(
                             )
                             break
                     except Exception as e:
-                        logger.error(f"Error checking convergence: {str(e)}", exc_info=True)
+                        logger.error(
+                            f"Error checking convergence: {str(e)}", exc_info=True
+                        )
                         raise
 
                     pruned_responses = extracted_responses

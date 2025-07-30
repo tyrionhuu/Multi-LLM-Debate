@@ -139,8 +139,9 @@ def main(
                 print(f"\nRunning evaluation for {task_name}...")
                 # Convert the original dataframe to MAD format to get the _correct_is_1 flag
                 from .mad_run_debate import convert_truthful_qa_to_mad_format
+
                 mad_dataframe = convert_truthful_qa_to_mad_format(dataframe)
-                
+
                 evaluation_results = evaluate_all_truthful_qa_mad(
                     base_dir=Path(f"data/{task_name}"),
                     original_dataframe=mad_dataframe,

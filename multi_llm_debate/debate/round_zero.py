@@ -56,7 +56,9 @@ def run_debate_round_zero(
         json.JSONDecodeError: If unable to serialize responses to JSON.
         Exception: If any error occurs when requesting agent responses.
     """
-    logger.debug(f"Starting debate round zero with {len(agents_ensemble.agents)} agents")
+    logger.debug(
+        f"Starting debate round zero with {len(agents_ensemble.agents)} agents"
+    )
     logger.debug(f"Initial prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
 
     start_time = time.time()

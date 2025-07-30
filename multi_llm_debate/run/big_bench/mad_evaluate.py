@@ -124,12 +124,12 @@ def analyze_mad_response_for_big_bench(
     # If JSON parsing failed, try to extract from text
     if mad_choice is None:
         # Look for isolated "0" or "1" in the text
-        if re.search(r'\b0\b', mad_answer) and not re.search(r'\b1\b', mad_answer):
+        if re.search(r"\b0\b", mad_answer) and not re.search(r"\b1\b", mad_answer):
             mad_choice = "0"
-        elif re.search(r'\b1\b', mad_answer) and not re.search(r'\b0\b', mad_answer):
+        elif re.search(r"\b1\b", mad_answer) and not re.search(r"\b0\b", mad_answer):
             mad_choice = "1"
         # If both 0 and 1 are found, look for the last occurrence
-        elif re.search(r'\b0\b', mad_answer) and re.search(r'\b1\b', mad_answer):
+        elif re.search(r"\b0\b", mad_answer) and re.search(r"\b1\b", mad_answer):
             # Find the last occurrence of 0 or 1
             last_zero = mad_answer.rfind("0")
             last_one = mad_answer.rfind("1")
@@ -194,7 +194,9 @@ def evaluate_big_bench_mad_results(
         # Look for MAD results file in the model-specific directory
         results_file = model_results_dir / entry_id / f"{entry_id}_results.json"
         answer_file = model_results_dir / entry_id / f"{entry_id}_answer.json"
-        answer_file_txt = model_results_dir / entry_id / f"{entry_id}_answer.txt"  # Legacy support
+        answer_file_txt = (
+            model_results_dir / entry_id / f"{entry_id}_answer.txt"
+        )  # Legacy support
 
         if results_file.exists():
             mad_answer = extract_mad_answer_from_results(results_file)
@@ -256,8 +258,12 @@ def print_big_bench_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -
             print(f"Entry {result['entry_id']}:")
             print(f"  Statement: {result['question'][:100]}...")
             print(f"  MAD Answer: {result['mad_answer'][:100]}...")
-            print(f"  MAD Choice: {result['mad_choice']} ({'plausible' if result['mad_choice'] == '1' else 'implausible' if result['mad_choice'] == '0' else 'unknown'})")
-            print(f"  Correct Answer: {result['correct_answer']} ({'plausible' if result['correct_answer'] == '1' else 'implausible'})")
+            print(
+                f"  MAD Choice: {result['mad_choice']} ({'plausible' if result['mad_choice'] == '1' else 'implausible' if result['mad_choice'] == '0' else 'unknown'})"
+            )
+            print(
+                f"  Correct Answer: {result['correct_answer']} ({'plausible' if result['correct_answer'] == '1' else 'implausible'})"
+            )
             print(f"  Correct: {'✓' if result['is_correct'] else '✗'}")
             print()
 

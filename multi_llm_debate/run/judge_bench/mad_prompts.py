@@ -40,14 +40,17 @@ Final Answer: Response A
 
 def build_judge_bench_mad_player_meta_prompt(debate_topic: str) -> str:
     """Build meta prompt for Judge Bench MAD debate players.
-    
+
     Args:
         debate_topic: The debate topic with question and responses
-        
+
     Returns:
         str: The formatted meta prompt for debate players
     """
-    prompt = "As an assistant, your task is to serve as a debater in a structured debate.\n" + NEW_LINE
+    prompt = (
+        "As an assistant, your task is to serve as a debater in a structured debate.\n"
+        + NEW_LINE
+    )
 
     prompt += (
         "You will evaluate the quality of responses provided by two AI assistants to a user question. "
@@ -86,14 +89,17 @@ def build_judge_bench_mad_player_meta_prompt(debate_topic: str) -> str:
 
 def build_judge_bench_mad_moderator_meta_prompt(debate_topic: str) -> str:
     """Build meta prompt for Judge Bench MAD debate moderator.
-    
+
     Args:
         debate_topic: The debate topic with question and responses
-        
+
     Returns:
         str: The formatted meta prompt for debate moderator
     """
-    prompt = "As an assistant, your task is to serve as a moderator in a structured debate.\n" + NEW_LINE
+    prompt = (
+        "As an assistant, your task is to serve as a moderator in a structured debate.\n"
+        + NEW_LINE
+    )
 
     prompt += (
         "You will evaluate a debate between two AI assistant responses and determine which response is better. "
@@ -132,18 +138,24 @@ def build_judge_bench_mad_moderator_meta_prompt(debate_topic: str) -> str:
 
 def build_judge_bench_mad_affirmative_prompt(debate_topic: str) -> str:
     """Build affirmative prompt for Judge Bench MAD debate.
-    
+
     Args:
         debate_topic: The debate topic with question and responses
-        
+
     Returns:
         str: The formatted affirmative prompt
     """
     prompt = debate_topic + NEW_LINE + NEW_LINE
 
-    prompt += "**Your Role:** You are the affirmative debater arguing for one of the two responses.\n" + NEW_LINE
+    prompt += (
+        "**Your Role:** You are the affirmative debater arguing for one of the two responses.\n"
+        + NEW_LINE
+    )
 
-    prompt += "**Task:** Analyze both responses carefully and argue for which one is better.\n" + NEW_LINE
+    prompt += (
+        "**Task:** Analyze both responses carefully and argue for which one is better.\n"
+        + NEW_LINE
+    )
 
     prompt += (
         "**Instructions:**\n"
@@ -166,18 +178,24 @@ def build_judge_bench_mad_affirmative_prompt(debate_topic: str) -> str:
 
 def build_judge_bench_mad_negative_prompt(aff_ans: str) -> str:
     """Build negative prompt for Judge Bench MAD debate.
-    
+
     Args:
         aff_ans: The affirmative side's argument
-        
+
     Returns:
         str: The formatted negative prompt
     """
     prompt = aff_ans + NEW_LINE + NEW_LINE
 
-    prompt += "**Your Role:** You are the negative debater who disagrees with the affirmative side's position.\n" + NEW_LINE
+    prompt += (
+        "**Your Role:** You are the negative debater who disagrees with the affirmative side's position.\n"
+        + NEW_LINE
+    )
 
-    prompt += "**Task:** Provide your own analysis and reasoning for which response is better.\n" + NEW_LINE
+    prompt += (
+        "**Task:** Provide your own analysis and reasoning for which response is better.\n"
+        + NEW_LINE
+    )
 
     prompt += (
         "**Instructions:**\n"
@@ -203,18 +221,22 @@ def build_judge_bench_mad_negative_prompt(aff_ans: str) -> str:
     return prompt
 
 
-def build_judge_bench_mad_moderator_prompt(aff_ans: str, neg_ans: str, round_name: str) -> str:
+def build_judge_bench_mad_moderator_prompt(
+    aff_ans: str, neg_ans: str, round_name: str
+) -> str:
     """Build moderator prompt for Judge Bench MAD debate.
-    
+
     Args:
         aff_ans: The affirmative side's argument
         neg_ans: The negative side's argument
         round_name: The name of the current round
-        
+
     Returns:
         str: The formatted moderator prompt
     """
-    prompt = f"Now the {round_name} round of debate for both sides has ended.\n" + NEW_LINE
+    prompt = (
+        f"Now the {round_name} round of debate for both sides has ended.\n" + NEW_LINE
+    )
 
     prompt += "**Affirmative side arguing:**\n"
     prompt += aff_ans + NEW_LINE + NEW_LINE
@@ -222,7 +244,10 @@ def build_judge_bench_mad_moderator_prompt(aff_ans: str, neg_ans: str, round_nam
     prompt += "**Negative side arguing:**\n"
     prompt += neg_ans + NEW_LINE + NEW_LINE
 
-    prompt += "**Your Role:** As the moderator, evaluate both sides' arguments and determine which response is better.\n" + NEW_LINE
+    prompt += (
+        "**Your Role:** As the moderator, evaluate both sides' arguments and determine which response is better.\n"
+        + NEW_LINE
+    )
 
     prompt += (
         "**Evaluation Instructions:**\n"
@@ -256,11 +281,11 @@ def build_judge_bench_mad_moderator_prompt(aff_ans: str, neg_ans: str, round_nam
 
 def build_judge_bench_mad_judge_prompt_1(aff_ans: str, neg_ans: str) -> str:
     """Build first judge prompt for Judge Bench MAD debate.
-    
+
     Args:
         aff_ans: The affirmative side's argument
         neg_ans: The negative side's argument
-        
+
     Returns:
         str: The formatted first judge prompt
     """
@@ -268,7 +293,10 @@ def build_judge_bench_mad_judge_prompt_1(aff_ans: str, neg_ans: str) -> str:
 
     prompt += "**Negative side arguing:** " + neg_ans + NEW_LINE + NEW_LINE
 
-    prompt += "**Task:** Summarize the key arguments and answer candidates presented in this debate.\n" + NEW_LINE
+    prompt += (
+        "**Task:** Summarize the key arguments and answer candidates presented in this debate.\n"
+        + NEW_LINE
+    )
 
     prompt += (
         "**Instructions:**\n"
@@ -278,25 +306,33 @@ def build_judge_bench_mad_judge_prompt_1(aff_ans: str, neg_ans: str) -> str:
         "- Focus on clarity and objectivity\n"
     ) + NEW_LINE
 
-    prompt += "**Now, what answer candidates do we have? Present them without reasons.**"
+    prompt += (
+        "**Now, what answer candidates do we have? Present them without reasons.**"
+    )
 
     return prompt
 
 
 def build_judge_bench_mad_judge_prompt_2(debate_topic: str) -> str:
     """Build second judge prompt for Judge Bench MAD debate.
-    
+
     Args:
         debate_topic: The debate topic with question and responses
-        
+
     Returns:
         str: The formatted second judge prompt
     """
     prompt = "**Therefore, " + debate_topic + "\n" + NEW_LINE
 
-    prompt += "**Your Role:** As the final judge, you must make the ultimate decision based on the debate.\n" + NEW_LINE
+    prompt += (
+        "**Your Role:** As the final judge, you must make the ultimate decision based on the debate.\n"
+        + NEW_LINE
+    )
 
-    prompt += "**Task:** Summarize your reasons and give the final answer that you think is correct.\n" + NEW_LINE
+    prompt += (
+        "**Task:** Summarize your reasons and give the final answer that you think is correct.\n"
+        + NEW_LINE
+    )
 
     prompt += (
         "**Evaluation Instructions:**\n"
@@ -316,7 +352,10 @@ def build_judge_bench_mad_judge_prompt_2(debate_topic: str) -> str:
         "- Clarity: Which response is clearer and more understandable?\n"
     ) + NEW_LINE
 
-    prompt += "Please summarize your reasons and give the final answer that you think is correct.\n" + NEW_LINE
+    prompt += (
+        "Please summarize your reasons and give the final answer that you think is correct.\n"
+        + NEW_LINE
+    )
 
     prompt += "You MUST answer in the following JSON format:\n"
     prompt += JSON_FORMAT + NEW_LINE
@@ -332,18 +371,24 @@ def build_judge_bench_mad_judge_prompt_2(debate_topic: str) -> str:
 
 def build_judge_bench_mad_debate_prompt(oppo_ans: str) -> str:
     """Build debate prompt for Judge Bench MAD debate.
-    
+
     Args:
         oppo_ans: The opposing side's argument
-        
+
     Returns:
         str: The formatted debate prompt
     """
     prompt = oppo_ans + NEW_LINE + NEW_LINE
 
-    prompt += "**Your Role:** You are continuing the debate with the opposing side.\n" + NEW_LINE
+    prompt += (
+        "**Your Role:** You are continuing the debate with the opposing side.\n"
+        + NEW_LINE
+    )
 
-    prompt += "**Task:** Respond to the opposing argument and provide your own perspective.\n" + NEW_LINE
+    prompt += (
+        "**Task:** Respond to the opposing argument and provide your own perspective.\n"
+        + NEW_LINE
+    )
 
     prompt += (
         "**Instructions:**\n"
@@ -362,20 +407,30 @@ def build_judge_bench_mad_debate_prompt(oppo_ans: str) -> str:
 
 def build_judge_bench_mad_prompts(debate_topic: str) -> Dict[str, str]:
     """Build all Judge Bench MAD prompts.
-    
+
     Args:
         debate_topic: The debate topic with question and responses
-        
+
     Returns:
         Dict containing all MAD prompts for Judge Bench
     """
     return {
         "player_meta_prompt": build_judge_bench_mad_player_meta_prompt(debate_topic),
-        "moderator_meta_prompt": build_judge_bench_mad_moderator_meta_prompt(debate_topic),
+        "moderator_meta_prompt": build_judge_bench_mad_moderator_meta_prompt(
+            debate_topic
+        ),
         "affirmative_prompt": build_judge_bench_mad_affirmative_prompt(debate_topic),
-        "negative_prompt": build_judge_bench_mad_negative_prompt("##aff_ans##"),  # Placeholder
-        "moderator_prompt": build_judge_bench_mad_moderator_prompt("##aff_ans##", "##neg_ans##", "##round##"),  # Placeholders
-        "judge_prompt_last1": build_judge_bench_mad_judge_prompt_1("##aff_ans##", "##neg_ans##"),  # Placeholders
+        "negative_prompt": build_judge_bench_mad_negative_prompt(
+            "##aff_ans##"
+        ),  # Placeholder
+        "moderator_prompt": build_judge_bench_mad_moderator_prompt(
+            "##aff_ans##", "##neg_ans##", "##round##"
+        ),  # Placeholders
+        "judge_prompt_last1": build_judge_bench_mad_judge_prompt_1(
+            "##aff_ans##", "##neg_ans##"
+        ),  # Placeholders
         "judge_prompt_last2": build_judge_bench_mad_judge_prompt_2(debate_topic),
-        "debate_prompt": build_judge_bench_mad_debate_prompt("##oppo_ans##"),  # Placeholder
-    } 
+        "debate_prompt": build_judge_bench_mad_debate_prompt(
+            "##oppo_ans##"
+        ),  # Placeholder
+    }

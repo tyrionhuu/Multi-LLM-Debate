@@ -32,9 +32,10 @@ if __name__ == "__main__":
         config = args.config
         if config is None and args.config_json is None:
             from pathlib import Path
+
             config = Path("multi_llm_debate/run/mllm_judge_pair/config_gemini.json")
             logger.info(f"Using default config for MLLM-Judge pair MAD: {config}")
-        
+
         # Run MAD framework
         mad_main(
             dataframe=dataframe,
