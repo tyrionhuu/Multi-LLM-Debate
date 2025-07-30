@@ -226,7 +226,7 @@ class MADDebateRunner:
             MAD configuration dictionary
         """
         # Import task-specific prompts
-        if task_name == "judge_anything_pair":
+        if task_name == "judge_anything_pair" or task_name == "judge_anything_pair_mad":
             from ..judge_anything_pair.mad_prompts import (
                 build_judge_anything_pair_mad_prompts,
             )
@@ -322,23 +322,23 @@ class MADDebateRunner:
             "extraction_method": "from_debate_results",
             "timestamp": datetime.now().isoformat(),
             "debate_summary": {
-                "success": getattr(debate_results, "success", False),
-                "iterations_used": getattr(debate_results, "iterations_used", 0),
-                "solution_found_in_discriminative": getattr(
-                    debate_results, "solution_found_in_discriminative", False
-                ),
-                "solution_found_in_extractive": getattr(
-                    debate_results, "solution_found_in_extractive", False
-                ),
+                "success": debate_results.get("success", False) if isinstance(debate_results, dict) else getattr(debate_results, "success", False),
+                "iterations_used": debate_results.get("iterations_used", 0) if isinstance(debate_results, dict) else getattr(debate_results, "iterations_used", 0),
+                "solution_found_in_discriminative": debate_results.get("solution_found_in_discriminative", False) if isinstance(debate_results, dict) else getattr(debate_results, "solution_found_in_discriminative", False),
+                "solution_found_in_extractive": debate_results.get("solution_found_in_extractive", False) if isinstance(debate_results, dict) else getattr(debate_results, "solution_found_in_extractive", False),
             },
         }
 
         # Add reasoning if available
-        if hasattr(debate_results, "reasoning"):
+        if isinstance(debate_results, dict) and "reasoning" in debate_results:
+            answer_data["debate_summary"]["reasoning"] = debate_results["reasoning"]
+        elif not isinstance(debate_results, dict) and hasattr(debate_results, "reasoning"):
             answer_data["debate_summary"]["reasoning"] = debate_results.reasoning
 
         # Add debate topic if available
-        if hasattr(debate_results, "debate_topic"):
+        if isinstance(debate_results, dict) and "debate_topic" in debate_results:
+            answer_data["debate_summary"]["debate_topic"] = debate_results["debate_topic"]
+        elif not isinstance(debate_results, dict) and hasattr(debate_results, "debate_topic"):
             answer_data["debate_summary"]["debate_topic"] = debate_results.debate_topic
 
         with open(answer_file, "w") as f:
@@ -357,31 +357,29 @@ class MADDebateRunner:
         """
         try:
             # NEW: Handle N-debater MAD framework format
-            # The new framework stores results in config field
-            if hasattr(debate_results, "config"):
-                config = debate_results.config
-                if isinstance(config, dict):
-                    # Look for Final Answer in config (new N-debater format)
-                    if "Final Answer" in config:
-                        return config["Final Answer"]
-                    elif "final_answer" in config:
-                        return config["final_answer"]
-                    # Also check for solution_obtained and reasoning
-                    elif (
-                        config.get("solution_obtained", False)
-                        and "Final Answer" in config
-                    ):
-                        return config["Final Answer"]
+            # The debate_results IS the config dictionary
+            if isinstance(debate_results, dict):
+                # Look for Final Answer in the config dictionary
+                if "Final Answer" in debate_results:
+                    return debate_results["Final Answer"]
+                elif "final_answer" in debate_results:
+                    return debate_results["final_answer"]
+                # Also check for solution_obtained and reasoning
+                elif (
+                    debate_results.get("solution_obtained", False)
+                    and "Final Answer" in debate_results
+                ):
+                    return debate_results["Final Answer"]
 
             # Try to extract from moderator's final decision
-            if hasattr(debate_results, "moderator_decision"):
+            if not isinstance(debate_results, dict) and hasattr(debate_results, "moderator_decision"):
                 decision = debate_results.moderator_decision
                 if isinstance(decision, dict) and "debate_answer" in decision:
                     return decision["debate_answer"]
                 return str(decision)
 
             # Try to extract from the last round
-            if hasattr(debate_results, "rounds") and debate_results.rounds:
+            if not isinstance(debate_results, dict) and hasattr(debate_results, "rounds") and debate_results.rounds:
                 last_round = debate_results.rounds[-1]
                 if hasattr(last_round, "moderator_response"):
                     response = last_round.moderator_response
@@ -395,7 +393,7 @@ class MADDebateRunner:
                     return str(response)
 
             # Try to extract from base_answer structure (unified format)
-            if hasattr(debate_results, "base_answer"):
+            if not isinstance(debate_results, dict) and hasattr(debate_results, "base_answer"):
                 base_answer = debate_results.base_answer
 
                 # Look for final_choice directly in base_answer (highest priority)
@@ -440,21 +438,28 @@ class MADDebateRunner:
                                 return item.conclusion
 
             # Try to extract from debate_answer field
-            if hasattr(debate_results, "debate_answer"):
+            if not isinstance(debate_results, dict) and hasattr(debate_results, "debate_answer"):
                 return debate_results.debate_answer
 
-            # Try to extract from Final Answer field
-            if hasattr(debate_results, "Final Answer"):
-                return debate_results["Final Answer"]
+            # Try to extract from Final Answer field at top level
+            if not isinstance(debate_results, dict) and hasattr(debate_results, "Final Answer"):
+                return getattr(debate_results, "Final Answer")
+            elif not isinstance(debate_results, dict) and hasattr(debate_results, "Final_Answer"):
+                return getattr(debate_results, "Final_Answer")
+            elif not isinstance(debate_results, dict) and hasattr(debate_results, "final_answer"):
+                return getattr(debate_results, "final_answer")
 
             # Fallback: return only essential information
-            if hasattr(debate_results, "Final Answer"):
-                return debate_results["Final Answer"]
-            elif hasattr(debate_results, "final_answer"):
-                return debate_results.final_answer
+            if not isinstance(debate_results, dict) and hasattr(debate_results, "Final Answer"):
+                return getattr(debate_results, "Final Answer")
+            elif not isinstance(debate_results, dict) and hasattr(debate_results, "final_answer"):
+                return getattr(debate_results, "final_answer")
             else:
                 # Last resort: return a summary instead of the entire object
-                return f"Debate completed - Success: {getattr(debate_results, 'success', False)}, Iterations: {getattr(debate_results, 'iterations_used', 0)}"
+                if isinstance(debate_results, dict):
+                    return f"Debate completed - Success: {debate_results.get('success', False)}, Iterations: {debate_results.get('iterations_used', 0)}"
+                else:
+                    return f"Debate completed - Success: {getattr(debate_results, 'success', False)}, Iterations: {getattr(debate_results, 'iterations_used', 0)}"
 
         except Exception as e:
             logger.warning(f"Error extracting final answer: {str(e)}")

@@ -31,11 +31,12 @@ def main(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Optional[Callable] = None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
-    provider: str = "ollama",
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
+    provider: str = "google",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-    max_rounds: int = 3,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
 ) -> None:
     """Run MAD debate evaluation on JudgeAnything-pair dataset with configured models.
 
@@ -99,73 +100,74 @@ def main(
             else:
                 model_configs_list = loaded_config
 
-    # Run MAD debates for each model configuration
-    for i, model_configs in enumerate(model_configs_list):
-        logger.info(
-            f"Running MAD debate with model config {i+1}/{len(model_configs_list)}"
-        )
-
-        try:
-            results = run_judge_anything_pair_mad_debate(
-                dataframe=dataframe,
-                base_dir=Path(f"data/{task_name}"),
-                model_configs=model_configs,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                batch=batch,
-                batch_size=batch_size,
-                quality_pruning_func=quality_pruning_func,
-                quality_pruning_amount=quality_pruning_amount,
-                diversity_pruning_func=diversity_pruning_func,
-                diversity_pruning_amount=diversity_pruning_amount,
-                num_players=num_players,
-                provider=provider,
-                base_url=base_url,
-                api_key=api_key,
-                max_rounds=max_rounds,
+            # Run MAD debates for each model configuration
+        for i, model_configs in enumerate(model_configs_list):
+            logger.info(
+                f"Running MAD debate with model config {i+1}/{len(model_configs_list)}"
             )
 
-            # Print execution summary
-            print(f"\nMAD Debate Execution Summary for {task_name}:")
-            print("-" * 50)
-            print(f"Total entries processed: {results['total_entries']}")
-            print(f"Successfully processed: {results['processed_count']}")
-            print(f"Failed entries: {len(results['failed_entries'])}")
-            print(f"Success rate: {results['success_rate']:.2f}%")
-            print(f"Number of players: {results['num_players']}")
-            print(f"Provider: {results['provider']}")
-            print(f"Max rounds: {results['max_rounds']}")
-
-            # Run evaluation on the results if requested
-            if run_evaluation:
-                print(f"\nRunning evaluation for {task_name}...")
-                evaluation_results = evaluate_all_judge_anything_pair_mad(
+            try:
+                results = run_judge_anything_pair_mad_debate(
+                    dataframe=dataframe,
                     base_dir=Path(f"data/{task_name}"),
-                    original_dataframe=dataframe,
                     model_configs=model_configs,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    batch=batch,
+                    batch_size=batch_size,
+                    quality_pruning_func=quality_pruning_func,
+                    quality_pruning_amount=quality_pruning_amount,
+                    diversity_pruning_func=diversity_pruning_func,
+                    diversity_pruning_amount=diversity_pruning_amount,
+                    num_debaters=num_debaters,  # Changed from num_players to num_debaters
+                    provider=provider,
+                    base_url=base_url,
+                    api_key=api_key,
+                    max_rounds=max_rounds,
+                    verbose=verbose,  # Pass verbose setting
                 )
 
-                # Save results to CSV
-                # Use a reasonable default running time since we don't track it precisely
-                save_mad_results_to_csv(
-                    evaluation_results=evaluation_results,
-                    task_name=task_name,
-                    model_configs=model_configs,
-                    report_path=Path(f"data/{task_name}"),
-                    running_time=0.0,  # We'll calculate this properly later
-                )
-            else:
-                print(f"\nSkipping evaluation as run_evaluation=False")
+                # Print execution summary
+                print(f"\nMAD Debate Execution Summary for {task_name}:")
+                print("-" * 50)
+                print(f"Total entries processed: {results['total_entries']}")
+                print(f"Successfully processed: {results['processed_count']}")
+                print(f"Failed entries: {len(results['failed_entries'])}")
+                print(f"Success rate: {results['success_rate']:.2f}%")
+                print(f"Number of debaters: {results['num_debaters']}")
+                print(f"Provider: {results['provider']}")
+                print(f"Max rounds: {results['max_rounds']}")
 
-        except Exception as e:
-            logger.error(f"Error running MAD debate with config {i+1}: {str(e)}")
-            raise
+                # Run evaluation on the results if requested
+                if run_evaluation:
+                    print(f"\nRunning evaluation for {task_name}...")
+                    evaluation_results = evaluate_all_judge_anything_pair_mad(
+                        base_dir=Path(f"data/{task_name}"),
+                        original_dataframe=dataframe,
+                        model_configs=model_configs,
+                    )
+
+                    # Save results to CSV
+                    # Use a reasonable default running time since we don't track it precisely
+                    save_mad_results_to_csv(
+                        evaluation_results=evaluation_results,
+                        task_name=task_name,
+                        model_configs=model_configs,
+                        report_path=Path(f"data/{task_name}"),
+                        running_time=0.0,  # We'll calculate this properly later
+                    )
+                else:
+                    print(f"\nSkipping evaluation as run_evaluation=False")
+
+            except Exception as e:
+                logger.error(f"Error running MAD debate with config {i+1}: {str(e)}")
+                raise
 
 
 if __name__ == "__main__":
     args = Parser(description="Run JudgeAnything-pair MAD evaluation").parse_args()
 
-    if args.task_name is None:
+    if args.task_name is None or args.task_name == "default_task":
         task_name = "judge_anything_pair_mad"
     else:
         task_name = args.task_name
@@ -188,8 +190,9 @@ if __name__ == "__main__":
         quality_pruning_func=args.quality_pruning_func,
         diversity_pruning_func=args.diversity_pruning_func,
         diversity_pruning_amount=args.diversity_pruning_amount,
+        verbose=args.verbose,  # Pass verbose setting
         # MAD-specific parameters (you can add these to the Parser if needed)
-        num_players=3,
+        num_debaters=2,  # Changed from num_players to num_debaters, default to 2 for practical use
         provider="google",  # Use Google provider for Gemini models
-        max_rounds=3,
+        max_rounds=10,  # Increased default from 3 to 10
     )

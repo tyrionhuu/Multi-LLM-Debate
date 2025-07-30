@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # Check if MAD mode is requested
     use_mad = args.mad or args.task_name == "judge_anything_pair_mad"
 
-    if args.task_name is None:
+    if args.task_name is None or args.task_name == "default_task":
         task_name = "judge_anything_pair_mad" if use_mad else "judge_anything_pair"
     else:
         task_name = args.task_name
@@ -49,6 +49,7 @@ if __name__ == "__main__":
             quality_pruning_func=args.quality_pruning_func,
             diversity_pruning_func=args.diversity_pruning_func,
             diversity_pruning_amount=args.diversity_pruning_amount,
+            verbose=args.verbose,  # Pass verbose setting
         )
     else:
         # Run standard framework

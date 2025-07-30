@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 def convert_judge_anything_pair_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Convert JudgeAnything-pair format to MAD debate format.
 
-    JudgeAnything-pair format: question, response_A, response_B, answer, id
+    JudgeAnything-pair format: question, response_A, response_B, answer, id, image_path
     MAD format: debate_topic, id
 
     Args:
-        dataframe: JudgeAnything-pair DataFrame with columns [question, response_A, response_B, answer, id]
+        dataframe: JudgeAnything-pair DataFrame with columns [question, response_A, response_B, answer, id, image_path]
 
     Returns:
         DataFrame in MAD format with columns [debate_topic, id]
@@ -29,9 +29,24 @@ def convert_judge_anything_pair_to_mad_format(dataframe: pd.DataFrame) -> pd.Dat
         response_B = row["response_B"]
         answer = row["answer"]
         entry_id = row["id"]
+        image_path = row.get("image_path", "")  # Get image path if available
 
-        # Create debate topic that includes the question and both responses
-        debate_topic = f"""Question: {question}
+        # Create debate topic that includes the question, image information, and both responses
+        if image_path:
+            # Include image information in the debate topic
+            debate_topic = f"""Question: {question}
+
+Image: {image_path}
+
+Response A: {response_A}
+
+Response B: {response_B}
+
+Please debate which response (Response A or Response B) better answers the question about the image. 
+Consider factors such as accuracy, completeness, relevance, and helpfulness."""
+        else:
+            # Fallback if no image path is available
+            debate_topic = f"""Question: {question}
 
 Response A: {response_A}
 
@@ -48,6 +63,7 @@ Consider factors such as accuracy, completeness, relevance, and helpfulness."""
                 "response_A": response_A,
                 "response_B": response_B,
                 "correct_answer": answer,
+                "image_path": image_path,  # Include image path in the output
             }
         )
 
@@ -56,21 +72,22 @@ Consider factors such as accuracy, completeness, relevance, and helpfulness."""
 
 def process_judge_anything_pair_mad_dataset(
     dataframe: pd.DataFrame,
-    max_rounds: int = 3,
     base_dir: Path = Path("data") / "judge_anything_pair_mad",
-    model_configs: Optional[List[Dict[str, Any]]] = None,
+    model_configs: Optional[List[Dict]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
     batch_size: int = 11,
-    quality_pruning_func: Optional[Callable] = None,
+    quality_pruning_func=None,
     quality_pruning_amount: int = 5,
-    diversity_pruning_func: Optional[Callable] = None,
+    diversity_pruning_func=None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
-    provider: str = "ollama",
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
+    provider: str = "google",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
 ) -> Dict[str, Any]:
     """Run MAD debate on JudgeAnything-pair dataset.
 
@@ -96,11 +113,10 @@ def process_judge_anything_pair_mad_dataset(
     Returns:
         Dict containing summary of execution including failed entries
     """
-    # Convert to MAD format
+    logger.info("Converting JudgeAnything-pair format to MAD debate format...")
     mad_dataframe = convert_judge_anything_pair_to_mad_format(dataframe)
 
-    # Run MAD debate workflow
-    results = run_mad_debate_workflow(
+    return run_mad_debate_workflow(
         dataframe=mad_dataframe,
         base_dir=base_dir,
         model_configs=model_configs,
@@ -112,12 +128,13 @@ def process_judge_anything_pair_mad_dataset(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
         task_name="default",  # Let auto-detection work
+        verbose=verbose,  # Pass verbose setting
     )
 
     return results
@@ -126,20 +143,21 @@ def process_judge_anything_pair_mad_dataset(
 def run_judge_anything_pair_mad_debate(
     dataframe: pd.DataFrame,
     base_dir: Path = Path("data") / "judge_anything_pair_mad",
-    model_configs: Optional[List[Dict[str, Any]]] = None,
+    model_configs: Optional[List[Dict]] = None,
     temperature: float = 1.0,
     max_tokens: int = 6400,
     batch: bool = False,
     batch_size: int = 11,
-    quality_pruning_func: Optional[Callable] = None,
+    quality_pruning_func=None,
     quality_pruning_amount: int = 5,
-    diversity_pruning_func: Optional[Callable] = None,
+    diversity_pruning_func=None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
-    provider: str = "ollama",
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
+    provider: str = "google",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-    max_rounds: int = 3,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
 ) -> Dict[str, Any]:
     """Run MAD debate on JudgeAnything-pair dataset.
 
@@ -167,7 +185,7 @@ def run_judge_anything_pair_mad_debate(
     logger.info(f"Starting MAD debate for JudgeAnything-pair dataset")
     logger.info(f"Total entries: {len(dataframe)}")
     logger.info(f"Base directory: {base_dir}")
-    logger.info(f"Number of players: {num_players}")
+    logger.info(f"Number of debaters: {num_debaters}")
     logger.info(f"Provider: {provider}")
     logger.info(f"Max rounds: {max_rounds}")
 
@@ -177,7 +195,6 @@ def run_judge_anything_pair_mad_debate(
     # Run the MAD debate
     results = process_judge_anything_pair_mad_dataset(
         dataframe=dataframe,
-        max_rounds=max_rounds,
         base_dir=base_dir,
         model_configs=model_configs,
         temperature=temperature,
@@ -188,10 +205,12 @@ def run_judge_anything_pair_mad_debate(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
+        max_rounds=max_rounds,
+        verbose=verbose,  # Pass verbose setting
     )
 
     logger.info(f"MAD debate completed for JudgeAnything-pair dataset")

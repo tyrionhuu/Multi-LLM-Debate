@@ -26,6 +26,21 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
         if "final_answer" in results:
             return results["final_answer"]
 
+        # Try to extract from Final Answer field at top level (new MAD format)
+        if "Final Answer" in results:
+            return results["Final Answer"]
+
+        # Try to extract from the reasoning field at top level (new MAD format)
+        if "reasoning" in results:
+            reasoning = results["reasoning"]
+            # Try to extract "Response A" or "Response B" from the reasoning
+            if "Response A" in reasoning:
+                return "Response A"
+            elif "Response B" in reasoning:
+                return "Response B"
+            # If no clear Response A/B found, return the reasoning as fallback
+            return reasoning
+
         # Try to extract from debate_results
         if "debate_results" in results:
             debate_results = results["debate_results"]
@@ -33,6 +48,17 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
             # Look for Final Answer in debate_results (MAD format)
             if isinstance(debate_results, dict) and "Final Answer" in debate_results:
                 return debate_results["Final Answer"]
+
+            # Look for reasoning field which contains the final answer (new MAD format)
+            if isinstance(debate_results, dict) and "reasoning" in debate_results:
+                reasoning = debate_results["reasoning"]
+                # Try to extract "Response A" or "Response B" from the reasoning
+                if "Response A" in reasoning:
+                    return "Response A"
+                elif "Response B" in reasoning:
+                    return "Response B"
+                # If no clear Response A/B found, return the reasoning as fallback
+                return reasoning
 
             # Look for conclusion in debate_results
             if isinstance(debate_results, dict) and "conclusion" in debate_results:
