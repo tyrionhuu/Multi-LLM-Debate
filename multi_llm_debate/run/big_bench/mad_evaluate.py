@@ -74,6 +74,15 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
                             pass
                     return str(response)
 
+        # Try to extract from config (new N-debater format)
+        if "config" in results:
+            config = results["config"]
+            if isinstance(config, dict):
+                if "Final Answer" in config:
+                    return config["Final Answer"]
+                elif "final_answer" in config:
+                    return config["final_answer"]
+
         return None
 
     except Exception as e:
@@ -84,41 +93,55 @@ def extract_mad_answer_from_results(results_file: Path) -> Optional[str]:
 def analyze_mad_response_for_big_bench(
     mad_answer: str, correct_answer: str
 ) -> Dict[str, Any]:
-    """Analyze MAD response to determine if it correctly identifies the better response.
+    """Analyze MAD response to determine if it correctly identifies plausibility.
 
     Args:
-        mad_answer: The final answer from MAD debate
+        mad_answer: The final answer from MAD debate (should be 0 or 1)
         correct_answer: The correct answer from BIG-Bench dataset (0 or 1)
 
     Returns:
         Dict containing analysis results
     """
     # Convert answers to strings for comparison
-    mad_answer = str(mad_answer).strip().lower()
+    mad_answer = str(mad_answer).strip()
     correct_answer = str(correct_answer).strip()
 
-    # Try to extract "Response 1" or "Response 2" from MAD answer
+    # Try to extract 0 or 1 from MAD answer
     mad_choice = None
 
-    # First, try to find exact "Response 1" or "Response 2" matches
-    if "response 1" in mad_answer.lower() or "response1" in mad_answer.lower():
-        mad_choice = "1"
-    elif "response 2" in mad_answer.lower() or "response2" in mad_answer.lower():
-        mad_choice = "2"
-    # Fallback: look for isolated "1" or "2" (but be more careful)
-    elif re.search(r"\b1\b", mad_answer) and not re.search(r"\b2\b", mad_answer):
-        mad_choice = "1"
-    elif re.search(r"\b2\b", mad_answer) and not re.search(r"\b1\b", mad_answer):
-        mad_choice = "2"
+    # First, try to find exact "0" or "1" matches in JSON format
+    try:
+        # Try to parse as JSON first
+        parsed_answer = json.loads(mad_answer)
+        if isinstance(parsed_answer, dict):
+            if "Final Answer" in parsed_answer:
+                final_answer = str(parsed_answer["Final Answer"]).strip()
+                if final_answer in ["0", "1"]:
+                    mad_choice = final_answer
+    except (json.JSONDecodeError, TypeError):
+        pass
 
-    # For BIG-Bench, we need to map the MAD choice to the correct answer
-    # If MAD chose Response 1 and correct_answer is 1, then MAD is correct
-    # If MAD chose Response 2 and correct_answer is 0, then MAD is correct
+    # If JSON parsing failed, try to extract from text
+    if mad_choice is None:
+        # Look for isolated "0" or "1" in the text
+        if re.search(r'\b0\b', mad_answer) and not re.search(r'\b1\b', mad_answer):
+            mad_choice = "0"
+        elif re.search(r'\b1\b', mad_answer) and not re.search(r'\b0\b', mad_answer):
+            mad_choice = "1"
+        # If both 0 and 1 are found, look for the last occurrence
+        elif re.search(r'\b0\b', mad_answer) and re.search(r'\b1\b', mad_answer):
+            # Find the last occurrence of 0 or 1
+            last_zero = mad_answer.rfind("0")
+            last_one = mad_answer.rfind("1")
+            if last_zero > last_one:
+                mad_choice = "0"
+            else:
+                mad_choice = "1"
+
+    # Direct comparison: MAD answer should match correct answer
     is_correct = False
-    if mad_choice == "1":
-        is_correct = correct_answer == "1"
-    elif mad_choice == "2":
-        is_correct = correct_answer == "0"
+    if mad_choice is not None:
+        is_correct = mad_choice == correct_answer
 
     return {
         "mad_answer": mad_answer,
@@ -170,12 +193,23 @@ def evaluate_big_bench_mad_results(
 
         # Look for MAD results file in the model-specific directory
         results_file = model_results_dir / entry_id / f"{entry_id}_results.json"
-        answer_file = model_results_dir / entry_id / f"{entry_id}_answer.txt"
+        answer_file = model_results_dir / entry_id / f"{entry_id}_answer.json"
+        answer_file_txt = model_results_dir / entry_id / f"{entry_id}_answer.txt"  # Legacy support
 
         if results_file.exists():
             mad_answer = extract_mad_answer_from_results(results_file)
         elif answer_file.exists():
-            with open(answer_file, "r") as f:
+            # New JSON format
+            try:
+                with open(answer_file, "r") as f:
+                    answer_data = json.load(f)
+                    mad_answer = answer_data.get("final_answer", "")
+            except (json.JSONDecodeError, KeyError):
+                logger.warning(f"Could not parse JSON answer file for entry {entry_id}")
+                continue
+        elif answer_file_txt.exists():
+            # Legacy TXT format
+            with open(answer_file_txt, "r") as f:
                 mad_answer = f.read().strip()
         else:
             logger.warning(f"No results found for entry {entry_id}")
@@ -220,10 +254,10 @@ def print_big_bench_mad_evaluation_summary(evaluation_results: Dict[str, Any]) -
         print("-" * 40)
         for i, result in enumerate(evaluation_results["detailed_results"][:5]):
             print(f"Entry {result['entry_id']}:")
-            print(f"  Question: {result['question'][:100]}...")
+            print(f"  Statement: {result['question'][:100]}...")
             print(f"  MAD Answer: {result['mad_answer'][:100]}...")
-            print(f"  MAD Choice: {result['mad_choice']}")
-            print(f"  Correct Answer: {result['correct_answer']}")
+            print(f"  MAD Choice: {result['mad_choice']} ({'plausible' if result['mad_choice'] == '1' else 'implausible' if result['mad_choice'] == '0' else 'unknown'})")
+            print(f"  Correct Answer: {result['correct_answer']} ({'plausible' if result['correct_answer'] == '1' else 'implausible'})")
             print(f"  Correct: {'✓' if result['is_correct'] else '✗'}")
             print()
 

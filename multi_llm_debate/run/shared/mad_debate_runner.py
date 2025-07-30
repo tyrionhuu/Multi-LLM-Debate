@@ -12,10 +12,11 @@ from tqdm import tqdm
 
 from ...mad.debate import Debate
 from ...mad.prompts import (
-    AFFIRMATIVE_PROMPT,
-    MODERATOR_META_PROMPT,
-    MODERATOR_PROMPT,
-    NEGATIVE_PROMPT,
+    DEBATER_A_INITIAL_PROMPT,
+    DEBATER_B_DISAGREE_PROMPT,
+    DEBATER_A_REBUTTAL_PROMPT,
+    JUDGE_DECISION_PROMPT,
+    JUDGE_META_PROMPT,
     PLAYER_META_PROMPT,
     build_mad_prompts_for_task,
 )
@@ -125,11 +126,12 @@ class MADDebateRunner:
         model_configs: List[Dict[str, Any]],
         temperature: float = 1.0,
         max_tokens: int = 6400,
-        num_players: int = 3,
+        num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
         provider: str = "ollama",
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
-        max_rounds: int = 3,
+        max_rounds: int = 10,  # Increased default from 3 to 10
+        verbose: bool = False,  # Add verbose mode
     ):
         """Initialize the MAD debate runner.
 
@@ -137,7 +139,7 @@ class MADDebateRunner:
             model_configs: List of model configurations
             temperature: Temperature for model responses
             max_tokens: Maximum number of tokens for model responses
-            num_players: Number of players in the debate
+            num_debaters: Number of debaters in the debate
             provider: LLM provider
             base_url: Base URL for API calls
             api_key: API key for the provider
@@ -146,11 +148,12 @@ class MADDebateRunner:
         self.model_configs = model_configs
         self.temperature = temperature
         self.max_tokens = max_tokens
-        self.num_players = num_players
+        self.num_debaters = num_debaters  # Changed from num_players to num_debaters
         self.provider = provider
         self.base_url = base_url
         self.api_key = api_key
         self.max_rounds = max_rounds
+        self.verbose = verbose  # Store verbose setting
 
     def run_debate(
         self,
@@ -187,12 +190,13 @@ class MADDebateRunner:
             debate = Debate(
                 model_name=model_name,
                 temperature=self.temperature,
-                num_players=self.num_players,
+                num_debaters=self.num_debaters,  # Using num_debaters
                 provider=self.provider,
                 config=mad_config,
                 max_round=self.max_rounds,
                 base_url=self.base_url,
                 api_key=self.api_key,
+                verbose=self.verbose,  # Pass verbose setting
             )
 
             # Run the debate
@@ -252,13 +256,10 @@ class MADDebateRunner:
         return {
             "debate_topic": debate_topic,
             "player_meta_prompt": task_prompts["player_meta_prompt"],
-            "moderator_meta_prompt": task_prompts["moderator_meta_prompt"],
-            "affirmative_prompt": task_prompts["affirmative_prompt"],
-            "negative_prompt": task_prompts["negative_prompt"],
-            "moderator_prompt": task_prompts["moderator_prompt"],
-            "judge_prompt_last1": task_prompts["judge_prompt_last1"],
-            "judge_prompt_last2": task_prompts["judge_prompt_last2"],
-            "debate_prompt": task_prompts["debate_prompt"],
+            "judge_meta_prompt": task_prompts["judge_meta_prompt"],
+            "debater_prompt": task_prompts["debater_prompt"],
+            "judge_discriminative_prompt": task_prompts["judge_discriminative_prompt"],
+            "judge_extractive_prompt": task_prompts["judge_extractive_prompt"],
         }
 
     def _save_debate_results(
@@ -286,7 +287,7 @@ class MADDebateRunner:
             "model_configs": self.model_configs,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
-            "num_players": self.num_players,
+            "num_debaters": self.num_debaters,  # Changed from num_players to num_debaters
             "provider": self.provider,
             "max_rounds": self.max_rounds,
             "debate_results": debate_results,
@@ -302,10 +303,15 @@ class MADDebateRunner:
         final_answer = self._extract_final_answer(debate_results)
         results["final_answer"] = final_answer
 
-        # Save final answer separately
-        answer_file = output_dir / f"{entry_id}_answer.txt"
+        # Save final answer separately as JSON for better structure
+        answer_file = output_dir / f"{entry_id}_answer.json"
+        answer_data = {
+            "final_answer": final_answer,
+            "extraction_method": "from_debate_results",
+            "timestamp": datetime.now().isoformat()
+        }
         with open(answer_file, "w") as f:
-            f.write(str(final_answer))
+            json.dump(answer_data, f, indent=2, default=str)
 
         return results
 
@@ -319,6 +325,20 @@ class MADDebateRunner:
             Extracted final answer
         """
         try:
+            # NEW: Handle N-debater MAD framework format
+            # The new framework stores results in config field
+            if hasattr(debate_results, "config"):
+                config = debate_results.config
+                if isinstance(config, dict):
+                    # Look for Final Answer in config (new N-debater format)
+                    if "Final Answer" in config:
+                        return config["Final Answer"]
+                    elif "final_answer" in config:
+                        return config["final_answer"]
+                    # Also check for solution_obtained and reasoning
+                    elif config.get("solution_obtained", False) and "Final Answer" in config:
+                        return config["Final Answer"]
+
             # Try to extract from moderator's final decision
             if hasattr(debate_results, "moderator_decision"):
                 decision = debate_results.moderator_decision
@@ -413,12 +433,13 @@ def run_mad_debate_workflow(
     quality_pruning_amount: int = 5,
     diversity_pruning_func: Optional[Callable] = None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
     provider: str = "ollama",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-    max_rounds: int = 3,
+    max_rounds: int = 10,  # Increased default from 3 to 10
     task_name: str = "default",
+    verbose: bool = False,  # Add verbose mode
 ) -> Dict[str, Any]:
     """Run MAD debate workflow on the given dataframe.
 
@@ -478,11 +499,12 @@ def run_mad_debate_workflow(
         model_configs=model_configs,
         temperature=temperature,
         max_tokens=max_tokens,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
+        verbose=verbose,  # Pass verbose setting
     )
 
     # Process entries with progress bar
@@ -547,7 +569,7 @@ def run_mad_debate_workflow(
         "model_configs": model_configs,
         "temperature": temperature,
         "max_tokens": max_tokens,
-        "num_players": num_players,
+        "num_debaters": num_debaters,  # Changed from num_players to num_debaters
         "provider": provider,
         "max_rounds": max_rounds,
     }

@@ -1,16 +1,24 @@
 import json
 import os
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from .agent import Agent
 
 random.seed(0)
 
-NAME_LIST = [
-    "Affirmative side",
-    "Negative side",
-    "Moderator",
+# Default names for N debaters
+DEFAULT_DEBATER_NAMES = [
+    "Debater 1",
+    "Debater 2", 
+    "Debater 3",
+    "Debater 4",
+    "Debater 5",
+    "Debater 6",
+    "Debater 7",
+    "Debater 8",
+    "Debater 9",
+    "Debater 10",
 ]
 
 
@@ -46,20 +54,21 @@ class Debate:
         self,
         model_name: str = "gpt-3.5-turbo",
         temperature: float = 1.0,
-        num_players: int = 3,
+        num_debaters: int = 2,  # Default to 2 debaters for practical use
         provider: str = "ollama",
         config: Optional[Dict[str, Any]] = None,
-        max_round: int = 3,
+        max_round: int = 10,  # Increased default from 3 to 10
         sleep_time: float = 0,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
+        verbose: bool = False,  # Add verbose mode
     ) -> None:
         """Create a debate
 
         Args:
             model_name (str): model name
             temperature (float): higher values make the output more random, while lower values make it more focused and deterministic
-            num_players (int): num of players
+            num_debaters (int): number of debaters (N debaters)
             provider (str): LLM provider (e.g., "ollama", "openai")
             config (Optional[Dict[str, Any]]): Configuration for the debate
             max_round (int): maximum Rounds of Debate
@@ -70,13 +79,14 @@ class Debate:
 
         self.model_name = model_name
         self.temperature = temperature
-        self.num_players = num_players
+        self.num_debaters = num_debaters
         self.provider = provider
         self.config = config or {}
         self.max_round = max_round
         self.sleep_time = sleep_time
         self.base_url = base_url
         self.api_key = api_key
+        self.verbose = verbose  # Store verbose setting
 
         self.init_prompt()
 
@@ -100,14 +110,16 @@ class Debate:
                 )
 
         prompt_replace("player_meta_prompt")
-        prompt_replace("moderator_meta_prompt")
-        prompt_replace("affirmative_prompt")
-        prompt_replace("judge_prompt_last2")
+        prompt_replace("judge_meta_prompt")
+        prompt_replace("debater_prompt")
+        prompt_replace("judge_discriminative_prompt")
+        prompt_replace("judge_extractive_prompt")
 
     def creat_agents(self):
-        """Create debate players."""
-        # creates players
-        self.players = [
+        """Create debate players - N debaters + 1 judge."""
+        # Create N debaters
+        debater_names = DEFAULT_DEBATER_NAMES[:self.num_debaters]
+        self.debaters = [
             DebatePlayer(
                 model_name=self.model_name,
                 name=name,
@@ -117,91 +129,325 @@ class Debate:
                 base_url=self.base_url,
                 api_key=self.api_key,
             )
-            for name in NAME_LIST
+            for name in debater_names
         ]
-        self.affirmative = self.players[0]
-        self.negative = self.players[1]
-        self.moderator = self.players[2]
+        
+        # Create judge
+        self.judge = DebatePlayer(
+            model_name=self.model_name,
+            name="Judge",
+            temperature=self.temperature,
+            provider=self.provider,
+            sleep_time=self.sleep_time,
+            base_url=self.base_url,
+            api_key=self.api_key,
+        )
+        
+        # All players (debaters + judge)
+        self.players = self.debaters + [self.judge]
 
     def init_agents(self):
-        """Initialize agents with their meta prompts and first round."""
-        # start: set meta prompt
+        """Initialize agents with their meta prompts."""
+        # Set meta prompts for all debaters
         if "player_meta_prompt" in self.config:
-            self.affirmative.set_meta_prompt(self.config["player_meta_prompt"])
-            self.negative.set_meta_prompt(self.config["player_meta_prompt"])
-        if "moderator_meta_prompt" in self.config:
-            self.moderator.set_meta_prompt(self.config["moderator_meta_prompt"])
+            for debater in self.debaters:
+                debater.set_meta_prompt(self.config["player_meta_prompt"])
+        
+        # Set meta prompt for judge
+        if "judge_meta_prompt" in self.config:
+            self.judge.set_meta_prompt(self.config["judge_meta_prompt"])
 
-        # start: first round debate, state opinions
-        # Debate Round-1 in progress
+    def run_iterative_debate(self):
+        """Run the iterative debate process with N debaters and two judge modes:
+        1. Discriminative Mode (Jd): Judge decides if correct solution is obtained
+        2. Extractive Mode (Je): Judge extracts final solution from debate history
+        """
+        
+        debate_history = []
+        current_round = 0
+        
+        # Iterative debate process
+        for iteration in range(self.max_round):
+            current_round = iteration + 1
+            if self.verbose:
+                print(f"\n{'='*60}")
+                print(f"ITERATION {current_round}")
+                print(f"{'='*60}")
+            else:
+                print(f"\n--- Iteration {current_round} ---")
+            
+            iteration_responses = []
+            
+            # Each debater speaks one by one in fixed order
+            for debater_idx, debater in enumerate(self.debaters):
+                if self.verbose:
+                    print(f"\n{debater.name} speaking...")
+                    print("-" * 40)
+                else:
+                    print(f"  {debater.name} speaking...")
+                
+                # Build debate history context for this debater
+                history_context = self._build_debate_history_context(debate_history)
+                
+                # Create prompt for this debater based on debate history
+                if "debater_prompt" in self.config:
+                    # Assign different positions to debaters for better debate
+                    if debater_idx == 0:
+                        # First debater argues for plausibility (1)
+                        debater_position = "You are arguing that the statement is PLAUSIBLE (1). Defend the position that the statement could be true."
+                    else:
+                        # Second debater argues against plausibility (0)
+                        debater_position = "You are arguing that the statement is IMPLAUSIBLE (0). Defend the position that the statement is unlikely to be true."
+                    
+                    debater_prompt = self.config["debater_prompt"].replace(
+                        "##debate_history##", history_context
+                    ).replace("##debater_name##", debater.name).replace(
+                        "##debater_number##", str(debater_idx + 1)
+                    ).replace("##debater_position##", debater_position)
+                    
+                    debater.add_event(debater_prompt)
+                    # Temporarily reduce logging verbosity for cleaner output
+                    import logging
+                    original_level = logging.getLogger("multi_llm_debate.llm.llm").level
+                    logging.getLogger("multi_llm_debate.llm.llm").setLevel(logging.WARNING)
+                    
+                    debater_response = debater.ask(json_mode=False)  # Debaters should provide natural language responses
+                    
+                    # Restore original logging level
+                    logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
+                    debater.add_memory(debater_response)
+                    
+                    iteration_responses.append({
+                        "debater_name": debater.name,
+                        "debater_number": debater_idx + 1,
+                        "response": debater_response
+                    })
+                    
+                    if self.verbose:
+                        print(f"----- {debater.name} -----")
+                        print(debater_response)
+                        print("-" * 40)
+                    else:
+                        print(f"    {debater.name}: {debater_response[:100]}...")
+            
+            # Add iteration to debate history
+            debate_history.append({
+                "round": current_round,
+                "responses": iteration_responses
+            })
 
-        if "affirmative_prompt" in self.config:
-            self.affirmative.add_event(self.config["affirmative_prompt"])
-            self.aff_ans = self.affirmative.ask()
-            self.affirmative.add_memory(self.aff_ans)
-            self.config["base_answer"] = self.aff_ans
-
-        # Convert JSON response to string for prompt replacement
-        aff_ans_str = (
-            str(self.aff_ans)
-            if isinstance(self.aff_ans, (dict, list))
-            else self.aff_ans
-        )
-
-        if "negative_prompt" in self.config:
-            neg_prompt = self.config["negative_prompt"].replace(
-                "##aff_ans##", aff_ans_str
+            # Judge Discriminative Mode (Jd) - Decide if correct solution obtained
+            if "judge_discriminative_prompt" in self.config:
+                # Build debate history context
+                history_context = self._build_debate_history_context(debate_history)
+                
+                discriminative_prompt = self.config["judge_discriminative_prompt"].replace(
+                    "##debate_history##", history_context
+                ).replace("##current_round##", str(current_round))
+                
+                self.judge.add_event(discriminative_prompt)
+                # Temporarily reduce logging verbosity for cleaner output
+                import logging
+                original_level = logging.getLogger("multi_llm_debate.llm.llm").level
+                logging.getLogger("multi_llm_debate.llm.llm").setLevel(logging.WARNING)
+                
+                self.judge_discriminative_decision = self.judge.ask(json_mode=True)  # Judge needs JSON for structured decisions
+                
+                # Restore original logging level
+                logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
+                self.judge.add_memory(self.judge_discriminative_decision)
+                
+                try:
+                    # Parse JSON response properly
+                    if isinstance(self.judge_discriminative_decision, str):
+                        import json
+                        self.judge_discriminative_decision = json.loads(self.judge_discriminative_decision)
+                except (ValueError, SyntaxError, NameError, json.JSONDecodeError):
+                    # Fallback to unified format
+                    self.judge_discriminative_decision = {
+                        "solution_obtained": False,
+                        "reasoning": "Unable to parse judge response"
+                    }
+                
+                # Check if correct solution is obtained
+                solution_obtained = self.judge_discriminative_decision.get("solution_obtained", False)
+                
+                if self.verbose:
+                    print(f"\nJudge Discriminative Decision (Iteration {current_round}):")
+                    print("-" * 40)
+                    print(f"Solution Obtained: {solution_obtained}")
+                    print(f"Reasoning: {self.judge_discriminative_decision.get('reasoning', 'No reasoning provided')}")
+                    print("-" * 40)
+                
+                if solution_obtained:
+                    if self.verbose:
+                        print(f"✓ Correct solution obtained in iteration {current_round} - debate concluded successfully")
+                    else:
+                        print(f"✓ Correct solution obtained in iteration {current_round}")
+                    # Solution found - debate is over, no need for Extractive Mode
+                    self.config["success"] = True
+                    self.config["iterations_used"] = current_round
+                    self.config["solution_found_in_discriminative"] = True
+                    # Use the discriminative decision as the final answer
+                    if isinstance(self.judge_discriminative_decision, dict):
+                        self.config.update(self.judge_discriminative_decision)
+                    break
+                else:
+                    if self.verbose:
+                        print(f"⚠ No clear solution in iteration {current_round} - continuing to next iteration")
+                    else:
+                        print(f"⚠ No clear solution in iteration {current_round}, continuing...")
+                    # Continue to next iteration
+                    continue
+        
+        # Judge Extractive Mode (Je) - Only used when no solution found within iteration limit
+        if not self.config.get("success", False) and "judge_extractive_prompt" in self.config:
+            if self.verbose:
+                print(f"\n{'='*60}")
+                print("JUDGE EXTRACTIVE MODE")
+                print(f"{'='*60}")
+                print("No solution found within iteration limit - extracting final solution from complete debate history...")
+            
+            # Build complete debate history context
+            complete_history_context = self._build_debate_history_context(debate_history)
+            
+            extractive_prompt = self.config["judge_extractive_prompt"].replace(
+                "##debate_history##", complete_history_context
             )
-            self.negative.add_event(neg_prompt)
-            self.neg_ans = self.negative.ask()
-            self.negative.add_memory(self.neg_ans)
-
-        if "moderator_prompt" in self.config:
-            # Convert responses to strings for prompt replacement
-            neg_ans_str = (
-                str(self.neg_ans)
-                if isinstance(self.neg_ans, (dict, list))
-                else self.neg_ans
-            )
-
-            mod_prompt = (
-                self.config["moderator_prompt"]
-                .replace("##aff_ans##", aff_ans_str)
-                .replace("##neg_ans##", neg_ans_str)
-                .replace("##round##", "first")
-            )
-            self.moderator.add_event(mod_prompt)
-            self.mod_ans = self.moderator.ask()
-            self.moderator.add_memory(self.mod_ans)
+            
+            self.judge.add_event(extractive_prompt)
+            # Temporarily reduce logging verbosity for cleaner output
+            import logging
+            original_level = logging.getLogger("multi_llm_debate.llm.llm").level
+            logging.getLogger("multi_llm_debate.llm.llm").setLevel(logging.WARNING)
+            
+            self.judge_extractive_decision = self.judge.ask(json_mode=True)  # Judge needs JSON for structured decisions
+            
+            # Restore original logging level
+            logging.getLogger("multi_llm_debate.llm.llm").setLevel(original_level)
+            self.judge.add_memory(self.judge_extractive_decision)
+            
             try:
-                # Only eval if it's a string, otherwise assume it's already parsed
-                if isinstance(self.mod_ans, str):
-                    self.mod_ans = eval(self.mod_ans)
-            except (ValueError, SyntaxError, NameError):
-                self.mod_ans = {
-                    "debate_answer": "",
-                    "Whether there is a preference": "No",
+                # Parse JSON response properly
+                if isinstance(self.judge_extractive_decision, str):
+                    import json
+                    self.judge_extractive_decision = json.loads(self.judge_extractive_decision)
+            except (ValueError, SyntaxError, NameError, json.JSONDecodeError):
+                # Fallback to unified format
+                self.judge_extractive_decision = {
+                    "reasoning": "Unable to parse judge response",
+                    "Final Answer": "Response 1"
                 }
+            
+            # Set success flag and update config with final decision from Extractive Mode
+            if (
+                isinstance(self.judge_extractive_decision, dict)
+                and self.judge_extractive_decision.get("Final Answer", "") != ""
+            ):
+                self.config.update(self.judge_extractive_decision)
+                self.config["success"] = True
+                self.config["iterations_used"] = current_round
+                self.config["solution_found_in_extractive"] = True
+            else:
+                self.config["success"] = False
+                self.config["iterations_used"] = current_round
+        else:
+            # No Extractive Mode needed - solution was found in Discriminative Mode
+            pass
 
-    def round_dct(self, num: int):
-        """Convert round number to text representation."""
-        dct = {
-            1: "first",
-            2: "second",
-            3: "third",
-            4: "fourth",
-            5: "fifth",
-            6: "sixth",
-            7: "seventh",
-            8: "eighth",
-            9: "ninth",
-            10: "tenth",
-        }
-        return dct.get(num, f"{num}th")
+        self.print_answer()
+        return self.config
+
+    def _build_debate_history_context(self, debate_history: list) -> str:
+        """Build context string from debate history for judge evaluation.
+        
+        Args:
+            debate_history: List of debate rounds and responses
+            
+        Returns:
+            Context string for judge evaluation
+        """
+        context_parts = []
+        
+        for entry in debate_history:
+            round_num = entry.get("round", 0)
+            context_parts.append(f"Round {round_num}:")
+            
+            responses = entry.get("responses", [])
+            for response in responses:
+                debater_name = response.get("debater_name", "Unknown")
+                debater_response = response.get("response", "")
+                context_parts.append(f"  {debater_name}: {debater_response}")
+        
+        return "\n".join(context_parts)
+
+    def run(self):
+        """Run the complete debate process following the new structure:
+        N debaters speak one by one in fixed order, then judge decides
+        """
+        
+        # Use iterative debate by default
+        return self.run_iterative_debate()
 
     def print_answer(self):
         """Print the final debate results."""
-        # Debate completed
+        if self.verbose:
+            print("\n" + "="*80)
+            print("FINAL DEBATE RESULTS")
+            print("="*80)
+        else:
+            print("\n" + "="*80)
+            print("DEBATE RESULTS")
+            print("="*80)
+        
+        print(f"\nNumber of Debaters: {self.num_debaters}")
+        print(f"Iterations Used: {self.config.get('iterations_used', 0)}")
+        
+        if hasattr(self, 'judge_discriminative_decision'):
+            if self.verbose:
+                print(f"\nJudge Discriminative Decision:")
+                print("-" * 40)
+                if isinstance(self.judge_discriminative_decision, dict):
+                    print(f"Solution Obtained: {self.judge_discriminative_decision.get('solution_obtained', False)}")
+                    print(f"Reasoning: {self.judge_discriminative_decision.get('reasoning', 'No reasoning provided')}")
+                else:
+                    print(f"Raw Decision: {self.judge_discriminative_decision}")
+                print("-" * 40)
+            else:
+                print(f"\nJudge Discriminative Decision:")
+                print(f"{self.judge_discriminative_decision}")
+        
+        # Show which mode found the solution
+        if self.config.get("solution_found_in_discriminative", False):
+            if self.verbose:
+                print(f"\nSolution found in Discriminative Mode (Iteration {self.config.get('iterations_used', 0)})")
+            else:
+                print(f"\nSolution found in Discriminative Mode")
+        elif self.config.get("solution_found_in_extractive", False):
+            if self.verbose:
+                print(f"\nSolution found in Extractive Mode (after {self.config.get('iterations_used', 0)} iterations)")
+            else:
+                print(f"\nSolution found in Extractive Mode")
+        
+        if hasattr(self, 'judge_extractive_decision') and self.config.get("solution_found_in_extractive", False):
+            if self.verbose:
+                print(f"\nJudge Extractive Decision:")
+                print("-" * 40)
+                if isinstance(self.judge_extractive_decision, dict):
+                    print(f"Final Answer: {self.judge_extractive_decision.get('Final Answer', 'Unknown')}")
+                    print(f"Reasoning: {self.judge_extractive_decision.get('reasoning', 'No reasoning provided')}")
+                else:
+                    print(f"Raw Decision: {self.judge_extractive_decision}")
+                print("-" * 40)
+            else:
+                print(f"\nJudge Extractive Decision:")
+                print(f"{self.judge_extractive_decision}")
+        
+        if self.config.get("success", False):
+            print(f"\nFinal Answer: {self.config.get('Final Answer', 'Unknown')}")
+            print(f"Reasoning: {self.config.get('reasoning', 'No reasoning provided')}")
+        else:
+            print(f"\nNo clear decision reached")
 
     def broadcast(self, msg: str):
         """Broadcast a message to all players.
@@ -234,147 +480,6 @@ class Debate:
         player.add_memory(ans)
         self.speak(player.name, ans)
 
-    def run(self):
-        """Run the complete debate process."""
-        for round in range(self.max_round - 1):
-            if (
-                isinstance(self.mod_ans, dict)
-                and self.mod_ans.get("debate_answer", "") != ""
-            ):
-                break
-            else:
-                # Debate round in progress
-
-                if "debate_prompt" in self.config:
-                    # Convert responses to strings for prompt replacement
-                    neg_ans_str = (
-                        str(self.neg_ans)
-                        if isinstance(self.neg_ans, (dict, list))
-                        else self.neg_ans
-                    )
-
-                    self.affirmative.add_event(
-                        self.config["debate_prompt"].replace(
-                            "##oppo_ans##", neg_ans_str
-                        )
-                    )
-                    self.aff_ans = self.affirmative.ask()
-                    self.affirmative.add_memory(self.aff_ans)
-
-                    # Convert responses to strings for prompt replacement
-                    aff_ans_str = (
-                        str(self.aff_ans)
-                        if isinstance(self.aff_ans, (dict, list))
-                        else self.aff_ans
-                    )
-
-                    self.negative.add_event(
-                        self.config["debate_prompt"].replace(
-                            "##oppo_ans##", aff_ans_str
-                        )
-                    )
-                    self.neg_ans = self.negative.ask()
-                    self.negative.add_memory(self.neg_ans)
-
-                if "moderator_prompt" in self.config:
-                    # Convert responses to strings for prompt replacement
-                    aff_ans_str = (
-                        str(self.aff_ans)
-                        if isinstance(self.aff_ans, (dict, list))
-                        else self.aff_ans
-                    )
-                    neg_ans_str = (
-                        str(self.neg_ans)
-                        if isinstance(self.neg_ans, (dict, list))
-                        else self.neg_ans
-                    )
-
-                    mod_prompt = (
-                        self.config["moderator_prompt"]
-                        .replace("##aff_ans##", aff_ans_str)
-                        .replace("##neg_ans##", neg_ans_str)
-                        .replace("##round##", self.round_dct(round + 2))
-                    )
-                    self.moderator.add_event(mod_prompt)
-                    self.mod_ans = self.moderator.ask()
-                    self.moderator.add_memory(self.mod_ans)
-                    try:
-                        # Parse JSON response properly
-                        if isinstance(self.mod_ans, str):
-                            import json
-                            self.mod_ans = json.loads(self.mod_ans)
-                    except (ValueError, SyntaxError, NameError, json.JSONDecodeError):
-                        # Fallback to unified format
-                        self.mod_ans = {
-                            "reasoning": "Unable to parse moderator response",
-                            "Final Answer": "Response 1"
-                        }
-
-        if (
-            isinstance(self.mod_ans, dict)
-            and self.mod_ans.get("Final Answer", "") != ""
-        ):
-            self.config.update(self.mod_ans)
-            self.config["success"] = True
-
-        # ultimate deadly technique.
-        else:
-            judge_player = DebatePlayer(
-                model_name=self.model_name,
-                name="Judge",
-                temperature=self.temperature,
-                provider=self.provider,
-                sleep_time=self.sleep_time,
-                base_url=self.base_url,
-                api_key=self.api_key,
-            )
-
-            if len(self.affirmative.memory_lst) > 2:
-                aff_ans = self.affirmative.memory_lst[2]["content"]
-            else:
-                aff_ans = ""
-
-            if len(self.negative.memory_lst) > 2:
-                neg_ans = self.negative.memory_lst[2]["content"]
-            else:
-                neg_ans = ""
-
-            if "moderator_meta_prompt" in self.config:
-                judge_player.set_meta_prompt(self.config["moderator_meta_prompt"])
-
-            # extract answer candidates
-            if "judge_prompt_last1" in self.config:
-                judge_prompt = (
-                    self.config["judge_prompt_last1"]
-                    .replace("##aff_ans##", aff_ans)
-                    .replace("##neg_ans##", neg_ans)
-                )
-                judge_player.add_event(judge_prompt)
-                ans = judge_player.ask()
-                judge_player.add_memory(ans)
-
-            # select one from the candidates
-            if "judge_prompt_last2" in self.config:
-                judge_player.add_event(self.config["judge_prompt_last2"])
-                ans = judge_player.ask()
-                judge_player.add_memory(ans)
-
-                try:
-                    # Parse JSON response properly
-                    if isinstance(ans, str):
-                        import json
-                        ans = json.loads(ans)
-                except (ValueError, SyntaxError, NameError, json.JSONDecodeError):
-                    ans = {"reasoning": "Unable to parse judge response", "Final Answer": "Response 1"}
-
-                if ans.get("Final Answer", "") != "":
-                    self.config["success"] = True
-                self.config.update(ans)
-                self.players.append(judge_player)
-
-        self.print_answer()
-        return self.config
-
 
 if __name__ == "__main__":
     current_script_path = os.path.abspath(__file__)
@@ -392,31 +497,25 @@ if __name__ == "__main__":
         else:
             # Use default prompts from prompts.py
             from .prompts import (
-                AFFIRMATIVE_PROMPT,
-                DEBATE_PROMPT,
-                JUDGE_PROMPT_1,
-                JUDGE_PROMPT_2,
-                MODERATOR_META_PROMPT,
-                MODERATOR_PROMPT,
-                NEGATIVE_PROMPT,
+                DEBATER_PROMPT,
+                JUDGE_DISCRIMINATIVE_PROMPT,
+                JUDGE_EXTRACTIVE_PROMPT,
+                JUDGE_META_PROMPT,
                 PLAYER_META_PROMPT,
             )
 
             config = {
                 "debate_topic": debate_topic,
                 "player_meta_prompt": PLAYER_META_PROMPT,
-                "moderator_meta_prompt": MODERATOR_META_PROMPT,
-                "affirmative_prompt": AFFIRMATIVE_PROMPT,
-                "negative_prompt": NEGATIVE_PROMPT,
-                "moderator_prompt": MODERATOR_PROMPT,
-                "judge_prompt_last1": JUDGE_PROMPT_1,
-                "judge_prompt_last2": JUDGE_PROMPT_2,
-                "debate_prompt": DEBATE_PROMPT,
+                "judge_meta_prompt": JUDGE_META_PROMPT,
+                "debater_prompt": DEBATER_PROMPT,
+                "judge_discriminative_prompt": JUDGE_DISCRIMINATIVE_PROMPT,
+                "judge_extractive_prompt": JUDGE_EXTRACTIVE_PROMPT,
             }
 
         config["debate_topic"] = debate_topic
 
         debate = Debate(
-            num_players=3, provider="ollama", config=config, temperature=0, sleep_time=0
+            num_debaters=2, provider="google", config=config, temperature=0, sleep_time=0
         )
         debate.run()

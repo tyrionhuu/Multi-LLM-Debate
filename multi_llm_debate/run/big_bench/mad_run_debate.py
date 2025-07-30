@@ -26,25 +26,17 @@ def convert_big_bench_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFrame:
     mad_dataframe = dataframe.copy()
 
     def create_debate_topic(row):
-        question = row["input"]
+        statement = row["input"]
         correct_answer = str(row["answer"])
 
-        # Create two responses - one correct, one incorrect
-        if correct_answer == "1":
-            response_1 = "Yes, this is correct."
-            response_2 = "No, this is incorrect."
-        else:  # correct_answer == "0"
-            response_1 = "No, this is incorrect."
-            response_2 = "Yes, this is correct."
+        # Create debate topic for Big Bench format
+        debate_topic = f"""Statement: {statement}
 
-        debate_topic = f"""Question: {question}
+Please debate whether this statement is plausible or implausible.
 
-Response 1: {response_1}
+The correct answer is {correct_answer} ({'plausible' if correct_answer == '1' else 'implausible'}).
 
-Response 2: {response_2}
-
-Please debate which response (Response 1 or Response 2) better answers the question. 
-Consider factors such as accuracy, completeness, relevance, and helpfulness."""
+Debate the plausibility of this statement and provide arguments for your position."""
 
         return debate_topic
 
@@ -66,11 +58,12 @@ def process_big_bench_mad_dataset(
     quality_pruning_amount: int = 5,
     diversity_pruning_func=None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
     provider: str = "google",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-    max_rounds: int = 3,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
 ) -> Dict[str, Any]:
     """Process BIG-Bench dataset using MAD framework.
 
@@ -110,12 +103,13 @@ def process_big_bench_mad_dataset(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
         task_name="big_bench",
+        verbose=verbose,  # Pass verbose setting
     )
 
 
@@ -131,11 +125,12 @@ def run_big_bench_mad_debate(
     quality_pruning_amount: int = 5,
     diversity_pruning_func=None,
     diversity_pruning_amount: int = 5,
-    num_players: int = 3,
+    num_debaters: int = 2,  # Changed from num_players to num_debaters, default to 2 for practical use
     provider: str = "google",
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-    max_rounds: int = 3,
+    max_rounds: int = 10,  # Increased default from 3 to 10
+    verbose: bool = False,  # Add verbose mode
 ) -> Dict[str, Any]:
     """Run BIG-Bench MAD debate workflow.
 
@@ -174,9 +169,10 @@ def run_big_bench_mad_debate(
         quality_pruning_amount=quality_pruning_amount,
         diversity_pruning_func=diversity_pruning_func,
         diversity_pruning_amount=diversity_pruning_amount,
-        num_players=num_players,
+        num_debaters=num_debaters,  # Changed from num_players to num_debaters
         provider=provider,
         base_url=base_url,
         api_key=api_key,
         max_rounds=max_rounds,
+        verbose=verbose,  # Pass verbose setting
     )

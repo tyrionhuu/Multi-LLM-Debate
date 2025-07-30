@@ -49,6 +49,7 @@ if __name__ == "__main__":
             quality_pruning_func=args.quality_pruning_func,
             diversity_pruning_func=args.diversity_pruning_func,
             diversity_pruning_amount=args.diversity_pruning_amount,
+            verbose=args.verbose,  # Pass verbose setting
         )
     else:
         # Run standard framework

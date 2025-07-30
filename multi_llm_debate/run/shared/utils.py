@@ -35,6 +35,7 @@ class Args:
     diversity_pruning_amount: int = 5
     task_name: str = "debate"
     mad: bool = False
+    verbose: bool = False
 
 
 class Parser:
@@ -124,6 +125,12 @@ class Parser:
             action="store_true",
             default=False,
             help="Use MAD (Multi-Agent Debate) framework",
+        )
+        self.parser.add_argument(
+            "--verbose",
+            action="store_true",
+            default=False,
+            help="Enable verbose output to see detailed debate progress",
         )
 
     def parse_args(self) -> Args:
