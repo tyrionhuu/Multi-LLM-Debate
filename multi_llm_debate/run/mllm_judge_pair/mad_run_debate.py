@@ -31,26 +31,14 @@ def convert_mllm_judge_pair_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFra
         entry_id = row["id"]
         image = row.get("image", "")  # Get image (base64 or path)
 
-        # Include image in debate topic if available
-        if image:
-            debate_topic = f"""Question: {question}
-
-Image: {image}
+        # Create debate topic without embedding image as text
+        debate_topic = f"""Question: {question}
 
 Response A: {response_A}
 
 Response B: {response_B}
 
 Please debate which response (Response A or Response B) better answers the question about the image. 
-Consider factors such as accuracy, completeness, relevance, and helpfulness."""
-        else:
-            debate_topic = f"""Question: {question}
-
-Response A: {response_A}
-
-Response B: {response_B}
-
-Please debate which response (Response A or Response B) better answers the question. 
 Consider factors such as accuracy, completeness, relevance, and helpfulness."""
 
         mad_data.append(

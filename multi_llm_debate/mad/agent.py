@@ -1,6 +1,7 @@
 import json
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
 
 import backoff
 
@@ -17,6 +18,7 @@ class Agent:
         sleep_time: float = 0,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
+        images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,  # Add images parameter
     ) -> None:
         """Create an agent
 
@@ -38,6 +40,7 @@ class Agent:
         self.sleep_time = sleep_time
         self.base_url = base_url
         self.api_key = api_key
+        self.images = images  # Store images for vision models
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=20)
     def query(
@@ -77,6 +80,7 @@ class Agent:
                 temperature=temp,
                 max_tokens=max_tokens,
                 api_key=self.api_key,
+                images=self.images,  # Pass images to call_model
             )
 
             # Handle different response formats

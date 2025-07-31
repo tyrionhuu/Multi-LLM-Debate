@@ -1,7 +1,8 @@
 import json
 import os
 import random
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
 
 from .agent import Agent
 
@@ -32,6 +33,7 @@ class DebatePlayer(Agent):
         sleep_time: float = 0,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
+        images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,  # Add images parameter
     ) -> None:
         """Create a player in the debate
 
@@ -47,6 +49,7 @@ class DebatePlayer(Agent):
         super(DebatePlayer, self).__init__(
             model_name, name, temperature, provider, sleep_time, base_url, api_key
         )
+        self.images = images  # Store images for vision models
 
 
 class Debate:
@@ -62,6 +65,7 @@ class Debate:
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         verbose: bool = False,  # Add verbose mode
+        images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,  # Add images parameter
     ) -> None:
         """Create a debate
 
@@ -87,6 +91,7 @@ class Debate:
         self.base_url = base_url
         self.api_key = api_key
         self.verbose = verbose  # Store verbose setting
+        self.images = images  # Store images for vision models
 
         self.init_prompt()
 
@@ -128,6 +133,7 @@ class Debate:
                 sleep_time=self.sleep_time,
                 base_url=self.base_url,
                 api_key=self.api_key,
+                images=self.images,  # Pass images to debaters
             )
             for name in debater_names
         ]
@@ -141,6 +147,7 @@ class Debate:
             sleep_time=self.sleep_time,
             base_url=self.base_url,
             api_key=self.api_key,
+            images=self.images,  # Pass images to judge
         )
 
         # All players (debaters + judge)
