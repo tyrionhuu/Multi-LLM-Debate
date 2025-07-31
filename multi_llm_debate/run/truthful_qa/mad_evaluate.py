@@ -95,7 +95,7 @@ def analyze_mad_response_for_truthful_qa(
     """
     # Store original answer for display
     original_mad_answer = str(mad_answer).strip()
-    
+
     # Convert answers to strings for comparison (lowercase)
     mad_answer_lower = original_mad_answer.lower()
 
@@ -115,11 +115,23 @@ def analyze_mad_response_for_truthful_qa(
     elif "response 2" in mad_answer_lower or "response2" in mad_answer_lower:
         mad_choice = "B"  # Response 2 corresponds to Response B
     # Fallback: look for isolated "A", "B", "C" (but be more careful)
-    elif re.search(r"\ba\b", mad_answer_lower) and not re.search(r"\bb\b", mad_answer_lower) and not re.search(r"\bc\b", mad_answer_lower):
+    elif (
+        re.search(r"\ba\b", mad_answer_lower)
+        and not re.search(r"\bb\b", mad_answer_lower)
+        and not re.search(r"\bc\b", mad_answer_lower)
+    ):
         mad_choice = "A"
-    elif re.search(r"\bb\b", mad_answer_lower) and not re.search(r"\ba\b", mad_answer_lower) and not re.search(r"\bc\b", mad_answer_lower):
+    elif (
+        re.search(r"\bb\b", mad_answer_lower)
+        and not re.search(r"\ba\b", mad_answer_lower)
+        and not re.search(r"\bc\b", mad_answer_lower)
+    ):
         mad_choice = "B"
-    elif re.search(r"\bc\b", mad_answer_lower) and not re.search(r"\ba\b", mad_answer_lower) and not re.search(r"\bb\b", mad_answer_lower):
+    elif (
+        re.search(r"\bc\b", mad_answer_lower)
+        and not re.search(r"\ba\b", mad_answer_lower)
+        and not re.search(r"\bb\b", mad_answer_lower)
+    ):
         mad_choice = "C"
 
     # Check if MAD choice matches the correct choice
