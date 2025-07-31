@@ -2,7 +2,7 @@
 """
 Example script demonstrating KS threshold sensitivity study
 
-This script shows how to use the KS threshold sensitivity study with the LLMBar dataset.
+This script shows how to use the KS threshold sensitivity study with the JudgeBench dataset.
 It provides a complete example of running the sensitivity analysis and interpreting results.
 
 Usage:
@@ -12,11 +12,12 @@ Usage:
 import logging
 from pathlib import Path
 
-from multi_llm_debate.run.llm_bar.utils import (
-    compare_llm_bar_response,
-    extract_1_2_answer,
-    load_llm_bar_dataset,
+from multi_llm_debate.run.judge_bench.utils import (
+    compare_judge_bench_response,
+    extract_caption_a_b_answer,
+    load_judge_bench_dataset,
 )
+from multi_llm_debate.utils.model_dir_csv import create_csv_for_all_model_dirs
 
 from .ks_threshold_sensitivity_study import (
     create_summary_dataframe,
@@ -27,33 +28,71 @@ from .ks_threshold_sensitivity_study import (
 
 
 def main():
-    """Run example KS threshold sensitivity study."""
+    """Run example KS threshold sensitivity study with JudgeBench dataset."""
     # Setup logging
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     # Define paths
-    dataset_path = Path("datasets/LLMBar")
-    debates_path = Path("data/llm_bar/Llama-3_1-8B-Instruct(7)/debate_rounds.csv")
-    output_dir = Path("output/ks_threshold_sensitivity_example")
+    dataset_path = Path("datasets/JudgeBench")
+    debates_path = Path("data/judge_bench/Llama-3_1-8B-Instruct(7)/debate_rounds.csv")
+    output_dir = Path("output/ks_threshold_sensitivity_judge_bench_example")
 
     # Check if required files exist
     if not dataset_path.exists():
         logger.error(
-            f"Dataset path {dataset_path} does not exist. Please ensure the LLMBar dataset is available."
+            f"Dataset path {dataset_path} does not exist. Please ensure the JudgeBench dataset is available."
         )
         return
 
     if not debates_path.exists():
-        logger.error(
-            f"Debates path {debates_path} does not exist. Please ensure the debate rounds CSV is available."
+        logger.warning(
+            f"Debates path {debates_path} does not exist. Attempting to generate it from JSON files..."
         )
-        return
+        
+        # Get the model directory path
+        model_dir = debates_path.parent
+        root_data_dir = model_dir.parent  # data/judge_bench
+        
+        if not model_dir.exists():
+            logger.error(
+                f"Model directory {model_dir} does not exist. Please ensure the debate data is available."
+            )
+            return
+            
+        # Check if there are any JSON files in the model directory
+        json_files = list(model_dir.glob("*/debate_round_*.json"))
+        if not json_files:
+            logger.error(
+                f"No debate JSON files found in {model_dir}. Please run the debate process first to generate the data."
+            )
+            return
+            
+        logger.info(f"Found {len(json_files)} JSON files. Generating CSV...")
+        
+        try:
+            # Generate CSV for the specific model directory
+            create_csv_for_all_model_dirs(root_data_dir)
+            
+            if not debates_path.exists():
+                logger.error(
+                    f"Failed to generate {debates_path}. Please check the JSON files and try again."
+                )
+                return
+                
+            logger.info(f"Successfully generated {debates_path}")
+            
+        except Exception as e:
+            logger.error(f"Failed to generate CSV file: {e}")
+            return
 
     # Load dataset
-    logger.info("Loading LLMBar dataset...")
+    logger.info("Loading JudgeBench dataset...")
     try:
-        dataframe = load_llm_bar_dataset(dataset_path=dataset_path)
+        dataframe = load_judge_bench_dataset(
+            dataset_path="datasets/JudgeBench",
+            base_path="."
+        )
         logger.info(f"Loaded dataset with {len(dataframe)} samples")
     except Exception as e:
         logger.error(f"Failed to load dataset: {e}")
@@ -73,8 +112,8 @@ def main():
         fitting_method="direct",
         max_rounds=10,  # Limit to 10 rounds for faster execution
         n_restarts=2,
-        extract_func=extract_1_2_answer,
-        compare_func=compare_llm_bar_response,
+        extract_func=extract_caption_a_b_answer,
+        compare_func=compare_judge_bench_response,
         verbose=False,  # Set to True for detailed output
     )
 
