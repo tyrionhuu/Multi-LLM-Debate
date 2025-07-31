@@ -19,6 +19,7 @@ class Agent:
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,  # Add images parameter
+        verbose: bool = False,  # Add verbose parameter
     ) -> None:
         """Create an agent
 
@@ -41,6 +42,7 @@ class Agent:
         self.base_url = base_url
         self.api_key = api_key
         self.images = images  # Store images for vision models
+        self.verbose = verbose  # Store verbose setting
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=20)
     def query(
@@ -125,7 +127,13 @@ class Agent:
         Args:
             meta_prompt (str): the meta prompt
         """
+        # Clean the meta prompt for storage (remove image data)
+        clean_meta_prompt = self._clean_memory_for_verbose(meta_prompt)
         self.memory_lst.append({"role": "system", "content": f"{meta_prompt}"})
+        
+        # If verbose mode is enabled, print the cleaned version
+        if hasattr(self, 'verbose') and self.verbose:
+            print(f"----- {self.name} Meta Prompt -----\n{clean_meta_prompt}\n")
 
     def add_event(self, event: str) -> None:
         """Add an new event in the memory
@@ -134,6 +142,11 @@ class Agent:
             event (str): string that describe the event.
         """
         self.memory_lst.append({"role": "user", "content": f"{event}"})
+        
+        # If verbose mode is enabled, print the cleaned version
+        if hasattr(self, 'verbose') and self.verbose:
+            clean_event = self._clean_memory_for_verbose(event)
+            print(f"----- {self.name} Event -----\n{clean_event}\n")
 
     def add_memory(self, memory: str, verbose: bool = False) -> None:
         """Monologue in the memory
@@ -144,7 +157,39 @@ class Agent:
         """
         self.memory_lst.append({"role": "assistant", "content": f"{memory}"})
         if verbose:
-            print(f"----- {self.name} -----\n{memory}\n")
+            # Filter out image data from verbose output
+            clean_memory = self._clean_memory_for_verbose(memory)
+            print(f"----- {self.name} -----\n{clean_memory}\n")
+
+    def _clean_memory_for_verbose(self, memory: str) -> str:
+        """Clean memory content for verbose output by removing image data.
+        
+        Args:
+            memory (str): The memory content to clean
+            
+        Returns:
+            str: Cleaned memory content without image data
+        """
+        if not memory:
+            return memory
+            
+        # Remove base64 image data (common patterns)
+        import re
+        
+        # Remove base64 image data (most specific pattern first)
+        # Pattern for data:image/...;base64, followed by base64 characters
+        memory = re.sub(r'data:image/[^;]+;base64,[A-Za-z0-9+/=]+', '[IMAGE_DATA]', memory)
+        
+        # Remove image: prefix followed by data (before long base64 pattern)
+        memory = re.sub(r'Image:\s*[A-Za-z0-9+/=]+', 'Image: [IMAGE_DATA]', memory)
+        
+        # Remove long base64 strings (likely image data) - less specific, do last
+        memory = re.sub(r'[A-Za-z0-9+/]{100,}={0,2}', '[LONG_BASE64_DATA]', memory)
+        
+        # Remove image file paths that might be embedded
+        memory = re.sub(r'/path/to/.*\.(jpg|jpeg|png|gif|bmp|webp)', '[IMAGE_PATH]', memory)
+        
+        return memory
 
     def ask(self, temperature: Optional[float] = None, json_mode: bool = True) -> str:
         """Query for answer based on memory

@@ -432,7 +432,7 @@ def build_mllm_judge_pair_mad_debater_prompt(debate_topic: str) -> str:
         + NEW_LINE
     )
 
-    prompt += "**Your Assigned Position:** ##debater_position##\n" + NEW_LINE
+    prompt += "**Your Position:** ##debater_position##\n" + NEW_LINE
 
     prompt += (
         "**Task:** Express your arguments based on the previous debate history.\n"
@@ -543,19 +543,23 @@ def build_mllm_judge_pair_mad_judge_discriminative_prompt(debate_topic: str) -> 
         "- If the debate needs to continue for more clarity → solution_obtained = False\n"
     ) + NEW_LINE
 
+    prompt += "You MUST answer in the following JSON format:\n"
     prompt += (
-        "**Output Format:**\n"
-        "You must respond in the following JSON format:\n"
-        "{\n"
-        '  "solution_obtained": true/false,\n'
-        '  "reasoning": "your detailed reasoning for the decision",\n'
-        '  "Final Answer": "Response A" or "Response B" (only if solution_obtained is true)\n'
-        "}\n"
-    ) + NEW_LINE
+        """{
+    "solution_obtained": true/false,
+    "reasoning": "your detailed reasoning for the decision",
+    "Final Answer": "Response A" or "Response B" (only if solution_obtained = true)
+}"""
+        + NEW_LINE
+    )
 
     prompt += (
-        "**Important:** If solution_obtained is true, you MUST provide a Final Answer of either 'Response A' or 'Response B'. "
-        "If solution_obtained is false, you can omit the Final Answer field.\n"
+        "**Note:** \n"
+        "- Set 'solution_obtained' to true only if a clear, correct solution has emerged\n"
+        "- Set 'solution_obtained' to false if the debate should continue\n"
+        "- If solution_obtained = true, provide the Final Answer (Response A or Response B)\n"
+        "- If solution_obtained = false, omit the Final Answer field\n"
+        "- Provide clear reasoning for your decision\n"
     )
 
     return prompt
@@ -603,17 +607,17 @@ def build_mllm_judge_pair_mad_judge_extractive_prompt(debate_topic: str) -> str:
     ) + NEW_LINE
 
     prompt += (
-        "**Output Format:**\n"
-        "You must respond in the following JSON format:\n"
-        "{\n"
-        '  "reasoning": "your detailed reasoning for the final decision",\n'
-        '  "Final Answer": "Response A" or "Response B"\n'
-        "}\n"
-    ) + NEW_LINE
+        "Please summarize your reasons and give the final answer that you think is correct.\n"
+        + NEW_LINE
+    )
+
+    prompt += "You MUST answer in the following JSON format:\n"
+    prompt += JSON_FORMAT + NEW_LINE
 
     prompt += (
-        "**Important:** Your Final Answer must be either 'Response A' or 'Response B'. "
-        "Do not include any other text after the JSON response.\n"
+        "**CRITICAL:** The 'Final Answer' field MUST contain ONLY 'Response A' or 'Response B' (not 'Response 1' or 'Response 2'). \n"
+        "This is a debate about Response A vs Response B, so your final answer must be either 'Response A' or 'Response B'. \n"
+        "Do not include any other text after the JSON response."
     )
 
     return prompt
@@ -629,15 +633,14 @@ def build_mllm_judge_pair_mad_prompts(debate_topic: str) -> Dict[str, str]:
         Dict containing all MAD prompts for MLLM Judge Pair
     """
     return {
-        "player_meta_prompt": build_mllm_judge_pair_mad_player_meta_prompt(
-            debate_topic
-        ),
+        "player_meta_prompt": build_mllm_judge_pair_mad_player_meta_prompt(debate_topic),
         "moderator_meta_prompt": build_mllm_judge_pair_mad_moderator_meta_prompt(
             debate_topic
         ),
-        "affirmative_prompt": build_mllm_judge_pair_mad_affirmative_prompt(
+        "judge_meta_prompt": build_mllm_judge_pair_mad_moderator_meta_prompt(
             debate_topic
-        ),
+        ),  # Use moderator_meta_prompt as judge_meta_prompt
+        "affirmative_prompt": build_mllm_judge_pair_mad_affirmative_prompt(debate_topic),
         "negative_prompt": build_mllm_judge_pair_mad_negative_prompt(
             "##aff_ans##"
         ),  # Placeholder
@@ -652,9 +655,6 @@ def build_mllm_judge_pair_mad_prompts(debate_topic: str) -> Dict[str, str]:
             "##oppo_ans##"
         ),  # Placeholder
         # N-debater framework prompts
-        "judge_meta_prompt": build_mllm_judge_pair_mad_moderator_meta_prompt(
-            debate_topic
-        ),  # Reuse moderator meta prompt
         "debater_prompt": build_mllm_judge_pair_mad_debater_prompt(debate_topic),
         "judge_discriminative_prompt": build_mllm_judge_pair_mad_judge_discriminative_prompt(
             debate_topic

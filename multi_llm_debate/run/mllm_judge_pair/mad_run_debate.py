@@ -29,7 +29,7 @@ def convert_mllm_judge_pair_to_mad_format(dataframe: pd.DataFrame) -> pd.DataFra
         response_B = row["response_B"]
         answer = row["answer"]
         entry_id = row["id"]
-        image = row.get("image", "")  # Get image (base64 or path)
+        image = row.get("image", None)  # Get image (base64 or path), use None for empty
 
         # Create debate topic without embedding image as text
         debate_topic = f"""Question: {question}

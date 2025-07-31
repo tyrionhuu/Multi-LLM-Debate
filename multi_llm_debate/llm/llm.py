@@ -71,6 +71,37 @@ def _is_bytes_like(obj: Any) -> bool:
     return isinstance(obj, (bytes, bytearray))
 
 
+def _is_base64_data(data: str) -> bool:
+    """Check if a string looks like base64 data.
+
+    Args:
+        data (str): String to check
+
+    Returns:
+        bool: True if the string looks like base64 data, False otherwise
+    """
+    import re
+    
+    # Handle edge cases
+    if not data or not isinstance(data, str):
+        return False
+    
+    # Check for data URL format (data:image/...;base64,...)
+    if re.match(r'^data:image/[^;]+;base64,', data):
+        return True
+    
+    # Check for long base64-like strings (likely image data)
+    # Base64 characters: A-Z, a-z, 0-9, +, /, =
+    if len(data) > 100 and re.match(r'^[A-Za-z0-9+/=]+$', data):
+        return True
+    
+    # Check if it's too long to be a reasonable file path
+    if len(data) > 500:  # Most file paths are shorter than this
+        return True
+    
+    return False
+
+
 def call_model(
     model_name: str = "gpt-4",
     base_url: str = "",
@@ -132,14 +163,26 @@ def call_model(
                 raise ValueError(
                     "Images must be a string, Path, bytes, or list of these types."
                 )
+            
+            # Filter out None values
+            images_list = [img for img in images_list if img is not None]
 
             for img in images_list:
                 if isinstance(img, (str, Path)):
-                    img_path = Path(img)
-                    if not img_path.exists():
-                        raise ValueError(f"Image file {img_path} does not exist.")
-                    processed_images.append(str(img_path))
+                    # Check if the string looks like base64 data
+                    if isinstance(img, str) and _is_base64_data(img):
+                        # Treat as base64 data
+                        logger.debug(f"Treating as base64 data: {img[:50]}...")
+                        processed_images.append(img)
+                    else:
+                        # Treat as file path
+                        logger.debug(f"Treating as file path: {img}")
+                        img_path = Path(img)
+                        if not img_path.exists():
+                            raise ValueError(f"Image file {img_path} does not exist.")
+                        processed_images.append(str(img_path))
                 elif _is_bytes_like(img):
+                    logger.debug("Treating as bytes data")
                     processed_images.append(img)
                 else:
                     raise ValueError(
@@ -234,6 +277,9 @@ def generate_api_messages(
         img = images[0]
         if _is_bytes_like(img):
             base64_image = base64.b64encode(img).decode("utf-8")  # type: ignore
+        elif isinstance(img, str) and _is_base64_data(img):
+            # Image is already base64 data
+            base64_image = img
         else:
             base64_image = encode_image(str(img))
 
@@ -257,6 +303,9 @@ def generate_api_messages(
         for img in images:
             if _is_bytes_like(img):
                 base64_images.append(base64.b64encode(img).decode("utf-8"))  # type: ignore
+            elif isinstance(img, str) and _is_base64_data(img):
+                # Image is already base64 data
+                base64_images.append(img)
             else:
                 base64_images.append(encode_image(str(img)))
 
