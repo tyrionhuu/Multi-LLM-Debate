@@ -81,24 +81,24 @@ def _is_base64_data(data: str) -> bool:
         bool: True if the string looks like base64 data, False otherwise
     """
     import re
-    
+
     # Handle edge cases
     if not data or not isinstance(data, str):
         return False
-    
+
     # Check for data URL format (data:image/...;base64,...)
-    if re.match(r'^data:image/[^;]+;base64,', data):
+    if re.match(r"^data:image/[^;]+;base64,", data):
         return True
-    
+
     # Check for long base64-like strings (likely image data)
     # Base64 characters: A-Z, a-z, 0-9, +, /, =
-    if len(data) > 100 and re.match(r'^[A-Za-z0-9+/=]+$', data):
+    if len(data) > 100 and re.match(r"^[A-Za-z0-9+/=]+$", data):
         return True
-    
+
     # Check if it's too long to be a reasonable file path
     if len(data) > 500:  # Most file paths are shorter than this
         return True
-    
+
     return False
 
 
@@ -163,7 +163,7 @@ def call_model(
                 raise ValueError(
                     "Images must be a string, Path, bytes, or list of these types."
                 )
-            
+
             # Filter out None values
             images_list = [img for img in images_list if img is not None]
 

@@ -633,14 +633,18 @@ def build_mllm_judge_pair_mad_prompts(debate_topic: str) -> Dict[str, str]:
         Dict containing all MAD prompts for MLLM Judge Pair
     """
     return {
-        "player_meta_prompt": build_mllm_judge_pair_mad_player_meta_prompt(debate_topic),
+        "player_meta_prompt": build_mllm_judge_pair_mad_player_meta_prompt(
+            debate_topic
+        ),
         "moderator_meta_prompt": build_mllm_judge_pair_mad_moderator_meta_prompt(
             debate_topic
         ),
         "judge_meta_prompt": build_mllm_judge_pair_mad_moderator_meta_prompt(
             debate_topic
         ),  # Use moderator_meta_prompt as judge_meta_prompt
-        "affirmative_prompt": build_mllm_judge_pair_mad_affirmative_prompt(debate_topic),
+        "affirmative_prompt": build_mllm_judge_pair_mad_affirmative_prompt(
+            debate_topic
+        ),
         "negative_prompt": build_mllm_judge_pair_mad_negative_prompt(
             "##aff_ans##"
         ),  # Placeholder

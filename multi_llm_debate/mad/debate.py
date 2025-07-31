@@ -1,8 +1,8 @@
 import json
 import os
 import random
-from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from .agent import Agent
 
@@ -33,7 +33,9 @@ class DebatePlayer(Agent):
         sleep_time: float = 0,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
-        images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,  # Add images parameter
+        images: Optional[
+            Union[str, Path, bytes, List[str], List[Path], List[bytes]]
+        ] = None,  # Add images parameter
         verbose: bool = False,  # Add verbose parameter
     ) -> None:
         """Create a player in the debate
@@ -48,7 +50,15 @@ class DebatePlayer(Agent):
             api_key (Optional[str]): API key for the agent
         """
         super(DebatePlayer, self).__init__(
-            model_name, name, temperature, provider, sleep_time, base_url, api_key, images, verbose
+            model_name,
+            name,
+            temperature,
+            provider,
+            sleep_time,
+            base_url,
+            api_key,
+            images,
+            verbose,
         )
 
 
@@ -65,7 +75,9 @@ class Debate:
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         verbose: bool = False,  # Add verbose mode
-        images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,  # Add images parameter
+        images: Optional[
+            Union[str, Path, bytes, List[str], List[Path], List[bytes]]
+        ] = None,  # Add images parameter
     ) -> None:
         """Create a debate
 
@@ -201,8 +213,7 @@ class Debate:
 
                     # Check if this is a response comparison task (contains "Response A", "Response B" or "Response 1", "Response 2")
                     if (
-                        "Response A" in debate_topic
-                        and "Response B" in debate_topic
+                        "Response A" in debate_topic and "Response B" in debate_topic
                     ) or (
                         "Response 1" in debate_topic and "Response 2" in debate_topic
                     ):
@@ -225,7 +236,8 @@ class Debate:
                                         f"DEBUG: Debater {debater_idx + 1} assigned position: Response B"
                                     )
                         elif (
-                            "Response 1" in debate_topic and "Response 2" in debate_topic
+                            "Response 1" in debate_topic
+                            and "Response 2" in debate_topic
                         ):
                             # Response 1, 2 format
                             if debater_idx == 0:

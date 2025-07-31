@@ -49,17 +49,17 @@ def main():
         logger.warning(
             f"Debates path {debates_path} does not exist. Attempting to generate it from JSON files..."
         )
-        
+
         # Get the model directory path
         model_dir = debates_path.parent
         root_data_dir = model_dir.parent  # data/judge_bench
-        
+
         if not model_dir.exists():
             logger.error(
                 f"Model directory {model_dir} does not exist. Please ensure the debate data is available."
             )
             return
-            
+
         # Check if there are any JSON files in the model directory
         json_files = list(model_dir.glob("*/debate_round_*.json"))
         if not json_files:
@@ -67,21 +67,21 @@ def main():
                 f"No debate JSON files found in {model_dir}. Please run the debate process first to generate the data."
             )
             return
-            
+
         logger.info(f"Found {len(json_files)} JSON files. Generating CSV...")
-        
+
         try:
             # Generate CSV for the specific model directory
             create_csv_for_all_model_dirs(root_data_dir)
-            
+
             if not debates_path.exists():
                 logger.error(
                     f"Failed to generate {debates_path}. Please check the JSON files and try again."
                 )
                 return
-                
+
             logger.info(f"Successfully generated {debates_path}")
-            
+
         except Exception as e:
             logger.error(f"Failed to generate CSV file: {e}")
             return
@@ -90,8 +90,7 @@ def main():
     logger.info("Loading JudgeBench dataset...")
     try:
         dataframe = load_judge_bench_dataset(
-            dataset_path="datasets/JudgeBench",
-            base_path="."
+            dataset_path="datasets/JudgeBench", base_path="."
         )
         logger.info(f"Loaded dataset with {len(dataframe)} samples")
     except Exception as e:

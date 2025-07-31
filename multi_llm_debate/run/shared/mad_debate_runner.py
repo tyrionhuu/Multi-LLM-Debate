@@ -6,7 +6,6 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
-from pathlib import Path
 
 import pandas as pd
 from tqdm import tqdm
@@ -162,7 +161,9 @@ class MADDebateRunner:
         output_dir: Path,
         entry_id: str,
         task_name: str = "default",
-        images: Optional[Union[str, Path, bytes, List[str], List[Path], List[bytes]]] = None,  # Add images parameter
+        images: Optional[
+            Union[str, Path, bytes, List[str], List[Path], List[bytes]]
+        ] = None,  # Add images parameter
     ) -> Dict[str, Any]:
         """Run a MAD debate for the given topic.
 
@@ -621,7 +622,7 @@ def run_mad_debate_workflow(
         for idx, row in dataframe.iterrows():
             entry_id = str(row["id"])
             debate_topic = row["debate_topic"]
-            
+
             # Extract images if present in the dataframe
             images = row.get("image", None) if "image" in row else None
 
