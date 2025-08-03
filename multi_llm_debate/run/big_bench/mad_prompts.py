@@ -590,8 +590,8 @@ def build_big_bench_mad_judge_extractive_prompt(debate_topic: str) -> str:
     prompt += JSON_FORMAT + NEW_LINE
 
     prompt += (
-        "**Note:** The 'Final Answer' MUST be placed at the end of your response, "
-        "and the value must be only 'Response 1' or 'Response 2'. "
+        "**CRITICAL:** The 'Final Answer' field MUST contain ONLY '0' or '1'. \n"
+        "This is a plausibility task where '0' = implausible and '1' = plausible. \n"
         "Do not include any other text after the JSON response."
     )
 

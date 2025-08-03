@@ -47,12 +47,19 @@ def save_mad_results_to_csv(
     # Calculate error margin (using standard error for now)
     accuracy = evaluation_results.get("accuracy", 0.0)
     total_entries = evaluation_results.get("total_entries", 0)
+    # Handle different field names for processed entries
     processed_entries = evaluation_results.get("processed_entries", 0)
+    if processed_entries == 0:
+        processed_entries = evaluation_results.get("successful_evaluations", 0)
 
     # Calculate standard error of proportion
     if processed_entries > 0:
         # Standard error = sqrt(p * (1-p) / n)
-        error_margin = ((accuracy * (1 - accuracy)) / processed_entries) ** 0.5
+        # Convert accuracy from percentage to decimal for calculation
+        accuracy_decimal = accuracy / 100.0
+        error_margin = ((accuracy_decimal * (1 - accuracy_decimal)) / processed_entries) ** 0.5
+        # Convert back to percentage
+        error_margin = error_margin * 100.0
     else:
         error_margin = 0.0
 
