@@ -57,7 +57,9 @@ def save_mad_results_to_csv(
         # Standard error = sqrt(p * (1-p) / n)
         # Convert accuracy from percentage to decimal for calculation
         accuracy_decimal = accuracy / 100.0
-        error_margin = ((accuracy_decimal * (1 - accuracy_decimal)) / processed_entries) ** 0.5
+        error_margin = (
+            (accuracy_decimal * (1 - accuracy_decimal)) / processed_entries
+        ) ** 0.5
         # Convert back to percentage
         error_margin = error_margin * 100.0
     else:
