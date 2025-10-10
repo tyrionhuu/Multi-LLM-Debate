@@ -140,20 +140,6 @@ def plot_model_evolution(
     row_number: int = 2,
     title: str = "Model Evolution",
 ) -> List[Figure]:
-    """Plot the evolution of the mixture model across rounds.
-
-    Args:
-        model_results: List of dictionaries with fitted model parameters for each round
-        k: Number of trials
-        observed_data: List of dictionaries mapping bin values to counts for each round
-        output_dir: Optional directory to save the plots
-        model_config: Optional model configuration identifier for file naming
-        row_number: Number of rows for the subplot grid (default: 2)
-        task_name: Task name for the title
-
-    Returns:
-        List of generated figures
-    """
     figures = []
 
     # Set 16:9 aspect ratio for each subplot
@@ -165,8 +151,8 @@ def plot_model_evolution(
     )
     axes = axes.flatten()
 
-    # Create combined plot
-    colors = plt.cm.viridis(np.linspace(0, 1, len(model_results)))
+    # Define a custom color palette without yellow
+    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"]
 
     config_suffix = f"_{model_config}" if model_config else ""
 
@@ -179,7 +165,7 @@ def plot_model_evolution(
             obs_data,
             title=_title,
             ax=axes[i],
-            color=colors[i],
+            color=colors[i % len(colors)],  # Cycle through the color list
         )
         axes[i].set_title(_title, fontsize=36)
         axes[i].set_xlabel("Correct Agents Count", fontsize=36)
@@ -193,11 +179,6 @@ def plot_model_evolution(
 
     # Adjust the combined figure layout
     plt.tight_layout()
-    # fig.suptitle(
-    #     title,
-    #     fontsize=18,
-    # )
-    # fig.subplots_adjust(top=0.85)
 
     # Save the combined figure if output directory is provided
     if output_dir is not None:
