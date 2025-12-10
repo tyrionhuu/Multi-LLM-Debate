@@ -5,7 +5,7 @@
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
 
-This is the implementation of the paper ["Multi-LLM Debate: Framework, Principals, and Interventions"](https://proceedings.neurips.cc/paper_files/paper/2024/hash/32e07a110c6c6acf1afbf2bf82b614ad-Abstract-Conference.html)
+This is the implementation of the paper ["Multi-Agent Debate for LLM Judges with Adaptive Stability Detection"](https://arxiv.org/abs/2510.12697)
 
 ## Prerequisites
 
